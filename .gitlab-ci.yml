@@ -1,0 +1,248 @@
+include:
+  - 'https://gitlab-templates.ddbuild.io/slack-notifier/v1/template.yml'
+
+# SETUP
+
+variables:
+  CURRENT_CI_IMAGE: "1"
+  CI_IMAGE_DOCKER: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/dd-sdk-android:$CURRENT_CI_IMAGE
+  GIT_DEPTH: 5
+
+  DD_AGENT_HOST: "$BUILDENV_HOST_IP"
+  DD_SERVICE: "dd-sdk-android"
+  DD_ENV_TESTS: "ci"
+  DD_INTEGRATION_JUNIT_5_ENABLED: "true"
+
+stages:
+  - ci-image
+  - analysis
+  - test
+  - publish
+  - notify
+
+# CI IMAGE
+
+ci-image:
+  stage: ci-image
+  when: manual
+  except: [ tags, schedules ]
+  tags: [ "runner:docker", "size:large" ]
+  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/docker:18.03.1
+  script:
+    - docker build --tag $CI_IMAGE_DOCKER -f Dockerfile.gitlab .
+    - docker push $CI_IMAGE_DOCKER
+
+# STATIC ANALYSIS
+
+analysis:ktlint:
+  tags: [ "runner:main", "size:large" ]
+  image: $CI_IMAGE_DOCKER
+  stage: analysis
+  timeout: 30m
+  script:
+    - git fetch --depth=1 origin master
+    - GRADLE_OPTS="-XX:MaxPermSize=512m -Xmx2560m" ./gradlew :ktlintCheckAll --stacktrace --no-daemon
+
+analysis:android-lint:
+  tags: [ "runner:main", "size:large" ]
+  image: $CI_IMAGE_DOCKER
+  stage: analysis
+  timeout: 30m
+  script:
+    - git fetch --depth=1 origin master
+    - GRADLE_OPTS="-XX:MaxPermSize=512m -Xmx2560m" ./gradlew :lintCheckAll --stacktrace --no-daemon
+
+analysis:detekt:
+  tags: [ "runner:main", "size:large" ]
+  image: $CI_IMAGE_DOCKER
+  stage: analysis
+  timeout: 30m
+  script:
+    - git fetch --depth=1 origin master
+    - GRADLE_OPTS="-XX:MaxPermSize=512m -Xmx2560m" ./gradlew :detektAll --stacktrace --no-daemon
+
+analysis:licenses:
+  tags: [ "runner:main", "size:large" ]
+  image: $CI_IMAGE_DOCKER
+  stage: analysis
+  timeout: 30m
+  script:
+    - git fetch --depth=1 origin master
+    - GRADLE_OPTS="-XX:MaxPermSize=512m -Xmx2560m" ./gradlew :dd-sdk-android:checkThirdPartyLicences :dd-sdk-android-timber:checkThirdPartyLicences --stacktrace --no-daemon
+
+analysis:api-surface:
+  tags: [ "runner:main", "size:large" ]
+  image: $CI_IMAGE_DOCKER
+  stage: analysis
+  timeout: 30m
+  script:
+    - git fetch --depth=1 origin master
+    - GRADLE_OPTS="-XX:MaxPermSize=512m -Xmx2560m" ./gradlew :dd-sdk-android:checkApiSurfaceChanges :dd-sdk-android-timber:checkApiSurfaceChanges --stacktrace --no-daemon
+
+# TESTS
+
+test:debug:
+  tags: [ "runner:main", "size:large" ]
+  image: $CI_IMAGE_DOCKER
+  stage: test
+  timeout: 1h
+  script:
+    - git fetch --depth=1 origin master
+    - rm -rf ~/.gradle/daemon/
+    - CODECOV_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android.codecov-token  --with-decryption --query "Parameter.Value" --out text)
+    - GRADLE_OPTS="-XX:MaxPermSize=512m -Xmx2560m" ./gradlew :unitTestDebug --stacktrace --no-daemon
+    - bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN
+
+test:release:
+  tags: [ "runner:main", "size:large" ]
+  image: $CI_IMAGE_DOCKER
+  stage: test
+  timeout: 1h
+  script:
+    - git fetch --depth=1 origin master
+    - rm -rf ~/.gradle/daemon/
+    - GRADLE_OPTS="-XX:MaxPermSize=512m -Xmx2560m" ./gradlew :unitTestRelease --stacktrace --no-daemon
+
+test:tools:
+  tags: [ "runner:main", "size:large" ]
+  image: $CI_IMAGE_DOCKER
+  stage: test
+  timeout: 1h
+  script:
+    - git fetch --depth=1 origin master
+    - rm -rf ~/.gradle/daemon/
+    - GRADLE_OPTS="-XX:MaxPermSize=512m -Xmx2560m" ./gradlew :unitTestTools --stacktrace --no-daemon
+
+# PUBLISH ARTIFACTS ON BINTRAY
+
+publish:release:
+  tags: [ "runner:main", "size:large" ]
+  only:
+    - tags
+  image: $CI_IMAGE_DOCKER
+  stage: publish
+  timeout: 30m
+  script:
+    - aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android.gradle-properties --with-decryption --query "Parameter.Value" --out text >> ./gradle.properties
+    - git fetch --depth=1 origin master
+    - ./gradlew :dd-sdk-android:bintrayUpload --stacktrace --no-daemon
+
+publish:release-coil:
+  tags: [ "runner:main", "size:large" ]
+  only:
+    - tags
+  image: $CI_IMAGE_DOCKER
+  stage: publish
+  timeout: 30m
+  script:
+    - aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android.gradle-properties --with-decryption --query "Parameter.Value" --out text >> ./gradle.properties
+    - git fetch --depth=1 origin master
+    - ./gradlew :dd-sdk-android-coil:bintrayUpload --stacktrace --no-daemon
+
+publish:release-fresco:
+  tags: [ "runner:main", "size:large" ]
+  only:
+    - tags
+  image: $CI_IMAGE_DOCKER
+  stage: publish
+  timeout: 30m
+  script:
+    - aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android.gradle-properties --with-decryption --query "Parameter.Value" --out text >> ./gradle.properties
+    - git fetch --depth=1 origin master
+    - ./gradlew :dd-sdk-android-fresco:bintrayUpload --stacktrace --no-daemon
+
+publish:release-glide:
+  tags: [ "runner:main", "size:large" ]
+  only:
+    - tags
+  image: $CI_IMAGE_DOCKER
+  stage: publish
+  timeout: 30m
+  script:
+    - aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android.gradle-properties --with-decryption --query "Parameter.Value" --out text >> ./gradle.properties
+    - git fetch --depth=1 origin master
+    - ./gradlew :dd-sdk-android-glide:bintrayUpload --stacktrace --no-daemon
+
+publish:release-ktx:
+  tags: [ "runner:main", "size:large" ]
+  only:
+    - tags
+  image: $CI_IMAGE_DOCKER
+  stage: publish
+  timeout: 30m
+  script:
+    - aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android.gradle-properties --with-decryption --query "Parameter.Value" --out text >> ./gradle.properties
+    - git fetch --depth=1 origin master
+    - ./gradlew :dd-sdk-android-ktx:bintrayUpload --stacktrace --no-daemon
+
+publish:release-ndk:
+  tags: [ "runner:main", "size:large" ]
+  only:
+    - tags
+  image: $CI_IMAGE_DOCKER
+  stage: publish
+  timeout: 30m
+  script:
+    - aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android.gradle-properties --with-decryption --query "Parameter.Value" --out text >> ./gradle.properties
+    - git fetch --depth=1 origin master
+    - ./gradlew :dd-sdk-android-ndk:bintrayUpload --stacktrace --no-daemon
+
+publish:release-rx:
+  tags: [ "runner:main", "size:large" ]
+  only:
+    - tags
+  image: $CI_IMAGE_DOCKER
+  stage: publish
+  timeout: 30m
+  script:
+    - aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android.gradle-properties --with-decryption --query "Parameter.Value" --out text >> ./gradle.properties
+    - git fetch --depth=1 origin master
+    - ./gradlew :dd-sdk-android-rx:bintrayUpload --stacktrace --no-daemon
+
+publish:release-sqldelight:
+  tags: [ "runner:main", "size:large" ]
+  only:
+    - tags
+  image: $CI_IMAGE_DOCKER
+  stage: publish
+  timeout: 30m
+  script:
+    - aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android.gradle-properties --with-decryption --query "Parameter.Value" --out text >> ./gradle.properties
+    - git fetch --depth=1 origin master
+    - ./gradlew :dd-sdk-android-sqldelight:bintrayUpload --stacktrace --no-daemon
+
+publish:release-timber:
+  tags: [ "runner:main", "size:large" ]
+  only:
+    - tags
+  image: $CI_IMAGE_DOCKER
+  stage: publish
+  timeout: 30m
+  script:
+    - aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android.gradle-properties --with-decryption --query "Parameter.Value" --out text >> ./gradle.properties
+    - git fetch --depth=1 origin master
+    - ./gradlew :dd-sdk-android-timber:bintrayUpload --stacktrace --no-daemon
+
+# SLACK NOTIFICATIONS
+
+notify:release:
+  extends: .slack-notifier-base
+  stage: notify
+  when: on_success
+  only:
+    - tags
+  script:
+    - BINTRAY_URL="https://bintray.com/datadog/datadog-maven/dd-sdk-android/$CI_COMMIT_TAG"
+    - 'MESSAGE_TEXT=":package: $CI_PROJECT_NAME $CI_COMMIT_TAG published on :bintray: $BINTRAY_URL"'
+    - postmessage "#mobile-rum" "$MESSAGE_TEXT"
+
+notify:failure:
+  extends: .slack-notifier-base
+  stage: notify
+  when: on_failure
+  only:
+    - tags
+  script:
+    - BUILD_URL="$CI_PROJECT_URL/pipelines/$CI_PIPELINE_ID"
+    - 'MESSAGE_TEXT=":status_alert: $CI_PROJECT_NAME $CI_COMMIT_TAG publish pipeline <$BUILD_URL|$COMMIT_MESSAGE> failed."'
+    - postmessage "#mobile-rum" "$MESSAGE_TEXT"
