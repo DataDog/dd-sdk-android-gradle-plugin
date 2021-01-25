@@ -11,6 +11,7 @@ import com.android.build.gradle.api.ApplicationVariant
 import java.io.File
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.slf4j.LoggerFactory
 
 /**
@@ -45,14 +46,20 @@ class DdAndroidGradlePlugin : Plugin<Project> {
     // region Internal
 
     @Suppress("DefaultLocale")
-    private fun configureVariant(
+    internal fun configureVariant(
         target: Project,
         variant: ApplicationVariant,
         apiKey: String,
         extension: DdExtension
-    ) {
-        val flavorName = variant.name.removeSuffix("Release")
-        val uploadTaskName = UPLOAD_TASK_NAME + flavorName.capitalize()
+    ) : Task {
+        val flavorName = if (variant.name.endsWith(SUFFIX_DEBUG)) {
+            variant.name.removeSuffix(SUFFIX_DEBUG)
+        } else if (variant.name.endsWith(SUFFIX_RELEASE)) {
+            variant.name.removeSuffix(SUFFIX_RELEASE)
+        } else  {
+            variant.name
+        }
+        val uploadTaskName = UPLOAD_TASK_NAME + variant.name.capitalize()
 
         val uploadTask = target.tasks.create(
             uploadTaskName,
@@ -62,13 +69,15 @@ class DdAndroidGradlePlugin : Plugin<Project> {
         uploadTask.site = extension.site
         uploadTask.envName = extension.environmentName
         uploadTask.variantName = flavorName
-        uploadTask.versionName = variant.versionName
-        uploadTask.serviceName = variant.applicationId
+        uploadTask.versionName = extension.versionName ?: variant.versionName
+        uploadTask.serviceName = extension.serviceName ?: variant.applicationId
 
         val outputsDir = File(target.buildDir, "outputs")
         val mappingDir = File(outputsDir, "mapping")
         val flavorDir = File(mappingDir, variant.name)
         uploadTask.mappingFilePath = File(flavorDir, "mapping.txt").path
+
+        return uploadTask
     }
 
     // endregion
@@ -76,6 +85,9 @@ class DdAndroidGradlePlugin : Plugin<Project> {
     companion object {
 
         internal val LOGGER = LoggerFactory.getLogger("DdAndroidGradlePlugin")
+
+        private const val SUFFIX_DEBUG = "Debug"
+        private const val SUFFIX_RELEASE = "Release"
 
         private const val EXT_NAME = "datadog"
 
