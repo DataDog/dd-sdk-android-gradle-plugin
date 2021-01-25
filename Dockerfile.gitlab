@@ -59,8 +59,6 @@ RUN \
     echo y | android-sdk-linux/tools/bin/sdkmanager "platforms;android-${ANDROID_COMPILE_SDK}" >/dev/null && \
     echo y | android-sdk-linux/tools/bin/sdkmanager "platform-tools" >/dev/null && \
     echo y | android-sdk-linux/tools/bin/sdkmanager "build-tools;${ANDROID_BUILD_TOOLS}" >/dev/null && \
-    echo y | android-sdk-linux/tools/bin/sdkmanager --install "ndk;${NDK_VERSION}" >/dev/null && \
-    echo y | android-sdk-linux/tools/bin/sdkmanager --install "cmake;${CMAKE_VERSION}" >/dev/null && \
     yes | android-sdk-linux/tools/bin/sdkmanager --licenses
 
 RUN set -x \
@@ -72,7 +70,6 @@ RUN set -x \
 ENV ANDROID_SDK_ROOT $PWD/android-sdk-linux
 ENV ANDROID_HOME $PWD/android-sdk-linux
 ENV GRADLE_HOME /usr/local/gradle-${GRADLE_VERSION}
-ENV ANDROID_NDK $ANDROID_SDK_ROOT/ndk/${NDK_VERSION}
 ENV PATH $PATH:$GRADLE_HOME/bin
 ENV PATH $PATH:$ANDROID_HOME/platform-tools
 ENV PATH $PATH:$ANDROID_SDK_ROOT/build-tools/${ANDROID_BUILD_TOOLS}:$ANDROID_NDK
