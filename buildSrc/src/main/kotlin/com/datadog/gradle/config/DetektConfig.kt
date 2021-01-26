@@ -6,10 +6,8 @@
 
 package com.datadog.gradle.config
 
-import io.gitlab.arturbosch.detekt.Detekt
 import io.gitlab.arturbosch.detekt.extensions.DetektExtension
 import org.gradle.api.Project
-import org.gradle.kotlin.dsl.withType
 
 fun Project.detektConfig() {
 
