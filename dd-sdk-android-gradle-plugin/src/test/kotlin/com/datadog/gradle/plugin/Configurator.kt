@@ -14,5 +14,6 @@ internal class Configurator : ForgeConfigurator {
     override fun configure(forge: Forge) {
         forge.addFactory(IdentifierForgeryFactory())
         forge.addFactory(ConfigurationForgeryFactory())
+        forge.addFactory(ExtensionForgeryFactory())
     }
 }
