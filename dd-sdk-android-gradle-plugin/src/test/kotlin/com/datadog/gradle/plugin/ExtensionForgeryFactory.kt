@@ -6,7 +6,6 @@
 
 package com.datadog.gradle.plugin
 
-import com.datadog.gradle.plugin.internal.DdAppIdentifier
 import fr.xgouchet.elmyr.Forge
 import fr.xgouchet.elmyr.ForgeryFactory
 

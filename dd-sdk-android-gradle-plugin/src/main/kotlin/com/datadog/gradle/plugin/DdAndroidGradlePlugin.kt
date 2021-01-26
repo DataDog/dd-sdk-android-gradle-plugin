@@ -9,6 +9,7 @@ package com.datadog.gradle.plugin
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.api.ApplicationVariant
 import java.io.File
+import java.lang.IllegalStateException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -30,7 +31,7 @@ class DdAndroidGradlePlugin : Plugin<Project> {
         }
 
         val extension = target.extensions.create(EXT_NAME, DdExtension::class.java)
-        val apiKey = target.findProperty("DD_API_KEY")?.toString().orEmpty()
+        val apiKey = resolveApiKey(target)
 
         target.afterEvaluate {
             androidExtension.applicationVariants.forEach {
@@ -45,18 +46,31 @@ class DdAndroidGradlePlugin : Plugin<Project> {
 
     // region Internal
 
+    internal fun resolveApiKey(target: Project): String {
+        val propertyKey = target.findProperty(DD_API_KEY)?.toString()
+        if (!propertyKey.isNullOrBlank()) return propertyKey
+
+        val environmentKey = System.getenv(DD_API_KEY)
+        if (!environmentKey.isNullOrBlank()) return environmentKey
+
+        throw IllegalStateException(
+            "Make sure you define an API KEY to upload your mapping files to Datadog. " +
+                "Create a DD_API_KEY environment variable or gradle property."
+        )
+    }
+
     @Suppress("DefaultLocale")
     internal fun configureVariant(
         target: Project,
         variant: ApplicationVariant,
         apiKey: String,
         extension: DdExtension
-    ) : Task {
+    ): Task {
         val flavorName = if (variant.name.endsWith(SUFFIX_DEBUG)) {
             variant.name.removeSuffix(SUFFIX_DEBUG)
         } else if (variant.name.endsWith(SUFFIX_RELEASE)) {
             variant.name.removeSuffix(SUFFIX_RELEASE)
-        } else  {
+        } else {
             variant.name
         }
         val uploadTaskName = UPLOAD_TASK_NAME + variant.name.capitalize()
@@ -83,6 +97,8 @@ class DdAndroidGradlePlugin : Plugin<Project> {
     // endregion
 
     companion object {
+
+        const val DD_API_KEY = "DD_API_KEY"
 
         internal val LOGGER = LoggerFactory.getLogger("DdAndroidGradlePlugin")
 

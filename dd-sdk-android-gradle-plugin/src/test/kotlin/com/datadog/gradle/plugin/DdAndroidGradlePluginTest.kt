@@ -2,20 +2,20 @@ package com.datadog.gradle.plugin
 
 import com.android.build.gradle.api.ApplicationVariant
 import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.eq
+import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.whenever
 import fr.xgouchet.elmyr.annotation.Forgery
 import fr.xgouchet.elmyr.annotation.StringForgery
 import fr.xgouchet.elmyr.annotation.StringForgeryType
 import fr.xgouchet.elmyr.junit5.ForgeConfiguration
 import fr.xgouchet.elmyr.junit5.ForgeExtension
+import java.lang.IllegalStateException
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.Project
-import org.gradle.api.tasks.TaskContainer
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.extension.Extensions
 import org.mockito.Mock
@@ -51,6 +51,8 @@ internal class DdAndroidGradlePluginTest {
         testedPlugin = DdAndroidGradlePlugin()
     }
 
+    // region configureVariant()
+
     @Test
     fun `𝕄 configure the upload task with the variant info 𝕎 configureVariant()`(
         @StringForgery variantName: String,
@@ -83,7 +85,6 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.site).isEqualTo(fakeExtension.site)
         assertThat(task.mappingFilePath).isEqualTo("${fakeProject.buildDir}/outputs/mapping/$variantName/mapping.txt")
     }
-
 
     @Test
     fun `𝕄 remove buildType 𝕎 configureVariant() {Debug variant}`(
@@ -119,7 +120,6 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.mappingFilePath).isEqualTo("${fakeProject.buildDir}/outputs/mapping/$fullVariant/mapping.txt")
     }
 
-
     @Test
     fun `𝕄 remove buildType 𝕎 configureVariant() {Release variant}`(
         @StringForgery variantName: String,
@@ -153,6 +153,7 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.site).isEqualTo(fakeExtension.site)
         assertThat(task.mappingFilePath).isEqualTo("${fakeProject.buildDir}/outputs/mapping/$fullVariant/mapping.txt")
     }
+
     @Test
     fun `𝕄 configure the upload task with the extension info 𝕎 configureVariant()`(
         @StringForgery variantName: String,
@@ -183,4 +184,42 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.site).isEqualTo(fakeExtension.site)
         assertThat(task.mappingFilePath).isEqualTo("${fakeProject.buildDir}/outputs/mapping/$variantName/mapping.txt")
     }
+
+    // endregion
+
+    // region resolveApiKey
+
+    @Test
+    fun `𝕄 resolve API KEY from project properties 𝕎 resolveApiKey()`() {
+        // Given
+        fakeProject = mock()
+        whenever(fakeProject.findProperty(DdAndroidGradlePlugin.DD_API_KEY)) doReturn fakeApiKey
+
+        // When
+        val apiKey = testedPlugin.resolveApiKey(fakeProject)
+
+        // Then
+        assertThat(apiKey).isEqualTo(fakeApiKey)
+    }
+
+    @Test
+    fun `𝕄 resolve API KEY from environment variable 𝕎 resolveApiKey()`() {
+        // Given
+        setEnv(DdAndroidGradlePlugin.DD_API_KEY, fakeApiKey)
+
+        // When
+        val apiKey = testedPlugin.resolveApiKey(fakeProject)
+
+        // Then
+        assertThat(apiKey).isEqualTo(fakeApiKey)
+    }
+
+    @Test
+    fun `𝕄 throw exception 𝕎 resolveApiKey() {key not defined anywhere}`() {
+        assertThrows<IllegalStateException> {
+            testedPlugin.resolveApiKey(fakeProject)
+        }
+    }
+
+    // endregion
 }
