@@ -1,6 +1,7 @@
 package com.datadog.gradle.plugin
 
 import com.android.build.gradle.api.ApplicationVariant
+import com.datadog.gradle.plugin.internal.DdConfiguration
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.whenever
@@ -47,7 +48,6 @@ internal class DdAndroidGradlePluginTest {
     @BeforeEach
     fun `set up`() {
         fakeProject = ProjectBuilder.builder().build()
-
         testedPlugin = DdAndroidGradlePlugin()
     }
 
@@ -83,7 +83,8 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.serviceName).isEqualTo(packageName)
         assertThat(task.envName).isEqualTo(fakeExtension.environmentName)
         assertThat(task.site).isEqualTo(fakeExtension.site)
-        assertThat(task.mappingFilePath).isEqualTo("${fakeProject.buildDir}/outputs/mapping/$variantName/mapping.txt")
+        assertThat(task.mappingFilePath)
+            .isEqualTo("${fakeProject.buildDir}/outputs/mapping/$variantName/mapping.txt")
     }
 
     @Test
@@ -117,7 +118,8 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.serviceName).isEqualTo(packageName)
         assertThat(task.envName).isEqualTo(fakeExtension.environmentName)
         assertThat(task.site).isEqualTo(fakeExtension.site)
-        assertThat(task.mappingFilePath).isEqualTo("${fakeProject.buildDir}/outputs/mapping/$fullVariant/mapping.txt")
+        assertThat(task.mappingFilePath)
+            .isEqualTo("${fakeProject.buildDir}/outputs/mapping/$fullVariant/mapping.txt")
     }
 
     @Test
@@ -151,7 +153,8 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.serviceName).isEqualTo(packageName)
         assertThat(task.envName).isEqualTo(fakeExtension.environmentName)
         assertThat(task.site).isEqualTo(fakeExtension.site)
-        assertThat(task.mappingFilePath).isEqualTo("${fakeProject.buildDir}/outputs/mapping/$fullVariant/mapping.txt")
+        assertThat(task.mappingFilePath)
+            .isEqualTo("${fakeProject.buildDir}/outputs/mapping/$fullVariant/mapping.txt")
     }
 
     @Test
@@ -182,7 +185,32 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.serviceName).isEqualTo(fakeExtension.serviceName)
         assertThat(task.envName).isEqualTo(fakeExtension.environmentName)
         assertThat(task.site).isEqualTo(fakeExtension.site)
-        assertThat(task.mappingFilePath).isEqualTo("${fakeProject.buildDir}/outputs/mapping/$variantName/mapping.txt")
+        assertThat(task.mappingFilePath)
+            .isEqualTo("${fakeProject.buildDir}/outputs/mapping/$variantName/mapping.txt")
+    }
+
+    @Test
+    fun `𝕄 use sensible defaults 𝕎 configureVariant() { empty config }`(
+        @StringForgery variantName: String,
+        @StringForgery versionName: String,
+        @StringForgery packageName: String
+    ) {
+        // Given
+        fakeExtension.environmentName = null
+        fakeExtension.serviceName = null
+        fakeExtension.versionName = null
+        fakeExtension.site = null
+        whenever(mockVariant.name) doReturn variantName
+        whenever(mockVariant.versionName) doReturn versionName
+        whenever(mockVariant.applicationId) doReturn packageName
+
+        // When
+        val task = testedPlugin.configureVariant(
+            fakeProject,
+            mockVariant,
+            fakeApiKey,
+            fakeExtension
+        )
     }
 
     // endregion
@@ -219,6 +247,126 @@ internal class DdAndroidGradlePluginTest {
         assertThrows<IllegalStateException> {
             testedPlugin.resolveApiKey(fakeProject)
         }
+    }
+
+    // endregion
+
+    // region resolveExtensionConfiguration
+
+    @Test
+    fun `𝕄 return default configuration 𝕎 resolveExtensionConfiguration() { no variant config }`(
+        @StringForgery flavorName: String
+    ) {
+        // When
+        val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, flavorName)
+
+        // Then
+        assertThat(config.environmentName).isEqualTo(fakeExtension.environmentName)
+        assertThat(config.versionName).isEqualTo(fakeExtension.versionName)
+        assertThat(config.serviceName).isEqualTo(fakeExtension.serviceName)
+        assertThat(config.site).isEqualTo(fakeExtension.site)
+    }
+
+    @Test
+    fun `𝕄 return configuration 𝕎 resolveExtensionConfiguration() { variant config }`(
+        @StringForgery flavorName: String,
+        @Forgery variantConfig: DdExtensionConfiguration
+    ) {
+        fakeExtension.variants = mock()
+        whenever(fakeExtension.variants?.findByName(flavorName)) doReturn variantConfig
+
+        // When
+        val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, flavorName)
+
+        // Then
+        assertThat(config.environmentName).isEqualTo(variantConfig.environmentName)
+        assertThat(config.versionName).isEqualTo(variantConfig.versionName)
+        assertThat(config.serviceName).isEqualTo(variantConfig.serviceName)
+        assertThat(config.site).isEqualTo(variantConfig.site)
+    }
+
+    @Test
+    fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { variant w env only }`(
+        @StringForgery flavorName: String,
+        @StringForgery envName: String
+    ) {
+        val incompleteConfig = DdExtensionConfiguration().apply {
+            environmentName = envName
+        }
+        fakeExtension.variants = mock()
+        whenever(fakeExtension.variants?.findByName(flavorName)) doReturn incompleteConfig
+
+        // When
+        val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, flavorName)
+
+        // Then
+        assertThat(config.environmentName).isEqualTo(envName)
+        assertThat(config.versionName).isEqualTo(fakeExtension.versionName)
+        assertThat(config.serviceName).isEqualTo(fakeExtension.serviceName)
+        assertThat(config.site).isEqualTo(fakeExtension.site)
+    }
+
+    @Test
+    fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { variant w version only }`(
+        @StringForgery flavorName: String,
+        @StringForgery versionName: String
+    ) {
+        val incompleteConfig = DdExtensionConfiguration().apply {
+            this.versionName = versionName
+        }
+        fakeExtension.variants = mock()
+        whenever(fakeExtension.variants?.findByName(flavorName)) doReturn incompleteConfig
+
+        // When
+        val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, flavorName)
+
+        // Then
+        assertThat(config.environmentName).isEqualTo(fakeExtension.environmentName)
+        assertThat(config.versionName).isEqualTo(versionName)
+        assertThat(config.serviceName).isEqualTo(fakeExtension.serviceName)
+        assertThat(config.site).isEqualTo(fakeExtension.site)
+    }
+
+    @Test
+    fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { variant w service only }`(
+        @StringForgery flavorName: String,
+        @StringForgery serviceName: String
+    ) {
+        val incompleteConfig = DdExtensionConfiguration().apply {
+            this.serviceName = serviceName
+        }
+        fakeExtension.variants = mock()
+        whenever(fakeExtension.variants?.findByName(flavorName)) doReturn incompleteConfig
+
+        // When
+        val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, flavorName)
+
+        // Then
+        assertThat(config.environmentName).isEqualTo(fakeExtension.environmentName)
+        assertThat(config.versionName).isEqualTo(fakeExtension.versionName)
+        assertThat(config.serviceName).isEqualTo(serviceName)
+        assertThat(config.site).isEqualTo(fakeExtension.site)
+    }
+
+    @Test
+    fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { variant w site only }`(
+        @StringForgery flavorName: String,
+        @Forgery site: DdConfiguration.Site
+    ) {
+        val incompleteConfig = DdExtensionConfiguration().apply {
+            this.site = site.name
+        }
+        fakeExtension.variants = mock()
+        whenever(fakeExtension.variants?.findByName(flavorName)) doReturn incompleteConfig
+
+        // When
+        val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, flavorName)
+
+        // Then
+        assertThat(config.environmentName).isEqualTo(fakeExtension.environmentName)
+        assertThat(config.versionName).isEqualTo(fakeExtension.versionName)
+        assertThat(config.serviceName).isEqualTo(fakeExtension.serviceName)
+        assertThat(config.site).isEqualTo(site.name)
     }
 
     // endregion

@@ -6,35 +6,23 @@
 
 package com.datadog.gradle.plugin
 
-import com.datadog.gradle.plugin.internal.DdConfiguration
-import java.io.Serializable
+import groovy.lang.Closure
+import org.gradle.api.NamedDomainObjectContainer
 
 /**
  * Extension used to configure the `dd-android-gradle-plugin`.
  */
-open class DdExtension : Serializable {
+open class DdExtension : DdExtensionConfiguration() {
 
     /**
-     * The environment name for the application.
+     * Container for the variant's configurations.
      */
-    var environmentName: String = ""
+    var variants: NamedDomainObjectContainer<DdExtensionConfiguration>? = null
 
     /**
-     * The environment name for the application.
-     * By default (null) it will read the version name of your application from your gradle
-     * configuration.
+     * Closure method to create a DSL for variant configurations.
      */
-    var versionName: String? = null
-
-    /**
-     * The service name for the application.
-     * By default (null) it will read the package name of your application from your gradle
-     * configuration.
-     */
-    var serviceName: String? = null
-
-    /**
-     * The Datadog site to upload your data to (one of "US", "EU", "GOV").
-     */
-    var site: String = DdConfiguration.Site.US.name
+    fun variants(configureClosure: Closure<DdExtensionConfiguration>) {
+        variants?.configure(configureClosure)
+    }
 }

@@ -126,6 +126,23 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
+    fun `𝕄 throw error 𝕎 applyTask() {no env name}`() {
+        // Given
+        val fakeFile = File(tempDir, "mapping.txt")
+        fakeFile.writeText("")
+        testedTask.mappingFilePath = fakeFile.path
+        testedTask.envName = ""
+
+        // When
+        assertThrows<IllegalStateException> {
+            testedTask.applyTask()
+        }
+
+        // Then
+        verifyZeroInteractions(mockUploader)
+    }
+
+    @Test
     fun `𝕄 throw error 𝕎 applyTask() {invalid site}`(
         @StringForgery siteName: String
     ) {
@@ -144,6 +161,33 @@ internal class DdMappingFileUploadTaskTest {
 
         // Then
         verifyZeroInteractions(mockUploader)
+    }
+
+    @Test
+    fun `𝕄 upload to US 𝕎 applyTask() {missing site}`(
+        @StringForgery siteName: String
+    ) {
+        // Given
+        val fakeFile = File(tempDir, "mapping.txt")
+        fakeFile.writeText("")
+        testedTask.mappingFilePath = fakeFile.path
+        testedTask.site = ""
+        val expectedUrl = DdConfiguration(DdConfiguration.Site.US, fakeApiKey).buildUrl()
+
+        // When
+        testedTask.applyTask()
+
+        // Then
+        verify(mockUploader).upload(
+            expectedUrl,
+            fakeFile,
+            DdAppIdentifier(
+                serviceName = fakeService,
+                envName = fakeEnv,
+                version = fakeVersion,
+                variant = fakeVariant
+            )
+        )
     }
 
     @Test
