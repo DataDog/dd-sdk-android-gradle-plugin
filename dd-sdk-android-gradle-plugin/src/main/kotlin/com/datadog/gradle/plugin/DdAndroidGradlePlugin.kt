@@ -35,9 +35,7 @@ class DdAndroidGradlePlugin : Plugin<Project> {
 
         target.afterEvaluate {
             androidExtension.applicationVariants.forEach {
-                if (it.name.endsWith("Release")) {
-                    configureVariant(target, it, apiKey, extension)
-                }
+                configureVariant(target, it, apiKey, extension)
             }
         }
     }
@@ -55,7 +53,7 @@ class DdAndroidGradlePlugin : Plugin<Project> {
 
         throw IllegalStateException(
             "Make sure you define an API KEY to upload your mapping files to Datadog. " +
-                "Create a DD_API_KEY environment variable or gradle property."
+                    "Create a DD_API_KEY environment variable or gradle property."
         )
     }
 

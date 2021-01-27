@@ -13,7 +13,6 @@ import com.datadog.gradle.config.junitConfig
 import com.datadog.gradle.config.kotlinConfig
 import com.datadog.gradle.config.ktLintConfig
 import com.datadog.gradle.config.publishingConfig
-import com.datadog.gradle.implementation
 import com.datadog.gradle.testImplementation
 
 plugins {
@@ -50,14 +49,14 @@ ktLintConfig()
 junitConfig()
 javadocConfig()
 dependencyUpdateConfig()
-publishingConfig("${rootDir.canonicalPath}/repo", false)
+publishingConfig()
 bintrayConfig()
 
 gradlePlugin {
     plugins {
         register("dd-sdk-android-gradle-plugin") {
             id = "dd-sdk-android-gradle-plugin" // the alias
-            implementationClass = "com.datadog.android.gradle.DdAndroidGradlePlugin"
+            implementationClass = "com.datadog.gradle.plugin.DdAndroidGradlePlugin"
         }
     }
 }
