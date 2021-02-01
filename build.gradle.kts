@@ -10,6 +10,7 @@ buildscript {
         mavenCentral()
         maven { setUrl(com.datadog.gradle.Dependencies.Repositories.Gradle) }
         jcenter()
+        mavenLocal()
     }
 
     dependencies {
@@ -18,6 +19,8 @@ buildscript {
         classpath(com.datadog.gradle.Dependencies.ClassPaths.KtLint)
         classpath(com.datadog.gradle.Dependencies.ClassPaths.Dokka)
         classpath(com.datadog.gradle.Dependencies.ClassPaths.Bintray)
+        // Uncomment to use the samples
+        // classpath("com.datadoghq:dd-sdk-android-gradle-plugin:1.0.0-alpha1")
     }
 }
 

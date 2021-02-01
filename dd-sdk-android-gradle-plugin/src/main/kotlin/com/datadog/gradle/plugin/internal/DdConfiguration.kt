@@ -17,6 +17,10 @@ internal data class DdConfiguration(
     internal enum class Site(val host: String) {
         US("datadoghq.com"),
         EU("datadoghq.eu"),
-        GOV("ddog-gov.com")
+        GOV("ddog-gov.com");
+
+        companion object {
+            internal val validIds = values().map { it.name }
+        }
     }
 }

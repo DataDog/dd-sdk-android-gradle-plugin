@@ -31,13 +31,12 @@ class DdAndroidGradlePlugin : Plugin<Project> {
         }
 
         val extension = target.extensions.create(EXT_NAME, DdExtension::class.java)
+        extension.variants = target.container(DdExtensionConfiguration::class.java)
         val apiKey = resolveApiKey(target)
 
         target.afterEvaluate {
             androidExtension.applicationVariants.forEach {
-                if (it.name.endsWith("Release")) {
-                    configureVariant(target, it, apiKey, extension)
-                }
+                configureVariant(target, it, apiKey, extension)
             }
         }
     }
@@ -74,17 +73,10 @@ class DdAndroidGradlePlugin : Plugin<Project> {
             variant.name
         }
         val uploadTaskName = UPLOAD_TASK_NAME + variant.name.capitalize()
+        val uploadTask = target.tasks.create(uploadTaskName, DdMappingFileUploadTask::class.java)
+        val extensionConfiguration = resolveExtensionConfiguration(extension, flavorName)
 
-        val uploadTask = target.tasks.create(
-            uploadTaskName,
-            DdMappingFileUploadTask::class.java
-        )
-        uploadTask.apiKey = apiKey
-        uploadTask.site = extension.site
-        uploadTask.envName = extension.environmentName
-        uploadTask.variantName = flavorName
-        uploadTask.versionName = extension.versionName ?: variant.versionName
-        uploadTask.serviceName = extension.serviceName ?: variant.applicationId
+        configureVariantTask(uploadTask, apiKey, flavorName, extensionConfiguration, variant)
 
         val outputsDir = File(target.buildDir, "outputs")
         val mappingDir = File(outputsDir, "mapping")
@@ -94,11 +86,41 @@ class DdAndroidGradlePlugin : Plugin<Project> {
         return uploadTask
     }
 
+    private fun configureVariantTask(
+        uploadTask: DdMappingFileUploadTask,
+        apiKey: String,
+        flavorName: String,
+        extensionConfiguration: DdExtensionConfiguration,
+        variant: ApplicationVariant
+    ) {
+        uploadTask.apiKey = apiKey
+        uploadTask.variantName = flavorName
+
+        uploadTask.envName = extensionConfiguration.environmentName ?: ""
+        uploadTask.site = extensionConfiguration.site ?: ""
+        uploadTask.versionName = extensionConfiguration.versionName ?: variant.versionName
+        uploadTask.serviceName = extensionConfiguration.serviceName ?: variant.applicationId
+    }
+
+    internal fun resolveExtensionConfiguration(
+        extension: DdExtension,
+        flavorName: String
+    ): DdExtensionConfiguration {
+        val flavorConfig = extension.variants?.findByName(flavorName)
+
+        return DdExtensionConfiguration().apply {
+            environmentName = flavorConfig?.environmentName ?: extension.environmentName
+            versionName = flavorConfig?.versionName ?: extension.versionName
+            serviceName = flavorConfig?.serviceName ?: extension.serviceName
+            site = flavorConfig?.site ?: extension.site
+        }
+    }
+
     // endregion
 
     companion object {
 
-        const val DD_API_KEY = "DD_API_KEY"
+        internal const val DD_API_KEY = "DD_API_KEY"
 
         internal val LOGGER = LoggerFactory.getLogger("DdAndroidGradlePlugin")
 

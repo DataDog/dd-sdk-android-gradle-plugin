@@ -65,25 +65,9 @@ dependencies {
 
 gradlePlugin {
     plugins {
-        register("reviewBenchmark") {
-            id = "reviewBenchmark" // the alias
-            implementationClass = "com.datadog.gradle.plugin.benchmark.ReviewBenchmarkPlugin"
-        }
         register("thirdPartyLicences") {
             id = "thirdPartyLicences" // the alias
             implementationClass = "com.datadog.gradle.plugin.checklicenses.ThirdPartyLicensesPlugin"
-        }
-        register("apiSurface") {
-            id = "apiSurface" // the alias
-            implementationClass = "com.datadog.gradle.plugin.apisurface.ApiSurfacePlugin"
-        }
-        register("cloneDependencies") {
-            id = "cloneDependencies" // the alias
-            implementationClass = "com.datadog.gradle.plugin.gitclone.GitCloneDependenciesPlugin"
-        }
-        register("jsonschema2poko") {
-            id = "jsonschema2poko" // the alias
-            implementationClass = "com.datadog.gradle.plugin.jsonschema.JsonSchemaPlugin"
         }
         register("transitiveDependencies") {
             id = "transitiveDependencies" // the alias

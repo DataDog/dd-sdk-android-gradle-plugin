@@ -113,11 +113,20 @@ open class DdMappingFileUploadTask : DefaultTask() {
 
     @Suppress("CheckInternal")
     private fun validateConfiguration() {
-        check(apiKey.isNotBlank()) { "You need to provide a valid client token" }
+        check(apiKey.isNotBlank()) {
+            "You need to provide a valid client token for variant $variantName"
+        }
+        check(envName.isNotBlank()) {
+            "You need to provide a valid environment name for variant $variantName"
+        }
 
-        val validSiteIds = DdConfiguration.Site.values().map { it.name }
-        check(site in validSiteIds) {
-            "You need to provide a valid site (one of ${validSiteIds.joinToString()})"
+        if (site.isBlank()) {
+            site = DdConfiguration.Site.US.name
+        } else {
+            val validSiteIds = DdConfiguration.Site.validIds
+            check(site in validSiteIds) {
+                "You need to provide a valid site (one of ${validSiteIds.joinToString()})"
+            }
         }
     }
 
