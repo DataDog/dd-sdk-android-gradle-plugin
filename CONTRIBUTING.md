@@ -11,28 +11,12 @@ To setup your enviroment, make sure you installed [Android Studio](https://devel
 
 **Note**: you can also compile and develop using only the Android SDK and your IDE of choice, e.g.: IntelliJ Idea, Vim, etc.
 
-### Modules
+### Building the Plugin
 
-This project hosts the following modules:
-
-  - `dd-sdk-android`: the main library implementing all Datadog features (Logs, Traces, RUM, Crash reports);
-  - `dd-sdk-android-ktx`: a set of Kotlin extensions to make the `dd-sdk-android` library more Kotlin friendly;
-  - `dd-sdk-android-ndk`: a Plugin to allow tracking NDK information;
-  - `dd-sdk-android-glide`: a lightweight library providing a bridge integration between `dd-sdk-android` and [Glide](https://bumptech.github.io/glide/);
-  - `dd-sdk-android-timber`: a lightweight library providing a bridge integration between `dd-sdk-android` and [Timber](https://github.com/JakeWharton/timber);
-  - `instrumented/benchmark`: a test module to verify the performance of the library;
-  - `instrumented/integration`: a test module with integration tests using Espresso;
-  - `tools/detekt`: a few custom [Detekt](https://github.com/arturbosch/detekt) static analysis rules;
-  - `tools/noopfactory`: an annotation processor generating no-op implementation of interfaces;
-  - `tools/unit`: a utility library with code to help writing unit tests;
-  - `sample/***`: a few sample application showcasing how to use the library features in production code;
-
-### Building the SDK
-
-You can build the SDK using the following Gradle command:
+You can build the Gradle Plugin using the following Gradle command:
 
 ```shell script
-./gradlew assembleAll
+./gradlew :dd-sdk-android-gradle-plugin:assemble
 ```
 
 ### Running the tests
@@ -40,23 +24,18 @@ You can build the SDK using the following Gradle command:
 The whole project is covered by a set of static analysis tools, linters and tests, each triggered by a custom global Gradle task, as follows:
 
 ```shell script
-# launches the debug and release unit tests for all modules 
-./gradlew unitTestAll
+# launches the unit tests
+./gradlew :dd-sdk-android-gradle-plugin:test
 
-# launches the instrumented tests for all modules
-./gradlew instrumentTestAll
+# launches the detekt static analysis
+./gradlew :dd-sdk-android-gradle-plugin:detekt
 
-# launches the detekt static analysis for all modules
-./gradlew detektAll
+# launches the ktlint format check
+./gradlew :dd-sdk-android-gradle-plugin:ktlintCheck
 
-# launches the ktlint format check for all modules
-./gradlew ktlintCheckAll
-
-# launches the Android linter for all modules
-./gradlew lintCheckAll
 
 # launches all the tests described above
-./gradlew checkAll
+./gradlew :dd-sdk-android-gradle-plugin:check
 ```
 
 ## Submitting Issues
@@ -64,7 +43,7 @@ The whole project is covered by a set of static analysis tools, linters and test
 Many great ideas for new features come from the community, and we'd be happy to
 consider yours!
 
-To share your request, you can open an [issue](https://github.com/DataDog/dd-sdk-android/issues/new) 
+To share your request, you can open an [issue](https://github.com/DataDog/dd-sdk-android-gradle-plugin/issues/new?labels=enhancement&template=feature_request.md) 
 with the details about what you'd like to see. At a minimum, please provide:
 
  - The goal of the new feature;
@@ -79,7 +58,7 @@ or UI, contact our support team via https://docs.datadoghq.com/help/ for direct,
 faster assistance.
 
 You may submit bug reports concerning the Datadog SDK for Android by 
-[opening a Github issue](https://github.com/DataDog/dd-sdk-android/issues/new).
+[opening a Github issue](https://github.com/DataDog/dd-sdk-android-gradle-plugin/issues/new?labels=bug&template=bug_report.md).
 At a minimum, please provide:
 
  - A description of the problem;
@@ -88,6 +67,7 @@ At a minimum, please provide:
  - Actual behavior;
  - Errors (with stack traces) or warnings received;
  - Any details you can share about your configuration including:
+    - Gradle Version;
     - Android API level;
     - Datadog SDK version;
     - Versions of any other relevant dependencies (OkHttp, …);
@@ -107,20 +87,19 @@ the bug are best.
 ## Have a patch?
 
 We welcome code contributions to the library, which you can 
-[submit as a pull request](https://github.com/DataDog/dd-sdk-android/pull/new/master).
+[submit as a pull request](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/new/master).
 Before you submit a PR, make sure that you first create an Issue to explain the
 bug or the feature your patch covers, and make sure another Issue or PR doesn't
 already exist.
 
 To create a pull request:
 
-1. **Fork the repository** from https://github.com/DataDog/dd-sdk-android ;
+1. **Fork the repository** from https://github.com/DataDog/dd-sdk-android-gradle-plugin ;
 2. **Make any changes** for your patch;
 3. **Write tests** that demonstrate how the feature works or how the bug is fixed;
-4. **Update any documentation** such as `docs/GettingStarted.md`, especially for
-    new features;
+4. **Update any documentation** (especially for new features);
 5. **Submit the pull request** from your fork back to this 
-    [repository](https://github.com/DataDog/dd-sdk-android) .
+    [repository](https://github.com/DataDog/dd-sdk-android-gradle-plugin) .
 
 
 The pull request will be run through our CI pipeline, and a project member will
