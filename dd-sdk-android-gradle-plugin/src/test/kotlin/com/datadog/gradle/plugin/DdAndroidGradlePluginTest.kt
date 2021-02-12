@@ -5,6 +5,7 @@ import com.datadog.gradle.plugin.internal.DdConfiguration
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.whenever
+import fr.xgouchet.elmyr.Case
 import fr.xgouchet.elmyr.annotation.Forgery
 import fr.xgouchet.elmyr.annotation.StringForgery
 import fr.xgouchet.elmyr.annotation.StringForgeryType
@@ -55,14 +56,17 @@ internal class DdAndroidGradlePluginTest {
 
     @Test
     fun `𝕄 configure the upload task with the variant info 𝕎 configureVariant()`(
-        @StringForgery variantName: String,
+        @StringForgery(case = Case.LOWER) flavorName: String,
+        @StringForgery(case = Case.LOWER) buildTypeName: String,
         @StringForgery versionName: String,
         @StringForgery packageName: String
     ) {
         // Given
         fakeExtension.versionName = null
         fakeExtension.serviceName = null
-        whenever(mockVariant.name) doReturn variantName
+        val variantName = "$flavorName${buildTypeName.capitalize()}"
+        whenever(mockVariant.name) doReturn "$flavorName${buildTypeName.capitalize()}"
+        whenever(mockVariant.flavorName) doReturn flavorName
         whenever(mockVariant.versionName) doReturn versionName
         whenever(mockVariant.applicationId) doReturn packageName
 
@@ -78,7 +82,7 @@ internal class DdAndroidGradlePluginTest {
         check(task is DdMappingFileUploadTask)
         assertThat(task.name).isEqualTo("uploadMapping${variantName.capitalize()}")
         assertThat(task.apiKey).isEqualTo(fakeApiKey)
-        assertThat(task.variantName).isEqualTo(variantName)
+        assertThat(task.variantName).isEqualTo(flavorName)
         assertThat(task.versionName).isEqualTo(versionName)
         assertThat(task.serviceName).isEqualTo(packageName)
         assertThat(task.envName).isEqualTo(fakeExtension.environmentName)
@@ -88,83 +92,16 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 remove buildType 𝕎 configureVariant() {Debug variant}`(
-        @StringForgery variantName: String,
-        @StringForgery versionName: String,
-        @StringForgery packageName: String
-    ) {
-        // Given
-        fakeExtension.versionName = null
-        fakeExtension.serviceName = null
-        val fullVariant = "${variantName}Debug"
-        whenever(mockVariant.name) doReturn fullVariant
-        whenever(mockVariant.versionName) doReturn versionName
-        whenever(mockVariant.applicationId) doReturn packageName
-
-        // When
-        val task = testedPlugin.configureVariant(
-            fakeProject,
-            mockVariant,
-            fakeApiKey,
-            fakeExtension
-        )
-
-        // Then
-        check(task is DdMappingFileUploadTask)
-        assertThat(task.name).isEqualTo("uploadMapping${fullVariant.capitalize()}")
-        assertThat(task.apiKey).isEqualTo(fakeApiKey)
-        assertThat(task.variantName).isEqualTo(variantName)
-        assertThat(task.versionName).isEqualTo(versionName)
-        assertThat(task.serviceName).isEqualTo(packageName)
-        assertThat(task.envName).isEqualTo(fakeExtension.environmentName)
-        assertThat(task.site).isEqualTo(fakeExtension.site)
-        assertThat(task.mappingFilePath)
-            .isEqualTo("${fakeProject.buildDir}/outputs/mapping/$fullVariant/mapping.txt")
-    }
-
-    @Test
-    fun `𝕄 remove buildType 𝕎 configureVariant() {Release variant}`(
-        @StringForgery variantName: String,
-        @StringForgery versionName: String,
-        @StringForgery packageName: String
-    ) {
-        // Given
-        fakeExtension.versionName = null
-        fakeExtension.serviceName = null
-        val fullVariant = "${variantName}Release"
-        whenever(mockVariant.name) doReturn fullVariant
-        whenever(mockVariant.versionName) doReturn versionName
-        whenever(mockVariant.applicationId) doReturn packageName
-
-        // When
-        val task = testedPlugin.configureVariant(
-            fakeProject,
-            mockVariant,
-            fakeApiKey,
-            fakeExtension
-        )
-
-        // Then
-        check(task is DdMappingFileUploadTask)
-        assertThat(task.name).isEqualTo("uploadMapping${fullVariant.capitalize()}")
-        assertThat(task.apiKey).isEqualTo(fakeApiKey)
-        assertThat(task.variantName).isEqualTo(variantName)
-        assertThat(task.versionName).isEqualTo(versionName)
-        assertThat(task.serviceName).isEqualTo(packageName)
-        assertThat(task.envName).isEqualTo(fakeExtension.environmentName)
-        assertThat(task.site).isEqualTo(fakeExtension.site)
-        assertThat(task.mappingFilePath)
-            .isEqualTo("${fakeProject.buildDir}/outputs/mapping/$fullVariant/mapping.txt")
-    }
-
-    @Test
     fun `𝕄 configure the upload task with the extension info 𝕎 configureVariant()`(
-        @StringForgery variantName: String,
+        @StringForgery(case = Case.LOWER) flavorName: String,
+        @StringForgery(case = Case.LOWER) buildTypeName: String,
         @StringForgery versionName: String,
         @StringForgery packageName: String
     ) {
         // Given
+        val variantName = "$flavorName${buildTypeName.capitalize()}"
         whenever(mockVariant.name) doReturn variantName
+        whenever(mockVariant.flavorName) doReturn flavorName
         whenever(mockVariant.versionName) doReturn versionName
         whenever(mockVariant.applicationId) doReturn packageName
 
@@ -180,7 +117,7 @@ internal class DdAndroidGradlePluginTest {
         check(task is DdMappingFileUploadTask)
         assertThat(task.name).isEqualTo("uploadMapping${variantName.capitalize()}")
         assertThat(task.apiKey).isEqualTo(fakeApiKey)
-        assertThat(task.variantName).isEqualTo(variantName)
+        assertThat(task.variantName).isEqualTo(flavorName)
         assertThat(task.versionName).isEqualTo(fakeExtension.versionName)
         assertThat(task.serviceName).isEqualTo(fakeExtension.serviceName)
         assertThat(task.envName).isEqualTo(fakeExtension.environmentName)
@@ -191,7 +128,8 @@ internal class DdAndroidGradlePluginTest {
 
     @Test
     fun `𝕄 use sensible defaults 𝕎 configureVariant() { empty config }`(
-        @StringForgery variantName: String,
+        @StringForgery(case = Case.LOWER) flavorName: String,
+        @StringForgery(case = Case.LOWER) buildTypeName: String,
         @StringForgery versionName: String,
         @StringForgery packageName: String
     ) {
@@ -200,7 +138,9 @@ internal class DdAndroidGradlePluginTest {
         fakeExtension.serviceName = null
         fakeExtension.versionName = null
         fakeExtension.site = null
+        val variantName = "$flavorName${buildTypeName.capitalize()}"
         whenever(mockVariant.name) doReturn variantName
+        whenever(mockVariant.flavorName) doReturn flavorName
         whenever(mockVariant.versionName) doReturn versionName
         whenever(mockVariant.applicationId) doReturn packageName
 
@@ -211,6 +151,18 @@ internal class DdAndroidGradlePluginTest {
             fakeApiKey,
             fakeExtension
         )
+
+        // Then
+        check(task is DdMappingFileUploadTask)
+        assertThat(task.name).isEqualTo("uploadMapping${variantName.capitalize()}")
+        assertThat(task.apiKey).isEqualTo(fakeApiKey)
+        assertThat(task.variantName).isEqualTo(flavorName)
+        assertThat(task.versionName).isEqualTo(versionName)
+        assertThat(task.serviceName).isEqualTo(packageName)
+        assertThat(task.envName).isEqualTo("")
+        assertThat(task.site).isEqualTo("")
+        assertThat(task.mappingFilePath)
+            .isEqualTo("${fakeProject.buildDir}/outputs/mapping/$variantName/mapping.txt")
     }
 
     // endregion
