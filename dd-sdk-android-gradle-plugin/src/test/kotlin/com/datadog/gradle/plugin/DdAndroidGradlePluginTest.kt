@@ -1,6 +1,7 @@
 package com.datadog.gradle.plugin
 
 import com.android.build.gradle.api.ApplicationVariant
+import com.android.builder.model.BuildType
 import com.datadog.gradle.plugin.internal.DdConfiguration
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
@@ -40,6 +41,9 @@ internal class DdAndroidGradlePluginTest {
     @Mock
     lateinit var mockVariant: ApplicationVariant
 
+    @Mock
+    lateinit var mockBuildType: BuildType
+
     @Forgery
     lateinit var fakeExtension: DdExtension
 
@@ -69,6 +73,8 @@ internal class DdAndroidGradlePluginTest {
         whenever(mockVariant.flavorName) doReturn flavorName
         whenever(mockVariant.versionName) doReturn versionName
         whenever(mockVariant.applicationId) doReturn packageName
+        whenever(mockVariant.buildType) doReturn mockBuildType
+        whenever(mockBuildType.isMinifyEnabled) doReturn true
 
         // When
         val task = testedPlugin.configureVariant(
@@ -104,6 +110,8 @@ internal class DdAndroidGradlePluginTest {
         whenever(mockVariant.flavorName) doReturn flavorName
         whenever(mockVariant.versionName) doReturn versionName
         whenever(mockVariant.applicationId) doReturn packageName
+        whenever(mockVariant.buildType) doReturn mockBuildType
+        whenever(mockBuildType.isMinifyEnabled) doReturn true
 
         // When
         val task = testedPlugin.configureVariant(
@@ -143,6 +151,8 @@ internal class DdAndroidGradlePluginTest {
         whenever(mockVariant.flavorName) doReturn flavorName
         whenever(mockVariant.versionName) doReturn versionName
         whenever(mockVariant.applicationId) doReturn packageName
+        whenever(mockVariant.buildType) doReturn mockBuildType
+        whenever(mockBuildType.isMinifyEnabled) doReturn true
 
         // When
         val task = testedPlugin.configureVariant(
@@ -163,6 +173,34 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.site).isEqualTo("")
         assertThat(task.mappingFilePath)
             .isEqualTo("${fakeProject.buildDir}/outputs/mapping/$variantName/mapping.txt")
+    }
+
+    @Test
+    fun `𝕄 do nothing 𝕎 configureVariant() {minify disabled}`(
+        @StringForgery(case = Case.LOWER) flavorName: String,
+        @StringForgery(case = Case.LOWER) buildTypeName: String,
+        @StringForgery versionName: String,
+        @StringForgery packageName: String
+    ) {
+        // Given
+        val variantName = "$flavorName${buildTypeName.capitalize()}"
+        whenever(mockVariant.name) doReturn variantName
+        whenever(mockVariant.flavorName) doReturn flavorName
+        whenever(mockVariant.versionName) doReturn versionName
+        whenever(mockVariant.applicationId) doReturn packageName
+        whenever(mockVariant.buildType) doReturn mockBuildType
+        whenever(mockBuildType.isMinifyEnabled) doReturn false
+
+        // When
+        val task = testedPlugin.configureVariant(
+            fakeProject,
+            mockVariant,
+            fakeApiKey,
+            fakeExtension
+        )
+
+        // Then
+        assertThat(task).isNull()
     }
 
     // endregion

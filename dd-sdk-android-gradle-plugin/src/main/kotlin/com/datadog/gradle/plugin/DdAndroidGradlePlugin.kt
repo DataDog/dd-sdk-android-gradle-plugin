@@ -64,7 +64,12 @@ class DdAndroidGradlePlugin : Plugin<Project> {
         variant: ApplicationVariant,
         apiKey: String,
         extension: DdExtension
-    ): Task {
+    ): Task? {
+        if (!variant.buildType.isMinifyEnabled) {
+            // Proguard/R8 are not enabled, let's not create a task
+            return null
+        }
+
         val flavorName = variant.flavorName
         val uploadTaskName = UPLOAD_TASK_NAME + variant.name.capitalize()
         val uploadTask = target.tasks.create(uploadTaskName, DdMappingFileUploadTask::class.java)
