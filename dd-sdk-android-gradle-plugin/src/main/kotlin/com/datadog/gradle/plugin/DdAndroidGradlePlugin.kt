@@ -65,13 +65,7 @@ class DdAndroidGradlePlugin : Plugin<Project> {
         apiKey: String,
         extension: DdExtension
     ): Task {
-        val flavorName = if (variant.name.endsWith(SUFFIX_DEBUG)) {
-            variant.name.removeSuffix(SUFFIX_DEBUG)
-        } else if (variant.name.endsWith(SUFFIX_RELEASE)) {
-            variant.name.removeSuffix(SUFFIX_RELEASE)
-        } else {
-            variant.name
-        }
+        val flavorName = variant.flavorName
         val uploadTaskName = UPLOAD_TASK_NAME + variant.name.capitalize()
         val uploadTask = target.tasks.create(uploadTaskName, DdMappingFileUploadTask::class.java)
         val extensionConfiguration = resolveExtensionConfiguration(extension, flavorName)
