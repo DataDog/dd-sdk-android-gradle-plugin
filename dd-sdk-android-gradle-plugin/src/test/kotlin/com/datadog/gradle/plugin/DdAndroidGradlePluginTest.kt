@@ -12,13 +12,11 @@ import fr.xgouchet.elmyr.annotation.StringForgery
 import fr.xgouchet.elmyr.annotation.StringForgeryType
 import fr.xgouchet.elmyr.junit5.ForgeConfiguration
 import fr.xgouchet.elmyr.junit5.ForgeExtension
-import java.lang.IllegalStateException
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.extension.Extensions
 import org.mockito.Mock
@@ -233,10 +231,12 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 throw exception 𝕎 resolveApiKey() {key not defined anywhere}`() {
-        assertThrows<IllegalStateException> {
-            testedPlugin.resolveApiKey(fakeProject)
-        }
+    fun `𝕄 returns empty String 𝕎 resolveApiKey() {key not defined anywhere}`() {
+        // When
+        val apiKey = testedPlugin.resolveApiKey(fakeProject)
+
+        // Then
+        assertThat(apiKey).isEmpty()
     }
 
     // endregion
