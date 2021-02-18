@@ -66,6 +66,11 @@ class DdAndroidGradlePlugin : Plugin<Project> {
             return null
         }
 
+        if (!extension.enabled) {
+            // lets not create any task
+            return null
+        }
+
         val flavorName = variant.flavorName
         val uploadTaskName = UPLOAD_TASK_NAME + variant.name.capitalize()
         val uploadTask = target.tasks.create(uploadTaskName, DdMappingFileUploadTask::class.java)
