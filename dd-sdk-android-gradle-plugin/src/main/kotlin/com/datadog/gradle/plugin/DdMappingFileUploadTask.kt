@@ -114,7 +114,8 @@ open class DdMappingFileUploadTask : DefaultTask() {
     @Suppress("CheckInternal")
     private fun validateConfiguration() {
         check(apiKey.isNotBlank()) {
-            "You need to provide a valid client token for variant $variantName"
+            "Make sure you define an API KEY to upload your mapping files to Datadog. " +
+                "Create a DD_API_KEY environment variable or gradle property."
         }
         check(envName.isNotBlank()) {
             "You need to provide a valid environment name for variant $variantName"

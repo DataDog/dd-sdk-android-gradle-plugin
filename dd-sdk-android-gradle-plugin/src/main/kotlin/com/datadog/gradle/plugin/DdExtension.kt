@@ -15,6 +15,11 @@ import org.gradle.api.NamedDomainObjectContainer
 open class DdExtension : DdExtensionConfiguration() {
 
     /**
+     * Whether the plugin should be enabled or not.
+     */
+    var enabled: Boolean = true
+
+    /**
      * Container for the variant's configurations.
      */
     var variants: NamedDomainObjectContainer<DdExtensionConfiguration>? = null

@@ -9,7 +9,6 @@ package com.datadog.gradle.plugin
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.api.ApplicationVariant
 import java.io.File
-import java.lang.IllegalStateException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -52,10 +51,7 @@ class DdAndroidGradlePlugin : Plugin<Project> {
         val environmentKey = System.getenv(DD_API_KEY)
         if (!environmentKey.isNullOrBlank()) return environmentKey
 
-        throw IllegalStateException(
-            "Make sure you define an API KEY to upload your mapping files to Datadog. " +
-                "Create a DD_API_KEY environment variable or gradle property."
-        )
+        return ""
     }
 
     @Suppress("DefaultLocale")
@@ -67,6 +63,11 @@ class DdAndroidGradlePlugin : Plugin<Project> {
     ): Task? {
         if (!variant.buildType.isMinifyEnabled) {
             // Proguard/R8 are not enabled, let's not create a task
+            return null
+        }
+
+        if (!extension.enabled) {
+            // lets not create any task
             return null
         }
 
