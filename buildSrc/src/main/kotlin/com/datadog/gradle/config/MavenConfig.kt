@@ -10,6 +10,6 @@ import com.datadog.gradle.utils.Version
 
 object MavenConfig {
 
-    val VERSION = Version(1, 0, 0, Version.Type.Alpha(2))
+    val VERSION = Version(1, 0, 0, Version.Type.Alpha(3))
     const val GROUP_ID = "com.datadoghq"
 }
