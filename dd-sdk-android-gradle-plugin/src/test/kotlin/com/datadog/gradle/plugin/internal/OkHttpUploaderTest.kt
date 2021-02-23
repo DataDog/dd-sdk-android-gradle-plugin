@@ -47,15 +47,22 @@ internal class OkHttpUploaderTest {
     lateinit var tempDir: File
 
     lateinit var fakeMappingFile: File
+    lateinit var fakeRepositoryFile: File
 
     @Forgery
     lateinit var fakeIdentifier: DdAppIdentifier
 
     @StringForgery(regex = "[a-z]{8}\\.txt")
-    lateinit var fakeFileName: String
+    lateinit var fakeMappingFileName: String
+
+    @StringForgery(regex = "[a-z]{8}\\.txt")
+    lateinit var fakeRepositoryFileName: String
 
     @StringForgery
-    lateinit var fakeFileContent: String
+    lateinit var fakeMappingFileContent: String
+
+    @StringForgery
+    lateinit var fakeRepositoryFileContent: String
 
     lateinit var mockWebServer: MockWebServer
 
@@ -67,8 +74,11 @@ internal class OkHttpUploaderTest {
 
     @BeforeEach
     fun `set up`() {
-        fakeMappingFile = File(tempDir, fakeFileName)
-        fakeMappingFile.writeText(fakeFileContent)
+        fakeMappingFile = File(tempDir, fakeMappingFileName)
+        fakeMappingFile.writeText(fakeMappingFileContent)
+
+        fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
+        fakeRepositoryFile.writeText(fakeRepositoryFileContent)
 
         mockWebServer = MockWebServer()
         mockDispatcher = MockDispatcher()
@@ -93,6 +103,7 @@ internal class OkHttpUploaderTest {
         testedUploader.upload(
             mockWebServer.url("/").toString(),
             fakeMappingFile,
+            fakeRepositoryFile,
             fakeIdentifier
         )
 
@@ -104,7 +115,50 @@ internal class OkHttpUploaderTest {
             .containsFormData("service", fakeIdentifier.serviceName)
             .containsFormData("variant", fakeIdentifier.variant)
             .containsFormData("type", OkHttpUploader.TYPE_JVM_MAPPING_FILE)
-            .containsMultipartFile("jvm_mapping_file", fakeFileName, fakeFileContent)
+            .containsMultipartFile(
+                "jvm_mapping_file",
+                fakeMappingFileName,
+                fakeMappingFileContent,
+                "text/plain"
+            )
+            .containsMultipartFile(
+                "repository",
+                fakeRepositoryFileName,
+                fakeRepositoryFileContent,
+                "application/json"
+            )
+    }
+
+    @Test
+    fun `𝕄 upload proper request 𝕎 upload() {repository=null}`() {
+        // Given
+        mockResponse = MockResponse()
+            .setResponseCode(HttpURLConnection.HTTP_OK)
+            .setBody("{}")
+
+        // When
+        testedUploader.upload(
+            mockWebServer.url("/").toString(),
+            fakeMappingFile,
+            null,
+            fakeIdentifier
+        )
+
+        // Then
+        assertThat(mockWebServer.requestCount).isEqualTo(1)
+        assertThat(dispatchedRequest)
+            .hasMethod("POST")
+            .containsFormData("version", fakeIdentifier.version)
+            .containsFormData("service", fakeIdentifier.serviceName)
+            .containsFormData("variant", fakeIdentifier.variant)
+            .containsFormData("type", OkHttpUploader.TYPE_JVM_MAPPING_FILE)
+            .containsMultipartFile(
+                "jvm_mapping_file",
+                fakeMappingFileName,
+                fakeMappingFileContent,
+                "text/plain"
+            )
+            .doesNotHaveField("repository")
     }
 
     @Test
@@ -119,6 +173,7 @@ internal class OkHttpUploaderTest {
             testedUploader.upload(
                 mockWebServer.url("/").toString(),
                 fakeMappingFile,
+                fakeRepositoryFile,
                 fakeIdentifier
             )
         }
@@ -131,7 +186,18 @@ internal class OkHttpUploaderTest {
             .containsFormData("service", fakeIdentifier.serviceName)
             .containsFormData("variant", fakeIdentifier.variant)
             .containsFormData("type", OkHttpUploader.TYPE_JVM_MAPPING_FILE)
-            .containsMultipartFile("jvm_mapping_file", fakeFileName, fakeFileContent)
+            .containsMultipartFile(
+                "jvm_mapping_file",
+                fakeMappingFileName,
+                fakeMappingFileContent,
+                "text/plain"
+            )
+            .containsMultipartFile(
+                "repository",
+                fakeRepositoryFileName,
+                fakeRepositoryFileContent,
+                "application/json"
+            )
     }
 
     @Test
@@ -152,6 +218,7 @@ internal class OkHttpUploaderTest {
             testedUploader.upload(
                 mockWebServer.url("/").toString(),
                 fakeMappingFile,
+                fakeRepositoryFile,
                 fakeIdentifier
             )
         }
@@ -164,7 +231,18 @@ internal class OkHttpUploaderTest {
             .containsFormData("service", fakeIdentifier.serviceName)
             .containsFormData("variant", fakeIdentifier.variant)
             .containsFormData("type", OkHttpUploader.TYPE_JVM_MAPPING_FILE)
-            .containsMultipartFile("jvm_mapping_file", fakeFileName, fakeFileContent)
+            .containsMultipartFile(
+                "jvm_mapping_file",
+                fakeMappingFileName,
+                fakeMappingFileContent,
+                "text/plain"
+            )
+            .containsMultipartFile(
+                "repository",
+                fakeRepositoryFileName,
+                fakeRepositoryFileContent,
+                "application/json"
+            )
     }
 
     inner class MockDispatcher : Dispatcher() {

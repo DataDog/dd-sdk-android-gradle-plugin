@@ -12,7 +12,8 @@ internal interface Uploader {
 
     fun upload(
         url: String,
-        file: File,
+        mappingFile: File,
+        repositoryFile: File?,
         identifier: DdAppIdentifier
     )
 }

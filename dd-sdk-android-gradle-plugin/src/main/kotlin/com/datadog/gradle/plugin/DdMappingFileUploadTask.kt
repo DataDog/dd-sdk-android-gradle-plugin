@@ -6,20 +6,29 @@
 
 package com.datadog.gradle.plugin
 
+import com.datadog.gradle.plugin.DdAndroidGradlePlugin.Companion.LOGGER
 import com.datadog.gradle.plugin.internal.DdAppIdentifier
 import com.datadog.gradle.plugin.internal.DdConfiguration
 import com.datadog.gradle.plugin.internal.OkHttpUploader
 import com.datadog.gradle.plugin.internal.Uploader
 import java.io.File
+import javax.inject.Inject
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+import org.json.JSONArray
+import org.json.JSONObject
 
 /**
  * A Gradle task to upload a Proguard/R8 mapping file to Datadog servers.
  */
-open class DdMappingFileUploadTask : DefaultTask() {
+open class DdMappingFileUploadTask
+@Inject constructor(
+    @get:Internal internal val repositoryDetector: RepositoryDetector
+) : DefaultTask() {
 
     @get:Internal
     internal var uploader: Uploader = OkHttpUploader()
@@ -66,6 +75,18 @@ open class DdMappingFileUploadTask : DefaultTask() {
     @get:Input
     var mappingFilePath: String = ""
 
+    /**
+     * The sourceSet root folders.
+     */
+    @get:InputFiles
+    var sourceSetRoots: List<File> = emptyList()
+
+    /**
+     * The file containing the repository description.
+     */
+    @get:OutputFile
+    var repositoryFile: File = File("")
+
     init {
         group = "datadog"
         description = "Uploads the Proguard/R8 mapping file to Datadog"
@@ -83,13 +104,8 @@ open class DdMappingFileUploadTask : DefaultTask() {
         val mappingFile = File(mappingFilePath)
         if (!validateMappingFile(mappingFile)) return
 
-        println(
-            "Uploading mapping file for configuration:\n" +
-                "- envName: {$envName}\n" +
-                "- versionName: {$versionName}\n" +
-                "- variantName: {$variantName}\n" +
-                "- serviceName: {$serviceName}\n"
-        )
+        val repositories = repositoryDetector.detectRepositories(project, sourceSetRoots)
+        generateRepositoryFile(repositories)
 
         val configuration = DdConfiguration(
             site = DdConfiguration.Site.valueOf(site),
@@ -98,6 +114,7 @@ open class DdMappingFileUploadTask : DefaultTask() {
         uploader.upload(
             configuration.buildUrl(),
             mappingFile,
+            if (repositories.isEmpty()) null else repositoryFile,
             DdAppIdentifier(
                 serviceName = serviceName,
                 envName = envName,
@@ -129,6 +146,22 @@ open class DdMappingFileUploadTask : DefaultTask() {
                 "You need to provide a valid site (one of ${validSiteIds.joinToString()})"
             }
         }
+    }
+
+    private fun generateRepositoryFile(repositories: List<RepositoryInfo>) {
+
+        val data = JSONArray()
+        repositories.forEach {
+            data.put(it.toJson())
+            LOGGER.info("Detected repository:\n${it.toJson().toString(4)}")
+        }
+
+        val jsonObject = JSONObject()
+        jsonObject.put("version", 1)
+        jsonObject.put("data", data)
+
+        repositoryFile.parentFile.mkdirs()
+        repositoryFile.writeText(jsonObject.toString(0))
     }
 
     @Suppress("CheckInternal")

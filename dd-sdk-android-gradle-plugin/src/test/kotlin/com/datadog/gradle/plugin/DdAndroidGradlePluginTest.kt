@@ -3,6 +3,7 @@ package com.datadog.gradle.plugin
 import com.android.build.gradle.api.ApplicationVariant
 import com.android.builder.model.BuildType
 import com.datadog.gradle.plugin.internal.DdConfiguration
+import com.datadog.gradle.plugin.internal.GitRepositoryDetector
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.whenever
@@ -84,6 +85,7 @@ internal class DdAndroidGradlePluginTest {
 
         // Then
         check(task is DdMappingFileUploadTask)
+        assertThat(task.repositoryDetector).isInstanceOf(GitRepositoryDetector::class.java)
         assertThat(task.name).isEqualTo("uploadMapping${variantName.capitalize()}")
         assertThat(task.apiKey).isEqualTo(fakeApiKey)
         assertThat(task.variantName).isEqualTo(flavorName)
@@ -121,6 +123,7 @@ internal class DdAndroidGradlePluginTest {
 
         // Then
         check(task is DdMappingFileUploadTask)
+        assertThat(task.repositoryDetector).isInstanceOf(GitRepositoryDetector::class.java)
         assertThat(task.name).isEqualTo("uploadMapping${variantName.capitalize()}")
         assertThat(task.apiKey).isEqualTo(fakeApiKey)
         assertThat(task.variantName).isEqualTo(flavorName)
@@ -162,6 +165,7 @@ internal class DdAndroidGradlePluginTest {
 
         // Then
         check(task is DdMappingFileUploadTask)
+        assertThat(task.repositoryDetector).isInstanceOf(GitRepositoryDetector::class.java)
         assertThat(task.name).isEqualTo("uploadMapping${variantName.capitalize()}")
         assertThat(task.apiKey).isEqualTo(fakeApiKey)
         assertThat(task.variantName).isEqualTo(flavorName)

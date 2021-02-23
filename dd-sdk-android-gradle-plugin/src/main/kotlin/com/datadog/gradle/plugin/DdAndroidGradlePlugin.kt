@@ -8,6 +8,7 @@ package com.datadog.gradle.plugin
 
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.api.ApplicationVariant
+import com.datadog.gradle.plugin.internal.GitRepositoryDetector
 import java.io.File
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -73,7 +74,11 @@ class DdAndroidGradlePlugin : Plugin<Project> {
 
         val flavorName = variant.flavorName
         val uploadTaskName = UPLOAD_TASK_NAME + variant.name.capitalize()
-        val uploadTask = target.tasks.create(uploadTaskName, DdMappingFileUploadTask::class.java)
+        val uploadTask = target.tasks.create(
+            uploadTaskName,
+            DdMappingFileUploadTask::class.java,
+            GitRepositoryDetector()
+        )
         val extensionConfiguration = resolveExtensionConfiguration(extension, flavorName)
 
         configureVariantTask(uploadTask, apiKey, flavorName, extensionConfiguration, variant)
@@ -82,6 +87,16 @@ class DdAndroidGradlePlugin : Plugin<Project> {
         val mappingDir = File(outputsDir, "mapping")
         val flavorDir = File(mappingDir, variant.name)
         uploadTask.mappingFilePath = File(flavorDir, "mapping.txt").path
+
+        val reportsDir = File(outputsDir, "reports")
+        val datadogDir = File(reportsDir, "datadog")
+        uploadTask.repositoryFile = File(datadogDir, "repository.json")
+
+        val roots = mutableListOf<File>()
+        variant.sourceSets.forEach {
+            roots.addAll(it.javaDirectories)
+        }
+        uploadTask.sourceSetRoots = roots
 
         return uploadTask
     }

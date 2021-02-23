@@ -23,11 +23,12 @@ internal class OkHttpUploader : Uploader {
     @Suppress("TooGenericExceptionCaught")
     override fun upload(
         url: String,
-        file: File,
+        mappingFile: File,
+        repositoryFile: File?,
         identifier: DdAppIdentifier
     ) {
-
-        val body = createBody(identifier, file)
+        LOGGER.info("Uploading mapping file for $identifier:\n")
+        val body = createBody(identifier, mappingFile, repositoryFile)
 
         val client = OkHttpClient.Builder().build()
         val request = Request.Builder()
@@ -52,17 +53,25 @@ internal class OkHttpUploader : Uploader {
 
     private fun createBody(
         identifier: DdAppIdentifier,
-        file: File
+        mappingFile: File,
+        repositoryFile: File?
     ): MultipartBody {
-        val fileBody = MultipartBody.create(MEDIA_TYPE_TXT, file)
-        return MultipartBody.Builder()
-            .setType(MultipartBody.FORM)
+        val mappingFileBody = MultipartBody.create(MEDIA_TYPE_TXT, mappingFile)
+
+        val builder = MultipartBody.Builder()
+        builder.setType(MultipartBody.FORM)
             .addFormDataPart("version", identifier.version)
             .addFormDataPart("service", identifier.serviceName)
             .addFormDataPart("variant", identifier.variant)
             .addFormDataPart("type", TYPE_JVM_MAPPING_FILE)
-            .addFormDataPart("jvm_mapping_file", file.name, fileBody)
-            .build()
+            .addFormDataPart("jvm_mapping_file", mappingFile.name, mappingFileBody)
+
+        if (repositoryFile != null) {
+            val repositoryFileBody = MultipartBody.create(MEDIA_TYPE_JSON, repositoryFile)
+            builder.addFormDataPart("repository", repositoryFile.name, repositoryFileBody)
+        }
+
+        return builder.build()
     }
 
     @Suppress("ThrowingInternalException", "TooGenericExceptionThrown")
@@ -94,6 +103,7 @@ internal class OkHttpUploader : Uploader {
     companion object {
 
         internal val MEDIA_TYPE_TXT = MediaType.parse("text/plain")
+        internal val MEDIA_TYPE_JSON = MediaType.parse("application/json")
 
         internal val succesfulCodes = arrayOf(
             HttpURLConnection.HTTP_OK,

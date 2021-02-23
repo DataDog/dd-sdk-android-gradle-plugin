@@ -31,14 +31,24 @@ internal class RecordedRequestAssert(actual: RecordedRequest?) :
     fun containsMultipartFile(
         name: String,
         fileName: String,
-        fileContent: String
+        fileContent: String,
+        contentType: String
     ): RecordedRequestAssert {
         isNotNull()
         assertThat(bodyContentUtf8)
             .contains(
                 "Content-Disposition: form-data; name=\"$name\"; filename=\"$fileName\"\r\n" +
-                    "Content-Type: text/plain\r\n" +
+                    "Content-Type: $contentType\r\n" +
                     "Content-Length: ${fileContent.length}\r\n\r\n$fileContent"
+            )
+        return this
+    }
+
+    fun doesNotHaveField(name: String): RecordedRequestAssert {
+        isNotNull()
+        assertThat(bodyContentUtf8)
+            .doesNotContain(
+                "Content-Disposition: form-data; name=\"$name\""
             )
         return this
     }
