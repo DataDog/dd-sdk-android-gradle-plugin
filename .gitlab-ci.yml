@@ -40,7 +40,7 @@ analysis:ktlint:
   stage: analysis
   timeout: 30m
   script:
-    - git fetch --depth=1 origin master
+    - git fetch --depth=1 origin main
     - GRADLE_OPTS="-XX:MaxPermSize=512m -Xmx2560m" ./gradlew :dd-sdk-android-gradle-plugin:ktlintCheck --stacktrace --no-daemon
 
 analysis:detekt:
@@ -49,7 +49,7 @@ analysis:detekt:
   stage: analysis
   timeout: 30m
   script:
-    - git fetch --depth=1 origin master
+    - git fetch --depth=1 origin main
     - GRADLE_OPTS="-XX:MaxPermSize=512m -Xmx2560m" ./gradlew :dd-sdk-android-gradle-plugin:detekt --stacktrace --no-daemon
 
 analysis:licenses:
@@ -58,7 +58,7 @@ analysis:licenses:
   stage: analysis
   timeout: 30m
   script:
-    - git fetch --depth=1 origin master
+    - git fetch --depth=1 origin main
     - GRADLE_OPTS="-XX:MaxPermSize=512m -Xmx2560m" ./gradlew :dd-sdk-android-gradle-plugin:checkThirdPartyLicences --stacktrace --no-daemon
 
 # TESTS
@@ -69,11 +69,14 @@ test:plugin:
   stage: test
   timeout: 1h
   script:
-    - git fetch --depth=1 origin master
+    - git fetch --depth=1 origin main
     - rm -rf ~/.gradle/daemon/
     # TODO RUMM-1036 - CODECOV_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android-gradle-plugin.codecov-token  --with-decryption --query "Parameter.Value" --out text)
     - GRADLE_OPTS="-XX:MaxPermSize=512m -Xmx2560m" ./gradlew :dd-sdk-android-gradle-plugin:test --stacktrace --no-daemon
     # TODO RUMM-1036 - bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN
+  artifacts:
+    reports:
+      junit: dd-sdk-android-gradle-plugin/build/test-results/test/TEST-*.xml
 
 # PUBLISH ARTIFACTS ON BINTRAY
 
@@ -86,7 +89,7 @@ publish:release-plugin:
   timeout: 30m
   script:
     - aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android-gradle-plugin.gradle-properties --with-decryption --query "Parameter.Value" --out text >> ./gradle.properties
-    - git fetch --depth=1 origin master
+    - git fetch --depth=1 origin main
     - ./gradlew :dd-sdk-android-gradle-plugin:bintrayUpload --stacktrace --no-daemon
 
 # SLACK NOTIFICATIONS
