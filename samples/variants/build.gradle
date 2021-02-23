@@ -25,6 +25,9 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    sourceSets.named("main") {
+        java.srcDir("src/main/kotlin")
+    }
 
     flavorDimensions("version")
     productFlavors {
