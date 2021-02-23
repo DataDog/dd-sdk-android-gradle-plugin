@@ -8,19 +8,14 @@ open class DdExtensionConfiguration(
 ) {
 
     /**
-     * The environment name for the application.
-     */
-    var environmentName: String? = null
-
-    /**
-     * The environment name for the application.
+     * The verion name of the application.
      * By default (null) it will read the version name of your application from your gradle
      * configuration.
      */
     var versionName: String? = null
 
     /**
-     * The service name for the application.
+     * The service name of the application.
      * By default (null) it will read the package name of your application from your gradle
      * configuration.
      */

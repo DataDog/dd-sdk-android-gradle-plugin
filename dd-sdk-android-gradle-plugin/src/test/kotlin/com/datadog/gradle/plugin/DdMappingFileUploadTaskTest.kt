@@ -58,9 +58,6 @@ internal class DdMappingFileUploadTaskTest {
     lateinit var fakeVariant: String
 
     @StringForgery
-    lateinit var fakeEnv: String
-
-    @StringForgery
     lateinit var fakeVersion: String
 
     @StringForgery
@@ -99,7 +96,6 @@ internal class DdMappingFileUploadTaskTest {
         testedTask.uploader = mockUploader
         testedTask.apiKey = fakeApiKey
         testedTask.variantName = fakeVariant
-        testedTask.envName = fakeEnv
         testedTask.versionName = fakeVersion
         testedTask.serviceName = fakeService
         testedTask.site = fakeSite.name
@@ -127,7 +123,6 @@ internal class DdMappingFileUploadTaskTest {
             fakeRepositoryFile,
             DdAppIdentifier(
                 serviceName = fakeService,
-                envName = fakeEnv,
                 version = fakeVersion,
                 variant = fakeVariant
             )
@@ -160,7 +155,6 @@ internal class DdMappingFileUploadTaskTest {
             null,
             DdAppIdentifier(
                 serviceName = fakeService,
-                envName = fakeEnv,
                 version = fakeVersion,
                 variant = fakeVariant
             )
@@ -174,23 +168,6 @@ internal class DdMappingFileUploadTaskTest {
         fakeMappingFile.writeText(fakeMappingFileContent)
         testedTask.mappingFilePath = fakeMappingFile.path
         testedTask.apiKey = ""
-
-        // When
-        assertThrows<IllegalStateException> {
-            testedTask.applyTask()
-        }
-
-        // Then
-        verifyZeroInteractions(mockUploader)
-    }
-
-    @Test
-    fun `𝕄 throw error 𝕎 applyTask() {no env name}`() {
-        // Given
-        val fakeMappingFile = File(tempDir, fakeMappingFileName)
-        fakeMappingFile.writeText(fakeMappingFileContent)
-        testedTask.mappingFilePath = fakeMappingFile.path
-        testedTask.envName = ""
 
         // When
         assertThrows<IllegalStateException> {
@@ -247,7 +224,6 @@ internal class DdMappingFileUploadTaskTest {
             fakeRepositoryFile,
             DdAppIdentifier(
                 serviceName = fakeService,
-                envName = fakeEnv,
                 version = fakeVersion,
                 variant = fakeVariant
             )

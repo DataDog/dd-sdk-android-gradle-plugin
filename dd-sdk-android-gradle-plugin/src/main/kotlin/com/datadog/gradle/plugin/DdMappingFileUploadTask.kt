@@ -58,12 +58,6 @@ open class DdMappingFileUploadTask
     var serviceName: String = ""
 
     /**
-     * The environment name.
-     */
-    @get: Input
-    var envName: String = ""
-
-    /**
      * The Datadog site to upload to (one of "US", "EU", "GOV").
      */
     @get: Input
@@ -117,7 +111,6 @@ open class DdMappingFileUploadTask
             if (repositories.isEmpty()) null else repositoryFile,
             DdAppIdentifier(
                 serviceName = serviceName,
-                envName = envName,
                 version = versionName,
                 variant = variantName
             )
@@ -133,9 +126,6 @@ open class DdMappingFileUploadTask
         check(apiKey.isNotBlank()) {
             "Make sure you define an API KEY to upload your mapping files to Datadog. " +
                 "Create a DD_API_KEY environment variable or gradle property."
-        }
-        check(envName.isNotBlank()) {
-            "You need to provide a valid environment name for variant $variantName"
         }
 
         if (site.isBlank()) {

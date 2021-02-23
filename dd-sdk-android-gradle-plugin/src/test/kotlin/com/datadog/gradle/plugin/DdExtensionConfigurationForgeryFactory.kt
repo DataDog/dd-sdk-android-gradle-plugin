@@ -14,7 +14,6 @@ internal class DdExtensionConfigurationForgeryFactory : ForgeryFactory<DdExtensi
     override fun getForgery(forge: Forge): DdExtensionConfiguration {
         return DdExtensionConfiguration().apply {
             serviceName = forge.aStringMatching("[a-z]{3}(\\.[a-z]{5,10}){2,4}")
-            environmentName = forge.anAlphabeticalString()
             versionName = forge.aStringMatching("\\d\\.\\d{1,2}\\.\\d{1,3}")
             site = forge.aValueFrom(DdConfiguration.Site::class.java).name
         }
