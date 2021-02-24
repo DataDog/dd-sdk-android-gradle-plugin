@@ -1,5 +1,6 @@
 package com.datadog.gradle.plugin.internal
 
+import com.datadog.gradle.plugin.DdAndroidGradlePlugin.Companion.LOGGER
 import com.datadog.gradle.plugin.RepositoryDetector
 import com.datadog.gradle.plugin.RepositoryInfo
 import java.io.File
@@ -17,9 +18,9 @@ internal class GitRepositoryDetector : RepositoryDetector {
         sourceSetRoots: List<File>
     ): List<RepositoryInfo> {
         try {
-            project.execShell("git", "rev-parse", "--is-inside-work-tree").toBoolean()
+            project.execShell("git", "rev-parse", "--is-inside-work-tree")
         } catch (e: ExecException) {
-            System.err.println("Project is not a git repository: ${e.message}")
+            LOGGER.error("Project is not a git repository", e)
             return emptyList()
         }
 
@@ -59,6 +60,9 @@ internal class GitRepositoryDetector : RepositoryDetector {
         rootPathPrefix: String,
         files: MutableList<String>
     ) {
+        // TODO RUMM-1115 Prevent listing files which are not tracked
+        // We need to use `git ls-files`
+        // because some files might be added even if match a .gitignore pattern
         root.walkTopDown()
             .forEach {
                 if (it.isFile) {

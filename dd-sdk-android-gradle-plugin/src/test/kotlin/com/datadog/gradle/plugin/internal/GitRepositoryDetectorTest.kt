@@ -73,7 +73,7 @@ internal class GitRepositoryDetectorTest {
     }
 
     @Test
-    fun `𝕄 return empty list 𝕎 detectRepository()`() {
+    fun `𝕄 return empty list 𝕎 detectRepository() { not inside a git repository }`() {
         // When
         val result = testedDetector.detectRepositories(fakeProject, fakeSourceSetFolders)
 

@@ -99,7 +99,9 @@ open class DdMappingFileUploadTask
         if (!validateMappingFile(mappingFile)) return
 
         val repositories = repositoryDetector.detectRepositories(project, sourceSetRoots)
-        generateRepositoryFile(repositories)
+        if (repositories.isNotEmpty()) {
+            generateRepositoryFile(repositories)
+        }
 
         val configuration = DdConfiguration(
             site = DdConfiguration.Site.valueOf(site),

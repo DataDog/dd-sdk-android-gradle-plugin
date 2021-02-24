@@ -8,7 +8,7 @@ open class DdExtensionConfiguration(
 ) {
 
     /**
-     * The verion name of the application.
+     * The version name of the application.
      * By default (null) it will read the version name of your application from your gradle
      * configuration.
      */
