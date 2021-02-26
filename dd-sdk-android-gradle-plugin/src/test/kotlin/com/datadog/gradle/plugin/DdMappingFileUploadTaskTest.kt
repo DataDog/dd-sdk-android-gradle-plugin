@@ -9,14 +9,19 @@ package com.datadog.gradle.plugin
 import com.datadog.gradle.plugin.internal.DdAppIdentifier
 import com.datadog.gradle.plugin.internal.DdConfiguration
 import com.datadog.gradle.plugin.internal.Uploader
+import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyZeroInteractions
+import com.nhaarman.mockitokotlin2.whenever
 import fr.xgouchet.elmyr.annotation.Forgery
 import fr.xgouchet.elmyr.annotation.StringForgery
 import fr.xgouchet.elmyr.annotation.StringForgeryType
+import fr.xgouchet.elmyr.junit5.ForgeConfiguration
 import fr.xgouchet.elmyr.junit5.ForgeExtension
 import java.io.File
 import java.lang.IllegalStateException
+import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.BeforeEach
@@ -35,6 +40,7 @@ import org.mockito.quality.Strictness
     ExtendWith(ForgeExtension::class)
 )
 @MockitoSettings(strictness = Strictness.LENIENT)
+@ForgeConfiguration(Configurator::class)
 internal class DdMappingFileUploadTaskTest {
 
     lateinit var testedTask: DdMappingFileUploadTask
@@ -45,11 +51,11 @@ internal class DdMappingFileUploadTaskTest {
     @Mock
     lateinit var mockUploader: Uploader
 
-    @StringForgery
-    lateinit var fakeVariant: String
+    @Mock
+    lateinit var mockRepositoryDetector: RepositoryDetector
 
     @StringForgery
-    lateinit var fakeEnv: String
+    lateinit var fakeVariant: String
 
     @StringForgery
     lateinit var fakeVersion: String
@@ -63,22 +69,33 @@ internal class DdMappingFileUploadTaskTest {
     @Forgery
     lateinit var fakeSite: DdConfiguration.Site
 
+    @StringForgery(regex = "[a-z]{8}\\.txt")
+    lateinit var fakeMappingFileName: String
+
+    @StringForgery(regex = "[a-z]{8}\\.txt")
+    lateinit var fakeRepositoryFileName: String
+
+    @StringForgery
+    lateinit var fakeMappingFileContent: String
+
+    @Forgery
+    lateinit var fakeRepoInfo: RepositoryInfo
+
     @BeforeEach
     fun `set up`() {
-
         val fakeProject = ProjectBuilder.builder()
             .withProjectDir(tempDir)
             .build()
 
         testedTask = fakeProject.tasks.create(
             "DdMappingFileUploadTask",
-            DdMappingFileUploadTask::class.java
+            DdMappingFileUploadTask::class.java,
+            mockRepositoryDetector
         )
 
         testedTask.uploader = mockUploader
         testedTask.apiKey = fakeApiKey
         testedTask.variantName = fakeVariant
-        testedTask.envName = fakeEnv
         testedTask.versionName = fakeVersion
         testedTask.serviceName = fakeService
         testedTask.site = fakeSite.name
@@ -87,10 +104,14 @@ internal class DdMappingFileUploadTaskTest {
     @Test
     fun `𝕄 upload file 𝕎 applyTask()`() {
         // Given
-        val fakeFile = File(tempDir, "mapping.txt")
-        fakeFile.writeText("")
-        testedTask.mappingFilePath = fakeFile.path
+        val fakeMappingFile = File(tempDir, fakeMappingFileName)
+        fakeMappingFile.writeText(fakeMappingFileContent)
+        testedTask.mappingFilePath = fakeMappingFile.path
+        val fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
+        testedTask.repositoryFile = fakeRepositoryFile
         val expectedUrl = DdConfiguration(fakeSite, fakeApiKey).buildUrl()
+        whenever(mockRepositoryDetector.detectRepositories(any(), any()))
+            .doReturn(listOf(fakeRepoInfo))
 
         // When
         testedTask.applyTask()
@@ -98,10 +119,42 @@ internal class DdMappingFileUploadTaskTest {
         // Then
         verify(mockUploader).upload(
             expectedUrl,
-            fakeFile,
+            fakeMappingFile,
+            fakeRepositoryFile,
             DdAppIdentifier(
                 serviceName = fakeService,
-                envName = fakeEnv,
+                version = fakeVersion,
+                variant = fakeVariant
+            )
+        )
+        assertThat(fakeRepositoryFile.readText())
+            .isEqualTo(
+                "{\"data\":[" + fakeRepoInfo.toJson().toString(0) + "],\"version\":1}"
+            )
+    }
+
+    @Test
+    fun `𝕄 upload file 𝕎 applyTask() {not a git repo}`() {
+        // Given
+        val fakeMappingFile = File(tempDir, fakeMappingFileName)
+        fakeMappingFile.writeText(fakeMappingFileContent)
+        testedTask.mappingFilePath = fakeMappingFile.path
+        val fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
+        testedTask.repositoryFile = fakeRepositoryFile
+        val expectedUrl = DdConfiguration(fakeSite, fakeApiKey).buildUrl()
+        whenever(mockRepositoryDetector.detectRepositories(any(), any()))
+            .doReturn(emptyList())
+
+        // When
+        testedTask.applyTask()
+
+        // Then
+        verify(mockUploader).upload(
+            expectedUrl,
+            fakeMappingFile,
+            null,
+            DdAppIdentifier(
+                serviceName = fakeService,
                 version = fakeVersion,
                 variant = fakeVariant
             )
@@ -111,27 +164,10 @@ internal class DdMappingFileUploadTaskTest {
     @Test
     fun `𝕄 throw error 𝕎 applyTask() {no api key}`() {
         // Given
-        val fakeFile = File(tempDir, "mapping.txt")
-        fakeFile.writeText("")
-        testedTask.mappingFilePath = fakeFile.path
+        val fakeMappingFile = File(tempDir, fakeMappingFileName)
+        fakeMappingFile.writeText(fakeMappingFileContent)
+        testedTask.mappingFilePath = fakeMappingFile.path
         testedTask.apiKey = ""
-
-        // When
-        assertThrows<IllegalStateException> {
-            testedTask.applyTask()
-        }
-
-        // Then
-        verifyZeroInteractions(mockUploader)
-    }
-
-    @Test
-    fun `𝕄 throw error 𝕎 applyTask() {no env name}`() {
-        // Given
-        val fakeFile = File(tempDir, "mapping.txt")
-        fakeFile.writeText("")
-        testedTask.mappingFilePath = fakeFile.path
-        testedTask.envName = ""
 
         // When
         assertThrows<IllegalStateException> {
@@ -149,9 +185,9 @@ internal class DdMappingFileUploadTaskTest {
         assumeTrue(siteName !in listOf("US", "EU", "GOV"))
 
         // Given
-        val fakeFile = File(tempDir, "mapping.txt")
-        fakeFile.writeText("")
-        testedTask.mappingFilePath = fakeFile.path
+        val fakeMappingFile = File(tempDir, fakeMappingFileName)
+        fakeMappingFile.writeText(fakeMappingFileContent)
+        testedTask.mappingFilePath = fakeMappingFile.path
         testedTask.site = siteName
 
         // When
@@ -168,11 +204,15 @@ internal class DdMappingFileUploadTaskTest {
         @StringForgery siteName: String
     ) {
         // Given
-        val fakeFile = File(tempDir, "mapping.txt")
-        fakeFile.writeText("")
-        testedTask.mappingFilePath = fakeFile.path
+        val fakeMappingFile = File(tempDir, fakeMappingFileName)
+        fakeMappingFile.writeText(fakeMappingFileContent)
+        testedTask.mappingFilePath = fakeMappingFile.path
+        val fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
+        testedTask.repositoryFile = fakeRepositoryFile
         testedTask.site = ""
         val expectedUrl = DdConfiguration(DdConfiguration.Site.US, fakeApiKey).buildUrl()
+        whenever(mockRepositoryDetector.detectRepositories(any(), any()))
+            .doReturn(listOf(fakeRepoInfo))
 
         // When
         testedTask.applyTask()
@@ -180,21 +220,25 @@ internal class DdMappingFileUploadTaskTest {
         // Then
         verify(mockUploader).upload(
             expectedUrl,
-            fakeFile,
+            fakeMappingFile,
+            fakeRepositoryFile,
             DdAppIdentifier(
                 serviceName = fakeService,
-                envName = fakeEnv,
                 version = fakeVersion,
                 variant = fakeVariant
             )
         )
+        assertThat(fakeRepositoryFile.readText())
+            .isEqualTo(
+                "{\"data\":[" + fakeRepoInfo.toJson().toString(0) + "],\"version\":1}"
+            )
     }
 
     @Test
     fun `𝕄 do nothing 𝕎 applyTask() {no mapping file}`() {
         // Given
-        val fakeFile = File(tempDir, "mapping.txt")
-        testedTask.mappingFilePath = fakeFile.path
+        val fakeMappingFile = File(tempDir, fakeMappingFileName)
+        testedTask.mappingFilePath = fakeMappingFile.path
 
         // When
         testedTask.applyTask()
@@ -207,9 +251,9 @@ internal class DdMappingFileUploadTaskTest {
     fun `𝕄 throw error 𝕎 applyTask() {mapping file is dir}`() {
 
         // Given
-        val fakeFile = File(tempDir, "mapping.txt")
-        fakeFile.mkdirs()
-        testedTask.mappingFilePath = fakeFile.path
+        val fakeMappingFile = File(tempDir, fakeMappingFileName)
+        fakeMappingFile.mkdirs()
+        testedTask.mappingFilePath = fakeMappingFile.path
 
         // When
         assertThrows<IllegalStateException> {

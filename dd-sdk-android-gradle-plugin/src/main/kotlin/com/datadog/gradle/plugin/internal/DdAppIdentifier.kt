@@ -8,12 +8,11 @@ package com.datadog.gradle.plugin.internal
 
 internal data class DdAppIdentifier(
     val serviceName: String,
-    val envName: String,
     val version: String,
     val variant: String
 ) {
 
     override fun toString(): String {
-        return "$serviceName:$version {variant:$variant; env:$envName}"
+        return "$serviceName:$version {variant:$variant}"
     }
 }

@@ -14,7 +14,6 @@ internal class IdentifierForgeryFactory : ForgeryFactory<DdAppIdentifier> {
     override fun getForgery(forge: Forge): DdAppIdentifier {
         return DdAppIdentifier(
             serviceName = forge.aStringMatching("[a-z]{3}(\\.[a-z]{5,10}){2,4}"),
-            envName = forge.anAlphabeticalString(),
             version = forge.aStringMatching("\\d\\.\\d{1,2}\\.\\d{1,3}"),
             variant = forge.anAlphabeticalString()
         )

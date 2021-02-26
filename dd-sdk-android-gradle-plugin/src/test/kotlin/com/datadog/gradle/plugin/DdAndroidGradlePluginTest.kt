@@ -3,6 +3,7 @@ package com.datadog.gradle.plugin
 import com.android.build.gradle.api.ApplicationVariant
 import com.android.builder.model.BuildType
 import com.datadog.gradle.plugin.internal.DdConfiguration
+import com.datadog.gradle.plugin.internal.GitRepositoryDetector
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.whenever
@@ -84,12 +85,12 @@ internal class DdAndroidGradlePluginTest {
 
         // Then
         check(task is DdMappingFileUploadTask)
+        assertThat(task.repositoryDetector).isInstanceOf(GitRepositoryDetector::class.java)
         assertThat(task.name).isEqualTo("uploadMapping${variantName.capitalize()}")
         assertThat(task.apiKey).isEqualTo(fakeApiKey)
         assertThat(task.variantName).isEqualTo(flavorName)
         assertThat(task.versionName).isEqualTo(versionName)
         assertThat(task.serviceName).isEqualTo(packageName)
-        assertThat(task.envName).isEqualTo(fakeExtension.environmentName)
         assertThat(task.site).isEqualTo(fakeExtension.site)
         assertThat(task.mappingFilePath)
             .isEqualTo("${fakeProject.buildDir}/outputs/mapping/$variantName/mapping.txt")
@@ -121,12 +122,12 @@ internal class DdAndroidGradlePluginTest {
 
         // Then
         check(task is DdMappingFileUploadTask)
+        assertThat(task.repositoryDetector).isInstanceOf(GitRepositoryDetector::class.java)
         assertThat(task.name).isEqualTo("uploadMapping${variantName.capitalize()}")
         assertThat(task.apiKey).isEqualTo(fakeApiKey)
         assertThat(task.variantName).isEqualTo(flavorName)
         assertThat(task.versionName).isEqualTo(fakeExtension.versionName)
         assertThat(task.serviceName).isEqualTo(fakeExtension.serviceName)
-        assertThat(task.envName).isEqualTo(fakeExtension.environmentName)
         assertThat(task.site).isEqualTo(fakeExtension.site)
         assertThat(task.mappingFilePath)
             .isEqualTo("${fakeProject.buildDir}/outputs/mapping/$variantName/mapping.txt")
@@ -140,7 +141,6 @@ internal class DdAndroidGradlePluginTest {
         @StringForgery packageName: String
     ) {
         // Given
-        fakeExtension.environmentName = null
         fakeExtension.serviceName = null
         fakeExtension.versionName = null
         fakeExtension.site = null
@@ -162,12 +162,12 @@ internal class DdAndroidGradlePluginTest {
 
         // Then
         check(task is DdMappingFileUploadTask)
+        assertThat(task.repositoryDetector).isInstanceOf(GitRepositoryDetector::class.java)
         assertThat(task.name).isEqualTo("uploadMapping${variantName.capitalize()}")
         assertThat(task.apiKey).isEqualTo(fakeApiKey)
         assertThat(task.variantName).isEqualTo(flavorName)
         assertThat(task.versionName).isEqualTo(versionName)
         assertThat(task.serviceName).isEqualTo(packageName)
-        assertThat(task.envName).isEqualTo("")
         assertThat(task.site).isEqualTo("")
         assertThat(task.mappingFilePath)
             .isEqualTo("${fakeProject.buildDir}/outputs/mapping/$variantName/mapping.txt")
@@ -280,7 +280,6 @@ internal class DdAndroidGradlePluginTest {
         val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, flavorName)
 
         // Then
-        assertThat(config.environmentName).isEqualTo(fakeExtension.environmentName)
         assertThat(config.versionName).isEqualTo(fakeExtension.versionName)
         assertThat(config.serviceName).isEqualTo(fakeExtension.serviceName)
         assertThat(config.site).isEqualTo(fakeExtension.site)
@@ -298,31 +297,9 @@ internal class DdAndroidGradlePluginTest {
         val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, flavorName)
 
         // Then
-        assertThat(config.environmentName).isEqualTo(variantConfig.environmentName)
         assertThat(config.versionName).isEqualTo(variantConfig.versionName)
         assertThat(config.serviceName).isEqualTo(variantConfig.serviceName)
         assertThat(config.site).isEqualTo(variantConfig.site)
-    }
-
-    @Test
-    fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { variant w env only }`(
-        @StringForgery flavorName: String,
-        @StringForgery envName: String
-    ) {
-        val incompleteConfig = DdExtensionConfiguration().apply {
-            environmentName = envName
-        }
-        fakeExtension.variants = mock()
-        whenever(fakeExtension.variants?.findByName(flavorName)) doReturn incompleteConfig
-
-        // When
-        val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, flavorName)
-
-        // Then
-        assertThat(config.environmentName).isEqualTo(envName)
-        assertThat(config.versionName).isEqualTo(fakeExtension.versionName)
-        assertThat(config.serviceName).isEqualTo(fakeExtension.serviceName)
-        assertThat(config.site).isEqualTo(fakeExtension.site)
     }
 
     @Test
@@ -340,7 +317,6 @@ internal class DdAndroidGradlePluginTest {
         val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, flavorName)
 
         // Then
-        assertThat(config.environmentName).isEqualTo(fakeExtension.environmentName)
         assertThat(config.versionName).isEqualTo(versionName)
         assertThat(config.serviceName).isEqualTo(fakeExtension.serviceName)
         assertThat(config.site).isEqualTo(fakeExtension.site)
@@ -361,7 +337,6 @@ internal class DdAndroidGradlePluginTest {
         val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, flavorName)
 
         // Then
-        assertThat(config.environmentName).isEqualTo(fakeExtension.environmentName)
         assertThat(config.versionName).isEqualTo(fakeExtension.versionName)
         assertThat(config.serviceName).isEqualTo(serviceName)
         assertThat(config.site).isEqualTo(fakeExtension.site)
@@ -382,7 +357,6 @@ internal class DdAndroidGradlePluginTest {
         val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, flavorName)
 
         // Then
-        assertThat(config.environmentName).isEqualTo(fakeExtension.environmentName)
         assertThat(config.versionName).isEqualTo(fakeExtension.versionName)
         assertThat(config.serviceName).isEqualTo(fakeExtension.serviceName)
         assertThat(config.site).isEqualTo(site.name)

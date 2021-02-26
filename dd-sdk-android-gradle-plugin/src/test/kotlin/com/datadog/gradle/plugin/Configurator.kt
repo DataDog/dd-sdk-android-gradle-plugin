@@ -8,6 +8,7 @@ package com.datadog.gradle.plugin
 
 import fr.xgouchet.elmyr.Forge
 import fr.xgouchet.elmyr.ForgeConfigurator
+import fr.xgouchet.elmyr.jvm.useJvmFactories
 
 internal class Configurator : ForgeConfigurator {
 
@@ -16,5 +17,7 @@ internal class Configurator : ForgeConfigurator {
         forge.addFactory(ConfigurationForgeryFactory())
         forge.addFactory(DdExtensionForgeryFactory())
         forge.addFactory(DdExtensionConfigurationForgeryFactory())
+        forge.addFactory(RepositoryInfoForgeryFactory())
+        forge.useJvmFactories()
     }
 }

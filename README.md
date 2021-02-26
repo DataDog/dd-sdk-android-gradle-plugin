@@ -26,7 +26,6 @@ You can configure the plugin by adding the following block at the end of your `b
 
 ```groovy
 datadog {
-    environmentName = "prod" // mandatory, must match the environmentName configured in your application
     versionName = "1.3.0" // Optional, by default it is read from your Android plugin configuration's version name
     serviceName = "my-service" // Optional, by default it is read from your Android plugin configuration's package name
     site = "US" // Optional, can be "US", "EU" or "GOV". Default is "US"
@@ -39,14 +38,7 @@ If you're using variants, you can set a custom configuration per variant using t
 datadog {
     site = "US" // Variants with no configurations will use this as default
     variants {
-        staging {
-            environmentName = "staging"
-        }
-        prod {
-            environmentName = "prod"
-        }
         fr {
-            environmentName = "prod-fr"
             site = "EU"
         }
     }
