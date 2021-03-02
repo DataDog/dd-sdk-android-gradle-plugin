@@ -120,7 +120,7 @@ class DdAndroidGradlePlugin : Plugin<Project> {
         extension: DdExtension,
         flavorName: String
     ): DdExtensionConfiguration {
-        val flavorConfig = extension.variants?.findByName(flavorName)
+        val flavorConfig = extension.variants.findByName(flavorName)
 
         return DdExtensionConfiguration().apply {
             versionName = flavorConfig?.versionName ?: extension.versionName

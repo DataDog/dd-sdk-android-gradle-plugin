@@ -19,15 +19,27 @@ open class DdExtension : DdExtensionConfiguration() {
      */
     var enabled: Boolean = true
 
+    // introduced because cannot use lateinit with `variants` because of name
+    // ambiguity (method vs property). Consider switching to constructor injection
+    // via https://docs.gradle.org/current/javadoc/org/gradle/api/model/ObjectFactory.html#domainObjectContainer-java.lang.Class-
+    // once it is stable
+    private lateinit var _variants: NamedDomainObjectContainer<DdExtensionConfiguration>
+
     /**
      * Container for the variant's configurations.
      */
-    var variants: NamedDomainObjectContainer<DdExtensionConfiguration>? = null
+    var variants: NamedDomainObjectContainer<DdExtensionConfiguration>
+        get() = _variants
+        set(value) {
+            _variants = value
+        }
 
     /**
      * Closure method to create a DSL for variant configurations.
      */
     fun variants(configureClosure: Closure<DdExtensionConfiguration>) {
-        variants?.configure(configureClosure)
+        if (::_variants.isInitialized) {
+            _variants.configure(configureClosure)
+        }
     }
 }
