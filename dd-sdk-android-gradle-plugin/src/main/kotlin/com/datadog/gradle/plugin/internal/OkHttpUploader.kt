@@ -7,6 +7,7 @@
 package com.datadog.gradle.plugin.internal
 
 import com.datadog.gradle.plugin.DdAndroidGradlePlugin.Companion.LOGGER
+import com.datadog.gradle.plugin.RepositoryInfo
 import java.io.File
 import java.lang.IllegalStateException
 import java.net.HttpURLConnection
@@ -32,10 +33,11 @@ internal class OkHttpUploader : Uploader {
         url: String,
         mappingFile: File,
         repositoryFile: File?,
-        identifier: DdAppIdentifier
+        identifier: DdAppIdentifier,
+        repositoryInfo: RepositoryInfo?
     ) {
         LOGGER.info("Uploading mapping file for $identifier:\n")
-        val body = createBody(identifier, mappingFile, repositoryFile)
+        val body = createBody(identifier, mappingFile, repositoryFile, repositoryInfo)
 
         val request = Request.Builder()
             .url(url)
@@ -60,7 +62,8 @@ internal class OkHttpUploader : Uploader {
     private fun createBody(
         identifier: DdAppIdentifier,
         mappingFile: File,
-        repositoryFile: File?
+        repositoryFile: File?,
+        repositoryInfo: RepositoryInfo?
     ): MultipartBody {
         val mappingFileBody = MultipartBody.create(MEDIA_TYPE_TXT, mappingFile)
 
@@ -75,6 +78,10 @@ internal class OkHttpUploader : Uploader {
         if (repositoryFile != null) {
             val repositoryFileBody = MultipartBody.create(MEDIA_TYPE_JSON, repositoryFile)
             builder.addFormDataPart("repository", repositoryFile.name, repositoryFileBody)
+        }
+        if (repositoryInfo != null) {
+            builder.addFormDataPart("git_repository_url", repositoryInfo.url)
+            builder.addFormDataPart("git_commit_sha", repositoryInfo.hash)
         }
 
         return builder.build()

@@ -8,6 +8,7 @@ package com.datadog.gradle.plugin.internal
 
 import com.datadog.gradle.plugin.Configurator
 import com.datadog.gradle.plugin.RecordedRequestAssert.Companion.assertThat
+import com.datadog.gradle.plugin.RepositoryInfo
 import fr.xgouchet.elmyr.annotation.Forgery
 import fr.xgouchet.elmyr.annotation.IntForgery
 import fr.xgouchet.elmyr.annotation.StringForgery
@@ -57,6 +58,9 @@ internal class OkHttpUploaderTest {
 
     @StringForgery(regex = "[a-z]{8}\\.txt")
     lateinit var fakeRepositoryFileName: String
+
+    @Forgery
+    lateinit var fakeRepositoryInfo: RepositoryInfo
 
     @StringForgery
     lateinit var fakeMappingFileContent: String
@@ -118,7 +122,8 @@ internal class OkHttpUploaderTest {
             mockWebServer.url("/").toString(),
             fakeMappingFile,
             fakeRepositoryFile,
-            fakeIdentifier
+            fakeIdentifier,
+            fakeRepositoryInfo
         )
 
         // Then
@@ -129,6 +134,8 @@ internal class OkHttpUploaderTest {
             .containsFormData("service", fakeIdentifier.serviceName)
             .containsFormData("variant", fakeIdentifier.variant)
             .containsFormData("type", OkHttpUploader.TYPE_JVM_MAPPING_FILE)
+            .containsFormData("git_repository_url", fakeRepositoryInfo.url)
+            .containsFormData("git_commit_sha", fakeRepositoryInfo.hash)
             .containsMultipartFile(
                 "jvm_mapping_file",
                 fakeMappingFileName,
@@ -155,7 +162,8 @@ internal class OkHttpUploaderTest {
             mockWebServer.url("/").toString(),
             fakeMappingFile,
             null,
-            fakeIdentifier
+            fakeIdentifier,
+            null
         )
 
         // Then
@@ -173,6 +181,8 @@ internal class OkHttpUploaderTest {
                 "text/plain"
             )
             .doesNotHaveField("repository")
+            .doesNotHaveField("git_repository_url")
+            .doesNotHaveField("git_commit_sha")
     }
 
     @Test
@@ -188,7 +198,8 @@ internal class OkHttpUploaderTest {
                 mockWebServer.url("/").toString(),
                 fakeMappingFile,
                 fakeRepositoryFile,
-                fakeIdentifier
+                fakeIdentifier,
+                fakeRepositoryInfo
             )
         }
 
@@ -200,6 +211,8 @@ internal class OkHttpUploaderTest {
             .containsFormData("service", fakeIdentifier.serviceName)
             .containsFormData("variant", fakeIdentifier.variant)
             .containsFormData("type", OkHttpUploader.TYPE_JVM_MAPPING_FILE)
+            .containsFormData("git_repository_url", fakeRepositoryInfo.url)
+            .containsFormData("git_commit_sha", fakeRepositoryInfo.hash)
             .containsMultipartFile(
                 "jvm_mapping_file",
                 fakeMappingFileName,
@@ -233,7 +246,8 @@ internal class OkHttpUploaderTest {
                 mockWebServer.url("/").toString(),
                 fakeMappingFile,
                 fakeRepositoryFile,
-                fakeIdentifier
+                fakeIdentifier,
+                fakeRepositoryInfo
             )
         }
 
@@ -245,6 +259,8 @@ internal class OkHttpUploaderTest {
             .containsFormData("service", fakeIdentifier.serviceName)
             .containsFormData("variant", fakeIdentifier.variant)
             .containsFormData("type", OkHttpUploader.TYPE_JVM_MAPPING_FILE)
+            .containsFormData("git_repository_url", fakeRepositoryInfo.url)
+            .containsFormData("git_commit_sha", fakeRepositoryInfo.hash)
             .containsMultipartFile(
                 "jvm_mapping_file",
                 fakeMappingFileName,

@@ -125,7 +125,8 @@ internal class DdMappingFileUploadTaskTest {
                 serviceName = fakeService,
                 version = fakeVersion,
                 variant = fakeVariant
-            )
+            ),
+            fakeRepoInfo
         )
         assertThat(fakeRepositoryFile.readText())
             .isEqualTo(
@@ -157,7 +158,8 @@ internal class DdMappingFileUploadTaskTest {
                 serviceName = fakeService,
                 version = fakeVersion,
                 variant = fakeVariant
-            )
+            ),
+            null
         )
     }
 
@@ -226,7 +228,8 @@ internal class DdMappingFileUploadTaskTest {
                 serviceName = fakeService,
                 version = fakeVersion,
                 variant = fakeVariant
-            )
+            ),
+            fakeRepoInfo
         )
         assertThat(fakeRepositoryFile.readText())
             .isEqualTo(
