@@ -115,7 +115,8 @@ open class DdMappingFileUploadTask
                 serviceName = serviceName,
                 version = versionName,
                 variant = variantName
-            )
+            ),
+            repositories.firstOrNull()
         )
     }
 

@@ -6,6 +6,7 @@
 
 package com.datadog.gradle.plugin.internal
 
+import com.datadog.gradle.plugin.RepositoryInfo
 import java.io.File
 
 internal interface Uploader {
@@ -14,6 +15,7 @@ internal interface Uploader {
         url: String,
         mappingFile: File,
         repositoryFile: File?,
-        identifier: DdAppIdentifier
+        identifier: DdAppIdentifier,
+        repositoryInfo: RepositoryInfo?
     )
 }
