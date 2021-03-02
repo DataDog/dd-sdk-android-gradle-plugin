@@ -42,7 +42,7 @@ import org.mockito.quality.Strictness
 @ForgeConfiguration(Configurator::class)
 internal class OkHttpUploaderTest {
 
-    lateinit var testedUploader: Uploader
+    lateinit var testedUploader: OkHttpUploader
 
     @TempDir
     lateinit var tempDir: File
@@ -94,6 +94,20 @@ internal class OkHttpUploaderTest {
     fun `tear down`() {
         mockWebServer.shutdown()
         dispatchedRequest = null
+    }
+
+    @Test
+    fun `M use an OkHttpClient W callTimeout { 45 seconds }`() {
+        assertThat(testedUploader.client.callTimeoutMillis()).isEqualTo(
+            OkHttpUploader.NETWORK_TIMEOUT_MS.toInt()
+        )
+    }
+
+    @Test
+    fun `M use an OkHttpClient W writeTimeout { 45 seconds }`() {
+        assertThat(testedUploader.client.writeTimeoutMillis()).isEqualTo(
+            OkHttpUploader.NETWORK_TIMEOUT_MS.toInt()
+        )
     }
 
     @Test
