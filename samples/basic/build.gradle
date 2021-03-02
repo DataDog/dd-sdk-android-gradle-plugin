@@ -39,5 +39,5 @@ dependencies {
 
 //datadog {
 //    site = "US"
-//    environmentName = "prod"
+//    versionName = "prod"
 //}

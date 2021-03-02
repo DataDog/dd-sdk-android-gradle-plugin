@@ -10,6 +10,7 @@ import com.datadog.gradle.plugin.DdAndroidGradlePlugin.Companion.LOGGER
 import java.io.File
 import java.lang.IllegalStateException
 import java.net.HttpURLConnection
+import java.util.concurrent.TimeUnit
 import okhttp3.MediaType
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
@@ -19,6 +20,12 @@ import okhttp3.Response
 internal class OkHttpUploader : Uploader {
 
     // region Uploader
+
+    internal val client = OkHttpClient
+        .Builder()
+        .callTimeout(NETWORK_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+        .writeTimeout(NETWORK_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+        .build()
 
     @Suppress("TooGenericExceptionCaught")
     override fun upload(
@@ -30,7 +37,6 @@ internal class OkHttpUploader : Uploader {
         LOGGER.info("Uploading mapping file for $identifier:\n")
         val body = createBody(identifier, mappingFile, repositoryFile)
 
-        val client = OkHttpClient.Builder().build()
         val request = Request.Builder()
             .url(url)
             .post(body)
@@ -102,6 +108,7 @@ internal class OkHttpUploader : Uploader {
 
     companion object {
 
+        internal val NETWORK_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(45)
         internal val MEDIA_TYPE_TXT = MediaType.parse("text/plain")
         internal val MEDIA_TYPE_JSON = MediaType.parse("application/json")
 
