@@ -29,6 +29,7 @@ datadog {
     versionName = "1.3.0" // Optional, by default it is read from your Android plugin configuration's version name
     serviceName = "my-service" // Optional, by default it is read from your Android plugin configuration's package name
     site = "US" // Optional, can be "US", "EU" or "GOV". Default is "US"
+    checkProjectDependencies = "warn" // Optional, can be "warn", "fail" or "none". Default is "fail". Will check if Datadog SDK is in the project dependencies.
 }
 ```
 
@@ -40,6 +41,7 @@ datadog {
     variants {
         fr {
             site = "EU"
+            checkProjectDependencies = "warn"
         }
     }
 }

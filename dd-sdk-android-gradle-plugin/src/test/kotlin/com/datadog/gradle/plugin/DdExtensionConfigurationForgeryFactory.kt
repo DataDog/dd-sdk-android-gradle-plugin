@@ -16,6 +16,7 @@ internal class DdExtensionConfigurationForgeryFactory : ForgeryFactory<DdExtensi
             serviceName = forge.aStringMatching("[a-z]{3}(\\.[a-z]{5,10}){2,4}")
             versionName = forge.aStringMatching("\\d\\.\\d{1,2}\\.\\d{1,3}")
             site = forge.aValueFrom(DdConfiguration.Site::class.java).name
+            checkProjectDependencies = forge.aValueFrom(SdkCheckLevel::class.java)
         }
     }
 }

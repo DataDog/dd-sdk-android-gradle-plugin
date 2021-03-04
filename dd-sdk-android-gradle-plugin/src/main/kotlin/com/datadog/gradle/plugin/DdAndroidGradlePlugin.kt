@@ -9,10 +9,12 @@ package com.datadog.gradle.plugin
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.api.ApplicationVariant
 import com.datadog.gradle.plugin.internal.GitRepositoryDetector
+import com.datadog.gradle.plugin.internal.MissingSdkException
 import java.io.File
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.artifacts.ResolvedDependency
 import org.slf4j.LoggerFactory
 
 /**
@@ -26,7 +28,7 @@ class DdAndroidGradlePlugin : Plugin<Project> {
     override fun apply(target: Project) {
         val androidExtension = target.extensions.findByType(AppExtension::class.java)
         if (androidExtension == null) {
-            System.err.println(ERROR_NOT_ANDROID)
+            LOGGER.error(ERROR_NOT_ANDROID)
             return
         }
 
@@ -35,8 +37,9 @@ class DdAndroidGradlePlugin : Plugin<Project> {
         val apiKey = resolveApiKey(target)
 
         target.afterEvaluate {
-            androidExtension.applicationVariants.forEach {
-                configureVariant(target, it, apiKey, extension)
+            androidExtension.applicationVariants.forEach { variant ->
+                configureVariantForUploadTask(target, variant, apiKey, extension)
+                configureVariantForSdkCheck(target, variant, extension)
             }
         }
     }
@@ -56,7 +59,7 @@ class DdAndroidGradlePlugin : Plugin<Project> {
     }
 
     @Suppress("DefaultLocale")
-    internal fun configureVariant(
+    internal fun configureVariantForUploadTask(
         target: Project,
         variant: ApplicationVariant,
         apiKey: String,
@@ -101,6 +104,69 @@ class DdAndroidGradlePlugin : Plugin<Project> {
         return uploadTask
     }
 
+    @Suppress("DefaultLocale")
+    internal fun configureVariantForSdkCheck(
+        target: Project,
+        variant: ApplicationVariant,
+        extension: DdExtension
+    ): Task? {
+
+        if (!extension.enabled) {
+            return null
+        }
+
+        // variants will have name like proDebug, but compile task will have a name like
+        // compileProDebugSources. It can be other tasks like compileProDebugAndroidTestSources
+        // or compileProDebugUnitTestSources, but we are not interested in these. This is fragile
+        // and depends on the AGP naming convention
+        val compileTask = target.tasks
+            .findByName("compile${variant.name.capitalize()}Sources")
+
+        if (compileTask == null) {
+            LOGGER.warn(
+                "Cannot find compilation task for the ${variant.name} variant, please" +
+                    " report the issue at" +
+                    " https://github.com/DataDog/dd-sdk-android-gradle-plugin/issues"
+            )
+            return null
+        } else {
+
+            // this will postpone the check until the actual compilation for the particular variant.
+            // by doing this we are avoiding pulling all the configurations for all the variants
+            // after build script is evaluated, which may be a heavy task for the big projects
+            return compileTask.doFirst {
+                val firstLevelModuleDependencies = variant.runtimeConfiguration
+                    .resolvedConfiguration
+                    .firstLevelModuleDependencies
+
+                if (!isDatadogDependencyPresent(firstLevelModuleDependencies)) {
+
+                    val extensionConfiguration = resolveExtensionConfiguration(
+                        extension,
+                        variant.flavorName
+                    )
+
+                    val sdkCheckLevel = extensionConfiguration.checkProjectDependencies
+                        ?: SdkCheckLevel.FAIL
+
+                    when (sdkCheckLevel) {
+                        SdkCheckLevel.FAIL -> {
+                            throw MissingSdkException(
+                                MISSING_DD_SDK_MESSAGE.format(variant.name)
+                            )
+                        }
+                        SdkCheckLevel.WARN -> {
+                            LOGGER.warn(MISSING_DD_SDK_MESSAGE.format(variant.name))
+                        }
+                        SdkCheckLevel.NONE -> {
+                            // no-op, ignore that and make compiler happy
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     private fun configureVariantTask(
         uploadTask: DdMappingFileUploadTask,
         apiKey: String,
@@ -126,6 +192,15 @@ class DdAndroidGradlePlugin : Plugin<Project> {
             versionName = flavorConfig?.versionName ?: extension.versionName
             serviceName = flavorConfig?.serviceName ?: extension.serviceName
             site = flavorConfig?.site ?: extension.site
+            checkProjectDependencies = flavorConfig?.checkProjectDependencies
+                ?: extension.checkProjectDependencies
+        }
+    }
+
+    internal fun isDatadogDependencyPresent(dependencies: Set<ResolvedDependency>): Boolean {
+        return dependencies.any {
+            (it.moduleGroup == DD_SDK_GROUP && it.moduleName == DD_SDK_NAME) ||
+                isDatadogDependencyPresent(it.children)
         }
     }
 
@@ -143,5 +218,12 @@ class DdAndroidGradlePlugin : Plugin<Project> {
 
         private const val ERROR_NOT_ANDROID = "The dd-android-gradle-plugin has been applied on " +
             "a non android application project"
+
+        internal const val MISSING_DD_SDK_MESSAGE = "Following application variant doesn't" +
+            " have Datadog SDK included: %s"
+
+        private const val DD_SDK_NAME = "dd-sdk-android"
+
+        private const val DD_SDK_GROUP = "com.datadoghq"
     }
 }
