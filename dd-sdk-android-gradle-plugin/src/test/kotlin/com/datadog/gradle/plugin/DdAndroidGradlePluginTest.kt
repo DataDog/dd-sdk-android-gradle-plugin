@@ -517,6 +517,41 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
+    fun `𝕄 do nothing 𝕎 configureVariantForSdkCheck() { sdk is missing w none set }`(
+        @StringForgery(case = Case.LOWER) flavorName: String,
+        @StringForgery(case = Case.LOWER) buildTypeName: String,
+        @StringForgery versionName: String,
+        @StringForgery packageName: String
+    ) {
+        // Given
+        fakeExtension.checkProjectDependencies = SdkCheckLevel.NONE
+        val variantName = "$flavorName${buildTypeName.capitalize()}"
+        whenever(mockVariant.name) doReturn variantName
+        whenever(mockVariant.flavorName) doReturn flavorName
+        whenever(mockVariant.versionName) doReturn versionName
+        whenever(mockVariant.applicationId) doReturn packageName
+        whenever(mockVariant.buildType) doReturn mockBuildType
+
+        val fakeCompileTask = fakeProject.task("compile${variantName.capitalize()}Sources")
+
+        val mockConfiguration = mock<Configuration>()
+        val mockResolvedConfiguration = mock<ResolvedConfiguration>()
+
+        whenever(mockResolvedConfiguration.firstLevelModuleDependencies) doReturn emptySet()
+        whenever(mockConfiguration.resolvedConfiguration) doReturn mockResolvedConfiguration
+        whenever(mockVariant.runtimeConfiguration) doReturn mockConfiguration
+
+        // When + Then
+        assertDoesNotThrow {
+            testedPlugin.configureVariantForSdkCheck(
+                fakeProject,
+                mockVariant,
+                fakeExtension
+            )!!.actions.first().execute(fakeCompileTask)
+        }
+    }
+
+    @Test
     fun `𝕄 do nothing 𝕎 configureVariantForSdkCheck() { sdk is there }`(
         @StringForgery(case = Case.LOWER) flavorName: String,
         @StringForgery(case = Case.LOWER) buildTypeName: String,

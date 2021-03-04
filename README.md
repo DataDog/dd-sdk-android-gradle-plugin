@@ -41,7 +41,6 @@ datadog {
     variants {
         fr {
             site = "EU"
-            checkProjectDependencies = "warn"
         }
     }
 }
