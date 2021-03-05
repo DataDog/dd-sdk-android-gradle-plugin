@@ -29,7 +29,7 @@ android {
         java.srcDir("src/main/kotlin")
     }
 
-    flavorDimensions("version")
+    flavorDimensions("version", "colour")
     productFlavors {
         demo {
             dimension "version"
@@ -45,6 +45,16 @@ android {
             dimension "version"
             applicationIdSuffix ".pro"
             versionNameSuffix "-pro"
+        }
+
+        red {
+            dimension "colour"
+        }
+        green {
+            dimension "colour"
+        }
+        blue {
+            dimension "colour"
         }
     }
 }

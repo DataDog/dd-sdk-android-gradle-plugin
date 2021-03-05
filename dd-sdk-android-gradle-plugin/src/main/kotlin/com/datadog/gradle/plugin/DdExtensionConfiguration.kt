@@ -32,4 +32,11 @@ open class DdExtensionConfiguration(
      * with an error (default).
      */
     var checkProjectDependencies: SdkCheckLevel? = null
+
+    internal fun updateWith(config: DdExtensionConfiguration) {
+        config.versionName?.let { versionName = it }
+        config.serviceName?.let { serviceName = it }
+        config.site?.let { site = it }
+        config.checkProjectDependencies?.let { checkProjectDependencies = it }
+    }
 }
