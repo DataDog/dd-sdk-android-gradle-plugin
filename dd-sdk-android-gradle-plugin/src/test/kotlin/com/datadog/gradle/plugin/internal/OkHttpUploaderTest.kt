@@ -9,6 +9,10 @@ package com.datadog.gradle.plugin.internal
 import com.datadog.gradle.plugin.Configurator
 import com.datadog.gradle.plugin.RecordedRequestAssert.Companion.assertThat
 import com.datadog.gradle.plugin.RepositoryInfo
+import com.nhaarman.mockitokotlin2.doReturn
+import com.nhaarman.mockitokotlin2.spy
+import com.nhaarman.mockitokotlin2.whenever
+import fr.xgouchet.elmyr.Forge
 import fr.xgouchet.elmyr.annotation.Forgery
 import fr.xgouchet.elmyr.annotation.IntForgery
 import fr.xgouchet.elmyr.annotation.StringForgery
@@ -273,6 +277,84 @@ internal class OkHttpUploaderTest {
                 fakeRepositoryFileContent,
                 "application/json"
             )
+    }
+
+    @Test
+    fun `M throw a MaxSizeExceededException W upload() { mappingFile size exceeded 50 MB}`(
+        forge: Forge
+    ) {
+        // GIVEN
+        val fakeFileSize =
+            forge.aLong(min = OkHttpUploader.MAX_MAP_FILE_SIZE_IN_BYTES + 1)
+        val fakeTooLargeMappingFile = spy(File(tempDir, forge.anAlphabeticalString()))
+        doReturn(fakeFileSize)
+            .whenever(fakeTooLargeMappingFile).length()
+
+        // THEN
+        assertThrows<MaxSizeExceededException>(
+            {
+                testedUploader.upload(
+                    mockWebServer.url("/").toString(),
+                    fakeTooLargeMappingFile,
+                    fakeRepositoryFile,
+                    fakeIdentifier,
+                    fakeRepositoryInfo
+                )
+            }
+        )
+        assertThat(mockWebServer.requestCount).isEqualTo(0)
+    }
+
+    @Test
+    fun `𝕄 upload proper request 𝕎 upload() { mappingFile size smaller than 50 MB }`(
+        forge: Forge
+    ) {
+        // Given
+        val fakeFileSize =
+            forge.aLong(min = 1, max = OkHttpUploader.MAX_MAP_FILE_SIZE_IN_BYTES)
+        val fakeTooLargeMappingFile = spy(File(tempDir, forge.anAlphabeticalString()))
+        doReturn(fakeFileSize)
+            .whenever(fakeTooLargeMappingFile).length()
+        mockResponse = MockResponse()
+            .setResponseCode(HttpURLConnection.HTTP_OK)
+            .setBody("{}")
+
+        // When
+        testedUploader.upload(
+            mockWebServer.url("/").toString(),
+            fakeMappingFile,
+            fakeRepositoryFile,
+            fakeIdentifier,
+            fakeRepositoryInfo
+        )
+
+        // Then
+        assertThat(mockWebServer.requestCount).isEqualTo(1)
+    }
+
+    @Test
+    fun `𝕄 upload proper request 𝕎 upload() { mappingFile size is 50 MB }`(
+        forge: Forge
+    ) {
+        // Given
+        val fakeTooLargeMappingFile = spy(File(tempDir, forge.anAlphabeticalString()))
+        doReturn(OkHttpUploader.MAX_MAP_FILE_SIZE_IN_BYTES)
+            .whenever(fakeTooLargeMappingFile).length()
+        mockResponse = MockResponse()
+            .setResponseCode(HttpURLConnection.HTTP_OK)
+            .setBody("{}")
+
+        // When
+        testedUploader.upload(
+            mockWebServer.url("/").toString(),
+            fakeMappingFile,
+            fakeRepositoryFile,
+            fakeIdentifier,
+            fakeRepositoryInfo
+        )
+
+        // Then
+        assertThat(mockWebServer.requestCount).isEqualTo(1)
     }
 
     inner class MockDispatcher : Dispatcher() {
