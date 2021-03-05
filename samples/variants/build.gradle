@@ -55,20 +55,23 @@ dependencies {
     implementation 'androidx.core:core-ktx:1.3.2'
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
+
+    // implementation 'com.datadoghq:dd-sdk-android:1.8.0'
 }
 
 //datadog {
 //    site = "US"
+//    checkProjectDependencies = "fail"
 //    variants {
 //        demo {
-//            environmentName = "demo"
+//            versionName = "demo"
 //        }
 //        full {
-//            environmentName = "full"
+//            versionName = "full"
 //        }
 //        pro {
 //            site = "GOV"
-//            environmentName = "pro"
+//            versionName = "pro"
 //        }
 //    }
 //}

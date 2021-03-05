@@ -25,4 +25,11 @@ open class DdExtensionConfiguration(
      * The Datadog site to upload your data to (one of "US", "EU", "GOV").
      */
     var site: String? = null
+
+    /**
+     * This property controls if plugin should check if Datadog SDK is included in the dependencies
+     * and if it is not: "none" - ignore, "warn" - log a warning, "fail" - fail the build
+     * with an error (default).
+     */
+    var checkProjectDependencies: SdkCheckLevel? = null
 }

@@ -18,6 +18,7 @@ internal class DdExtensionForgeryFactory : ForgeryFactory<DdExtension> {
             versionName = forge.aStringMatching("\\d\\.\\d{1,2}\\.\\d{1,3}")
             site = forge.aValueFrom(DdConfiguration.Site::class.java).name
             variants = mock()
+            checkProjectDependencies = forge.aValueFrom(SdkCheckLevel::class.java)
         }
     }
 }

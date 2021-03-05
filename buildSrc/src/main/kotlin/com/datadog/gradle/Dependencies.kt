@@ -75,7 +75,7 @@ object Dependencies {
 
     object Repositories {
         const val Gradle = "https://plugins.gradle.org/m2/"
-        const val Google = "https://maven.google.com"
         const val Jitpack = "https://jitpack.io"
+        const val Datadog = "https://dl.bintray.com/datadog/datadog-maven"
     }
 }
