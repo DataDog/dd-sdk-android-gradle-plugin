@@ -66,7 +66,12 @@ internal class OkHttpUploader : Uploader {
         repositoryInfo: RepositoryInfo?
     ): MultipartBody {
         val mappingFileBody = MultipartBody.create(MEDIA_TYPE_TXT, mappingFile)
-
+        if (mappingFileBody.contentLength() > MAX_MAP_FILE_SIZE_IN_BYTES) {
+            throw MaxSizeExceededException(
+                MAX_MAP_SIZE_EXCEEDED_ERROR_FORMAT
+                    .format(mappingFile.absolutePath)
+            )
+        }
         val builder = MultipartBody.Builder()
         builder.setType(MultipartBody.FORM)
             .addFormDataPart("version", identifier.version)
@@ -118,7 +123,10 @@ internal class OkHttpUploader : Uploader {
         internal val NETWORK_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(45)
         internal val MEDIA_TYPE_TXT = MediaType.parse("text/plain")
         internal val MEDIA_TYPE_JSON = MediaType.parse("application/json")
-
+        internal const val MAX_MAP_FILE_SIZE_IN_BYTES = 50L * 1024L * 1024L // 50 MB
+        internal val MAX_MAP_SIZE_EXCEEDED_ERROR_FORMAT =
+            "The proguard mapping file at: [%s] size exceeded the maximum 50 MB size. " +
+                "This task cannot be performed."
         internal val succesfulCodes = arrayOf(
             HttpURLConnection.HTTP_OK,
             HttpURLConnection.HTTP_CREATED,
