@@ -14,7 +14,7 @@ object Dependencies {
         const val OkHttp = "3.12.6"
 
         // Android
-        const val AndroidToolsPlugin = "4.0.1"
+        const val AndroidToolsPlugin = "4.1.2"
 
         // JUnit
         const val JUnitJupiter = "5.6.2"
