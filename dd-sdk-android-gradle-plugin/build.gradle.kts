@@ -8,6 +8,7 @@ import com.datadog.gradle.Dependencies
 import com.datadog.gradle.config.bintrayConfig
 import com.datadog.gradle.config.dependencyUpdateConfig
 import com.datadog.gradle.config.detektConfig
+import com.datadog.gradle.config.jacocoConfig
 import com.datadog.gradle.config.javadocConfig
 import com.datadog.gradle.config.junitConfig
 import com.datadog.gradle.config.kotlinConfig
@@ -47,6 +48,7 @@ kotlinConfig()
 detektConfig()
 ktLintConfig()
 junitConfig()
+jacocoConfig()
 javadocConfig()
 dependencyUpdateConfig()
 publishingConfig()
