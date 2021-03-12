@@ -190,7 +190,8 @@ class DdAndroidGradlePlugin : Plugin<Project> {
         configuration.updateWith(extension)
 
         val flavors = variant.productFlavors.map { it.name }
-        val iterator = VariantIterator(flavors)
+        val buildType = variant.buildType.name
+        val iterator = VariantIterator(flavors + buildType)
         iterator.forEach {
             val config = extension.variants.findByName(it)
             if (config != null) {
