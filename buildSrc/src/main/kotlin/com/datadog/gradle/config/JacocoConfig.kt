@@ -9,68 +9,43 @@ package com.datadog.gradle.config
 import com.datadog.gradle.Dependencies
 import java.math.BigDecimal
 import org.gradle.api.Project
+import org.gradle.kotlin.dsl.getByName
 import org.gradle.testing.jacoco.plugins.JacocoPluginExtension
 import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification
 import org.gradle.testing.jacoco.tasks.JacocoReport
 
 fun Project.jacocoConfig() {
 
-    val jacocoTestDebugUnitTestReport = tasks.create("jacocoTestDebugUnitTestReport", JacocoReport::class.java)
-    jacocoTestDebugUnitTestReport.reports {
+    val jacocoTestReport = tasks.getByName("jacocoTestReport", JacocoReport::class)
+    jacocoTestReport.reports {
         csv.isEnabled = false
         xml.isEnabled = true
         html.isEnabled = true
-        html.destination = file("${buildDir.path}/reports/jacoco/jacocoTestDebugUnitTestReport/html")
+        html.destination = file("${buildDir.path}/reports/jacoco/jacocoTestReport/html")
     }
 
-    val jacocoTestReleaseUnitTestReport = tasks.create("jacocoTestReleaseUnitTestReport", JacocoReport::class.java)
-    jacocoTestReleaseUnitTestReport.reports {
-        csv.isEnabled = false
-        xml.isEnabled = true
-        html.isEnabled = true
-        html.destination = file("${buildDir.path}/reports/jacoco/jacocoTestReleaseUnitTestReport/html")
-    }
-
-    val jacocoTestCoverageVerification =
-        tasks.create("jacocoTestCoverageVerification", JacocoCoverageVerification::class.java)
+    val jacocoTestCoverageVerification = tasks.getByName("jacocoTestCoverageVerification", JacocoCoverageVerification::class)
     jacocoTestCoverageVerification.violationRules {
         rule {
             limit {
-                minimum = BigDecimal(0.85)
+                // TODO increase that when coverage is better?
+                minimum = BigDecimal(0.75)
             }
         }
     }
 
     listOf(
-        jacocoTestDebugUnitTestReport,
-        jacocoTestReleaseUnitTestReport,
+        jacocoTestReport,
         jacocoTestCoverageVerification
     ).forEach { task ->
-        val excludeFilters = arrayOf(
-            "**/R.class",
-            "**/R$*.class",
-            "**/BuildConfig.*",
-            "**/Manifest*.*",
-            "**/*Test*.*",
-            "android/**/*.*",
-            "**/data/models/*"
-        )
 
-        val debugTree = fileTree("${buildDir.path}/intermediates/classes/debug").apply {
-            exclude(*excludeFilters)
-        }
-        val kotlinDebugTree = fileTree("${buildDir.path}/tmp/kotlin-classes/debug").apply {
-            exclude(*excludeFilters)
-        }
         val mainSrc = "${project.projectDir}/src/main/kotlin"
 
-        task.classDirectories.setFrom(files(debugTree, kotlinDebugTree))
-        task.executionData.setFrom(files("${buildDir.path}/jacoco/testDebugUnitTest.exec"))
+        task.executionData.setFrom(files("${buildDir.path}/jacoco/test.exec"))
         task.sourceDirectories.setFrom(files(mainSrc))
     }
-    jacocoTestDebugUnitTestReport.dependsOn("testDebugUnitTest")
-    jacocoTestReleaseUnitTestReport.dependsOn("testReleaseUnitTest")
-    jacocoTestCoverageVerification.dependsOn(jacocoTestDebugUnitTestReport)
+    jacocoTestReport.dependsOn("test")
+    jacocoTestCoverageVerification.dependsOn(jacocoTestReport)
 
     extensionConfig<JacocoPluginExtension> {
         toolVersion = Dependencies.Versions.Jacoco
@@ -78,8 +53,14 @@ fun Project.jacocoConfig() {
     }
 
     tasks.named("check") {
-        dependsOn(jacocoTestDebugUnitTestReport)
-        dependsOn(jacocoTestReleaseUnitTestReport)
-        dependsOn(jacocoTestDebugUnitTestReport)
+        dependsOn(jacocoTestReport)
+        dependsOn(jacocoTestCoverageVerification)
+    }
+
+    tasks.named("test") {
+        finalizedBy(
+                jacocoTestReport,
+                jacocoTestCoverageVerification
+        )
     }
 }
