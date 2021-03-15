@@ -10,7 +10,7 @@ object Dependencies {
 
     object Versions {
         // Commons
-        const val Kotlin = "1.4.0"
+        const val Kotlin = "1.4.20"
         const val OkHttp = "3.12.6"
 
         // Android
@@ -37,7 +37,7 @@ object Dependencies {
 
     object Libraries {
 
-        const val Kotlin = "org.jetbrains.kotlin:kotlin-stdlib:${Versions.Kotlin}"
+        const val Kotlin = "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${Versions.Kotlin}"
         const val KotlinReflect = "org.jetbrains.kotlin:kotlin-reflect:${Versions.Kotlin}"
 
         const val OkHttp = "com.squareup.okhttp3:okhttp:${Versions.OkHttp}"
