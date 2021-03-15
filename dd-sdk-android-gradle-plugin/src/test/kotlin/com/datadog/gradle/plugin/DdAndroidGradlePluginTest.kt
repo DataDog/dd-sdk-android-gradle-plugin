@@ -310,10 +310,10 @@ internal class DdAndroidGradlePluginTest {
     fun `𝕄 return config 𝕎 resolveExtensionConfiguration() { variant w full config }`(
         @Forgery variantConfig: DdExtensionConfiguration
     ) {
-        val flavorName = fakeFlavorNames.variantName()
+        val variantName = fakeFlavorNames.variantName()
         mockVariant.mockFlavors(fakeFlavorNames, fakeBuildTypeName)
         fakeExtension.variants = mock()
-        whenever(fakeExtension.variants.findByName(flavorName)) doReturn variantConfig
+        whenever(fakeExtension.variants.findByName(variantName)) doReturn variantConfig
 
         // When
         val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, mockVariant)
@@ -330,13 +330,13 @@ internal class DdAndroidGradlePluginTest {
     fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { variant w version only }`(
         @StringForgery versionName: String
     ) {
-        val flavorName = fakeFlavorNames.variantName()
+        val variantName = fakeFlavorNames.variantName()
         mockVariant.mockFlavors(fakeFlavorNames, fakeBuildTypeName)
         val incompleteConfig = DdExtensionConfiguration().apply {
             this.versionName = versionName
         }
         fakeExtension.variants = mock()
-        whenever(fakeExtension.variants.findByName(flavorName)) doReturn incompleteConfig
+        whenever(fakeExtension.variants.findByName(variantName)) doReturn incompleteConfig
 
         // When
         val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, mockVariant)
@@ -353,13 +353,13 @@ internal class DdAndroidGradlePluginTest {
     fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { variant w service only }`(
         @StringForgery serviceName: String
     ) {
-        val flavorName = fakeFlavorNames.variantName()
+        val variantName = fakeFlavorNames.variantName()
         mockVariant.mockFlavors(fakeFlavorNames, fakeBuildTypeName)
         val incompleteConfig = DdExtensionConfiguration().apply {
             this.serviceName = serviceName
         }
         fakeExtension.variants = mock()
-        whenever(fakeExtension.variants.findByName(flavorName)) doReturn incompleteConfig
+        whenever(fakeExtension.variants.findByName(variantName)) doReturn incompleteConfig
 
         // When
         val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, mockVariant)
@@ -376,13 +376,13 @@ internal class DdAndroidGradlePluginTest {
     fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { variant w site only }`(
         @Forgery site: DdConfiguration.Site
     ) {
-        val flavorName = fakeFlavorNames.variantName()
+        val variantName = fakeFlavorNames.variantName()
         mockVariant.mockFlavors(fakeFlavorNames, fakeBuildTypeName)
         val incompleteConfig = DdExtensionConfiguration().apply {
             this.site = site.name
         }
         fakeExtension.variants = mock()
-        whenever(fakeExtension.variants.findByName(flavorName)) doReturn incompleteConfig
+        whenever(fakeExtension.variants.findByName(variantName)) doReturn incompleteConfig
 
         // When
         val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, mockVariant)
@@ -400,13 +400,13 @@ internal class DdAndroidGradlePluginTest {
     fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { variant w sdkCheck only }`(
         @Forgery sdkCheckLevel: SdkCheckLevel
     ) {
-        val flavorName = fakeFlavorNames.variantName()
+        val variantName = fakeFlavorNames.variantName()
         mockVariant.mockFlavors(fakeFlavorNames, fakeBuildTypeName)
         val incompleteConfig = DdExtensionConfiguration().apply {
             this.checkProjectDependencies = sdkCheckLevel
         }
         fakeExtension.variants = mock()
-        whenever(fakeExtension.variants.findByName(flavorName)) doReturn incompleteConfig
+        whenever(fakeExtension.variants.findByName(variantName)) doReturn incompleteConfig
 
         // When
         val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, mockVariant)
@@ -492,10 +492,10 @@ internal class DdAndroidGradlePluginTest {
     fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { variant w build type }`(
         @Forgery configuration: DdExtensionConfiguration
     ) {
-        val flavorName = fakeFlavorNames.variantName() + fakeBuildTypeName.capitalize()
+        val variantName = fakeFlavorNames.variantName() + fakeBuildTypeName.capitalize()
         mockVariant.mockFlavors(fakeFlavorNames, fakeBuildTypeName)
         fakeExtension.variants = mock()
-        whenever(fakeExtension.variants.findByName(flavorName)) doReturn configuration
+        whenever(fakeExtension.variants.findByName(variantName)) doReturn configuration
 
         // When
         val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, mockVariant)

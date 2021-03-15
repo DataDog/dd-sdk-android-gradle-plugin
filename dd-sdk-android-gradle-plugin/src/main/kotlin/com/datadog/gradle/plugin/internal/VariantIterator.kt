@@ -1,16 +1,16 @@
 package com.datadog.gradle.plugin.internal
 
 /**
- * This Iterator will take a list of flavor name and iterate over all possible
- * (partial) variants from those.
+ * This Iterator will take a list of flavor name and trailing build type and iterate over all
+ * possible (partial) variants from those.
  *
  * The partial variants will be iterated over in increasing order of priority.
  * Product flavors that belong to the first flavor dimension have a higher priority than
  * those belonging to the second flavor dimension.
  *
- * E.g.: for the variant with flavor names ["pro", "green", "europe"], the iterator will
+ * E.g.: for the variant with flavor names ["pro", "green", "release"], the iterator will
  * return the following values (in order):
- * "europe", "green", "greenEurope", "pro", "proEurope", "proGreen", "proGreenEurope"
+ * "release", "green", "greenRelease", "pro", "proRelease", "proGreen", "proGreenRelease"
  */
 internal class VariantIterator(
     private val names: List<String>
@@ -30,7 +30,7 @@ internal class VariantIterator(
 
         // The idea of this algorithm is to generate all possible combination
         // while also keeping the order based on priorities.
-        // Given a list of n flavor names, we construct matching list of n booleans to decide
+        // Given a list of n names, we construct matching list of n booleans to decide
         // which of those name tokens we keep for the variant names.
         // Because the first name has a higher priority, the sequence would be (for 3 names):
         // false-false-true, false-true-false, false-true-true, true-false-false, and so on…
@@ -38,10 +38,11 @@ internal class VariantIterator(
         // - the iterator iterates from 1 to (2^n - 1)
         // - at each step, we generate the binary representation of the current index
         // - we pad the binary with '0' to match the names size
-        // - we convert the  binary represnetation string into a boolean array
+        // - we convert the  binary representation string into a boolean array
         // - we zip the array with the name
         val mask = index.toString(2).padStart(names.size, '0').map { it == '1' }
-        val filteredNames = mask.zip(names) { b, s -> if (b) s else null }.filterNotNull()
+        val filteredNames = mask.zip(names) { bool, string -> if (bool) string else null }
+            .filterNotNull()
 
         index++
 
