@@ -2,6 +2,7 @@ package com.datadog.gradle.plugin
 
 import com.android.build.gradle.api.ApplicationVariant
 import com.android.builder.model.BuildType
+import com.android.builder.model.ProductFlavor
 import com.datadog.gradle.plugin.internal.DdConfiguration
 import com.datadog.gradle.plugin.internal.GitRepositoryDetector
 import com.datadog.gradle.plugin.internal.MissingSdkException
@@ -56,8 +57,15 @@ internal class DdAndroidGradlePluginTest {
     @StringForgery(StringForgeryType.HEXADECIMAL)
     lateinit var fakeApiKey: String
 
+    @StringForgery(case = Case.LOWER)
+    lateinit var fakeFlavorNames: List<String>
+
+    @StringForgery(regex = "debug|preRelease|release")
+    lateinit var fakeBuildTypeName: String
+
     @BeforeEach
     fun `set up`() {
+        fakeFlavorNames = fakeFlavorNames.take(5) // A D F G A♭ A A♭ G F
         fakeProject = ProjectBuilder.builder().build()
         testedPlugin = DdAndroidGradlePlugin()
     }
@@ -81,6 +89,7 @@ internal class DdAndroidGradlePluginTest {
         whenever(mockVariant.applicationId) doReturn packageName
         whenever(mockVariant.buildType) doReturn mockBuildType
         whenever(mockBuildType.isMinifyEnabled) doReturn true
+        whenever(mockBuildType.name) doReturn fakeBuildTypeName
 
         // When
         val task = testedPlugin.configureVariantForUploadTask(
@@ -118,6 +127,7 @@ internal class DdAndroidGradlePluginTest {
         whenever(mockVariant.applicationId) doReturn packageName
         whenever(mockVariant.buildType) doReturn mockBuildType
         whenever(mockBuildType.isMinifyEnabled) doReturn true
+        whenever(mockBuildType.name) doReturn fakeBuildTypeName
 
         // When
         val task = testedPlugin.configureVariantForUploadTask(
@@ -158,6 +168,7 @@ internal class DdAndroidGradlePluginTest {
         whenever(mockVariant.applicationId) doReturn packageName
         whenever(mockVariant.buildType) doReturn mockBuildType
         whenever(mockBuildType.isMinifyEnabled) doReturn true
+        whenever(mockBuildType.name) doReturn fakeBuildTypeName
 
         // When
         val task = testedPlugin.configureVariantForUploadTask(
@@ -195,6 +206,7 @@ internal class DdAndroidGradlePluginTest {
         whenever(mockVariant.applicationId) doReturn packageName
         whenever(mockVariant.buildType) doReturn mockBuildType
         whenever(mockBuildType.isMinifyEnabled) doReturn false
+        whenever(mockBuildType.name) doReturn fakeBuildTypeName
 
         // When
         val task = testedPlugin.configureVariantForUploadTask(
@@ -224,6 +236,7 @@ internal class DdAndroidGradlePluginTest {
         whenever(mockVariant.applicationId) doReturn packageName
         whenever(mockVariant.buildType) doReturn mockBuildType
         whenever(mockBuildType.isMinifyEnabled) doReturn true
+        whenever(mockBuildType.name) doReturn fakeBuildTypeName
 
         // When
         val task = testedPlugin.configureVariantForUploadTask(
@@ -280,11 +293,10 @@ internal class DdAndroidGradlePluginTest {
     // region resolveExtensionConfiguration
 
     @Test
-    fun `𝕄 return default configuration 𝕎 resolveExtensionConfiguration() { no variant config }`(
-        @StringForgery flavorName: String
-    ) {
+    fun `𝕄 return default config 𝕎 resolveExtensionConfiguration() {no variant config}`() {
         // When
-        val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, flavorName)
+        mockVariant.mockFlavors(fakeFlavorNames, fakeBuildTypeName)
+        val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, mockVariant)
 
         // Then
         assertThat(config.versionName).isEqualTo(fakeExtension.versionName)
@@ -295,15 +307,16 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 return configuration 𝕎 resolveExtensionConfiguration() { variant config }`(
-        @StringForgery flavorName: String,
+    fun `𝕄 return config 𝕎 resolveExtensionConfiguration() { variant w full config }`(
         @Forgery variantConfig: DdExtensionConfiguration
     ) {
+        val variantName = fakeFlavorNames.variantName()
+        mockVariant.mockFlavors(fakeFlavorNames, fakeBuildTypeName)
         fakeExtension.variants = mock()
-        whenever(fakeExtension.variants.findByName(flavorName)) doReturn variantConfig
+        whenever(fakeExtension.variants.findByName(variantName)) doReturn variantConfig
 
         // When
-        val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, flavorName)
+        val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, mockVariant)
 
         // Then
         assertThat(config.versionName).isEqualTo(variantConfig.versionName)
@@ -315,17 +328,18 @@ internal class DdAndroidGradlePluginTest {
 
     @Test
     fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { variant w version only }`(
-        @StringForgery flavorName: String,
         @StringForgery versionName: String
     ) {
+        val variantName = fakeFlavorNames.variantName()
+        mockVariant.mockFlavors(fakeFlavorNames, fakeBuildTypeName)
         val incompleteConfig = DdExtensionConfiguration().apply {
             this.versionName = versionName
         }
         fakeExtension.variants = mock()
-        whenever(fakeExtension.variants.findByName(flavorName)) doReturn incompleteConfig
+        whenever(fakeExtension.variants.findByName(variantName)) doReturn incompleteConfig
 
         // When
-        val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, flavorName)
+        val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, mockVariant)
 
         // Then
         assertThat(config.versionName).isEqualTo(versionName)
@@ -337,17 +351,18 @@ internal class DdAndroidGradlePluginTest {
 
     @Test
     fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { variant w service only }`(
-        @StringForgery flavorName: String,
         @StringForgery serviceName: String
     ) {
+        val variantName = fakeFlavorNames.variantName()
+        mockVariant.mockFlavors(fakeFlavorNames, fakeBuildTypeName)
         val incompleteConfig = DdExtensionConfiguration().apply {
             this.serviceName = serviceName
         }
         fakeExtension.variants = mock()
-        whenever(fakeExtension.variants.findByName(flavorName)) doReturn incompleteConfig
+        whenever(fakeExtension.variants.findByName(variantName)) doReturn incompleteConfig
 
         // When
-        val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, flavorName)
+        val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, mockVariant)
 
         // Then
         assertThat(config.versionName).isEqualTo(fakeExtension.versionName)
@@ -359,17 +374,18 @@ internal class DdAndroidGradlePluginTest {
 
     @Test
     fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { variant w site only }`(
-        @StringForgery flavorName: String,
         @Forgery site: DdConfiguration.Site
     ) {
+        val variantName = fakeFlavorNames.variantName()
+        mockVariant.mockFlavors(fakeFlavorNames, fakeBuildTypeName)
         val incompleteConfig = DdExtensionConfiguration().apply {
             this.site = site.name
         }
         fakeExtension.variants = mock()
-        whenever(fakeExtension.variants.findByName(flavorName)) doReturn incompleteConfig
+        whenever(fakeExtension.variants.findByName(variantName)) doReturn incompleteConfig
 
         // When
-        val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, flavorName)
+        val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, mockVariant)
 
         // Then
         assertThat(config.versionName).isEqualTo(fakeExtension.versionName)
@@ -382,23 +398,114 @@ internal class DdAndroidGradlePluginTest {
 
     @Test
     fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { variant w sdkCheck only }`(
-        @StringForgery flavorName: String,
         @Forgery sdkCheckLevel: SdkCheckLevel
     ) {
+        val variantName = fakeFlavorNames.variantName()
+        mockVariant.mockFlavors(fakeFlavorNames, fakeBuildTypeName)
         val incompleteConfig = DdExtensionConfiguration().apply {
             this.checkProjectDependencies = sdkCheckLevel
         }
         fakeExtension.variants = mock()
-        whenever(fakeExtension.variants.findByName(flavorName)) doReturn incompleteConfig
+        whenever(fakeExtension.variants.findByName(variantName)) doReturn incompleteConfig
 
         // When
-        val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, flavorName)
+        val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, mockVariant)
 
         // Then
         assertThat(config.versionName).isEqualTo(fakeExtension.versionName)
         assertThat(config.serviceName).isEqualTo(fakeExtension.serviceName)
         assertThat(config.site).isEqualTo(fakeExtension.site)
         assertThat(config.checkProjectDependencies).isEqualTo(sdkCheckLevel)
+    }
+
+    @Test
+    fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { simple variants }`(
+        @StringForgery(case = Case.LOWER) flavorA: String,
+        @StringForgery(case = Case.LOWER) flavorB: String,
+        @StringForgery(case = Case.LOWER) flavorC: String,
+        @Forgery variantConfigA: DdExtensionConfiguration,
+        @Forgery variantConfigB: DdExtensionConfiguration,
+        @Forgery variantConfigC: DdExtensionConfiguration
+    ) {
+        val flavorNames = listOf(flavorA, flavorB, flavorC)
+        variantConfigA.apply {
+            versionName = null
+            checkProjectDependencies = null
+        }
+        variantConfigB.apply {
+            serviceName = null
+            checkProjectDependencies = null
+        }
+        variantConfigC.apply { site = null }
+        mockVariant.mockFlavors(flavorNames, fakeBuildTypeName)
+        fakeExtension.variants = mock()
+        whenever(fakeExtension.variants.findByName(flavorA)) doReturn variantConfigA
+        whenever(fakeExtension.variants.findByName(flavorB)) doReturn variantConfigB
+        whenever(fakeExtension.variants.findByName(flavorC)) doReturn variantConfigC
+
+        // When
+        val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, mockVariant)
+
+        // Then
+        assertThat(config.versionName).isEqualTo(variantConfigB.versionName)
+        assertThat(config.serviceName).isEqualTo(variantConfigA.serviceName)
+        assertThat(config.site).isEqualTo(variantConfigA.site)
+        assertThat(config.checkProjectDependencies)
+            .isEqualTo(variantConfigC.checkProjectDependencies)
+    }
+
+    @Test
+    fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { complex variants }`(
+        @StringForgery(case = Case.LOWER) flavorA: String,
+        @StringForgery(case = Case.LOWER) flavorB: String,
+        @StringForgery(case = Case.LOWER) flavorC: String,
+        @Forgery variantConfigAB: DdExtensionConfiguration,
+        @Forgery variantConfigAC: DdExtensionConfiguration,
+        @Forgery variantConfigBC: DdExtensionConfiguration
+    ) {
+        val flavorNames = listOf(flavorA, flavorB, flavorC)
+        variantConfigAB.apply { versionName = null }
+        variantConfigAC.apply { serviceName = null }
+        variantConfigBC.apply { site = null }
+        variantConfigBC.apply { checkProjectDependencies = null }
+        mockVariant.mockFlavors(flavorNames, fakeBuildTypeName)
+        fakeExtension.variants = mock()
+        whenever(fakeExtension.variants.findByName(flavorA + flavorB.capitalize()))
+            .doReturn(variantConfigAB)
+        whenever(fakeExtension.variants.findByName(flavorA + flavorC.capitalize()))
+            .doReturn(variantConfigAC)
+        whenever(fakeExtension.variants.findByName(flavorB + flavorC.capitalize()))
+            .doReturn(variantConfigBC)
+
+        // When
+        val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, mockVariant)
+
+        // Then
+        assertThat(config.versionName).isEqualTo(variantConfigAC.versionName)
+        assertThat(config.serviceName).isEqualTo(variantConfigAB.serviceName)
+        assertThat(config.site).isEqualTo(variantConfigAB.site)
+        assertThat(config.checkProjectDependencies)
+            .isEqualTo(variantConfigAB.checkProjectDependencies)
+    }
+
+    @Test
+    fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { variant w build type }`(
+        @Forgery configuration: DdExtensionConfiguration
+    ) {
+        val variantName = fakeFlavorNames.variantName() + fakeBuildTypeName.capitalize()
+        mockVariant.mockFlavors(fakeFlavorNames, fakeBuildTypeName)
+        fakeExtension.variants = mock()
+        whenever(fakeExtension.variants.findByName(variantName)) doReturn configuration
+
+        // When
+        val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, mockVariant)
+
+        // Then
+        assertThat(config.versionName).isEqualTo(configuration.versionName)
+        assertThat(config.serviceName).isEqualTo(configuration.serviceName)
+        assertThat(config.site).isEqualTo(configuration.site)
+        assertThat(config.checkProjectDependencies)
+            .isEqualTo(configuration.checkProjectDependencies)
     }
 
     // endregion
@@ -420,6 +527,7 @@ internal class DdAndroidGradlePluginTest {
         whenever(mockVariant.versionName) doReturn versionName
         whenever(mockVariant.applicationId) doReturn packageName
         whenever(mockVariant.buildType) doReturn mockBuildType
+        whenever(mockBuildType.name) doReturn fakeBuildTypeName
 
         val fakeCompileTask = fakeProject.task("compile${variantName.capitalize()}Sources")
 
@@ -458,6 +566,7 @@ internal class DdAndroidGradlePluginTest {
         whenever(mockVariant.versionName) doReturn versionName
         whenever(mockVariant.applicationId) doReturn packageName
         whenever(mockVariant.buildType) doReturn mockBuildType
+        whenever(mockBuildType.name) doReturn fakeBuildTypeName
 
         val fakeCompileTask = fakeProject.task("compile${variantName.capitalize()}Sources")
 
@@ -496,6 +605,7 @@ internal class DdAndroidGradlePluginTest {
         whenever(mockVariant.versionName) doReturn versionName
         whenever(mockVariant.applicationId) doReturn packageName
         whenever(mockVariant.buildType) doReturn mockBuildType
+        whenever(mockBuildType.name) doReturn fakeBuildTypeName
 
         val fakeCompileTask = fakeProject.task("compile${variantName.capitalize()}Sources")
 
@@ -531,6 +641,7 @@ internal class DdAndroidGradlePluginTest {
         whenever(mockVariant.versionName) doReturn versionName
         whenever(mockVariant.applicationId) doReturn packageName
         whenever(mockVariant.buildType) doReturn mockBuildType
+        whenever(mockBuildType.name) doReturn fakeBuildTypeName
 
         val fakeCompileTask = fakeProject.task("compile${variantName.capitalize()}Sources")
 
@@ -566,6 +677,7 @@ internal class DdAndroidGradlePluginTest {
         whenever(mockVariant.versionName) doReturn versionName
         whenever(mockVariant.applicationId) doReturn packageName
         whenever(mockVariant.buildType) doReturn mockBuildType
+        whenever(mockBuildType.name) doReturn fakeBuildTypeName
 
         val fakeCompileTask = fakeProject.task("compile${variantName.capitalize()}Sources")
 
@@ -708,6 +820,33 @@ internal class DdAndroidGradlePluginTest {
         assertThat(
             testedPlugin.isDatadogDependencyPresent(topDependencies.toSet())
         ).isFalse()
+    }
+
+    // endregion
+
+    // region Internal
+
+    private fun List<String>.variantName(): String {
+        return first() + drop(1).joinToString("") { it.capitalize() }
+    }
+
+    private fun ApplicationVariant.mockFlavors(
+        flavorNames: List<String>,
+        buildTypeName: String
+    ) {
+        val mockFlavors: MutableList<ProductFlavor> = mutableListOf()
+        for (flavorName in flavorNames) {
+            mockFlavors.add(
+                mock<ProductFlavor>().apply {
+                    whenever(this.name) doReturn flavorName
+                }
+            )
+        }
+        val mockBuildType: BuildType = mock()
+        whenever(mockBuildType.name) doReturn buildTypeName
+
+        whenever(productFlavors) doReturn mockFlavors
+        whenever(buildType) doReturn mockBuildType
     }
 
     // endregion

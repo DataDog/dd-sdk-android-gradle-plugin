@@ -10,6 +10,7 @@ import com.android.build.gradle.AppExtension
 import com.android.build.gradle.api.ApplicationVariant
 import com.datadog.gradle.plugin.internal.GitRepositoryDetector
 import com.datadog.gradle.plugin.internal.MissingSdkException
+import com.datadog.gradle.plugin.internal.VariantIterator
 import java.io.File
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -82,7 +83,7 @@ class DdAndroidGradlePlugin : Plugin<Project> {
             DdMappingFileUploadTask::class.java,
             GitRepositoryDetector()
         )
-        val extensionConfiguration = resolveExtensionConfiguration(extension, flavorName)
+        val extensionConfiguration = resolveExtensionConfiguration(extension, variant)
 
         configureVariantTask(uploadTask, apiKey, flavorName, extensionConfiguration, variant)
 
@@ -130,7 +131,6 @@ class DdAndroidGradlePlugin : Plugin<Project> {
             )
             return null
         } else {
-
             // this will postpone the check until the actual compilation for the particular variant.
             // by doing this we are avoiding pulling all the configurations for all the variants
             // after build script is evaluated, which may be a heavy task for the big projects
@@ -143,7 +143,7 @@ class DdAndroidGradlePlugin : Plugin<Project> {
 
                     val extensionConfiguration = resolveExtensionConfiguration(
                         extension,
-                        variant.flavorName
+                        variant
                     )
 
                     val sdkCheckLevel = extensionConfiguration.checkProjectDependencies
@@ -184,17 +184,21 @@ class DdAndroidGradlePlugin : Plugin<Project> {
 
     internal fun resolveExtensionConfiguration(
         extension: DdExtension,
-        flavorName: String
+        variant: ApplicationVariant
     ): DdExtensionConfiguration {
-        val flavorConfig = extension.variants.findByName(flavorName)
+        val configuration = DdExtensionConfiguration()
+        configuration.updateWith(extension)
 
-        return DdExtensionConfiguration().apply {
-            versionName = flavorConfig?.versionName ?: extension.versionName
-            serviceName = flavorConfig?.serviceName ?: extension.serviceName
-            site = flavorConfig?.site ?: extension.site
-            checkProjectDependencies = flavorConfig?.checkProjectDependencies
-                ?: extension.checkProjectDependencies
+        val flavors = variant.productFlavors.map { it.name }
+        val buildType = variant.buildType.name
+        val iterator = VariantIterator(flavors + buildType)
+        iterator.forEach {
+            val config = extension.variants.findByName(it)
+            if (config != null) {
+                configuration.updateWith(config)
+            }
         }
+        return configuration
     }
 
     internal fun isDatadogDependencyPresent(dependencies: Set<ResolvedDependency>): Boolean {
