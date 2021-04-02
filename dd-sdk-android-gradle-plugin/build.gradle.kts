@@ -5,7 +5,6 @@
  */
 
 import com.datadog.gradle.Dependencies
-import com.datadog.gradle.config.bintrayConfig
 import com.datadog.gradle.config.dependencyUpdateConfig
 import com.datadog.gradle.config.detektConfig
 import com.datadog.gradle.config.jacocoConfig
@@ -17,17 +16,26 @@ import com.datadog.gradle.config.publishingConfig
 import com.datadog.gradle.testImplementation
 
 plugins {
+    // Build
     id("java-gradle-plugin")
     kotlin("jvm")
+
+    // Publish
     `maven-publish`
+    signing
+    id("org.jetbrains.dokka")
+
+    // Analysis tools
     id("com.github.ben-manes.versions")
     id("io.gitlab.arturbosch.detekt")
     id("org.jlleitschuh.gradle.ktlint")
-    id("org.jetbrains.dokka")
-    id("com.jfrog.bintray")
+
+    // Tests
     jacoco
-    id("transitiveDependencies")
+
+    // Internal Generation
     id("thirdPartyLicences")
+    id("transitiveDependencies")
 }
 
 dependencies {
@@ -51,8 +59,7 @@ junitConfig()
 jacocoConfig()
 javadocConfig()
 dependencyUpdateConfig()
-publishingConfig()
-bintrayConfig()
+publishingConfig("Plugin to upload Proguard/R8 mapping files to Datadog.")
 
 gradlePlugin {
     plugins {
