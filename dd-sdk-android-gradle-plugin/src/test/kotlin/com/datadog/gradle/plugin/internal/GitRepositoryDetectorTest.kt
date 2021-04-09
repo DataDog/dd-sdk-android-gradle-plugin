@@ -12,7 +12,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.extension.Extensions
@@ -54,7 +53,6 @@ internal class GitRepositoryDetectorTest {
         testedDetector = GitRepositoryDetector()
     }
 
-    @Disabled("This doesn't perform well in the CI, but works locally")
     @Test
     fun `𝕄 return repository info 𝕎 detectRepository()`() {
         // Given
@@ -109,25 +107,42 @@ internal class GitRepositoryDetectorTest {
             ProcessBuilder("git", "init")
                 .directory(tempDir)
                 .start()
-                .waitFor(5, TimeUnit.SECONDS)
+                .waitForSuccess(5, TimeUnit.SECONDS)
         )
         check(
             ProcessBuilder("git", "add", ".")
                 .directory(tempDir)
                 .start()
-                .waitFor(5, TimeUnit.SECONDS)
+                .waitForSuccess(5, TimeUnit.SECONDS)
+        )
+        check(
+            ProcessBuilder("git", "config", "user.name", "\"Some User\"")
+                .directory(tempDir)
+                .start()
+                .waitForSuccess(5, TimeUnit.SECONDS)
+        )
+        check(
+            ProcessBuilder("git", "config", "user.email", "\"user@example.com\"")
+                .directory(tempDir)
+                .start()
+                .waitForSuccess(5, TimeUnit.SECONDS)
         )
         check(
             ProcessBuilder("git", "commit", "-m", "Init")
                 .directory(tempDir)
                 .start()
-                .waitFor(5, TimeUnit.SECONDS)
+                .waitForSuccess(5, TimeUnit.SECONDS)
         )
         check(
             ProcessBuilder("git", "remote", "add", "origin", fakeRemoteUrl)
                 .directory(tempDir)
                 .start()
-                .waitFor(5, TimeUnit.SECONDS)
+                .waitForSuccess(5, TimeUnit.SECONDS)
         )
+    }
+
+    private fun Process.waitForSuccess(timeout: Long, unit: TimeUnit): Boolean {
+        val haveNoTimeout = waitFor(timeout, unit)
+        return haveNoTimeout && exitValue() == 0
     }
 }
