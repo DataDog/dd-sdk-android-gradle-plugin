@@ -26,10 +26,8 @@ internal class GitRepositoryDetector : RepositoryDetector {
 
         val remoteUrl = project.execShell("git", "remote", "get-url", "origin").trim()
         val commitHash = project.execShell("git", "rev-parse", "HEAD").trim()
-        val rootFolder = project.execShell("git", "rev-parse", "--show-toplevel").trim()
-        val rootPathPrefix = rootFolder + File.separator
 
-        val trackedFiles = listTrackedFilesPath(sourceSetRoots, rootPathPrefix)
+        val trackedFiles = listTrackedFilesPath(project, sourceSetRoots)
 
         return listOf(
             RepositoryInfo(
@@ -43,38 +41,37 @@ internal class GitRepositoryDetector : RepositoryDetector {
     // region Internal
 
     private fun listTrackedFilesPath(
-        sourceSetRoots: List<File>,
-        rootPathPrefix: String
+        project: Project,
+        sourceSetRoots: List<File>
     ): List<String> {
         val files = mutableListOf<String>()
-        sourceSetRoots.forEach { root ->
-            if (root.exists() && root.isDirectory) {
-                listFilePathsInFolder(root, rootPathPrefix, files)
+        sourceSetRoots.forEach { sourceSetRoot ->
+            if (sourceSetRoot.exists() && sourceSetRoot.isDirectory) {
+                listFilePathsInFolder(project, sourceSetRoot, files)
             }
         }
         return files
     }
 
     private fun listFilePathsInFolder(
-        root: File,
-        rootPathPrefix: String,
+        project: Project,
+        sourceSetRoot: File,
         files: MutableList<String>
     ) {
-        // TODO RUMM-1115 Prevent listing files which are not tracked
-        // We need to use `git ls-files`
-        // because some files might be added even if match a .gitignore pattern
-        root.walkTopDown()
-            .forEach {
-                if (it.isFile) {
-                    val localPath = it.absolutePath.substringAfter(rootPathPrefix)
-                    files.add(localPath)
-                }
-            }
+
+        // output will be relative to the project root
+        val sourceSetFiles = project.execShell(
+            "git",
+            "ls-files",
+            sourceSetRoot.absolutePath
+        )
+            .trim()
+            .lines()
+            // we could use --deduplicate, but it was added to git just recently
+            .toSet()
+
+        files.addAll(sourceSetFiles)
     }
 
     // endregion
-
-    companion object {
-        private const val GIT_CMD = "git"
-    }
 }
