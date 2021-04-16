@@ -91,7 +91,7 @@ test:plugin:
     - rm -rf ~/.gradle/daemon/
     - CODECOV_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android-gradle-plugin.codecov-token --with-decryption --query "Parameter.Value" --out text)
     - GRADLE_OPTS="-XX:MaxPermSize=512m -Xmx2560m" ./gradlew :dd-sdk-android-gradle-plugin:test --stacktrace --no-daemon
-    - bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN
+    - bash <(cat ./codecov.sh) -t $CODECOV_TOKEN
   artifacts:
     reports:
       junit: dd-sdk-android-gradle-plugin/build/test-results/test/TEST-*.xml
