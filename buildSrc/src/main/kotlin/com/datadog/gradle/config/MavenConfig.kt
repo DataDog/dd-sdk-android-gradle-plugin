@@ -20,7 +20,7 @@ object MavenConfig {
 
     val VERSION = Version(1, 0, 0)
     const val GROUP_ID = "com.datadoghq"
-    const val PUBLICATION = "release"
+    const val PUBLICATION = "pluginMaven"
 }
 
 @Suppress("UnstableApiUsage")
@@ -65,8 +65,8 @@ fun Project.publishingConfig(projectDescription: String) {
                 }
             }
 
-            publications.create(MavenConfig.PUBLICATION, MavenPublication::class.java) {
-                artifact(tasks.findByName("jar"))
+            publications.getByName(MavenConfig.PUBLICATION) {
+                check(this is MavenPublication)
                 artifact(tasks.findByName("generateSourcesJar"))
                 artifact(tasks.findByName("generateJavadocJar"))
 
