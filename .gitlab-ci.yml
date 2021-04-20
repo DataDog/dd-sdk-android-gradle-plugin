@@ -112,7 +112,7 @@ publish:release-plugin:
     - export OSSRH_USERNAME=$(aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android-gradle-plugin.signing.ossrh_username --with-decryption --query "Parameter.Value" --out text)
     - export OSSRH_PASSWORD=$(aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android-gradle-plugin.signing.ossrh_password --with-decryption --query "Parameter.Value" --out text)
     - git fetch --depth=1 origin main
-    - ./gradlew :dd-sdk-android-gradle-plugin:publishReleasePublicationToMavenRepository --stacktrace --no-daemon
+    - ./gradlew :dd-sdk-android-gradle-plugin:publishPluginMavenPublicationToMavenRepository --stacktrace --no-daemon
 
 # SLACK NOTIFICATIONS
 
