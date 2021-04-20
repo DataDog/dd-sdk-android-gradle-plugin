@@ -96,7 +96,7 @@ test:plugin:
     reports:
       junit: dd-sdk-android-gradle-plugin/build/test-results/test/TEST-*.xml
 
-# PUBLISH ARTIFACTS ON BINTRAY
+# PUBLISH ARTIFACTS ON MAVEN
 
 publish:release-plugin:
   tags: [ "runner:main", "size:large" ]

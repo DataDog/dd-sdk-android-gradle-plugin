@@ -18,7 +18,6 @@ buildscript {
         classpath(com.datadog.gradle.Dependencies.ClassPaths.Kotlin)
         classpath(com.datadog.gradle.Dependencies.ClassPaths.KtLint)
         classpath(com.datadog.gradle.Dependencies.ClassPaths.Dokka)
-        classpath(com.datadog.gradle.Dependencies.ClassPaths.Bintray)
         // Uncomment to use the samples
         // classpath("com.datadoghq:dd-sdk-android-gradle-plugin:1.0.0-alpha4")
     }
@@ -31,7 +30,6 @@ allprojects {
         maven { setUrl(com.datadog.gradle.Dependencies.Repositories.Jitpack) }
         jcenter()
         flatDir { dirs("libs") }
-        maven { setUrl(com.datadog.gradle.Dependencies.Repositories.Datadog) }
     }
 }
 
