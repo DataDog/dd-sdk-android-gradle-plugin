@@ -25,8 +25,8 @@ plugins {
 }
 ```
 
-2. [Create a new and dedicated Datadog API key][2] and export it as an environment variable named `DD_API_KEY`.
-3. (Optional) Configure the plugin to upload files to the EU region by exporting two additonal environment variables: `export DATADOG_SITE="datadoghq.eu"` and `export DATADOG_API_HOST="api.datadoghq.eu"`.
+2. [Create a new and dedicated Datadog API key][2] and export it as an environment variable named `DD_API_KEY` (alternatively you can pass it as a task property).
+3. (Optional) Configure the plugin to upload files to the EU region by exporting two additional environment variables: `export DATADOG_SITE="datadoghq.eu"` and `export DATADOG_API_HOST="api.datadoghq.eu"`.
 4. Run the upload task after your obfuscated APK has been built:
 ```bash
 ./gradlew uploadMappingRelease
@@ -54,7 +54,7 @@ plugins {
 }
 ```
 
-2. [Create a new and dedicated Datadog API key][2] and export it as an environment variable named `DD_API_KEY`.
+2. [Create a new and dedicated Datadog API key][2] and export it as an environment variable named `DD_API_KEY` (alternatively you can pass it as a task property).
 3. Configure the plugin to use the EU region by adding the following snippet in your app's `build.gradle` script file:
 
 ```groovy
