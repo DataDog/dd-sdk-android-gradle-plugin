@@ -31,7 +31,7 @@ plugins {
 ```bash
 ./gradlew uploadMappingRelease
 ```
-   **Note**: If your project uses additional flavors, the plugin will provide an upload task for each variant with obfuscation enabled.
+**Note**: If your project uses additional flavors, the plugin will provide an upload task for each variant with obfuscation enabled. In this case please also make sure to initialize SDK with a proper variant name (the necessary API is available since version `1.8.0`).
 
 [1]: https://github.com/DataDog/dd-sdk-android-gradle-plugin
 [2]: https://app.datadoghq.com/account/settings#api
@@ -66,7 +66,7 @@ datadog {
 ```bash
 ./gradlew uploadMappingRelease
 ```
-**Note**: If your project uses additional flavors, the plugin will provide an upload task for each variant with obfuscation enabled.
+**Note**: If your project uses additional flavors, the plugin will provide an upload task for each variant with obfuscation enabled. In this case please also make sure to initialize SDK with a proper variant name (the necessary API is available since version `1.8.0`).
 
 [1]: https://github.com/DataDog/dd-sdk-android-gradle-plugin
 [2]: https://app.datadoghq.com/account/settings#api
