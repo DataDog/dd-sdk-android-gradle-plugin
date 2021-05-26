@@ -108,7 +108,11 @@ internal class VariantIteratorTest {
         @StringForgery(case = Case.LOWER) names: List<String>
     ) {
         // Given
-        val limitedNames = names.take(10) // limit the complexity of the data
+        // filtering is needed, because say there are 2 names: ["a", "bab"]. In this example
+        // assertion of allMatch below will fail, because "bab" contains "a" variant name,
+        // but doesn't start with it (as we would expect in case of combination)
+        val limitedNames = names.filter { item -> !names.any { it != item && it.contains(item) } }
+            .take(10) // limit the complexity of the data
         val iterator = VariantIterator(limitedNames)
 
         // When
