@@ -12,16 +12,21 @@ import com.datadog.gradle.plugin.internal.GitRepositoryDetector
 import com.datadog.gradle.plugin.internal.MissingSdkException
 import com.datadog.gradle.plugin.internal.VariantIterator
 import java.io.File
+import javax.inject.Inject
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ResolvedDependency
+import org.gradle.process.ExecOperations
 import org.slf4j.LoggerFactory
 
 /**
  * Plugin adding tasks for Android projects using Datadog's SDK for Android.
  */
-class DdAndroidGradlePlugin : Plugin<Project> {
+class DdAndroidGradlePlugin @Inject constructor(
+    @Suppress("UnstableApiUsage") private val execOps: ExecOperations
+) :
+    Plugin<Project> {
 
     // region Plugin
 
@@ -81,7 +86,7 @@ class DdAndroidGradlePlugin : Plugin<Project> {
         val uploadTask = target.tasks.create(
             uploadTaskName,
             DdMappingFileUploadTask::class.java,
-            target.objects.newInstance(GitRepositoryDetector::class.java)
+            GitRepositoryDetector(execOps)
         )
         val extensionConfiguration = resolveExtensionConfiguration(extension, variant)
 

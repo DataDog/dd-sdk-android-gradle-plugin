@@ -67,7 +67,7 @@ internal class DdAndroidGradlePluginTest {
     fun `set up`() {
         fakeFlavorNames = fakeFlavorNames.take(5) // A D F G A♭ A A♭ G F
         fakeProject = ProjectBuilder.builder().build()
-        testedPlugin = DdAndroidGradlePlugin()
+        testedPlugin = DdAndroidGradlePlugin(mock())
     }
 
     // region configureVariant()
