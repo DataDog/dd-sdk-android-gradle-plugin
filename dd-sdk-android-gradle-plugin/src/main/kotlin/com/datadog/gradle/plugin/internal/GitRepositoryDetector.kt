@@ -19,7 +19,8 @@ internal class GitRepositoryDetector(
 
     @Suppress("StringLiteralDuplication")
     override fun detectRepositories(
-        sourceSetRoots: List<File>
+        sourceSetRoots: List<File>,
+        extensionProvidedRemoteUrl: String
     ): List<RepositoryInfo> {
         try {
             execOperations.execShell("git", "rev-parse", "--is-inside-work-tree")
@@ -28,9 +29,7 @@ internal class GitRepositoryDetector(
             return emptyList()
         }
 
-        val remoteUrl = sanitizeUrl(
-            execOperations.execShell("git", "remote", "get-url", "origin").trim()
-        )
+        val remoteUrl = sanitizeUrl(resolveRemoteUrl(extensionProvidedRemoteUrl))
         val commitHash = execOperations.execShell("git", "rev-parse", "HEAD").trim()
 
         val trackedFiles = listTrackedFilesPath(sourceSetRoots)
@@ -48,6 +47,13 @@ internal class GitRepositoryDetector(
     private fun sanitizeUrl(remoteUrl: String): String {
         return urlSanitizer.sanitize(remoteUrl)
     }
+
+    private fun resolveRemoteUrl(extensionProvidedRemoteUrl: String) =
+        if (extensionProvidedRemoteUrl.isNotEmpty()) {
+            extensionProvidedRemoteUrl
+        } else {
+            execOperations.execShell("git", "remote", "get-url", "origin").trim()
+        }
 
     private fun listTrackedFilesPath(
         sourceSetRoots: List<File>

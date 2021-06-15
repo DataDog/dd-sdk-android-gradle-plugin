@@ -11,9 +11,11 @@ import com.datadog.gradle.plugin.internal.DdConfiguration
 import com.datadog.gradle.plugin.internal.Uploader
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
+import com.nhaarman.mockitokotlin2.eq
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyZeroInteractions
 import com.nhaarman.mockitokotlin2.whenever
+import fr.xgouchet.elmyr.Forge
 import fr.xgouchet.elmyr.annotation.Forgery
 import fr.xgouchet.elmyr.annotation.StringForgery
 import fr.xgouchet.elmyr.annotation.StringForgeryType
@@ -69,6 +71,9 @@ internal class DdMappingFileUploadTaskTest {
     @Forgery
     lateinit var fakeSite: DdConfiguration.Site
 
+    @StringForgery(regex = "git@github\\.com:[a-z]+/[a-z][a-z0-9_-]+\\.git")
+    lateinit var fakeRemoteUrl: String
+
     @StringForgery(regex = "[a-z]{8}\\.txt")
     lateinit var fakeMappingFileName: String
 
@@ -82,7 +87,7 @@ internal class DdMappingFileUploadTaskTest {
     lateinit var fakeRepoInfo: RepositoryInfo
 
     @BeforeEach
-    fun `set up`() {
+    fun `set up`(forge: Forge) {
         val fakeProject = ProjectBuilder.builder()
             .withProjectDir(tempDir)
             .build()
@@ -110,7 +115,41 @@ internal class DdMappingFileUploadTaskTest {
         val fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
         testedTask.repositoryFile = fakeRepositoryFile
         val expectedUrl = DdConfiguration(fakeSite, fakeApiKey).buildUrl()
-        whenever(mockRepositoryDetector.detectRepositories(any()))
+        whenever(mockRepositoryDetector.detectRepositories(any(), eq("")))
+            .doReturn(listOf(fakeRepoInfo))
+
+        // When
+        testedTask.applyTask()
+
+        // Then
+        verify(mockUploader).upload(
+            expectedUrl,
+            fakeMappingFile,
+            fakeRepositoryFile,
+            DdAppIdentifier(
+                serviceName = fakeService,
+                version = fakeVersion,
+                variant = fakeVariant
+            ),
+            fakeRepoInfo
+        )
+        assertThat(fakeRepositoryFile.readText())
+            .isEqualTo(
+                "{\"data\":[" + fakeRepoInfo.toJson().toString(0) + "],\"version\":1}"
+            )
+    }
+
+    @Test
+    fun `𝕄 upload file 𝕎 applyTask { remote url provided }`() {
+        // Given
+        val fakeMappingFile = File(tempDir, fakeMappingFileName)
+        fakeMappingFile.writeText(fakeMappingFileContent)
+        testedTask.mappingFilePath = fakeMappingFile.path
+        testedTask.remoteRepositoryUrl = fakeRemoteUrl
+        val fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
+        testedTask.repositoryFile = fakeRepositoryFile
+        val expectedUrl = DdConfiguration(fakeSite, fakeApiKey).buildUrl()
+        whenever(mockRepositoryDetector.detectRepositories(any(), eq(fakeRemoteUrl)))
             .doReturn(listOf(fakeRepoInfo))
 
         // When
@@ -143,7 +182,7 @@ internal class DdMappingFileUploadTaskTest {
         val fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
         testedTask.repositoryFile = fakeRepositoryFile
         val expectedUrl = DdConfiguration(fakeSite, fakeApiKey).buildUrl()
-        whenever(mockRepositoryDetector.detectRepositories(any()))
+        whenever(mockRepositoryDetector.detectRepositories(any(), eq("")))
             .doReturn(emptyList())
 
         // When
@@ -202,9 +241,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 upload to US 𝕎 applyTask() {missing site}`(
-        @StringForgery siteName: String
-    ) {
+    fun `𝕄 upload to US 𝕎 applyTask() {missing site}`() {
         // Given
         val fakeMappingFile = File(tempDir, fakeMappingFileName)
         fakeMappingFile.writeText(fakeMappingFileContent)
@@ -213,7 +250,7 @@ internal class DdMappingFileUploadTaskTest {
         testedTask.repositoryFile = fakeRepositoryFile
         testedTask.site = ""
         val expectedUrl = DdConfiguration(DdConfiguration.Site.US, fakeApiKey).buildUrl()
-        whenever(mockRepositoryDetector.detectRepositories(any()))
+        whenever(mockRepositoryDetector.detectRepositories(any(), eq("")))
             .doReturn(listOf(fakeRepoInfo))
 
         // When
