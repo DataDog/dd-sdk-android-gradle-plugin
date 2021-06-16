@@ -73,6 +73,39 @@ datadog {
 {{% /tab %}}
 {{< /tabs >}}
 
+### Plugin Configuration Options
+
+There are several plugin properties that can be configured through the plugin extension. In case you are using multiple variants you can set a property value for a specific flavour in the variant.
+
+**Example:**
+
+For a variant `fooBarRelease` you could have the following configuration:
+
+```groovy
+datadog {
+    foo {
+        versionName = "foo"
+    }
+    bar {
+        versionName = "bar"
+    }
+    fooBar {
+        versionName = "fooBar"
+    }
+}
+```
+
+The task config for this variant will be merged from all the 3 provided flavours configs in the
+following order: `bar` -> `foo` -> `fooBar` which will resolve the final value for the `versionName`
+property as : `fooBar`
+
+| Property name              | Description                                                                                                                                                                                               |
+|----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `versionName`              | The version name of the application.                                                                                                                                                                      |
+| `serviceName`              | The service name of the application.                                                                                                                                                                      |
+| `site`                     | The Datadog site to upload your data to (one of "US", "EU", "GOV").                                                                                                                                       |
+| `remoteRepositoryUrl`      | The url of the remote repository where the source code was deployed.  If not provided this value will be resolved from your current GIT configuration during the task execution time.                     |
+| `checkProjectDependencies` | This property controls if plugin should check if Datadog SDK is included in the dependencies and if it is not:  "none" - ignore, "warn" - log a warning, "fail" - fail the build with an error (default). |
 
 
 ## Troubleshoot errors
