@@ -84,6 +84,8 @@ open class DdMappingFileUploadTask
     init {
         group = "datadog"
         description = "Uploads the Proguard/R8 mapping file to Datadog"
+        // it is never up-to-date, because request may fail
+        outputs.upToDateWhen { false }
     }
 
     // region Task
@@ -98,7 +100,7 @@ open class DdMappingFileUploadTask
         val mappingFile = File(mappingFilePath)
         if (!validateMappingFile(mappingFile)) return
 
-        val repositories = repositoryDetector.detectRepositories(project, sourceSetRoots)
+        val repositories = repositoryDetector.detectRepositories(sourceSetRoots)
         if (repositories.isNotEmpty()) {
             generateRepositoryFile(repositories)
         }

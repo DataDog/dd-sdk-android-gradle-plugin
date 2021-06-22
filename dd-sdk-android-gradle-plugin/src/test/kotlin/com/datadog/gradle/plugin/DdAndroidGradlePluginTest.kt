@@ -627,7 +627,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 do nothing 𝕎 configureVariantForSdkCheck() { sdk is missing w none set }`(
+    fun `𝕄 do nothing 𝕎 configureVariantForSdkCheck() { none set }`(
         @StringForgery(case = Case.LOWER) flavorName: String,
         @StringForgery(case = Case.LOWER) buildTypeName: String,
         @StringForgery versionName: String,
@@ -653,13 +653,13 @@ internal class DdAndroidGradlePluginTest {
         whenever(mockVariant.runtimeConfiguration) doReturn mockConfiguration
 
         // When + Then
-        assertDoesNotThrow {
+        assertThat(
             testedPlugin.configureVariantForSdkCheck(
                 fakeProject,
                 mockVariant,
                 fakeExtension
-            )!!.actions.first().execute(fakeCompileTask)
-        }
+            )!!.actions
+        ).isEmpty()
     }
 
     @Test

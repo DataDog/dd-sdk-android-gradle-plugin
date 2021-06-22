@@ -110,7 +110,7 @@ internal class DdMappingFileUploadTaskTest {
         val fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
         testedTask.repositoryFile = fakeRepositoryFile
         val expectedUrl = DdConfiguration(fakeSite, fakeApiKey).buildUrl()
-        whenever(mockRepositoryDetector.detectRepositories(any(), any()))
+        whenever(mockRepositoryDetector.detectRepositories(any()))
             .doReturn(listOf(fakeRepoInfo))
 
         // When
@@ -143,7 +143,7 @@ internal class DdMappingFileUploadTaskTest {
         val fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
         testedTask.repositoryFile = fakeRepositoryFile
         val expectedUrl = DdConfiguration(fakeSite, fakeApiKey).buildUrl()
-        whenever(mockRepositoryDetector.detectRepositories(any(), any()))
+        whenever(mockRepositoryDetector.detectRepositories(any()))
             .doReturn(emptyList())
 
         // When
@@ -213,7 +213,7 @@ internal class DdMappingFileUploadTaskTest {
         testedTask.repositoryFile = fakeRepositoryFile
         testedTask.site = ""
         val expectedUrl = DdConfiguration(DdConfiguration.Site.US, fakeApiKey).buildUrl()
-        whenever(mockRepositoryDetector.detectRepositories(any(), any()))
+        whenever(mockRepositoryDetector.detectRepositories(any()))
             .doReturn(listOf(fakeRepoInfo))
 
         // When
