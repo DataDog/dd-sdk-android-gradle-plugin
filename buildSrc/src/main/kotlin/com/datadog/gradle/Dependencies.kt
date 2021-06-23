@@ -12,6 +12,7 @@ object Dependencies {
         // Commons
         const val Kotlin = "1.4.20"
         const val OkHttp = "3.12.6"
+        const val Json = "20180813"
 
         // Android
         const val AndroidToolsPlugin = "4.1.2"
@@ -40,6 +41,8 @@ object Dependencies {
         const val KotlinReflect = "org.jetbrains.kotlin:kotlin-reflect:${Versions.Kotlin}"
 
         const val OkHttp = "com.squareup.okhttp3:okhttp:${Versions.OkHttp}"
+
+        const val Json = "org.json:json:${Versions.Json}"
 
         @JvmField
         val JUnit5 = arrayOf(
