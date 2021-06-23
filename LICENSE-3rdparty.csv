@@ -5,6 +5,7 @@ build,org.jetbrains.dokka,Apache-2.0,"Copyright 2014-2019 JetBrains s.r.o. and D
 import,com.android.tools.build,Apache-2.0,Copyright (C) 2013 The Android Open Source Project
 import,com.squareup.okhttp3,Apache-2.0,"Copyright 2019 Square, Inc"
 import,org.jetbrains.kotlin,Apache-2.0,Copyright 2010-2019 JetBrains s.r.o. and Kotlin Programming Language contributors
+import,org.json,JSON,Copyright (c) 2002 JSON.org
 import(test),com.github.xgouchet.Elmyr,MIT,Copyright 2017-2019 Xavier F. Gouchet
 import(test),com.nhaarman.mockitokotlin2,MIT,"Copyright (c) 2018 Niek Haarman, Copyright (c) 2007 Mockito contributors"
 import(test),net.wuerl.kotlin,Apache-2.0,Copyright 2016 Andreas Würl
