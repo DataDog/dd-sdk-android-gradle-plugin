@@ -15,7 +15,7 @@ object Dependencies {
         const val Json = "20180813"
 
         // Android
-        const val AndroidToolsPlugin = "4.1.2"
+        const val AndroidToolsPlugin = "4.2.1"
 
         // JUnit
         const val JUnitJupiter = "5.6.2"
