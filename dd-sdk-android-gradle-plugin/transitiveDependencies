@@ -1,6 +1,5 @@
 Dependencies List
 
-.gradle:caches:6.8.3                                            :  139 Mb
 com.squareup.okhttp3:okhttp:3.12.6                              :  413 Kb
 com.squareup.okio:okio:1.15.0                                   :   86 Kb
 org.jetbrains.kotlin:kotlin-reflect:1.4.20                      :    2 Mb
@@ -10,13 +9,6 @@ org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.4.20                  :   15 Kb
 org.jetbrains.kotlin:kotlin-stdlib:1.4.20                       : 1453 Kb
 org.jetbrains:annotations:13.0                                  :   17 Kb
 org.json:json:20180813                                          :   63 Kb
-gradle-6.8.3-all:6czipnbiesy2sl92ioo8dht91:gradle-6.8.3         : 1607 b 
-gradle-6.8.3-all:6czipnbiesy2sl92ioo8dht91:gradle-6.8.3         :    8 Mb
-gradle-6.8.3-all:6czipnbiesy2sl92ioo8dht91:gradle-6.8.3         :    2 Mb
-gradle-6.8.3-all:6czipnbiesy2sl92ioo8dht91:gradle-6.8.3         : 1453 Kb
-gradle-6.8.3-all:6czipnbiesy2sl92ioo8dht91:gradle-6.8.3         :  186 Kb
-gradle-6.8.3-all:6czipnbiesy2sl92ioo8dht91:gradle-6.8.3         :   21 Kb
-gradle-6.8.3-all:6czipnbiesy2sl92ioo8dht91:gradle-6.8.3         :   15 Kb
 
-Total transitive dependencies size                              :  156 Mb
+Total transitive dependencies size                              :    5 Mb
 

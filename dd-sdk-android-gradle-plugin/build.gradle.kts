@@ -39,7 +39,6 @@ plugins {
 }
 
 dependencies {
-    implementation(gradleApi())
     implementation(Dependencies.Libraries.Kotlin)
     implementation(Dependencies.Libraries.KotlinReflect)
     implementation(Dependencies.Libraries.OkHttp)
