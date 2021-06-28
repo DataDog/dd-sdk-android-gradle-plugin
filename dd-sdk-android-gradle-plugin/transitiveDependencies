@@ -1,100 +1,15 @@
 Dependencies List
 
 .gradle:caches:6.8.3                                            :  139 Mb
-androidx.databinding:databinding-common:4.1.2                   :   15 Kb
-androidx.databinding:databinding-compiler-common:4.1.2          :  472 Kb
-com.android.databinding:baseLibrary:4.1.2                       :   15 Kb
-com.android.tools.analytics-library:crash:27.1.2                :   13 Kb
-com.android.tools.analytics-library:protos:27.1.2               :    3 Mb
-com.android.tools.analytics-library:shared:27.1.2               :  101 Kb
-com.android.tools.analytics-library:tracker:27.1.2              :   37 Kb
-com.android.tools.build.jetifier:jetifier-core:1.0.0-beta09     :  125 Kb
-com.android.tools.build.jetifier:jetifier-processor:1.0.0-beta09:  164 Kb
-com.android.tools.build:aapt2-proto:4.1.2-6503028               :  657 Kb
-com.android.tools.build:aaptcompiler:4.1.2                      :  464 Kb
-com.android.tools.build:apksig:4.1.2                            :  385 Kb
-com.android.tools.build:apkzlib:4.1.2                           :  199 Kb
-com.android.tools.build:builder-model:4.1.2                     :   50 Kb
-com.android.tools.build:builder-test-api:4.1.2                  :   15 Kb
-com.android.tools.build:builder:4.1.2                           :    9 Mb
-com.android.tools.build:bundletool:0.14.0                       :    7 Mb
-com.android.tools.build:gradle-api:4.1.2                        :  142 Kb
-com.android.tools.build:gradle:4.1.2                            :    5 Mb
-com.android.tools.build:manifest-merger:27.1.2                  :  198 Kb
-com.android.tools.build:transform-api:2.0.0-deprecated-use-gradle-api:  261 b 
-com.android.tools.ddms:ddmlib:27.1.2                            :  467 Kb
-com.android.tools.layoutlib:layoutlib-api:27.1.2                :  112 Kb
-com.android.tools.lint:lint-gradle-api:27.1.2                   :   19 Kb
-com.android.tools.lint:lint-model:27.1.2                        :  171 Kb
-com.android.tools:annotations:27.1.2                            :   10 Kb
-com.android.tools:common:27.1.2                                 :  274 Kb
-com.android.tools:dvlib:27.1.2                                  :   40 Kb
-com.android.tools:repository:27.1.2                             :  198 Kb
-com.android.tools:sdk-common:27.1.2                             : 1496 Kb
-com.android.tools:sdklib:27.1.2                                 :  621 Kb
-com.android:signflinger:4.1.2                                   :   15 Kb
-com.android:zipflinger:4.1.2                                    :   47 Kb
-com.google.auto.value:auto-value-annotations:1.6.2              :    5 Kb
-com.google.code.findbugs:jsr305:3.0.2                           :   19 Kb
-com.google.code.gson:gson:2.8.5                                 :  235 Kb
-com.google.crypto.tink:tink:1.3.0-rc2                           : 1112 Kb
-com.google.errorprone:error_prone_annotations:2.3.2             :   12 Kb
-com.google.flatbuffers:flatbuffers-java:1.12.0                  :   63 Kb
-com.google.guava:failureaccess:1.0.1                            :    4 Kb
-com.google.guava:guava:28.1-jre                                 :    2 Mb
-com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava:    2 Kb
-com.google.j2objc:j2objc-annotations:1.3                        :    8 Kb
-com.google.jimfs:jimfs:1.1                                      :  201 Kb
-com.google.protobuf:protobuf-java-util:3.10.0                   :   72 Kb
-com.google.protobuf:protobuf-java:3.10.0                        : 1625 Kb
-com.google.test.platform:core-proto:0.0.2-dev                   :  858 Kb
-com.googlecode.json-simple:json-simple:1.1                      :   15 Kb
-com.googlecode.juniversalchardet:juniversalchardet:1.0.3        :  215 Kb
 com.squareup.okhttp3:okhttp:3.12.6                              :  413 Kb
 com.squareup.okio:okio:1.15.0                                   :   86 Kb
-com.squareup:javapoet:1.10.0                                    :   95 Kb
-com.squareup:javawriter:2.5.0                                   :   12 Kb
-com.sun.activation:javax.activation:1.2.0                       :   76 Kb
-com.sun.istack:istack-commons-runtime:3.0.7                     :   24 Kb
-com.sun.xml.fastinfoset:FastInfoset:1.2.15                      :  304 Kb
-commons-codec:commons-codec:1.10                                :  277 Kb
-commons-io:commons-io:2.4                                       :  180 Kb
-commons-logging:commons-logging:1.2                             :   60 Kb
-it.unimi.dsi:fastutil:7.2.0                                     :   16 Mb
-javax.activation:javax.activation-api:1.2.0                     :   55 Kb
-javax.inject:javax.inject:1                                     :    2 Kb
-javax.xml.bind:jaxb-api:2.3.1                                   :  125 Kb
-net.sf.jopt-simple:jopt-simple:4.9                              :   64 Kb
-net.sf.kxml:kxml2:2.3.0                                         :   42 Kb
-net.sf.proguard:proguard-base:6.0.3                             : 1246 Kb
-net.sf.proguard:proguard-gradle:6.0.3                           :   12 Kb
-org.antlr:antlr4:4.5.3                                          : 1450 Kb
-org.apache.commons:commons-compress:1.12                        :  432 Kb
-org.apache.httpcomponents:httpclient:4.5.6                      :  749 Kb
-org.apache.httpcomponents:httpcore:4.4.10                       :  318 Kb
-org.apache.httpcomponents:httpmime:4.5.6                        :   40 Kb
-org.bouncycastle:bcpkix-jdk15on:1.56                            :  669 Kb
-org.bouncycastle:bcprov-jdk15on:1.56                            :    3 Mb
-org.checkerframework:checker-qual:2.8.1                         :  195 Kb
-org.codehaus.mojo:animal-sniffer-annotations:1.18               :    3 Kb
-org.glassfish.jaxb:jaxb-runtime:2.3.1                           : 1067 Kb
-org.glassfish.jaxb:txw2:2.3.1                                   :   68 Kb
-org.jdom:jdom2:2.0.6                                            :  297 Kb
 org.jetbrains.kotlin:kotlin-reflect:1.4.20                      :    2 Mb
 org.jetbrains.kotlin:kotlin-stdlib-common:1.4.20                :  186 Kb
 org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.20                  :   21 Kb
 org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.4.20                  :   15 Kb
 org.jetbrains.kotlin:kotlin-stdlib:1.4.20                       : 1453 Kb
-org.jetbrains.trove4j:trove4j:20160824                          :  559 Kb
 org.jetbrains:annotations:13.0                                  :   17 Kb
 org.json:json:20180813                                          :   63 Kb
-org.jvnet.staxex:stax-ex:1.8                                    :   35 Kb
-org.ow2.asm:asm-analysis:7.0                                    :   32 Kb
-org.ow2.asm:asm-commons:7.0                                     :   77 Kb
-org.ow2.asm:asm-tree:7.0                                        :   49 Kb
-org.ow2.asm:asm-util:7.0                                        :   78 Kb
-org.ow2.asm:asm:7.0                                             :  111 Kb
-org.tensorflow:tensorflow-lite-metadata:0.1.0-rc1               :  330 Kb
 gradle-6.8.3-all:6czipnbiesy2sl92ioo8dht91:gradle-6.8.3         : 1607 b 
 gradle-6.8.3-all:6czipnbiesy2sl92ioo8dht91:gradle-6.8.3         :    8 Mb
 gradle-6.8.3-all:6czipnbiesy2sl92ioo8dht91:gradle-6.8.3         :    2 Mb
@@ -103,5 +18,5 @@ gradle-6.8.3-all:6czipnbiesy2sl92ioo8dht91:gradle-6.8.3         :  186 Kb
 gradle-6.8.3-all:6czipnbiesy2sl92ioo8dht91:gradle-6.8.3         :   21 Kb
 gradle-6.8.3-all:6czipnbiesy2sl92ioo8dht91:gradle-6.8.3         :   15 Kb
 
-Total transitive dependencies size                              :  224 Mb
+Total transitive dependencies size                              :  156 Mb
 

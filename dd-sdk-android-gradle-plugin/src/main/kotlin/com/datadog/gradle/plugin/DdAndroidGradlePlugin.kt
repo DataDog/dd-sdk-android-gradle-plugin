@@ -81,7 +81,7 @@ class DdAndroidGradlePlugin : Plugin<Project> {
         val uploadTask = target.tasks.create(
             uploadTaskName,
             DdMappingFileUploadTask::class.java,
-            GitRepositoryDetector()
+            target.objects.newInstance(GitRepositoryDetector::class.java)
         )
         val extensionConfiguration = resolveExtensionConfiguration(extension, variant)
 
@@ -131,6 +131,13 @@ class DdAndroidGradlePlugin : Plugin<Project> {
             )
             return null
         } else {
+            val extensionConfiguration = resolveExtensionConfiguration(
+                extension,
+                variant
+            )
+            if (extensionConfiguration.checkProjectDependencies == SdkCheckLevel.NONE) {
+                return compileTask
+            }
             // this will postpone the check until the actual compilation for the particular variant.
             // by doing this we are avoiding pulling all the configurations for all the variants
             // after build script is evaluated, which may be a heavy task for the big projects
@@ -140,11 +147,6 @@ class DdAndroidGradlePlugin : Plugin<Project> {
                     .firstLevelModuleDependencies
 
                 if (!isDatadogDependencyPresent(firstLevelModuleDependencies)) {
-
-                    val extensionConfiguration = resolveExtensionConfiguration(
-                        extension,
-                        variant
-                    )
 
                     val sdkCheckLevel = extensionConfiguration.checkProjectDependencies
                         ?: SdkCheckLevel.FAIL
@@ -158,8 +160,11 @@ class DdAndroidGradlePlugin : Plugin<Project> {
                         SdkCheckLevel.WARN -> {
                             LOGGER.warn(MISSING_DD_SDK_MESSAGE.format(variant.name))
                         }
-                        SdkCheckLevel.NONE -> {
-                            // no-op, ignore that and make compiler happy
+                        else -> {
+                            throw IllegalArgumentException(
+                                "This should never happen," +
+                                    " value=$sdkCheckLevel is not handled"
+                            )
                         }
                     }
                 }

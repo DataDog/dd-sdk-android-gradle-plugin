@@ -10,6 +10,8 @@ import java.io.File
 import java.util.concurrent.TimeUnit
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.Project
+import org.gradle.api.internal.project.DefaultProject
+import org.gradle.process.internal.DefaultExecOperations
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -42,6 +44,7 @@ internal class GitRepositoryDetectorTest {
 
     lateinit var fakeTrackedFiles: List<String>
 
+    @Suppress("UnstableApiUsage")
     @BeforeEach
     fun `set up`(forge: Forge) {
         fakeProject = ProjectBuilder.builder()
@@ -50,7 +53,9 @@ internal class GitRepositoryDetectorTest {
 
         initializeSourceSets(forge)
 
-        testedDetector = GitRepositoryDetector()
+        testedDetector = GitRepositoryDetector(
+            DefaultExecOperations((fakeProject as DefaultProject).processOperations)
+        )
     }
 
     @Test
@@ -59,7 +64,7 @@ internal class GitRepositoryDetectorTest {
         initializeGit()
 
         // When
-        val result = testedDetector.detectRepositories(fakeProject, fakeSourceSetFolders)
+        val result = testedDetector.detectRepositories(fakeSourceSetFolders)
 
         // Then
         assertThat(result).hasSize(1)
@@ -73,7 +78,7 @@ internal class GitRepositoryDetectorTest {
     @Test
     fun `𝕄 return empty list 𝕎 detectRepository() { not inside a git repository }`() {
         // When
-        val result = testedDetector.detectRepositories(fakeProject, fakeSourceSetFolders)
+        val result = testedDetector.detectRepositories(fakeSourceSetFolders)
 
         // Then
         assertThat(result).hasSize(0)

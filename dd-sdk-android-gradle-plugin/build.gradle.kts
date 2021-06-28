@@ -43,11 +43,14 @@ dependencies {
     implementation(Dependencies.Libraries.Kotlin)
     implementation(Dependencies.Libraries.KotlinReflect)
     implementation(Dependencies.Libraries.OkHttp)
-    implementation(Dependencies.ClassPaths.AndroidTools)
+    implementation(Dependencies.Libraries.Json)
+    // because auto-wiring into Android projects
+    compileOnly(Dependencies.ClassPaths.AndroidTools)
 
     testImplementation(Dependencies.Libraries.JUnit5)
     testImplementation(Dependencies.Libraries.TestTools)
     testImplementation(Dependencies.Libraries.OkHttpMock)
+    testImplementation(Dependencies.ClassPaths.AndroidTools)
 
     detekt(Dependencies.Libraries.DetektCli)
 }

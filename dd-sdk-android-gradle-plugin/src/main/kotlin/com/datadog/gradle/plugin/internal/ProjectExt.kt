@@ -2,10 +2,11 @@ package com.datadog.gradle.plugin.internal
 
 import com.datadog.gradle.plugin.DdAndroidGradlePlugin.Companion.LOGGER
 import java.io.ByteArrayOutputStream
-import org.gradle.api.Project
+import org.gradle.process.ExecOperations
 import org.gradle.process.internal.ExecException
 
-internal fun Project.execShell(vararg command: String): String {
+@Suppress("UnstableApiUsage")
+internal fun ExecOperations.execShell(vararg command: String): String {
     val outputStream = ByteArrayOutputStream()
     val errorStream = ByteArrayOutputStream()
     try {

@@ -22,11 +22,14 @@ internal class OkHttpUploader : Uploader {
 
     // region Uploader
 
-    internal val client = OkHttpClient
-        .Builder()
-        .callTimeout(NETWORK_TIMEOUT_MS, TimeUnit.MILLISECONDS)
-        .writeTimeout(NETWORK_TIMEOUT_MS, TimeUnit.MILLISECONDS)
-        .build()
+    // we cannot make it a property with a backing field, because serialization of this field is not
+    // supported (serialization is used by configuration cache)
+    internal val client
+        get() = OkHttpClient
+            .Builder()
+            .callTimeout(NETWORK_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+            .writeTimeout(NETWORK_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+            .build()
 
     @Suppress("TooGenericExceptionCaught")
     override fun upload(
@@ -102,7 +105,7 @@ internal class OkHttpUploader : Uploader {
             statusCode == null -> throw RuntimeException(
                 "Unable to upload mapping file for $identifier; check your network connection"
             )
-            statusCode in succesfulCodes -> LOGGER.info(
+            statusCode in successfulCodes -> LOGGER.info(
                 "Mapping file upload successful for $identifier"
             )
             statusCode == HttpURLConnection.HTTP_FORBIDDEN -> throw IllegalStateException(
@@ -124,10 +127,10 @@ internal class OkHttpUploader : Uploader {
         internal val MEDIA_TYPE_TXT = MediaType.parse("text/plain")
         internal val MEDIA_TYPE_JSON = MediaType.parse("application/json")
         internal const val MAX_MAP_FILE_SIZE_IN_BYTES = 50L * 1024L * 1024L // 50 MB
-        internal val MAX_MAP_SIZE_EXCEEDED_ERROR_FORMAT =
+        internal const val MAX_MAP_SIZE_EXCEEDED_ERROR_FORMAT =
             "The proguard mapping file at: [%s] size exceeded the maximum 50 MB size. " +
                 "This task cannot be performed."
-        internal val succesfulCodes = arrayOf(
+        internal val successfulCodes = arrayOf(
             HttpURLConnection.HTTP_OK,
             HttpURLConnection.HTTP_CREATED,
             HttpURLConnection.HTTP_ACCEPTED
