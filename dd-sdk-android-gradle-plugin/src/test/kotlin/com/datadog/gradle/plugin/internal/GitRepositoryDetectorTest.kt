@@ -2,6 +2,8 @@ package com.datadog.gradle.plugin.internal
 
 import com.datadog.gradle.plugin.Configurator
 import com.datadog.gradle.plugin.RepositoryDetector
+import com.datadog.gradle.plugin.internal.sanitizer.UrlSanitizer
+import com.nhaarman.mockitokotlin2.whenever
 import fr.xgouchet.elmyr.Forge
 import fr.xgouchet.elmyr.annotation.StringForgery
 import fr.xgouchet.elmyr.junit5.ForgeConfiguration
@@ -18,6 +20,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.extension.Extensions
 import org.junit.jupiter.api.io.TempDir
+import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.junit.jupiter.MockitoSettings
 import org.mockito.quality.Strictness
@@ -35,14 +38,20 @@ internal class GitRepositoryDetectorTest {
     @TempDir
     lateinit var tempDir: File
 
-    @StringForgery(regex = "git@github\\.com:[a-z]+/[a-z][a-z0-9_-]+\\.git")
+    @StringForgery(regex = "http[s]?://github\\.com:[1-9]{2}/[a-z]+/repository\\.git")
     lateinit var fakeRemoteUrl: String
+
+    @StringForgery(regex = "http[s]?://github\\.com:[1-9]{2}/[a-z]+/repository\\.git")
+    lateinit var fakeSanitizedUrl: String
 
     lateinit var fakeProject: Project
 
     lateinit var fakeSourceSetFolders: List<File>
 
     lateinit var fakeTrackedFiles: List<String>
+
+    @Mock
+    lateinit var mockedUrlSanitizer: UrlSanitizer
 
     @Suppress("UnstableApiUsage")
     @BeforeEach
@@ -52,9 +61,10 @@ internal class GitRepositoryDetectorTest {
             .build()
 
         initializeSourceSets(forge)
-
+        whenever(mockedUrlSanitizer.sanitize(fakeRemoteUrl)).thenReturn(fakeSanitizedUrl)
         testedDetector = GitRepositoryDetector(
-            DefaultExecOperations((fakeProject as DefaultProject).processOperations)
+            DefaultExecOperations((fakeProject as DefaultProject).processOperations),
+            mockedUrlSanitizer
         )
     }
 
@@ -69,7 +79,7 @@ internal class GitRepositoryDetectorTest {
         // Then
         assertThat(result).hasSize(1)
         val repository = result.first()
-        assertThat(repository.url).isEqualTo(fakeRemoteUrl)
+        assertThat(repository.url).isEqualTo(fakeSanitizedUrl)
         assertThat(repository.hash).isNotNull().isNotBlank()
         assertThat(repository.sourceFiles)
             .containsExactlyInAnyOrder(*fakeTrackedFiles.toTypedArray())
@@ -104,7 +114,7 @@ internal class GitRepositoryDetectorTest {
         fakeTrackedFiles = trackedFiles
     }
 
-    private fun initializeGit() {
+    private fun initializeGit(remoteUrl: String = fakeRemoteUrl) {
         val readme = File(tempDir, "README.md")
         readme.writeText("# Fake project")
 
@@ -139,7 +149,7 @@ internal class GitRepositoryDetectorTest {
                 .waitForSuccess(5, TimeUnit.SECONDS)
         )
         check(
-            ProcessBuilder("git", "remote", "add", "origin", fakeRemoteUrl)
+            ProcessBuilder("git", "remote", "add", "origin", remoteUrl)
                 .directory(tempDir)
                 .start()
                 .waitForSuccess(5, TimeUnit.SECONDS)

@@ -3,17 +3,18 @@ package com.datadog.gradle.plugin.internal
 import com.datadog.gradle.plugin.DdAndroidGradlePlugin.Companion.LOGGER
 import com.datadog.gradle.plugin.RepositoryDetector
 import com.datadog.gradle.plugin.RepositoryInfo
+import com.datadog.gradle.plugin.internal.sanitizer.GitRemoteUrlSanitizer
+import com.datadog.gradle.plugin.internal.sanitizer.UrlSanitizer
 import java.io.File
-import javax.inject.Inject
 import org.gradle.process.ExecOperations
 import org.gradle.process.internal.ExecException
 
 // TODO RUMM-1095 handle git submodules
 // TODO RUMM-1096 handle git subtrees
 // TODO RUMM-1093 let customer override `origin` with custom remote name
-internal open class GitRepositoryDetector
-@Inject constructor(
-    @Suppress("UnstableApiUsage") private val execOperations: ExecOperations
+internal class GitRepositoryDetector(
+    @Suppress("UnstableApiUsage") private val execOperations: ExecOperations,
+    private val urlSanitizer: UrlSanitizer = GitRemoteUrlSanitizer()
 ) : RepositoryDetector {
 
     @Suppress("StringLiteralDuplication")
@@ -27,7 +28,9 @@ internal open class GitRepositoryDetector
             return emptyList()
         }
 
-        val remoteUrl = execOperations.execShell("git", "remote", "get-url", "origin").trim()
+        val remoteUrl = sanitizeUrl(
+            execOperations.execShell("git", "remote", "get-url", "origin").trim()
+        )
         val commitHash = execOperations.execShell("git", "rev-parse", "HEAD").trim()
 
         val trackedFiles = listTrackedFilesPath(sourceSetRoots)
@@ -42,6 +45,9 @@ internal open class GitRepositoryDetector
     }
 
     // region Internal
+    private fun sanitizeUrl(remoteUrl: String): String {
+        return urlSanitizer.sanitize(remoteUrl)
+    }
 
     private fun listTrackedFilesPath(
         sourceSetRoots: List<File>
