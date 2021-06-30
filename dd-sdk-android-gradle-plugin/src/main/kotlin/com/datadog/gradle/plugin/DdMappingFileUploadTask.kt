@@ -64,6 +64,12 @@ open class DdMappingFileUploadTask
     var site: String = ""
 
     /**
+     * The url of the remote repository where the source code was deployed.
+     */
+    @get: Input
+    var remoteRepositoryUrl: String = ""
+
+    /**
      * The path to the mapping file to upload.
      */
     @get:Input
@@ -100,7 +106,8 @@ open class DdMappingFileUploadTask
         val mappingFile = File(mappingFilePath)
         if (!validateMappingFile(mappingFile)) return
 
-        val repositories = repositoryDetector.detectRepositories(sourceSetRoots)
+        val repositories =
+            repositoryDetector.detectRepositories(sourceSetRoots, remoteRepositoryUrl)
         if (repositories.isNotEmpty()) {
             generateRepositoryFile(repositories)
         }

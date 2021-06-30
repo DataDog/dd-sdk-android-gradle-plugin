@@ -190,6 +190,7 @@ class DdAndroidGradlePlugin @Inject constructor(
         uploadTask.site = extensionConfiguration.site ?: ""
         uploadTask.versionName = extensionConfiguration.versionName ?: variant.versionName
         uploadTask.serviceName = extensionConfiguration.serviceName ?: variant.applicationId
+        uploadTask.remoteRepositoryUrl = extensionConfiguration.remoteRepositoryUrl ?: ""
     }
 
     internal fun resolveExtensionConfiguration(

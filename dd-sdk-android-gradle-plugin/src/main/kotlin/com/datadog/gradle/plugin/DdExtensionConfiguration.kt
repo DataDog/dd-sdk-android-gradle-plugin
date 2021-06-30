@@ -27,6 +27,12 @@ open class DdExtensionConfiguration(
     var site: String? = null
 
     /**
+     * The url of the remote repository where the source code was deployed. If not provided this
+     * value will be resolved from your current GIT configuration during the task execution time.
+     */
+    var remoteRepositoryUrl: String? = null
+
+    /**
      * This property controls if plugin should check if Datadog SDK is included in the dependencies
      * and if it is not: "none" - ignore, "warn" - log a warning, "fail" - fail the build
      * with an error (default).
@@ -37,6 +43,7 @@ open class DdExtensionConfiguration(
         config.versionName?.let { versionName = it }
         config.serviceName?.let { serviceName = it }
         config.site?.let { site = it }
+        config.remoteRepositoryUrl?.let { remoteRepositoryUrl = it }
         config.checkProjectDependencies?.let { checkProjectDependencies = it }
     }
 }

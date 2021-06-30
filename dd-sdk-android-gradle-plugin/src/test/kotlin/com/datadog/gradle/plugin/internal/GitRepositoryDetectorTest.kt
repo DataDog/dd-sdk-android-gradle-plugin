@@ -86,6 +86,34 @@ internal class GitRepositoryDetectorTest {
     }
 
     @Test
+    fun `𝕄 use the sanitized config remote URL 𝕎 detectRepository() { remote URL provided }`(
+        @StringForgery(regex = "https://[a-z]{4,10}\\.[com|org]/[a-z]{4,10}/[a-z]{4,10}\\.git")
+        fakeConfigRemoteUrl: String,
+        @StringForgery(regex = "https://[a-z]{4,10}\\.[com|org]/[a-z]{4,10}/[a-z]{4,10}\\.git")
+        fakeSanitizedConfigRemoteUrl: String
+    ) {
+        // Given
+        initializeGit()
+        whenever(mockedUrlSanitizer.sanitize(fakeConfigRemoteUrl)).thenReturn(
+            fakeSanitizedConfigRemoteUrl
+        )
+
+        // When
+        val result = testedDetector.detectRepositories(
+            fakeSourceSetFolders,
+            fakeConfigRemoteUrl
+        )
+
+        // Then
+        assertThat(result).hasSize(1)
+        val repository = result.first()
+        assertThat(repository.url).isEqualTo(fakeSanitizedConfigRemoteUrl)
+        assertThat(repository.hash).isNotNull().isNotBlank()
+        assertThat(repository.sourceFiles)
+            .containsExactlyInAnyOrder(*fakeTrackedFiles.toTypedArray())
+    }
+
+    @Test
     fun `𝕄 return empty list 𝕎 detectRepository() { not inside a git repository }`() {
         // When
         val result = testedDetector.detectRepositories(fakeSourceSetFolders)

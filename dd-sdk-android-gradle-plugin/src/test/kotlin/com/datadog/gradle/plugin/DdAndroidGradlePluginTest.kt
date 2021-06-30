@@ -107,6 +107,7 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.variantName).isEqualTo(flavorName)
         assertThat(task.versionName).isEqualTo(versionName)
         assertThat(task.serviceName).isEqualTo(packageName)
+        assertThat(task.remoteRepositoryUrl).isEmpty()
         assertThat(task.site).isEqualTo(fakeExtension.site)
         assertThat(task.mappingFilePath)
             .isEqualTo("${fakeProject.buildDir}/outputs/mapping/$variantName/mapping.txt")
@@ -145,6 +146,7 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.variantName).isEqualTo(flavorName)
         assertThat(task.versionName).isEqualTo(fakeExtension.versionName)
         assertThat(task.serviceName).isEqualTo(fakeExtension.serviceName)
+        assertThat(task.remoteRepositoryUrl).isEmpty()
         assertThat(task.site).isEqualTo(fakeExtension.site)
         assertThat(task.mappingFilePath)
             .isEqualTo("${fakeProject.buildDir}/outputs/mapping/$variantName/mapping.txt")
@@ -161,6 +163,7 @@ internal class DdAndroidGradlePluginTest {
         fakeExtension.serviceName = null
         fakeExtension.versionName = null
         fakeExtension.site = null
+        fakeExtension.remoteRepositoryUrl = null
         val variantName = "$flavorName${buildTypeName.capitalize()}"
         whenever(mockVariant.name) doReturn variantName
         whenever(mockVariant.flavorName) doReturn flavorName
@@ -186,6 +189,7 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.variantName).isEqualTo(flavorName)
         assertThat(task.versionName).isEqualTo(versionName)
         assertThat(task.serviceName).isEqualTo(packageName)
+        assertThat(task.remoteRepositoryUrl).isEmpty()
         assertThat(task.site).isEqualTo("")
         assertThat(task.mappingFilePath)
             .isEqualTo("${fakeProject.buildDir}/outputs/mapping/$variantName/mapping.txt")
@@ -302,6 +306,7 @@ internal class DdAndroidGradlePluginTest {
         assertThat(config.versionName).isEqualTo(fakeExtension.versionName)
         assertThat(config.serviceName).isEqualTo(fakeExtension.serviceName)
         assertThat(config.site).isEqualTo(fakeExtension.site)
+        assertThat(config.remoteRepositoryUrl).isEqualTo(fakeExtension.remoteRepositoryUrl)
         assertThat(config.checkProjectDependencies)
             .isEqualTo(fakeExtension.checkProjectDependencies)
     }
@@ -322,6 +327,7 @@ internal class DdAndroidGradlePluginTest {
         assertThat(config.versionName).isEqualTo(variantConfig.versionName)
         assertThat(config.serviceName).isEqualTo(variantConfig.serviceName)
         assertThat(config.site).isEqualTo(variantConfig.site)
+        assertThat(config.remoteRepositoryUrl).isEqualTo(variantConfig.remoteRepositoryUrl)
         assertThat(config.checkProjectDependencies)
             .isEqualTo(variantConfig.checkProjectDependencies)
     }
@@ -345,6 +351,7 @@ internal class DdAndroidGradlePluginTest {
         assertThat(config.versionName).isEqualTo(versionName)
         assertThat(config.serviceName).isEqualTo(fakeExtension.serviceName)
         assertThat(config.site).isEqualTo(fakeExtension.site)
+        assertThat(config.remoteRepositoryUrl).isEqualTo(fakeExtension.remoteRepositoryUrl)
         assertThat(config.checkProjectDependencies)
             .isEqualTo(fakeExtension.checkProjectDependencies)
     }
@@ -368,6 +375,7 @@ internal class DdAndroidGradlePluginTest {
         assertThat(config.versionName).isEqualTo(fakeExtension.versionName)
         assertThat(config.serviceName).isEqualTo(serviceName)
         assertThat(config.site).isEqualTo(fakeExtension.site)
+        assertThat(config.remoteRepositoryUrl).isEqualTo(fakeExtension.remoteRepositoryUrl)
         assertThat(config.checkProjectDependencies)
             .isEqualTo(fakeExtension.checkProjectDependencies)
     }
@@ -391,6 +399,7 @@ internal class DdAndroidGradlePluginTest {
         assertThat(config.versionName).isEqualTo(fakeExtension.versionName)
         assertThat(config.serviceName).isEqualTo(fakeExtension.serviceName)
         assertThat(config.site).isEqualTo(site.name)
+        assertThat(config.remoteRepositoryUrl).isEqualTo(fakeExtension.remoteRepositoryUrl)
         assertThat(config.checkProjectDependencies).isEqualTo(
             fakeExtension.checkProjectDependencies
         )
@@ -415,7 +424,33 @@ internal class DdAndroidGradlePluginTest {
         assertThat(config.versionName).isEqualTo(fakeExtension.versionName)
         assertThat(config.serviceName).isEqualTo(fakeExtension.serviceName)
         assertThat(config.site).isEqualTo(fakeExtension.site)
+        assertThat(config.remoteRepositoryUrl).isEqualTo(fakeExtension.remoteRepositoryUrl)
         assertThat(config.checkProjectDependencies).isEqualTo(sdkCheckLevel)
+    }
+
+    @Test
+    fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { variant w remoteUrl only }`(
+        @Forgery fakeConfig: DdExtensionConfiguration
+    ) {
+        val variantName = fakeFlavorNames.variantName()
+        mockVariant.mockFlavors(fakeFlavorNames, fakeBuildTypeName)
+        val incompleteConfig = DdExtensionConfiguration().apply {
+            this.remoteRepositoryUrl = fakeConfig.remoteRepositoryUrl
+        }
+        fakeExtension.variants = mock()
+        whenever(fakeExtension.variants.findByName(variantName)) doReturn incompleteConfig
+
+        // When
+        val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, mockVariant)
+
+        // Then
+        assertThat(config.versionName).isEqualTo(fakeExtension.versionName)
+        assertThat(config.serviceName).isEqualTo(fakeExtension.serviceName)
+        assertThat(config.site).isEqualTo(fakeExtension.site)
+        assertThat(config.remoteRepositoryUrl).isEqualTo(incompleteConfig.remoteRepositoryUrl)
+        assertThat(config.checkProjectDependencies).isEqualTo(
+            fakeExtension.checkProjectDependencies
+        )
     }
 
     @Test
@@ -452,6 +487,7 @@ internal class DdAndroidGradlePluginTest {
         assertThat(config.site).isEqualTo(variantConfigA.site)
         assertThat(config.checkProjectDependencies)
             .isEqualTo(variantConfigC.checkProjectDependencies)
+        assertThat(config.remoteRepositoryUrl).isEqualTo(variantConfigA.remoteRepositoryUrl)
     }
 
     @Test
@@ -486,6 +522,7 @@ internal class DdAndroidGradlePluginTest {
         assertThat(config.site).isEqualTo(variantConfigAB.site)
         assertThat(config.checkProjectDependencies)
             .isEqualTo(variantConfigAB.checkProjectDependencies)
+        assertThat(config.remoteRepositoryUrl).isEqualTo(variantConfigAB.remoteRepositoryUrl)
     }
 
     @Test
@@ -506,6 +543,7 @@ internal class DdAndroidGradlePluginTest {
         assertThat(config.site).isEqualTo(configuration.site)
         assertThat(config.checkProjectDependencies)
             .isEqualTo(configuration.checkProjectDependencies)
+        assertThat(config.remoteRepositoryUrl).isEqualTo(configuration.remoteRepositoryUrl)
     }
 
     // endregion
@@ -706,12 +744,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 do nothing 𝕎 configureVariantForSdkCheck() { extension is disabled }`(
-        @StringForgery(case = Case.LOWER) flavorName: String,
-        @StringForgery(case = Case.LOWER) buildTypeName: String,
-        @StringForgery versionName: String,
-        @StringForgery packageName: String
-    ) {
+    fun `𝕄 do nothing 𝕎 configureVariantForSdkCheck() { extension is disabled }`() {
         // Given
         fakeExtension.enabled = false
 
@@ -728,9 +761,7 @@ internal class DdAndroidGradlePluginTest {
     @Test
     fun `𝕄 do nothing 𝕎 configureVariantForSdkCheck() { compilation task not found }`(
         @StringForgery(case = Case.LOWER) flavorName: String,
-        @StringForgery(case = Case.LOWER) buildTypeName: String,
-        @StringForgery versionName: String,
-        @StringForgery packageName: String
+        @StringForgery(case = Case.LOWER) buildTypeName: String
     ) {
 
         // let's check that there are no tasks just in case if setup is modified
