@@ -132,7 +132,7 @@ notify:release:
   only:
     - tags
   script:
-    - MAVEN_URL="https://search.maven.org/artifact/com.datadoghq/dd-sdk-android-gradle-plugin/$CI_COMMI_TAG/aar"
+    - MAVEN_URL="https://search.maven.org/artifact/com.datadoghq/dd-sdk-android-gradle-plugin/$CI_COMMIT_TAG/aar"
     - 'MESSAGE_TEXT=":package: $CI_PROJECT_NAME $CI_COMMIT_TAG published on :maven: $MAVEN_URL"'
     - postmessage "#mobile-rum" "$MESSAGE_TEXT"
 
