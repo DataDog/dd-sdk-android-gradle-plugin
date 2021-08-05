@@ -46,6 +46,18 @@ datadog {
 }
 ```
 
+### Gradle configuration cache support
+
+This plugin supports [Gradle configuration cache](https://docs.gradle.org/7.1/userguide/configuration_cache.html) starting from the version `1.1.0`, but to have this support you need to disable SDK dependency check by setting `checkProjectDependencies` to `none`:
+
+```
+datadog {
+    ...
+    checkProjectDependencies = "none"
+    ...
+}
+```
+
 ## Troubleshooting
 
 If you encounter any issue when using the Gradle Plugin for Datadog Android SDK, please take a look at 
