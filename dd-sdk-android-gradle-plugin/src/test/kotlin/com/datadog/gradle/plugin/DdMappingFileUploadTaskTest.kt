@@ -15,7 +15,6 @@ import com.nhaarman.mockitokotlin2.eq
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyZeroInteractions
 import com.nhaarman.mockitokotlin2.whenever
-import fr.xgouchet.elmyr.Forge
 import fr.xgouchet.elmyr.annotation.Forgery
 import fr.xgouchet.elmyr.annotation.StringForgery
 import fr.xgouchet.elmyr.annotation.StringForgeryType
@@ -87,7 +86,7 @@ internal class DdMappingFileUploadTaskTest {
     lateinit var fakeRepoInfo: RepositoryInfo
 
     @BeforeEach
-    fun `set up`(forge: Forge) {
+    fun `set up`() {
         val fakeProject = ProjectBuilder.builder()
             .withProjectDir(tempDir)
             .build()

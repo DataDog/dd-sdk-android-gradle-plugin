@@ -9,14 +9,13 @@ package com.datadog.gradle.plugin
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.api.ApplicationVariant
 import com.datadog.gradle.plugin.internal.GitRepositoryDetector
-import com.datadog.gradle.plugin.internal.MissingSdkException
 import com.datadog.gradle.plugin.internal.VariantIterator
 import java.io.File
 import javax.inject.Inject
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.artifacts.ResolvedDependency
+import org.gradle.api.provider.Provider
 import org.gradle.process.ExecOperations
 import org.slf4j.LoggerFactory
 
@@ -115,7 +114,7 @@ class DdAndroidGradlePlugin @Inject constructor(
         target: Project,
         variant: ApplicationVariant,
         extension: DdExtension
-    ): Task? {
+    ): Provider<DdCheckSdkDepsTask>? {
 
         if (!extension.enabled) {
             return null
@@ -141,39 +140,21 @@ class DdAndroidGradlePlugin @Inject constructor(
                 variant
             )
             if (extensionConfiguration.checkProjectDependencies == SdkCheckLevel.NONE) {
-                return compileTask
+                return null
             }
-            // this will postpone the check until the actual compilation for the particular variant.
-            // by doing this we are avoiding pulling all the configurations for all the variants
-            // after build script is evaluated, which may be a heavy task for the big projects
-            return compileTask.doFirst {
-                val firstLevelModuleDependencies = variant.runtimeConfiguration
-                    .resolvedConfiguration
-                    .firstLevelModuleDependencies
-
-                if (!isDatadogDependencyPresent(firstLevelModuleDependencies)) {
-
-                    val sdkCheckLevel = extensionConfiguration.checkProjectDependencies
-                        ?: SdkCheckLevel.FAIL
-
-                    when (sdkCheckLevel) {
-                        SdkCheckLevel.FAIL -> {
-                            throw MissingSdkException(
-                                MISSING_DD_SDK_MESSAGE.format(variant.name)
-                            )
-                        }
-                        SdkCheckLevel.WARN -> {
-                            LOGGER.warn(MISSING_DD_SDK_MESSAGE.format(variant.name))
-                        }
-                        else -> {
-                            throw IllegalArgumentException(
-                                "This should never happen," +
-                                    " value=$sdkCheckLevel is not handled"
-                            )
-                        }
-                    }
-                }
+            val checkDepsTaskName = "checkSdkDeps${variant.name.capitalize()}"
+            val resolvedCheckDependencyFlag =
+                extensionConfiguration.checkProjectDependencies ?: SdkCheckLevel.FAIL
+            val checkDepsTaskProvider = target.tasks.register(
+                checkDepsTaskName,
+                DdCheckSdkDepsTask::class.java
+            ) {
+                it.configuration.set(variant.compileConfiguration)
+                it.sdkCheckLevel.set(resolvedCheckDependencyFlag)
+                it.variantName.set(variant.name)
             }
+            compileTask.finalizedBy(checkDepsTaskProvider)
+            return checkDepsTaskProvider
         }
     }
 
@@ -212,13 +193,6 @@ class DdAndroidGradlePlugin @Inject constructor(
         return configuration
     }
 
-    internal fun isDatadogDependencyPresent(dependencies: Set<ResolvedDependency>): Boolean {
-        return dependencies.any {
-            (it.moduleGroup == DD_SDK_GROUP && it.moduleName == DD_SDK_NAME) ||
-                isDatadogDependencyPresent(it.children)
-        }
-    }
-
     // endregion
 
     companion object {
@@ -233,12 +207,5 @@ class DdAndroidGradlePlugin @Inject constructor(
 
         private const val ERROR_NOT_ANDROID = "The dd-android-gradle-plugin has been applied on " +
             "a non android application project"
-
-        internal const val MISSING_DD_SDK_MESSAGE = "Following application variant doesn't" +
-            " have Datadog SDK included: %s"
-
-        private const val DD_SDK_NAME = "dd-sdk-android"
-
-        private const val DD_SDK_GROUP = "com.datadoghq"
     }
 }
