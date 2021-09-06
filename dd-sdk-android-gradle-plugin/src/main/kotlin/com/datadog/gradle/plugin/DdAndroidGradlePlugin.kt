@@ -32,6 +32,7 @@ class DdAndroidGradlePlugin @Inject constructor(
 
     /** @inheritdoc */
     override fun apply(target: Project) {
+
         val androidExtension = target.extensions.findByType(AppExtension::class.java)
         if (androidExtension == null) {
             LOGGER.error(ERROR_NOT_ANDROID)
@@ -72,12 +73,12 @@ class DdAndroidGradlePlugin @Inject constructor(
         extension: DdExtension
     ): Task? {
         if (!variant.buildType.isMinifyEnabled) {
-            // Proguard/R8 are not enabled, let's not create a task
+            LOGGER.warn("Minifying disabled for variant ${variant.name}, no upload task created")
             return null
         }
 
         if (!extension.enabled) {
-            // lets not create any task
+            LOGGER.warn("Extension disabled for variant ${variant.name}, no upload task created")
             return null
         }
 
@@ -118,6 +119,7 @@ class DdAndroidGradlePlugin @Inject constructor(
     ): Task? {
 
         if (!extension.enabled) {
+            LOGGER.warn("Extension disabled for variant ${variant.name}, no sdk check task created")
             return null
         }
 
