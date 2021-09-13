@@ -5,12 +5,10 @@ import com.android.builder.model.BuildType
 import com.android.builder.model.ProductFlavor
 import com.datadog.gradle.plugin.internal.DdConfiguration
 import com.datadog.gradle.plugin.internal.GitRepositoryDetector
-import com.datadog.gradle.plugin.internal.MissingSdkException
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.whenever
 import fr.xgouchet.elmyr.Case
-import fr.xgouchet.elmyr.Forge
 import fr.xgouchet.elmyr.annotation.Forgery
 import fr.xgouchet.elmyr.annotation.StringForgery
 import fr.xgouchet.elmyr.annotation.StringForgeryType
@@ -20,12 +18,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedConfiguration
-import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertDoesNotThrow
-import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.extension.Extensions
 import org.mockito.Mock
@@ -551,46 +546,7 @@ internal class DdAndroidGradlePluginTest {
     // region configureVariantForSdkCheck
 
     @Test
-    fun `𝕄 throw exception 𝕎 configureVariantForSdkCheck() { sdk is missing w fail set }`(
-        @StringForgery(case = Case.LOWER) flavorName: String,
-        @StringForgery(case = Case.LOWER) buildTypeName: String,
-        @StringForgery versionName: String,
-        @StringForgery packageName: String
-    ) {
-        // Given
-        fakeExtension.checkProjectDependencies = SdkCheckLevel.FAIL
-        val variantName = "$flavorName${buildTypeName.capitalize()}"
-        whenever(mockVariant.name) doReturn variantName
-        whenever(mockVariant.flavorName) doReturn flavorName
-        whenever(mockVariant.versionName) doReturn versionName
-        whenever(mockVariant.applicationId) doReturn packageName
-        whenever(mockVariant.buildType) doReturn mockBuildType
-        whenever(mockBuildType.name) doReturn fakeBuildTypeName
-
-        val fakeCompileTask = fakeProject.task("compile${variantName.capitalize()}Sources")
-
-        val mockConfiguration = mock<Configuration>()
-        val mockResolvedConfiguration = mock<ResolvedConfiguration>()
-
-        whenever(mockResolvedConfiguration.firstLevelModuleDependencies) doReturn emptySet()
-        whenever(mockConfiguration.resolvedConfiguration) doReturn mockResolvedConfiguration
-        whenever(mockVariant.runtimeConfiguration) doReturn mockConfiguration
-
-        // When + Then
-        val exception = assertThrows<MissingSdkException> {
-            testedPlugin.configureVariantForSdkCheck(
-                fakeProject,
-                mockVariant,
-                fakeExtension
-            )!!.actions.first().execute(fakeCompileTask)
-        }
-
-        assertThat(exception.message)
-            .isEqualTo(DdAndroidGradlePlugin.MISSING_DD_SDK_MESSAGE.format(variantName))
-    }
-
-    @Test
-    fun `𝕄 throw exception 𝕎 configureVariantForSdkCheck() { sdk is missing w fail not set }`(
+    fun `𝕄 use FAIL when configuring checkDepsTask { checkProjectDependencies not set }`(
         @StringForgery(case = Case.LOWER) flavorName: String,
         @StringForgery(case = Case.LOWER) buildTypeName: String,
         @StringForgery versionName: String,
@@ -606,7 +562,7 @@ internal class DdAndroidGradlePluginTest {
         whenever(mockVariant.buildType) doReturn mockBuildType
         whenever(mockBuildType.name) doReturn fakeBuildTypeName
 
-        val fakeCompileTask = fakeProject.task("compile${variantName.capitalize()}Sources")
+        fakeProject.task("compile${variantName.capitalize()}Sources")
 
         val mockConfiguration = mock<Configuration>()
         val mockResolvedConfiguration = mock<ResolvedConfiguration>()
@@ -616,52 +572,13 @@ internal class DdAndroidGradlePluginTest {
         whenever(mockVariant.runtimeConfiguration) doReturn mockConfiguration
 
         // When + Then
-        val exception = assertThrows<MissingSdkException> {
-            testedPlugin.configureVariantForSdkCheck(
-                fakeProject,
-                mockVariant,
-                fakeExtension
-            )!!.actions.first().execute(fakeCompileTask)
-        }
-
-        assertThat(exception.message)
-            .isEqualTo(DdAndroidGradlePlugin.MISSING_DD_SDK_MESSAGE.format(variantName))
-    }
-
-    @Test
-    fun `𝕄 no exception thrown 𝕎 configureVariantForSdkCheck() { sdk is missing w warning set }`(
-        @StringForgery(case = Case.LOWER) flavorName: String,
-        @StringForgery(case = Case.LOWER) buildTypeName: String,
-        @StringForgery versionName: String,
-        @StringForgery packageName: String
-    ) {
-        // Given
-        fakeExtension.checkProjectDependencies = SdkCheckLevel.WARN
-        val variantName = "$flavorName${buildTypeName.capitalize()}"
-        whenever(mockVariant.name) doReturn variantName
-        whenever(mockVariant.flavorName) doReturn flavorName
-        whenever(mockVariant.versionName) doReturn versionName
-        whenever(mockVariant.applicationId) doReturn packageName
-        whenever(mockVariant.buildType) doReturn mockBuildType
-        whenever(mockBuildType.name) doReturn fakeBuildTypeName
-
-        val fakeCompileTask = fakeProject.task("compile${variantName.capitalize()}Sources")
-
-        val mockConfiguration = mock<Configuration>()
-        val mockResolvedConfiguration = mock<ResolvedConfiguration>()
-
-        whenever(mockResolvedConfiguration.firstLevelModuleDependencies) doReturn emptySet()
-        whenever(mockConfiguration.resolvedConfiguration) doReturn mockResolvedConfiguration
-        whenever(mockVariant.runtimeConfiguration) doReturn mockConfiguration
-
-        // When + Then
-        assertDoesNotThrow {
-            testedPlugin.configureVariantForSdkCheck(
-                fakeProject,
-                mockVariant,
-                fakeExtension
-            )!!.actions.first().execute(fakeCompileTask)
-        }
+        val checkSdkDepsTaskProvider = testedPlugin.configureVariantForSdkCheck(
+            fakeProject,
+            mockVariant,
+            fakeExtension
+        )
+        assertThat(checkSdkDepsTaskProvider?.get()?.sdkCheckLevel?.get())
+            .isEqualTo(SdkCheckLevel.FAIL)
     }
 
     @Test
@@ -681,7 +598,7 @@ internal class DdAndroidGradlePluginTest {
         whenever(mockVariant.buildType) doReturn mockBuildType
         whenever(mockBuildType.name) doReturn fakeBuildTypeName
 
-        val fakeCompileTask = fakeProject.task("compile${variantName.capitalize()}Sources")
+        fakeProject.task("compile${variantName.capitalize()}Sources")
 
         val mockConfiguration = mock<Configuration>()
         val mockResolvedConfiguration = mock<ResolvedConfiguration>()
@@ -696,51 +613,8 @@ internal class DdAndroidGradlePluginTest {
                 fakeProject,
                 mockVariant,
                 fakeExtension
-            )!!.actions
-        ).isEmpty()
-    }
-
-    @Test
-    fun `𝕄 do nothing 𝕎 configureVariantForSdkCheck() { sdk is there }`(
-        @StringForgery(case = Case.LOWER) flavorName: String,
-        @StringForgery(case = Case.LOWER) buildTypeName: String,
-        @StringForgery versionName: String,
-        @StringForgery packageName: String
-    ) {
-        // Given
-        fakeExtension.checkProjectDependencies = SdkCheckLevel.FAIL
-        val variantName = "$flavorName${buildTypeName.capitalize()}"
-        whenever(mockVariant.name) doReturn variantName
-        whenever(mockVariant.flavorName) doReturn flavorName
-        whenever(mockVariant.versionName) doReturn versionName
-        whenever(mockVariant.applicationId) doReturn packageName
-        whenever(mockVariant.buildType) doReturn mockBuildType
-        whenever(mockBuildType.name) doReturn fakeBuildTypeName
-
-        val fakeCompileTask = fakeProject.task("compile${variantName.capitalize()}Sources")
-
-        val mockConfiguration = mock<Configuration>()
-        val mockResolvedConfiguration = mock<ResolvedConfiguration>()
-
-        val mockResolvedDdSdkDependency = mock<ResolvedDependency>()
-        whenever(mockResolvedDdSdkDependency.moduleName) doReturn "dd-sdk-android"
-        whenever(mockResolvedDdSdkDependency.moduleGroup) doReturn "com.datadoghq"
-
-        whenever(
-            mockResolvedConfiguration.firstLevelModuleDependencies
-        ) doReturn setOf(mockResolvedDdSdkDependency)
-
-        whenever(mockConfiguration.resolvedConfiguration) doReturn mockResolvedConfiguration
-        whenever(mockVariant.runtimeConfiguration) doReturn mockConfiguration
-
-        // When + Then
-        assertDoesNotThrow {
-            testedPlugin.configureVariantForSdkCheck(
-                fakeProject,
-                mockVariant,
-                fakeExtension
-            )!!.actions.first().execute(fakeCompileTask)
-        }
+            )
+        ).isNull()
     }
 
     @Test
@@ -777,80 +651,6 @@ internal class DdAndroidGradlePluginTest {
                 fakeExtension
             )
         ).isNull()
-    }
-
-    // endregion
-
-    // region isDatadogDependencyPresent
-
-    @Test
-    fun `𝕄 return true 𝕎 isDatadogDependencyPresent() { sdk is at the top level }`(
-        forge: Forge
-    ) {
-
-        val sdkDependency = mock<ResolvedDependency>()
-        whenever(sdkDependency.moduleName) doReturn "dd-sdk-android"
-        whenever(sdkDependency.moduleGroup) doReturn "com.datadoghq"
-
-        val otherDependencies = forge.aList {
-            val dependency = mock<ResolvedDependency>()
-            whenever(dependency.moduleName) doReturn forge.anAsciiString()
-            whenever(dependency.moduleGroup) doReturn forge.anAsciiString()
-            dependency
-        }
-
-        val allDependencies = (otherDependencies + sdkDependency).shuffled().toSet()
-
-        assertThat(
-            testedPlugin.isDatadogDependencyPresent(allDependencies)
-        ).isTrue()
-    }
-
-    @Test
-    fun `𝕄 return true 𝕎 isDatadogDependencyPresent() { sdk is at the child level }`(
-        forge: Forge
-    ) {
-
-        val sdkDependency = mock<ResolvedDependency>()
-        whenever(sdkDependency.moduleName) doReturn "dd-sdk-android"
-        whenever(sdkDependency.moduleGroup) doReturn "com.datadoghq"
-
-        val fakeDependencyGenerator: Forge.() -> ResolvedDependency = {
-            val dependency = mock<ResolvedDependency>()
-            whenever(dependency.moduleName) doReturn forge.anAsciiString()
-            whenever(dependency.moduleGroup) doReturn forge.anAsciiString()
-            dependency
-        }
-
-        val childDependencies = forge.aList(forging = fakeDependencyGenerator)
-        val topDependencies = forge.aList(forging = fakeDependencyGenerator)
-        whenever(topDependencies.random().children) doReturn (childDependencies + sdkDependency)
-            .shuffled().toSet()
-
-        assertThat(
-            testedPlugin.isDatadogDependencyPresent(topDependencies.toSet())
-        ).isTrue()
-    }
-
-    @Test
-    fun `𝕄 return false 𝕎 isDatadogDependencyPresent() { sdk is not there }`(
-        forge: Forge
-    ) {
-        val fakeDependencyGenerator: Forge.() -> ResolvedDependency = {
-            val dependency = mock<ResolvedDependency>()
-            whenever(dependency.moduleName) doReturn forge.anAsciiString()
-            whenever(dependency.moduleGroup) doReturn forge.anAsciiString()
-            dependency
-        }
-
-        val childDependencies = forge.aList(forging = fakeDependencyGenerator)
-        val topDependencies = forge.aList(forging = fakeDependencyGenerator)
-
-        whenever(topDependencies.random().children) doReturn childDependencies.toSet()
-
-        assertThat(
-            testedPlugin.isDatadogDependencyPresent(topDependencies.toSet())
-        ).isFalse()
     }
 
     // endregion
