@@ -30,9 +30,9 @@ object Dependencies {
         const val MockitoKotlin = "2.2.0"
 
         // Tools
-        const val Detekt = "1.6.0"
+        const val Detekt = "1.17.0"
         const val KtLint = "9.4.0"
-        const val Dokka = "1.4.10"
+        const val Dokka = "1.4.32"
     }
 
     object Libraries {

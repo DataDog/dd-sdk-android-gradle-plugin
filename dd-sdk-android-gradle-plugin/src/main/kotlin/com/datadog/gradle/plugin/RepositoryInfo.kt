@@ -6,6 +6,9 @@ import org.json.JSONObject
 /**
  * Represents the information on the version control repository associated
  * with the current Gradle Project.
+ * @param url Repository URL.
+ * @param hash Commit hash.
+ * @param sourceFiles Source files at the given commit.
  * @see [RepositoryDetector]
  */
 data class RepositoryInfo(

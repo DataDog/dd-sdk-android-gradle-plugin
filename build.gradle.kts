@@ -9,7 +9,6 @@ buildscript {
         google()
         mavenCentral()
         maven { setUrl(com.datadog.gradle.Dependencies.Repositories.Gradle) }
-        jcenter()
         mavenLocal()
     }
 
@@ -28,7 +27,6 @@ allprojects {
         google()
         mavenCentral()
         maven { setUrl(com.datadog.gradle.Dependencies.Repositories.Jitpack) }
-        jcenter()
         flatDir { dirs("libs") }
     }
 }
