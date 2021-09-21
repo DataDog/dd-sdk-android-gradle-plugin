@@ -2,6 +2,7 @@ package com.datadog.gradle.plugin
 
 /**
  * Base extension used to configure the `dd-android-gradle-plugin`.
+ * @param name Name of the given configuration.
  */
 open class DdExtensionConfiguration(
     val name: String = ""
