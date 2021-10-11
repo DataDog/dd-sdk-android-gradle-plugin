@@ -8,7 +8,6 @@ package com.datadog.gradle.plugin
 
 import com.datadog.gradle.plugin.DdAndroidGradlePlugin.Companion.LOGGER
 import com.datadog.gradle.plugin.internal.DdAppIdentifier
-import com.datadog.gradle.plugin.internal.DdConfiguration
 import com.datadog.gradle.plugin.internal.OkHttpUploader
 import com.datadog.gradle.plugin.internal.Uploader
 import java.io.File
@@ -106,20 +105,20 @@ open class DdMappingFileUploadTask
         val mappingFile = File(mappingFilePath)
         if (!validateMappingFile(mappingFile)) return
 
-        val repositories =
-            repositoryDetector.detectRepositories(sourceSetRoots, remoteRepositoryUrl)
+        val repositories = repositoryDetector.detectRepositories(
+            sourceSetRoots,
+            remoteRepositoryUrl
+        )
         if (repositories.isNotEmpty()) {
             generateRepositoryFile(repositories)
         }
 
-        val configuration = DdConfiguration(
-            site = DdConfiguration.Site.valueOf(site),
-            apiKey = apiKey
-        )
+        val site = DatadogSite.valueOf(site)
         uploader.upload(
-            configuration.buildUrl(),
+            site.uploadEndpoint(),
             mappingFile,
             if (repositories.isEmpty()) null else repositoryFile,
+            apiKey,
             DdAppIdentifier(
                 serviceName = serviceName,
                 version = versionName,
@@ -141,9 +140,9 @@ open class DdMappingFileUploadTask
         }
 
         if (site.isBlank()) {
-            site = DdConfiguration.Site.US.name
+            site = DatadogSite.US1.name
         } else {
-            val validSiteIds = DdConfiguration.Site.validIds
+            val validSiteIds = DatadogSite.validIds
             check(site in validSiteIds) {
                 "You need to provide a valid site (one of ${validSiteIds.joinToString()})"
             }

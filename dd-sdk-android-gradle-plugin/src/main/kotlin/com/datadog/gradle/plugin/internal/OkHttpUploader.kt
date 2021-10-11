@@ -36,6 +36,7 @@ internal class OkHttpUploader : Uploader {
         url: String,
         mappingFile: File,
         repositoryFile: File?,
+        apiKey: String,
         identifier: DdAppIdentifier,
         repositoryInfo: RepositoryInfo?
     ) {
@@ -45,6 +46,9 @@ internal class OkHttpUploader : Uploader {
         val request = Request.Builder()
             .url(url)
             .post(body)
+            .header(HEADER_EVP_ORIGIN, "dd-sdk-android-gradle-plugin")
+            .header(HEADER_EVP_ORIGIN_VERSION, VERSION)
+            .header(HEADER_API_KEY, apiKey)
             .build()
 
         val call = client.newCall(request)
@@ -122,6 +126,14 @@ internal class OkHttpUploader : Uploader {
     // endregion
 
     companion object {
+
+        // TODO add a plugin to automatically sync this with the `MavenConfig` value
+        internal const val VERSION = "1.1.0"
+
+        internal const val HEADER_API_KEY = "DD-API-KEY"
+        internal const val HEADER_EVP_ORIGIN = "DD-EVP-ORIGIN"
+        internal const val HEADER_EVP_ORIGIN_VERSION = "DD-EVP-ORIGIN-VERSION"
+        internal const val HEADER_REQUEST_ID = "DD-REQUEST-ID"
 
         internal val NETWORK_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(45)
         internal val MEDIA_TYPE_TXT = MediaType.parse("text/plain")

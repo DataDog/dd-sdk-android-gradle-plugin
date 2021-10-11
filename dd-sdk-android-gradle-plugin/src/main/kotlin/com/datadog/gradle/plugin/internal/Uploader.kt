@@ -11,10 +11,12 @@ import java.io.File
 
 internal interface Uploader {
 
+    @Suppress("LongParameterList")
     fun upload(
         url: String,
         mappingFile: File,
         repositoryFile: File?,
+        apiKey: String,
         identifier: DdAppIdentifier,
         repositoryInfo: RepositoryInfo?
     )

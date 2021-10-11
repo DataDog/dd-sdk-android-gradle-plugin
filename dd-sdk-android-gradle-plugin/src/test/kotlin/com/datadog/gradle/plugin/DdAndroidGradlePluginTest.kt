@@ -3,7 +3,6 @@ package com.datadog.gradle.plugin
 import com.android.build.gradle.api.ApplicationVariant
 import com.android.builder.model.BuildType
 import com.android.builder.model.ProductFlavor
-import com.datadog.gradle.plugin.internal.DdConfiguration
 import com.datadog.gradle.plugin.internal.GitRepositoryDetector
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
@@ -377,7 +376,7 @@ internal class DdAndroidGradlePluginTest {
 
     @Test
     fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { variant w site only }`(
-        @Forgery site: DdConfiguration.Site
+        @Forgery site: DatadogSite
     ) {
         val variantName = fakeFlavorNames.variantName()
         mockVariant.mockFlavors(fakeFlavorNames, fakeBuildTypeName)
