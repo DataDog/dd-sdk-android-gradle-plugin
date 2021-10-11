@@ -7,7 +7,6 @@
 package com.datadog.gradle.plugin
 
 import com.datadog.gradle.plugin.internal.DdAppIdentifier
-import com.datadog.gradle.plugin.internal.DdConfiguration
 import com.datadog.gradle.plugin.internal.Uploader
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
@@ -21,7 +20,6 @@ import fr.xgouchet.elmyr.annotation.StringForgeryType
 import fr.xgouchet.elmyr.junit5.ForgeConfiguration
 import fr.xgouchet.elmyr.junit5.ForgeExtension
 import java.io.File
-import java.lang.IllegalStateException
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Assumptions.assumeTrue
@@ -68,7 +66,7 @@ internal class DdMappingFileUploadTaskTest {
     lateinit var fakeApiKey: String
 
     @Forgery
-    lateinit var fakeSite: DdConfiguration.Site
+    lateinit var fakeSite: DatadogSite
 
     @StringForgery(regex = "git@github\\.com:[a-z]+/[a-z][a-z0-9_-]+\\.git")
     lateinit var fakeRemoteUrl: String
@@ -113,7 +111,7 @@ internal class DdMappingFileUploadTaskTest {
         testedTask.mappingFilePath = fakeMappingFile.path
         val fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
         testedTask.repositoryFile = fakeRepositoryFile
-        val expectedUrl = DdConfiguration(fakeSite, fakeApiKey).buildUrl()
+        val expectedUrl = fakeSite.uploadEndpoint()
         whenever(mockRepositoryDetector.detectRepositories(any(), eq("")))
             .doReturn(listOf(fakeRepoInfo))
 
@@ -125,6 +123,7 @@ internal class DdMappingFileUploadTaskTest {
             expectedUrl,
             fakeMappingFile,
             fakeRepositoryFile,
+            fakeApiKey,
             DdAppIdentifier(
                 serviceName = fakeService,
                 version = fakeVersion,
@@ -147,7 +146,7 @@ internal class DdMappingFileUploadTaskTest {
         testedTask.remoteRepositoryUrl = fakeRemoteUrl
         val fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
         testedTask.repositoryFile = fakeRepositoryFile
-        val expectedUrl = DdConfiguration(fakeSite, fakeApiKey).buildUrl()
+        val expectedUrl = fakeSite.uploadEndpoint()
         whenever(mockRepositoryDetector.detectRepositories(any(), eq(fakeRemoteUrl)))
             .doReturn(listOf(fakeRepoInfo))
 
@@ -159,6 +158,7 @@ internal class DdMappingFileUploadTaskTest {
             expectedUrl,
             fakeMappingFile,
             fakeRepositoryFile,
+            fakeApiKey,
             DdAppIdentifier(
                 serviceName = fakeService,
                 version = fakeVersion,
@@ -180,7 +180,7 @@ internal class DdMappingFileUploadTaskTest {
         testedTask.mappingFilePath = fakeMappingFile.path
         val fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
         testedTask.repositoryFile = fakeRepositoryFile
-        val expectedUrl = DdConfiguration(fakeSite, fakeApiKey).buildUrl()
+        val expectedUrl = fakeSite.uploadEndpoint()
         whenever(mockRepositoryDetector.detectRepositories(any(), eq("")))
             .doReturn(emptyList())
 
@@ -192,6 +192,7 @@ internal class DdMappingFileUploadTaskTest {
             expectedUrl,
             fakeMappingFile,
             null,
+            fakeApiKey,
             DdAppIdentifier(
                 serviceName = fakeService,
                 version = fakeVersion,
@@ -240,7 +241,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 upload to US 𝕎 applyTask() {missing site}`() {
+    fun `𝕄 upload to US1 𝕎 applyTask() {missing site}`() {
         // Given
         val fakeMappingFile = File(tempDir, fakeMappingFileName)
         fakeMappingFile.writeText(fakeMappingFileContent)
@@ -248,7 +249,7 @@ internal class DdMappingFileUploadTaskTest {
         val fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
         testedTask.repositoryFile = fakeRepositoryFile
         testedTask.site = ""
-        val expectedUrl = DdConfiguration(DdConfiguration.Site.US, fakeApiKey).buildUrl()
+        val expectedUrl = DatadogSite.US1.uploadEndpoint()
         whenever(mockRepositoryDetector.detectRepositories(any(), eq("")))
             .doReturn(listOf(fakeRepoInfo))
 
@@ -260,6 +261,7 @@ internal class DdMappingFileUploadTaskTest {
             expectedUrl,
             fakeMappingFile,
             fakeRepositoryFile,
+            fakeApiKey,
             DdAppIdentifier(
                 serviceName = fakeService,
                 version = fakeVersion,

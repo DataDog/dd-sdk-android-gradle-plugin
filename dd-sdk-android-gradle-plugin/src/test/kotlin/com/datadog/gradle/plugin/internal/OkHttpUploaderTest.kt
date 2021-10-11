@@ -16,6 +16,7 @@ import fr.xgouchet.elmyr.Forge
 import fr.xgouchet.elmyr.annotation.Forgery
 import fr.xgouchet.elmyr.annotation.IntForgery
 import fr.xgouchet.elmyr.annotation.StringForgery
+import fr.xgouchet.elmyr.annotation.StringForgeryType
 import fr.xgouchet.elmyr.junit5.ForgeConfiguration
 import fr.xgouchet.elmyr.junit5.ForgeExtension
 import java.io.File
@@ -56,6 +57,9 @@ internal class OkHttpUploaderTest {
 
     @Forgery
     lateinit var fakeIdentifier: DdAppIdentifier
+
+    @StringForgery(StringForgeryType.HEXADECIMAL)
+    lateinit var fakeApiKey: String
 
     @StringForgery(regex = "[a-z]{8}\\.txt")
     lateinit var fakeMappingFileName: String
@@ -126,6 +130,7 @@ internal class OkHttpUploaderTest {
             mockWebServer.url("/").toString(),
             fakeMappingFile,
             fakeRepositoryFile,
+            fakeApiKey,
             fakeIdentifier,
             fakeRepositoryInfo
         )
@@ -166,6 +171,7 @@ internal class OkHttpUploaderTest {
             mockWebServer.url("/").toString(),
             fakeMappingFile,
             null,
+            fakeApiKey,
             fakeIdentifier,
             null
         )
@@ -202,6 +208,7 @@ internal class OkHttpUploaderTest {
                 mockWebServer.url("/").toString(),
                 fakeMappingFile,
                 fakeRepositoryFile,
+                fakeApiKey,
                 fakeIdentifier,
                 fakeRepositoryInfo
             )
@@ -250,6 +257,7 @@ internal class OkHttpUploaderTest {
                 mockWebServer.url("/").toString(),
                 fakeMappingFile,
                 fakeRepositoryFile,
+                fakeApiKey,
                 fakeIdentifier,
                 fakeRepositoryInfo
             )
@@ -291,17 +299,16 @@ internal class OkHttpUploaderTest {
             .whenever(fakeTooLargeMappingFile).length()
 
         // THEN
-        assertThrows<MaxSizeExceededException>(
-            {
-                testedUploader.upload(
-                    mockWebServer.url("/").toString(),
-                    fakeTooLargeMappingFile,
-                    fakeRepositoryFile,
-                    fakeIdentifier,
-                    fakeRepositoryInfo
-                )
-            }
-        )
+        assertThrows<MaxSizeExceededException> {
+            testedUploader.upload(
+                mockWebServer.url("/").toString(),
+                fakeTooLargeMappingFile,
+                fakeRepositoryFile,
+                fakeApiKey,
+                fakeIdentifier,
+                fakeRepositoryInfo
+            )
+        }
         assertThat(mockWebServer.requestCount).isEqualTo(0)
     }
 
@@ -324,6 +331,7 @@ internal class OkHttpUploaderTest {
             mockWebServer.url("/").toString(),
             fakeMappingFile,
             fakeRepositoryFile,
+            fakeApiKey,
             fakeIdentifier,
             fakeRepositoryInfo
         )
@@ -349,6 +357,7 @@ internal class OkHttpUploaderTest {
             mockWebServer.url("/").toString(),
             fakeMappingFile,
             fakeRepositoryFile,
+            fakeApiKey,
             fakeIdentifier,
             fakeRepositoryInfo
         )
