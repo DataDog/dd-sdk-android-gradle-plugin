@@ -13,12 +13,12 @@ buildscript {
     }
 
     dependencies {
-        classpath(com.datadog.gradle.Dependencies.ClassPaths.AndroidTools)
-        classpath(com.datadog.gradle.Dependencies.ClassPaths.Kotlin)
-        classpath(com.datadog.gradle.Dependencies.ClassPaths.KtLint)
-        classpath(com.datadog.gradle.Dependencies.ClassPaths.Dokka)
+        classpath(libs.androidToolsPluginGradle)
+        classpath(libs.kotlinPluginGradle)
+        classpath(libs.ktLintPluginGradle)
+        classpath(libs.dokkaPluginGradle)
         // Uncomment to use the samples
-        // classpath("com.datadoghq:dd-sdk-android-gradle-plugin:1.0.0-alpha4")
+        // classpath(libs.datadogPluginGradle)
     }
 }
 

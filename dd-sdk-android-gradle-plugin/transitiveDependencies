@@ -1,14 +1,11 @@
 Dependencies List
 
-com.squareup.okhttp3:okhttp:3.12.6                              :  413 Kb
+com.squareup.okhttp3:okhttp:3.12.13                             :  417 Kb
 com.squareup.okio:okio:1.15.0                                   :   86 Kb
-org.jetbrains.kotlin:kotlin-reflect:1.4.20                      :    2 Mb
-org.jetbrains.kotlin:kotlin-stdlib-common:1.4.20                :  186 Kb
-org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.20                  :   21 Kb
-org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.4.20                  :   15 Kb
-org.jetbrains.kotlin:kotlin-stdlib:1.4.20                       : 1453 Kb
+org.jetbrains.kotlin:kotlin-stdlib-common:1.5.21                :  193 Kb
+org.jetbrains.kotlin:kotlin-stdlib:1.5.21                       : 1462 Kb
 org.jetbrains:annotations:13.0                                  :   17 Kb
 org.json:json:20180813                                          :   63 Kb
 
-Total transitive dependencies size                              :    5 Mb
+Total transitive dependencies size                              :    2 Mb
 

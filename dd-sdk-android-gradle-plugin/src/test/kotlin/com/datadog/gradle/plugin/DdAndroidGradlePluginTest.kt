@@ -4,6 +4,7 @@ import com.android.build.gradle.api.ApplicationVariant
 import com.android.builder.model.BuildType
 import com.android.builder.model.ProductFlavor
 import com.datadog.gradle.plugin.internal.GitRepositoryDetector
+import com.datadog.gradle.plugin.utils.capitalizeChar
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.whenever
@@ -76,8 +77,9 @@ internal class DdAndroidGradlePluginTest {
         // Given
         fakeExtension.versionName = null
         fakeExtension.serviceName = null
-        val variantName = "$flavorName${buildTypeName.capitalize()}"
-        whenever(mockVariant.name) doReturn "$flavorName${buildTypeName.capitalize()}"
+        val variantName = "$flavorName${buildTypeName.replaceFirstChar { capitalizeChar(it) }}"
+        whenever(mockVariant.name) doReturn
+            "$flavorName${buildTypeName.replaceFirstChar { capitalizeChar(it) }}"
         whenever(mockVariant.flavorName) doReturn flavorName
         whenever(mockVariant.versionName) doReturn versionName
         whenever(mockVariant.applicationId) doReturn packageName
@@ -96,7 +98,9 @@ internal class DdAndroidGradlePluginTest {
         // Then
         check(task is DdMappingFileUploadTask)
         assertThat(task.repositoryDetector).isInstanceOf(GitRepositoryDetector::class.java)
-        assertThat(task.name).isEqualTo("uploadMapping${variantName.capitalize()}")
+        assertThat(task.name).isEqualTo(
+            "uploadMapping${variantName.replaceFirstChar { capitalizeChar(it) }}"
+        )
         assertThat(task.apiKey).isEqualTo(fakeApiKey)
         assertThat(task.variantName).isEqualTo(flavorName)
         assertThat(task.versionName).isEqualTo(versionName)
@@ -115,7 +119,7 @@ internal class DdAndroidGradlePluginTest {
         @StringForgery packageName: String
     ) {
         // Given
-        val variantName = "$flavorName${buildTypeName.capitalize()}"
+        val variantName = "$flavorName${buildTypeName.replaceFirstChar { capitalizeChar(it) }}"
         whenever(mockVariant.name) doReturn variantName
         whenever(mockVariant.flavorName) doReturn flavorName
         whenever(mockVariant.versionName) doReturn versionName
@@ -135,7 +139,9 @@ internal class DdAndroidGradlePluginTest {
         // Then
         check(task is DdMappingFileUploadTask)
         assertThat(task.repositoryDetector).isInstanceOf(GitRepositoryDetector::class.java)
-        assertThat(task.name).isEqualTo("uploadMapping${variantName.capitalize()}")
+        assertThat(task.name).isEqualTo(
+            "uploadMapping${variantName.replaceFirstChar { capitalizeChar(it) }}"
+        )
         assertThat(task.apiKey).isEqualTo(fakeApiKey)
         assertThat(task.variantName).isEqualTo(flavorName)
         assertThat(task.versionName).isEqualTo(fakeExtension.versionName)
@@ -158,7 +164,7 @@ internal class DdAndroidGradlePluginTest {
         fakeExtension.versionName = null
         fakeExtension.site = null
         fakeExtension.remoteRepositoryUrl = null
-        val variantName = "$flavorName${buildTypeName.capitalize()}"
+        val variantName = "$flavorName${buildTypeName.replaceFirstChar { capitalizeChar(it) }}"
         whenever(mockVariant.name) doReturn variantName
         whenever(mockVariant.flavorName) doReturn flavorName
         whenever(mockVariant.versionName) doReturn versionName
@@ -178,7 +184,9 @@ internal class DdAndroidGradlePluginTest {
         // Then
         check(task is DdMappingFileUploadTask)
         assertThat(task.repositoryDetector).isInstanceOf(GitRepositoryDetector::class.java)
-        assertThat(task.name).isEqualTo("uploadMapping${variantName.capitalize()}")
+        assertThat(task.name).isEqualTo(
+            "uploadMapping${variantName.replaceFirstChar { capitalizeChar(it) }}"
+        )
         assertThat(task.apiKey).isEqualTo(fakeApiKey)
         assertThat(task.variantName).isEqualTo(flavorName)
         assertThat(task.versionName).isEqualTo(versionName)
@@ -197,7 +205,7 @@ internal class DdAndroidGradlePluginTest {
         @StringForgery packageName: String
     ) {
         // Given
-        val variantName = "$flavorName${buildTypeName.capitalize()}"
+        val variantName = "$flavorName${buildTypeName.replaceFirstChar { capitalizeChar(it) }}"
         whenever(mockVariant.name) doReturn variantName
         whenever(mockVariant.flavorName) doReturn flavorName
         whenever(mockVariant.versionName) doReturn versionName
@@ -227,7 +235,7 @@ internal class DdAndroidGradlePluginTest {
     ) {
         // Given
         fakeExtension.enabled = false
-        val variantName = "$flavorName${buildTypeName.capitalize()}"
+        val variantName = "$flavorName${buildTypeName.replaceFirstChar { capitalizeChar(it) }}"
         whenever(mockVariant.name) doReturn variantName
         whenever(mockVariant.flavorName) doReturn flavorName
         whenever(mockVariant.versionName) doReturn versionName
@@ -500,11 +508,23 @@ internal class DdAndroidGradlePluginTest {
         variantConfigBC.apply { checkProjectDependencies = null }
         mockVariant.mockFlavors(flavorNames, fakeBuildTypeName)
         fakeExtension.variants = mock()
-        whenever(fakeExtension.variants.findByName(flavorA + flavorB.capitalize()))
+        whenever(
+            fakeExtension.variants.findByName(
+                flavorA + flavorB.replaceFirstChar { capitalizeChar(it) }
+            )
+        )
             .doReturn(variantConfigAB)
-        whenever(fakeExtension.variants.findByName(flavorA + flavorC.capitalize()))
+        whenever(
+            fakeExtension.variants.findByName(
+                flavorA + flavorC.replaceFirstChar { capitalizeChar(it) }
+            )
+        )
             .doReturn(variantConfigAC)
-        whenever(fakeExtension.variants.findByName(flavorB + flavorC.capitalize()))
+        whenever(
+            fakeExtension.variants.findByName(
+                flavorB + flavorC.replaceFirstChar { capitalizeChar(it) }
+            )
+        )
             .doReturn(variantConfigBC)
 
         // When
@@ -523,7 +543,8 @@ internal class DdAndroidGradlePluginTest {
     fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { variant w build type }`(
         @Forgery configuration: DdExtensionConfiguration
     ) {
-        val variantName = fakeFlavorNames.variantName() + fakeBuildTypeName.capitalize()
+        val variantName = fakeFlavorNames.variantName() +
+            fakeBuildTypeName.replaceFirstChar { capitalizeChar(it) }
         mockVariant.mockFlavors(fakeFlavorNames, fakeBuildTypeName)
         fakeExtension.variants = mock()
         whenever(fakeExtension.variants.findByName(variantName)) doReturn configuration
@@ -553,7 +574,7 @@ internal class DdAndroidGradlePluginTest {
     ) {
         // Given
         fakeExtension.checkProjectDependencies = null
-        val variantName = "$flavorName${buildTypeName.capitalize()}"
+        val variantName = "$flavorName${buildTypeName.replaceFirstChar { capitalizeChar(it) }}"
         whenever(mockVariant.name) doReturn variantName
         whenever(mockVariant.flavorName) doReturn flavorName
         whenever(mockVariant.versionName) doReturn versionName
@@ -561,7 +582,7 @@ internal class DdAndroidGradlePluginTest {
         whenever(mockVariant.buildType) doReturn mockBuildType
         whenever(mockBuildType.name) doReturn fakeBuildTypeName
 
-        fakeProject.task("compile${variantName.capitalize()}Sources")
+        fakeProject.task("compile${variantName.replaceFirstChar { capitalizeChar(it) }}Sources")
 
         val mockConfiguration = mock<Configuration>()
         val mockResolvedConfiguration = mock<ResolvedConfiguration>()
@@ -589,7 +610,7 @@ internal class DdAndroidGradlePluginTest {
     ) {
         // Given
         fakeExtension.checkProjectDependencies = SdkCheckLevel.NONE
-        val variantName = "$flavorName${buildTypeName.capitalize()}"
+        val variantName = "$flavorName${buildTypeName.replaceFirstChar { capitalizeChar(it) }}"
         whenever(mockVariant.name) doReturn variantName
         whenever(mockVariant.flavorName) doReturn flavorName
         whenever(mockVariant.versionName) doReturn versionName
@@ -597,7 +618,7 @@ internal class DdAndroidGradlePluginTest {
         whenever(mockVariant.buildType) doReturn mockBuildType
         whenever(mockBuildType.name) doReturn fakeBuildTypeName
 
-        fakeProject.task("compile${variantName.capitalize()}Sources")
+        fakeProject.task("compile${variantName.replaceFirstChar { capitalizeChar(it) }}Sources")
 
         val mockConfiguration = mock<Configuration>()
         val mockResolvedConfiguration = mock<ResolvedConfiguration>()
@@ -640,7 +661,7 @@ internal class DdAndroidGradlePluginTest {
         // let's check that there are no tasks just in case if setup is modified
         assertThat(fakeProject.tasks.isEmpty()).isTrue()
 
-        val variantName = "$flavorName${buildTypeName.capitalize()}"
+        val variantName = "$flavorName${buildTypeName.replaceFirstChar { capitalizeChar(it) }}"
         whenever(mockVariant.name) doReturn variantName
 
         assertThat(
@@ -657,7 +678,7 @@ internal class DdAndroidGradlePluginTest {
     // region Internal
 
     private fun List<String>.variantName(): String {
-        return first() + drop(1).joinToString("") { it.capitalize() }
+        return first() + drop(1).joinToString("") { it.replaceFirstChar { capitalizeChar(it) } }
     }
 
     private fun ApplicationVariant.mockFlavors(

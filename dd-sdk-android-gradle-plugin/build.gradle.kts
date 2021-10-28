@@ -4,7 +4,6 @@
  * Copyright 2016-2019 Datadog, Inc.
  */
 
-import com.datadog.gradle.Dependencies
 import com.datadog.gradle.config.dependencyUpdateConfig
 import com.datadog.gradle.config.detektConfig
 import com.datadog.gradle.config.jacocoConfig
@@ -13,7 +12,6 @@ import com.datadog.gradle.config.junitConfig
 import com.datadog.gradle.config.kotlinConfig
 import com.datadog.gradle.config.ktLintConfig
 import com.datadog.gradle.config.publishingConfig
-import com.datadog.gradle.testImplementation
 
 plugins {
     // Build
@@ -39,19 +37,18 @@ plugins {
 }
 
 dependencies {
-    implementation(Dependencies.Libraries.Kotlin)
-    implementation(Dependencies.Libraries.KotlinReflect)
-    implementation(Dependencies.Libraries.OkHttp)
-    implementation(Dependencies.Libraries.Json)
+    implementation(libs.kotlin)
+    implementation(libs.okHttp)
+    implementation(libs.json)
     // because auto-wiring into Android projects
-    compileOnly(Dependencies.ClassPaths.AndroidTools)
+    compileOnly(libs.androidToolsPluginGradle)
 
-    testImplementation(Dependencies.Libraries.JUnit5)
-    testImplementation(Dependencies.Libraries.TestTools)
-    testImplementation(Dependencies.Libraries.OkHttpMock)
-    testImplementation(Dependencies.ClassPaths.AndroidTools)
+    testImplementation(libs.bundles.jUnit5)
+    testImplementation(libs.bundles.testTools)
+    testImplementation(libs.okHttpMock)
+    testImplementation(libs.androidToolsPluginGradle)
 
-    detekt(Dependencies.Libraries.DetektCli)
+    detekt(libs.detektCli)
 }
 
 kotlinConfig()

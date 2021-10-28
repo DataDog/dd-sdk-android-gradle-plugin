@@ -1,6 +1,7 @@
 package com.datadog.gradle.plugin.internal
 
 import com.datadog.gradle.plugin.Configurator
+import com.datadog.gradle.plugin.utils.capitalizeChar
 import fr.xgouchet.elmyr.Case
 import fr.xgouchet.elmyr.annotation.StringForgery
 import fr.xgouchet.elmyr.junit5.ForgeConfiguration
@@ -43,7 +44,7 @@ internal class VariantIteratorTest {
         @StringForgery(case = Case.LOWER) b: String
     ) {
         // Given
-        val B = b.capitalize()
+        val B = b.replaceFirstChar { capitalizeChar(it) }
         val iterator = VariantIterator(listOf(a, b))
 
         // When
@@ -62,8 +63,8 @@ internal class VariantIteratorTest {
         @StringForgery(case = Case.LOWER) c: String
     ) {
         // Given
-        val B = b.capitalize()
-        val C = c.capitalize()
+        val B = b.replaceFirstChar { capitalizeChar(it) }
+        val C = c.replaceFirstChar { capitalizeChar(it) }
         val iterator = VariantIterator(listOf(a, b, c))
 
         // When
@@ -83,9 +84,9 @@ internal class VariantIteratorTest {
         @StringForgery(case = Case.LOWER) d: String
     ) {
         // Given
-        val B = b.capitalize()
-        val C = c.capitalize()
-        val D = d.capitalize()
+        val B = b.replaceFirstChar { capitalizeChar(it) }
+        val C = c.replaceFirstChar { capitalizeChar(it) }
+        val D = d.replaceFirstChar { capitalizeChar(it) }
         val iterator = VariantIterator(listOf(a, b, c, d))
 
         // When
@@ -122,10 +123,12 @@ internal class VariantIteratorTest {
         // Then
         val firstFlavor = limitedNames.first()
         val lastFlavor = limitedNames.last()
-        val lastFlavorCapitalized = lastFlavor.capitalize()
+        val lastFlavorCapitalized = lastFlavor.replaceFirstChar { capitalizeChar(it) }
         assertThat(output.first()).isEqualTo(lastFlavor)
         assertThat(output.last()).isEqualTo(
-            firstFlavor + limitedNames.drop(1).joinToString("") { it.capitalize() }
+            firstFlavor + limitedNames.drop(1).joinToString("") {
+                it.replaceFirstChar { capitalizeChar(it) }
+            }
         )
         assertThat(output).allMatch {
             // first flavor always appear first

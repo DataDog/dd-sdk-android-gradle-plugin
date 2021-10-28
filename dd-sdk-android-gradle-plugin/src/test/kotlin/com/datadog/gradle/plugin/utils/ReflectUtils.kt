@@ -4,7 +4,7 @@
  * Copyright 2016-Present Datadog, Inc.
  */
 
-package com.datadog.tools.unit
+package com.datadog.gradle.plugin.utils
 
 import java.lang.reflect.Field
 import java.lang.reflect.InvocationTargetException

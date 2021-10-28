@@ -2,16 +2,16 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 //apply plugin: 'dd-sdk-android-gradle-plugin'
 
-import com.datadog.gradle.Dependencies
+import com.datadog.gradle.config.AndroidConfig
 
 android {
-    compileSdkVersion 30
-    buildToolsVersion "30.0.2"
+    compileSdkVersion = AndroidConfig.TARGET_SDK
+    buildToolsVersion = AndroidConfig.BUILD_TOOLS_VERSION
 
     defaultConfig {
         applicationId "com.example.variants"
-        minSdkVersion 19
-        targetSdkVersion 30
+        minSdkVersion AndroidConfig.MIN_SDK
+        targetSdkVersion AndroidConfig.TARGET_SDK
         versionCode 1
         versionName "1.0"
 
@@ -59,13 +59,13 @@ android {
 }
 
 dependencies {
-    implementation(Dependencies.Libraries.Kotlin)
+    implementation(libs.kotlin)
 
-    implementation 'androidx.core:core-ktx:1.3.2'
-    implementation 'androidx.appcompat:appcompat:1.2.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
+    implementation(libs.androidx.core)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.constraintlayout)
 
-    // implementation 'com.datadoghq:dd-sdk-android:1.8.0'
+    // implementation(libs.datadogSdk)
 }
 
 //datadog {

@@ -1,7 +1,7 @@
 package com.datadog.gradle.plugin
 
 import com.datadog.gradle.plugin.internal.MissingSdkException
-import com.datadog.tools.unit.setStaticValue
+import com.datadog.gradle.plugin.utils.setStaticValue
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify

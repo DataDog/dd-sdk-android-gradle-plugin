@@ -4,9 +4,11 @@
  * Copyright 2016-Present Datadog, Inc.
  */
 
-enableFeaturePreview("VERSION_CATALOGS")
+package com.datadog.gradle.config
 
-include(":dd-sdk-android-gradle-plugin")
+object AndroidConfig {
 
-include(":samples:basic")
-include(":samples:variants")
+    const val TARGET_SDK = 30
+    const val MIN_SDK = 19
+    const val BUILD_TOOLS_VERSION = "30.0.3"
+}
