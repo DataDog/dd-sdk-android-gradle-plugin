@@ -43,7 +43,7 @@ class DdAndroidGradlePlugin @Inject constructor(
         val apiKey = resolveApiKey(target)
 
         target.afterEvaluate {
-            androidExtension.applicationVariants.forEach { variant ->
+            androidExtension.applicationVariants.all { variant ->
                 configureVariantForUploadTask(target, variant, apiKey, extension)
                 configureVariantForSdkCheck(target, variant, extension)
             }

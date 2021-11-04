@@ -18,10 +18,10 @@ fun Project.jacocoConfig() {
 
     val jacocoTestReport = tasks.getByName("jacocoTestReport", JacocoReport::class)
     jacocoTestReport.reports {
-        csv.isEnabled = false
-        xml.isEnabled = true
-        html.isEnabled = true
-        html.destination = file("${buildDir.path}/reports/jacoco/jacocoTestReport/html")
+        csv.required.set(false)
+        xml.required.set(true)
+        html.required.set(true)
+        html.outputLocation.set(layout.buildDirectory.dir("reports/jacoco/jacocoTestReport/html"))
     }
 
     val jacocoTestCoverageVerification = tasks.getByName("jacocoTestCoverageVerification", JacocoCoverageVerification::class)
@@ -49,7 +49,7 @@ fun Project.jacocoConfig() {
 
     extensionConfig<JacocoPluginExtension> {
         toolVersion = Dependencies.Versions.Jacoco
-        reportsDir = file("$buildDir/jacoco") // Jacoco's output root.
+        reportsDirectory.set(layout.buildDirectory.dir("jacoco")) // Jacoco's output root.
     }
 
     tasks.named("check") {
