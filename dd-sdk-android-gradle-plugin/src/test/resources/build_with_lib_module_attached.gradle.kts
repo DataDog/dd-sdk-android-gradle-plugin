@@ -10,14 +10,14 @@ repositories {
 }
 
 android {
-    compileSdkVersion = 30
+    compileSdkVersion = 31
     buildToolsVersion = "31.0.0"
 
     defaultConfig {
         applicationId "com.example.variants"
         minSdkVersion 21
-        targetSdkVersion 30
-        compileSdkVersion 30
+        targetSdkVersion = 31
+        compileSdkVersion = 31
         versionCode 1
         versionName "1.0"
         multiDexEnabled = true
@@ -37,7 +37,7 @@ android {
 
     dependencies {
         implementation(project(':samples:lib-module'))
-        implementation("com.datadoghq:dd-sdk-android:1.11.0")
+        implementation("com.datadoghq:dd-sdk-android:1.11.1")
     }
 
     flavorDimensions("version", "colour")
