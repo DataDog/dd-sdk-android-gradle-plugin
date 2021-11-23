@@ -76,6 +76,7 @@ internal class GitRepositoryDetector(
         val sourceSetFiles = execOperations.execShell(
             "git",
             "ls-files",
+            "--full-name", // RUMM-1795 ensures path are reported from the repo root
             sourceSetRoot.absolutePath
         )
             .trim()
