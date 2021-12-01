@@ -105,9 +105,9 @@ test:plugin:
     reports:
       junit: dd-sdk-android-gradle-plugin/build/test-results/test/TEST-*.xml
 
-# PUBLISH ARTIFACTS ON MAVEN
+# PUBLISH ARTIFACTS
 
-publish:release-plugin:
+publish:publish-sonatype:
   tags: [ "runner:main" ]
   only:
     - tags
@@ -122,6 +122,18 @@ publish:release-plugin:
     - export OSSRH_PASSWORD=$(aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android-gradle-plugin.signing.ossrh_password --with-decryption --query "Parameter.Value" --out text)
     - git fetch --depth=1 origin main
     - ./gradlew :dd-sdk-android-gradle-plugin:publishPluginMavenPublicationToMavenRepository --stacktrace --no-daemon
+
+publish:publish-gradle-portal:
+  tags: [ "runner:main" ]
+  only:
+    - tags
+  image: $CI_IMAGE_DOCKER
+  stage: publish
+  timeout: 30m
+  script:
+    - aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android-gradle-plugin.gradle-properties --with-decryption --query "Parameter.Value" --out text >> ./gradle.properties
+    - git fetch --depth=1 origin main
+    - ./gradlew :dd-sdk-android-gradle-plugin:publishPlugins --stacktrace --no-daemon
 
 # SLACK NOTIFICATIONS
 
