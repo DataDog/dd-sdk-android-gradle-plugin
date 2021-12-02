@@ -9,14 +9,8 @@
 Add the following line to your `build.gradle` file.
 
 ```groovy
-buildscript {
-    dependencies {
-        classpath("com.datadoghq:dd-sdk-android-gradle-plugin:x.x.x")
-    }
-}
-
 plugins {
-    id("com.datadoghq.dd-sdk-android-gradle-plugin")
+    id("com.datadoghq.dd-sdk-android-gradle-plugin") version "x.y.z"
 }
 ```
 

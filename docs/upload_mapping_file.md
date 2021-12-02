@@ -12,16 +12,9 @@ If your mobile Android source code is obfuscated, upload your Proguard/R8 mappin
 1. Add the [Gradle Plugin][1] to your Gradle project, using the following snippet.
 
 ```groovy
-// In your project's build.gradle script
-buildscript {
-    dependencies {
-        classpath("com.datadoghq:dd-sdk-android-gradle-plugin:x.x.x")
-    }
-}
-
 // In your app's build.gradle script
 plugins {
-    id("dd-sdk-android-gradle-plugin")
+    id("com.datadoghq.dd-sdk-android-gradle-plugin") version "x.y.z"
 }
 ```
 
@@ -41,16 +34,9 @@ plugins {
 1. Add the [Gradle Plugin][1] to your Gradle project, using the following snippet.
 
 ```groovy
-// In your project's build.gradle script
-buildscript {
-    dependencies {
-        classpath("com.datadoghq:dd-sdk-android-gradle-plugin:x.x.x")
-    }
-}
-
 // In your app's build.gradle script
 plugins {
-    id("dd-sdk-android-gradle-plugin")
+    id("com.datadoghq.dd-sdk-android-gradle-plugin") version "x.y.z"
 }
 ```
 
