@@ -32,20 +32,19 @@ class DdAndroidGradlePlugin @Inject constructor(
     /** @inheritdoc */
     override fun apply(target: Project) {
 
-        val androidExtension = target.extensions.findByType(AppExtension::class.java)
-        if (androidExtension == null) {
-            LOGGER.error(ERROR_NOT_ANDROID)
-            return
-        }
-
         val extension = target.extensions.create(EXT_NAME, DdExtension::class.java)
         extension.variants = target.container(DdExtensionConfiguration::class.java)
         val apiKey = resolveApiKey(target)
 
         target.afterEvaluate {
-            androidExtension.applicationVariants.all { variant ->
-                configureVariantForUploadTask(target, variant, apiKey, extension)
-                configureVariantForSdkCheck(target, variant, extension)
+            val androidExtension = target.extensions.findByType(AppExtension::class.java)
+            if (androidExtension == null) {
+                LOGGER.error(ERROR_NOT_ANDROID)
+            } else {
+                androidExtension.applicationVariants.all { variant ->
+                    configureVariantForUploadTask(target, variant, apiKey, extension)
+                    configureVariantForSdkCheck(target, variant, extension)
+                }
             }
         }
     }
