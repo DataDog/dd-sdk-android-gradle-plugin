@@ -1,6 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-//apply plugin: 'dd-sdk-android-gradle-plugin'
+//apply plugin: 'com.datadoghq.dd-sdk-android-gradle-plugin'
 
 import com.datadog.gradle.config.AndroidConfig
 
