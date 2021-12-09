@@ -17,7 +17,6 @@ import fr.xgouchet.elmyr.junit5.ForgeExtension
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -570,7 +569,8 @@ internal class DdAndroidGradlePluginTest {
         @StringForgery(case = Case.LOWER) flavorName: String,
         @StringForgery(case = Case.LOWER) buildTypeName: String,
         @StringForgery versionName: String,
-        @StringForgery packageName: String
+        @StringForgery packageName: String,
+        @StringForgery configurationName: String
     ) {
         // Given
         fakeExtension.checkProjectDependencies = null
@@ -585,11 +585,9 @@ internal class DdAndroidGradlePluginTest {
         fakeProject.task("compile${variantName.replaceFirstChar { capitalizeChar(it) }}Sources")
 
         val mockConfiguration = mock<Configuration>()
-        val mockResolvedConfiguration = mock<ResolvedConfiguration>()
+        whenever(mockConfiguration.name) doReturn configurationName
 
-        whenever(mockResolvedConfiguration.firstLevelModuleDependencies) doReturn emptySet()
-        whenever(mockConfiguration.resolvedConfiguration) doReturn mockResolvedConfiguration
-        whenever(mockVariant.runtimeConfiguration) doReturn mockConfiguration
+        whenever(mockVariant.compileConfiguration) doReturn mockConfiguration
 
         // When + Then
         val checkSdkDepsTaskProvider = testedPlugin.configureVariantForSdkCheck(
@@ -597,8 +595,16 @@ internal class DdAndroidGradlePluginTest {
             mockVariant,
             fakeExtension
         )
-        assertThat(checkSdkDepsTaskProvider?.get()?.sdkCheckLevel?.get())
+
+        val task = checkSdkDepsTaskProvider?.get()
+
+        assertThat(task).isNotNull()
+        assertThat(task?.sdkCheckLevel?.get())
             .isEqualTo(SdkCheckLevel.FAIL)
+        assertThat(task?.configurationName?.get())
+            .isEqualTo(configurationName)
+        assertThat(task?.variantName?.get())
+            .isEqualTo(variantName)
     }
 
     @Test
@@ -619,13 +625,6 @@ internal class DdAndroidGradlePluginTest {
         whenever(mockBuildType.name) doReturn fakeBuildTypeName
 
         fakeProject.task("compile${variantName.replaceFirstChar { capitalizeChar(it) }}Sources")
-
-        val mockConfiguration = mock<Configuration>()
-        val mockResolvedConfiguration = mock<ResolvedConfiguration>()
-
-        whenever(mockResolvedConfiguration.firstLevelModuleDependencies) doReturn emptySet()
-        whenever(mockConfiguration.resolvedConfiguration) doReturn mockResolvedConfiguration
-        whenever(mockVariant.runtimeConfiguration) doReturn mockConfiguration
 
         // When + Then
         assertThat(
