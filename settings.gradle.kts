@@ -10,3 +10,4 @@ include(":dd-sdk-android-gradle-plugin")
 
 include(":samples:basic")
 include(":samples:variants")
+include(":samples:lib-module")
