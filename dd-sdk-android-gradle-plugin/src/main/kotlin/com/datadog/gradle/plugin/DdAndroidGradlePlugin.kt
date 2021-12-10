@@ -24,8 +24,7 @@ import org.slf4j.LoggerFactory
  */
 class DdAndroidGradlePlugin @Inject constructor(
     @Suppress("UnstableApiUsage") private val execOps: ExecOperations
-) :
-    Plugin<Project> {
+) : Plugin<Project> {
 
     // region Plugin
 
@@ -150,7 +149,7 @@ class DdAndroidGradlePlugin @Inject constructor(
                 checkDepsTaskName,
                 DdCheckSdkDepsTask::class.java
             ) {
-                it.configuration.set(variant.compileConfiguration)
+                it.configurationName.set(variant.compileConfiguration.name)
                 it.sdkCheckLevel.set(resolvedCheckDependencyFlag)
                 it.variantName.set(variant.name)
             }

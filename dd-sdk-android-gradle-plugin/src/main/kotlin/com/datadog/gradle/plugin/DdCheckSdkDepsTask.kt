@@ -4,17 +4,18 @@ import com.datadog.gradle.plugin.internal.MissingSdkException
 import java.util.LinkedList
 import java.util.Queue
 import org.gradle.api.DefaultTask
-import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
+import org.slf4j.LoggerFactory
 
 /**
  * A Gradle task to check the Datadog SDK throughout the variant dependencies.
  */
-abstract class DdCheckSdkDepsTask :
-    DefaultTask() {
+abstract class DdCheckSdkDepsTask : DefaultTask() {
 
     /**
      * The sdkCheckLevel: NONE, WARN, FAIL.
@@ -23,10 +24,10 @@ abstract class DdCheckSdkDepsTask :
     abstract val sdkCheckLevel: Property<SdkCheckLevel>
 
     /**
-     * The current variant configuration.
+     * The current variant configuration name.
      */
     @get:Input
-    abstract val configuration: Property<Configuration>
+    abstract val configurationName: Property<String>
 
     /**
      * The variant name.
@@ -34,11 +35,13 @@ abstract class DdCheckSdkDepsTask :
     @get:Input
     abstract val variantName: Property<String>
 
+    @get:Internal
+    internal var isLastRunSuccessful: Boolean = true
+
     init {
         group = "datadog"
         description = "Checks for the Datadog SDK into your variant dependencies."
-        // ignore the outputs when evaluating if this task is up-to-date
-        outputs.upToDateWhen { true }
+        outputs.upToDateWhen { it is DdCheckSdkDepsTask && it.isLastRunSuccessful }
     }
 
     /**
@@ -46,8 +49,38 @@ abstract class DdCheckSdkDepsTask :
      */
     @TaskAction
     fun applyTask() {
-        val topDependencies = configuration.get().resolvedConfiguration.firstLevelModuleDependencies
+        val configuration =
+            project.configurations.firstOrNull { it.name == configurationName.get() }
+
+        if (configuration == null) {
+            LOGGER.info(
+                CANNOT_FIND_CONFIGURATION_MESSAGE.format(
+                    configurationName.get(),
+                    variantName.get()
+                )
+            )
+            return
+        }
+
+        val resolvedConfiguration = configuration.resolvedConfiguration
+
+        if (resolvedConfiguration.hasError()) {
+            val error = try {
+                resolvedConfiguration.rethrowFailure()
+                throw IllegalStateException(
+                    "Expected to throw" +
+                        " ${ResolveException::class.qualifiedName}, but this didn't happen"
+                )
+            } catch (re: ResolveException) {
+                re
+            }
+            LOGGER.info("Couldn't resolve configuration ${configurationName.get()}", error)
+            return
+        }
+
+        val topDependencies = resolvedConfiguration.firstLevelModuleDependencies
         if (!isDatadogDependencyPresent(topDependencies)) {
+            isLastRunSuccessful = false
             when (sdkCheckLevel.get()) {
                 SdkCheckLevel.FAIL -> {
                     throw MissingSdkException(
@@ -55,7 +88,7 @@ abstract class DdCheckSdkDepsTask :
                     )
                 }
                 SdkCheckLevel.WARN -> {
-                    DdAndroidGradlePlugin.LOGGER.warn(
+                    LOGGER.warn(
                         MISSING_DD_SDK_MESSAGE.format(
                             variantName.get()
                         )
@@ -68,6 +101,8 @@ abstract class DdCheckSdkDepsTask :
                     )
                 }
             }
+        } else {
+            isLastRunSuccessful = true
         }
     }
 
@@ -88,7 +123,13 @@ abstract class DdCheckSdkDepsTask :
     companion object {
         internal const val MISSING_DD_SDK_MESSAGE = "Following application variant doesn't" +
             " have Datadog SDK included: %s"
+        internal const val CANNOT_FIND_CONFIGURATION_MESSAGE = "Cannot find configuration %s for" +
+            " the variant %s in the configurations list, please" +
+            " report the issue at" +
+            " https://github.com/DataDog/dd-sdk-android-gradle-plugin/issues"
         internal const val DD_SDK_NAME = "dd-sdk-android"
         internal const val DD_SDK_GROUP = "com.datadoghq"
+
+        internal val LOGGER = LoggerFactory.getLogger("DdCheckSdkDepsTask")
     }
 }
