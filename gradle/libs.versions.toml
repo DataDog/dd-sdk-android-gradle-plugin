@@ -76,6 +76,7 @@ jUnit4 = { module = "junit:junit", version.ref = "jUnit4" }
 # JUnit 5
 jUnit-platform = { module = "org.junit.platform:junit-platform-launcher", version.ref = "jUnit-platform" }
 jUnit-jupiterApi = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "jUnit-jupiter" }
+jUnit-parameters = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "jUnit-jupiter" }
 jUnit-jupiterEngine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "jUnit-jupiter" }
 jUnit-vintage = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "jUnit-vintage" }
 jUnit-mockitoExt = { module = "org.mockito:mockito-junit-jupiter", version.ref = "jUnit-mockitoExt" }
@@ -108,7 +109,8 @@ jUnit5 = [
     "jUnit-jupiterApi",
     "jUnit-jupiterEngine",
     "jUnit-vintage",
-    "jUnit-mockitoExt"
+    "jUnit-mockitoExt",
+    "jUnit-parameters"
 ]
 
 testTools = [
