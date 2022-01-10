@@ -3,13 +3,13 @@ package com.datadog.gradle.plugin.internal
 import com.datadog.gradle.plugin.Configurator
 import com.datadog.gradle.plugin.RepositoryDetector
 import com.datadog.gradle.plugin.internal.sanitizer.UrlSanitizer
+import com.datadog.gradle.plugin.utils.initializeGit
 import com.nhaarman.mockitokotlin2.whenever
 import fr.xgouchet.elmyr.Forge
 import fr.xgouchet.elmyr.annotation.StringForgery
 import fr.xgouchet.elmyr.junit5.ForgeConfiguration
 import fr.xgouchet.elmyr.junit5.ForgeExtension
 import java.io.File
-import java.util.concurrent.TimeUnit
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.Project
 import org.gradle.api.internal.project.DefaultProject
@@ -71,7 +71,7 @@ internal class GitRepositoryDetectorTest {
     @Test
     fun `𝕄 return repository info 𝕎 detectRepository()`() {
         // Given
-        initializeGit()
+        initializeGit(fakeRemoteUrl, tempDir)
 
         // When
         val result = testedDetector.detectRepositories(fakeSourceSetFolders)
@@ -93,7 +93,7 @@ internal class GitRepositoryDetectorTest {
         fakeSanitizedConfigRemoteUrl: String
     ) {
         // Given
-        initializeGit()
+        initializeGit(fakeRemoteUrl, tempDir)
         whenever(mockedUrlSanitizer.sanitize(fakeConfigRemoteUrl)).thenReturn(
             fakeSanitizedConfigRemoteUrl
         )
@@ -140,52 +140,5 @@ internal class GitRepositoryDetectorTest {
 
         fakeSourceSetFolders = sourceSetFolders
         fakeTrackedFiles = trackedFiles
-    }
-
-    private fun initializeGit(remoteUrl: String = fakeRemoteUrl) {
-        val readme = File(tempDir, "README.md")
-        readme.writeText("# Fake project")
-
-        check(
-            ProcessBuilder("git", "init")
-                .directory(tempDir)
-                .start()
-                .waitForSuccess(5, TimeUnit.SECONDS)
-        )
-        check(
-            ProcessBuilder("git", "add", ".")
-                .directory(tempDir)
-                .start()
-                .waitForSuccess(5, TimeUnit.SECONDS)
-        )
-        check(
-            ProcessBuilder("git", "config", "user.name", "\"Some User\"")
-                .directory(tempDir)
-                .start()
-                .waitForSuccess(5, TimeUnit.SECONDS)
-        )
-        check(
-            ProcessBuilder("git", "config", "user.email", "\"user@example.com\"")
-                .directory(tempDir)
-                .start()
-                .waitForSuccess(5, TimeUnit.SECONDS)
-        )
-        check(
-            ProcessBuilder("git", "commit", "-m", "Init")
-                .directory(tempDir)
-                .start()
-                .waitForSuccess(5, TimeUnit.SECONDS)
-        )
-        check(
-            ProcessBuilder("git", "remote", "add", "origin", remoteUrl)
-                .directory(tempDir)
-                .start()
-                .waitForSuccess(5, TimeUnit.SECONDS)
-        )
-    }
-
-    private fun Process.waitForSuccess(timeout: Long, unit: TimeUnit): Boolean {
-        val haveNoTimeout = waitFor(timeout, unit)
-        return haveNoTimeout && exitValue() == 0
     }
 }

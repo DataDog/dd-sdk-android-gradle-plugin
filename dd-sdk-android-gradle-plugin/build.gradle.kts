@@ -49,7 +49,7 @@ dependencies {
     testImplementation(libs.bundles.testTools)
     testImplementation(libs.okHttpMock)
     testImplementation(libs.androidToolsPluginGradle)
-
+    testImplementation(libs.kotlinPluginGradle)
     detekt(libs.detektCli)
 }
 
