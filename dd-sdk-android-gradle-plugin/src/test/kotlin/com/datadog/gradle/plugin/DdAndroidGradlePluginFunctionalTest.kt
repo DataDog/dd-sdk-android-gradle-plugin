@@ -533,9 +533,8 @@ internal class DdAndroidGradlePluginFunctionalTest {
 
                 <application
                     android:allowBackup="true"
-                    android:exported="true"
                     android:supportsRtl="true">
-                    <activity android:name=".MainActivity">
+                    <activity android:name=".MainActivity" android:exported="true">
                         <intent-filter>
                             <action android:name="android.intent.action.MAIN"/>
 

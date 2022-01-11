@@ -9,12 +9,12 @@ repositories {
 }
 
 android {
-    compileSdkVersion = 30
+    compileSdkVersion = 31
     buildToolsVersion = "31.0.0"
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 30
+        targetSdkVersion = 31
         versionName "1.0"
         versionCode 1
         multiDexEnabled = true
