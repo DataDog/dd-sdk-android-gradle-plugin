@@ -41,7 +41,7 @@ nexusPublishPluginGradle = "1.1.0"
 kotlinGrammarParser = "c35b50fa44"
 
 # Datadog
-datadogSdk = "1.11.1"
+datadogSdk = "1.12.0-alpha1"
 datadogPluginGradle = "1.2.1"
 
 [libraries]
