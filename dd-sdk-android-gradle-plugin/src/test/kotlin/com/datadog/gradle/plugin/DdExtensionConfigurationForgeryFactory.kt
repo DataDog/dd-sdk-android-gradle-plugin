@@ -19,6 +19,9 @@ internal class DdExtensionConfigurationForgeryFactory : ForgeryFactory<DdExtensi
                 "https://[a-z]{4,10}\\.[com|org]/[a-z]{4,10}/[a-z]{4,10}\\.git"
             )
             checkProjectDependencies = forge.aValueFrom(SdkCheckLevel::class.java)
+            mappingFilePath = forge.aStringMatching(
+                "([a-z]+)/([a-z]+)/([a-z]+)/mapping.txt"
+            )
         }
     }
 }

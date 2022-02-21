@@ -18,6 +18,12 @@ internal class DdExtensionForgeryFactory : ForgeryFactory<DdExtension> {
             site = forge.aValueFrom(DatadogSite::class.java).name
             variants = mock()
             checkProjectDependencies = forge.aValueFrom(SdkCheckLevel::class.java)
+            remoteRepositoryUrl = forge.aStringMatching(
+                "https://[a-z]{4,10}\\.[com|org]/[a-z]{4,10}/[a-z]{4,10}\\.git"
+            )
+            mappingFilePath = forge.aStringMatching(
+                "([a-z]+)/([a-z]+)/([a-z]+)/mapping.txt"
+            )
         }
     }
 }

@@ -91,10 +91,8 @@ class DdAndroidGradlePlugin @Inject constructor(
         configureVariantTask(uploadTask, apiKey, flavorName, extensionConfiguration, variant)
 
         val outputsDir = File(target.buildDir, "outputs")
-        val mappingDir = File(outputsDir, "mapping")
-        val flavorDir = File(mappingDir, variant.name)
-        uploadTask.mappingFilePath = File(flavorDir, "mapping.txt").path
-
+        uploadTask.mappingFilePath =
+            resolveMappingFilePath(extensionConfiguration, outputsDir, variant)
         val reportsDir = File(outputsDir, "reports")
         val datadogDir = File(reportsDir, "datadog")
         uploadTask.repositoryFile = File(datadogDir, "repository.json")
@@ -155,6 +153,21 @@ class DdAndroidGradlePlugin @Inject constructor(
             }
             compileTask.finalizedBy(checkDepsTaskProvider)
             return checkDepsTaskProvider
+        }
+    }
+
+    private fun resolveMappingFilePath(
+        extensionConfiguration: DdExtensionConfiguration,
+        outputsDir: File,
+        variant: ApplicationVariant
+    ): String {
+        val customPath = extensionConfiguration.mappingFilePath
+        return if (customPath != null) {
+            customPath
+        } else {
+            val mappingDir = File(outputsDir, "mapping")
+            val flavorDir = File(mappingDir, variant.name)
+            File(flavorDir, "mapping.txt").path
         }
     }
 

@@ -40,11 +40,18 @@ open class DdExtensionConfiguration(
      */
     var checkProjectDependencies: SdkCheckLevel? = null
 
+    /**
+     * The absolute path to the mapping file to be used for deobfuscation. If not provided the
+     * default one will be used: [buildDir]/output/mapping/[variant]/mapping.txt
+     */
+    var mappingFilePath: String? = null
+
     internal fun updateWith(config: DdExtensionConfiguration) {
         config.versionName?.let { versionName = it }
         config.serviceName?.let { serviceName = it }
         config.site?.let { site = it }
         config.remoteRepositoryUrl?.let { remoteRepositoryUrl = it }
         config.checkProjectDependencies?.let { checkProjectDependencies = it }
+        config.mappingFilePath?.let { mappingFilePath = it }
     }
 }
