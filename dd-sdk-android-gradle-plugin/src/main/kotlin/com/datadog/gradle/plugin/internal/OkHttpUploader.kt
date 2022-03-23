@@ -12,10 +12,11 @@ import java.io.File
 import java.lang.IllegalStateException
 import java.net.HttpURLConnection
 import java.util.concurrent.TimeUnit
-import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.Response
 
 internal class OkHttpUploader : Uploader {
@@ -72,7 +73,8 @@ internal class OkHttpUploader : Uploader {
         repositoryFile: File?,
         repositoryInfo: RepositoryInfo?
     ): MultipartBody {
-        val mappingFileBody = MultipartBody.create(MEDIA_TYPE_TXT, mappingFile)
+
+        val mappingFileBody = mappingFile.asRequestBody(MEDIA_TYPE_TXT)
         if (mappingFileBody.contentLength() > MAX_MAP_FILE_SIZE_IN_BYTES) {
             throw MaxSizeExceededException(
                 MAX_MAP_SIZE_EXCEEDED_ERROR_FORMAT
@@ -88,7 +90,7 @@ internal class OkHttpUploader : Uploader {
             .addFormDataPart("jvm_mapping_file", mappingFile.name, mappingFileBody)
 
         if (repositoryFile != null) {
-            val repositoryFileBody = MultipartBody.create(MEDIA_TYPE_JSON, repositoryFile)
+            val repositoryFileBody = repositoryFile.asRequestBody(MEDIA_TYPE_JSON)
             builder.addFormDataPart("repository", repositoryFile.name, repositoryFileBody)
         }
         if (repositoryInfo != null) {
@@ -104,7 +106,7 @@ internal class OkHttpUploader : Uploader {
         response: Response?,
         identifier: DdAppIdentifier
     ) {
-        val statusCode = response?.code()
+        val statusCode = response?.code
         when {
             statusCode == null -> throw RuntimeException(
                 "Unable to upload mapping file for $identifier; check your network connection"
@@ -136,8 +138,8 @@ internal class OkHttpUploader : Uploader {
         internal const val HEADER_REQUEST_ID = "DD-REQUEST-ID"
 
         internal val NETWORK_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(45)
-        internal val MEDIA_TYPE_TXT = MediaType.parse("text/plain")
-        internal val MEDIA_TYPE_JSON = MediaType.parse("application/json")
+        internal val MEDIA_TYPE_TXT = "text/plain".toMediaTypeOrNull()
+        internal val MEDIA_TYPE_JSON = "application/json".toMediaTypeOrNull()
         internal const val MAX_MAP_FILE_SIZE_IN_BYTES = 50L * 1024L * 1024L // 50 MB
         internal const val MAX_MAP_SIZE_EXCEEDED_ERROR_FORMAT =
             "The proguard mapping file at: [%s] size exceeded the maximum 50 MB size. " +

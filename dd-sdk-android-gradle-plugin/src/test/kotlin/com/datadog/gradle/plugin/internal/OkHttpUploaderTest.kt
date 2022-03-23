@@ -94,7 +94,7 @@ internal class OkHttpUploaderTest {
 
         mockWebServer = MockWebServer()
         mockDispatcher = MockDispatcher()
-        mockWebServer.setDispatcher(mockDispatcher)
+        mockWebServer.dispatcher = mockDispatcher
         testedUploader = OkHttpUploader()
     }
 
@@ -106,14 +106,14 @@ internal class OkHttpUploaderTest {
 
     @Test
     fun `M use an OkHttpClient W callTimeout { 45 seconds }`() {
-        assertThat(testedUploader.client.callTimeoutMillis()).isEqualTo(
+        assertThat(testedUploader.client.callTimeoutMillis).isEqualTo(
             OkHttpUploader.NETWORK_TIMEOUT_MS.toInt()
         )
     }
 
     @Test
     fun `M use an OkHttpClient W writeTimeout { 45 seconds }`() {
-        assertThat(testedUploader.client.writeTimeoutMillis()).isEqualTo(
+        assertThat(testedUploader.client.writeTimeoutMillis).isEqualTo(
             OkHttpUploader.NETWORK_TIMEOUT_MS.toInt()
         )
     }
@@ -367,7 +367,7 @@ internal class OkHttpUploaderTest {
     }
 
     inner class MockDispatcher : Dispatcher() {
-        override fun dispatch(request: RecordedRequest?): MockResponse {
+        override fun dispatch(request: RecordedRequest): MockResponse {
             dispatchedRequest = request
             return mockResponse
         }
