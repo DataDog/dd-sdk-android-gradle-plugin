@@ -72,6 +72,7 @@ dependencies {
 //datadog {
 //    site = "US"
 //    checkProjectDependencies = "fail"
+//    mappingFilePath = "path/to/mapping.txt"
 //    variants {
 //        demo {
 //            versionName = "demo"
