@@ -16,6 +16,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.TaskContainer
 import org.gradle.process.ExecOperations
 import org.slf4j.LoggerFactory
 
@@ -118,12 +119,7 @@ class DdAndroidGradlePlugin @Inject constructor(
             return null
         }
 
-        // variants will have name like proDebug, but compile task will have a name like
-        // compileProDebugSources. It can be other tasks like compileProDebugAndroidTestSources
-        // or compileProDebugUnitTestSources, but we are not interested in these. This is fragile
-        // and depends on the AGP naming convention
-        val compileTask = target.tasks
-            .findByName("compile${variant.name.capitalize()}Sources")
+        val compileTask = findCompilationTask(target.tasks, variant)
 
         if (compileTask == null) {
             LOGGER.warn(
@@ -154,6 +150,24 @@ class DdAndroidGradlePlugin @Inject constructor(
             compileTask.finalizedBy(checkDepsTaskProvider)
             return checkDepsTaskProvider
         }
+    }
+
+    @Suppress("DefaultLocale")
+    private fun findCompilationTask(
+        taskContainer: TaskContainer,
+        appVariant: ApplicationVariant
+    ): Task? {
+        // variants will have name like proDebug, but compile task will have a name like
+        // compileProDebugSources. It can be other tasks like compileProDebugAndroidTestSources
+        // or compileProDebugUnitTestSources, but we are not interested in these. This is fragile
+        // and depends on the AGP naming convention
+
+        // tricky moment: compileXXXSources exists before AGP 7.1.0, but in AGP 7.1 it is in the
+        // container, but doesn't participate in the build process (=> not called). On the other
+        // hand compileXXXJavaWithJavac exists on AGP 7.1 and is part of the build process. So we
+        // will try first to get newer task and if it is not there, then fallback to the old one.
+        return taskContainer.findByName("compile${appVariant.name.capitalize()}JavaWithJavac")
+            ?: taskContainer.findByName("compile${appVariant.name.capitalize()}Sources")
     }
 
     private fun resolveMappingFilePath(

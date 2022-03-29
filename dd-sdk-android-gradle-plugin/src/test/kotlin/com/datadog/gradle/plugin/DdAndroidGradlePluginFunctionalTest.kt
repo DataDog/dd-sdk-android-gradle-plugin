@@ -207,7 +207,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
             "inside the action method. " +
             "There is already an opened issue here: https://github.com/gradle/gradle/issues/12871"
     )
-    fun `M success W assembleRelease { configuration cache, checkProjectDependecies enabled }`() {
+    fun `M success W assembleRelease { configuration cache, checkProjectDependencies enabled }`() {
         // TODO: https://datadoghq.atlassian.net/browse/RUMM-1894
 
         // Given
@@ -234,7 +234,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
             "the --configuration-cache. There is no workaround this yet and this is " +
             "also present in some internal build.gradle tasks (see the test comment above)"
     )
-    fun `M success W assembleDebug { configuration cache, checkProjectDependecies enabled }`() {
+    fun `M success W assembleDebug { configuration cache, checkProjectDependencies enabled }`() {
         // TODO: https://datadoghq.atlassian.net/browse/RUMM-1893
 
         // Given
@@ -305,7 +305,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
     }
 
     @Test
-    fun `M success W assembleRelease { Datadog SDK not in deps, checkDepedencies to warn }`() {
+    fun `M success W assembleRelease { Datadog SDK not in deps, checkDependencies to warn }`() {
         // Given
         stubGradleBuildFromResourceFile(
             "build_with_check_deps_set_to_warn.gradle.kts",
@@ -331,7 +331,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
     }
 
     @Test
-    fun `M success W assembleDebug { Datadog SDK not in deps, checkDepedencies to warn }`() {
+    fun `M success W assembleDebug { Datadog SDK not in deps, checkDependencies to warn }`() {
         // Given
         stubGradleBuildFromResourceFile(
             "build_with_check_deps_set_to_warn.gradle.kts",
@@ -557,7 +557,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
                 resolutionStrategy {
                     eachPlugin {
                         if (requested.id.id == "com.android.application") {
-                            useModule("com.android.tools.build:gradle:7.0.3")
+                            useModule("com.android.tools.build:gradle:7.1.2")
                         }
                         if (requested.id.id == "kotlin-android") {
                             useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.21")
