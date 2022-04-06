@@ -1,6 +1,8 @@
 # Gradle Plugin for Datadog Android SDK
 
-> This plugin is used to upload your Proguard/R8 mapping files to Datadog to get a complete Error Tracking experience
+> This plugin is used to upload your Proguard/Dexguard/R8 mapping files to Datadog to get a complete RUM Error Tracking experience.
+
+Once your mapping file are uploaded, any error/crash reported through RUM will have a deobfuscated stacktrace, enabling an easy diagnosis of the root cause of the error.
 
 ## Getting Started
 
@@ -51,6 +53,10 @@ datadog {
     ...
 }
 ```
+
+## Note
+
+Only stacktraces in errors/crashes reported through RUM will be deobfuscated; errors in Datadog Logs won't be deobfuscated. 
 
 ## Troubleshooting
 
