@@ -93,6 +93,15 @@ property as : `fooBar`
 | `remoteRepositoryUrl`      | The url of the remote repository where the source code was deployed.  If not provided this value will be resolved from your current GIT configuration during the task execution time.                     |
 | `checkProjectDependencies` | This property controls if plugin should check if Datadog SDK is included in the dependencies and if it is not:  "none" - ignore, "warn" - log a warning, "fail" - fail the build with an error (default). |
 
+### Integration with CI/CD pipeline
+
+By default, the upload mapping task is independent of any other task in the build graph. That means that you need to run it manually when mapping needs to be uploaded.
+
+However, if this step should be done in the CI/CD pipeline and it needs to be a part of build graph, you can make upload task to run after mapping file is generated in the following manner:
+
+```groovy
+tasks["minify${variant}WithR8"].finalizedBy { tasks["uploadMapping${variant}"] }
+```
 
 ## Troubleshoot errors
 
