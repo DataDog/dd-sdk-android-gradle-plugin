@@ -95,9 +95,11 @@ property as : `fooBar`
 
 ### Integration with CI/CD pipeline
 
-By default, the upload mapping task is independent of any other task in the build graph. That means that you need to run it manually when mapping needs to be uploaded.
+By default, the upload mapping task is independent from other tasks in the build graph. Run the task manually when you need to upload mapping.
 
-However, if this step should be done in the CI/CD pipeline and it needs to be a part of build graph, you can make upload task to run after mapping file is generated in the following manner:
+If you want to run this task in a CI/CD pipeline, and the task is required as part of the build graph, you can set the upload task to run after the mapping file is generated.
+
+For example:
 
 ```groovy
 tasks["minify${variant}WithR8"].finalizedBy { tasks["uploadMapping${variant}"] }
