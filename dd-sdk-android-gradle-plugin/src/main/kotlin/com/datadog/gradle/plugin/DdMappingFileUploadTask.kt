@@ -75,6 +75,12 @@ open class DdMappingFileUploadTask
     var mappingFilePath: String = ""
 
     /**
+     * Replacements for the source prefixes in the mapping file.
+     */
+    @get:Input
+    var mappingFilePackagesAliases: Map<String, String> = emptyMap()
+
+    /**
      * The sourceSet root folders.
      */
     @get:InputFiles
@@ -102,8 +108,12 @@ open class DdMappingFileUploadTask
     fun applyTask() {
         validateConfiguration()
 
-        val mappingFile = File(mappingFilePath)
+        var mappingFile = File(mappingFilePath)
         if (!validateMappingFile(mappingFile)) return
+
+        if (mappingFilePackagesAliases.isNotEmpty()) {
+            mappingFile = applyShortAliases(mappingFile)
+        }
 
         val repositories = repositoryDetector.detectRepositories(
             sourceSetRoots,
@@ -179,5 +189,56 @@ open class DdMappingFileUploadTask
         return true
     }
 
+    private fun applyShortAliases(
+        mappingFile: File
+    ): File {
+        val aliasedFile = File(mappingFile.parent, "mapping-short-aliases.txt")
+        // sort is needed to have predictable replacement in the following case:
+        // imagine there are 2 keys - "androidx.work" and "androidx.work.Job", and the latter
+        // occurs much often than the rest under "androidx.work.*". So for the more efficient
+        // compression we need first to process the replacement of "androidx.work.Job" and only
+        // after that any possible prefix (which has a smaller length).
+        val replacements = mappingFilePackagesAliases.entries
+            .sortedByDescending { it.key.length }
+            .map {
+                Regex("${it.key}(?=\\W)") to it.value
+            }
+
+        mappingFile.readLines()
+            .map {
+                applyShortAliases(it, replacements)
+            }
+            .forEach {
+                aliasedFile.appendText(it + "\n")
+            }
+
+        return aliasedFile
+    }
+
+    private fun applyShortAliases(
+        line: String,
+        replacements: List<Pair<Regex, String>>
+    ): String {
+        val isLineWithRename = !line.startsWith(MAPPING_FILE_COMMENT_CHAR) &&
+            line.contains(MAPPING_FILE_CHANGE_DELIMITER)
+
+        return if (isLineWithRename) {
+            val (source, obfuscated) = line.split(MAPPING_FILE_CHANGE_DELIMITER)
+            val aliasedSource =
+                replacements.fold(source) { state, entry ->
+                    val (from, to) = entry
+                    state.replace(from, to)
+                }
+            "$aliasedSource$MAPPING_FILE_CHANGE_DELIMITER$obfuscated"
+        } else {
+            line
+        }
+    }
+
     // endregion
+
+    private companion object {
+        const val MAPPING_FILE_CHANGE_DELIMITER = "->"
+        const val MAPPING_FILE_COMMENT_CHAR = '#'
+    }
 }

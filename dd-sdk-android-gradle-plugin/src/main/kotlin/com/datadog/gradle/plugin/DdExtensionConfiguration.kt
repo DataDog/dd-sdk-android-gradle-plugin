@@ -46,6 +46,11 @@ open class DdExtensionConfiguration(
      */
     var mappingFilePath: String? = null
 
+    /**
+     * DO NOT SET THIS UNLESS YOU KNOW WHAT IT IS.
+     */
+    var mappingFilePackageAliases: Map<String, String> = emptyMap()
+
     internal fun updateWith(config: DdExtensionConfiguration) {
         config.versionName?.let { versionName = it }
         config.serviceName?.let { serviceName = it }
@@ -53,5 +58,6 @@ open class DdExtensionConfiguration(
         config.remoteRepositoryUrl?.let { remoteRepositoryUrl = it }
         config.checkProjectDependencies?.let { checkProjectDependencies = it }
         config.mappingFilePath?.let { mappingFilePath = it }
+        mappingFilePackageAliases = config.mappingFilePackageAliases
     }
 }

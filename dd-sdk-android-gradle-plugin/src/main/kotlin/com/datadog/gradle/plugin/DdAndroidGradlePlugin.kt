@@ -93,6 +93,12 @@ class DdAndroidGradlePlugin @Inject constructor(
         val outputsDir = File(target.buildDir, "outputs")
         uploadTask.mappingFilePath =
             resolveMappingFilePath(extensionConfiguration, outputsDir, variant)
+        uploadTask.mappingFilePackagesAliases =
+            filterMappingFileReplacements(
+                extensionConfiguration.mappingFilePackageAliases,
+                variant.applicationId
+            )
+
         val reportsDir = File(outputsDir, "reports")
         val datadogDir = File(reportsDir, "datadog")
         uploadTask.repositoryFile = File(datadogDir, "repository.json")
@@ -181,6 +187,26 @@ class DdAndroidGradlePlugin @Inject constructor(
             val mappingDir = File(outputsDir, "mapping")
             val flavorDir = File(mappingDir, variant.name)
             File(flavorDir, "mapping.txt").path
+        }
+    }
+
+    private fun filterMappingFileReplacements(
+        replacements: Map<String, String>,
+        applicationId: String
+    ): Map<String, String> {
+        return replacements.filter {
+            // not necessarily applicationId == package attribute from the Manifest, but it is
+            // best and cheapest effort to avoid wrong renaming (otherwise we may loose Git
+            // integration feature).
+            if (applicationId.startsWith(it.key)) {
+                LOGGER.warn(
+                    "Renaming of package prefix=${it.key} will be skipped, because" +
+                        " it belongs to the application package."
+                )
+                false
+            } else {
+                true
+            }
         }
     }
 

@@ -9,6 +9,7 @@ package com.datadog.gradle.plugin
 import com.datadog.gradle.plugin.internal.DdAppIdentifier
 import com.datadog.gradle.plugin.internal.Uploader
 import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.argumentCaptor
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.eq
 import com.nhaarman.mockitokotlin2.verify
@@ -135,6 +136,53 @@ internal class DdMappingFileUploadTaskTest {
             .isEqualTo(
                 "{\"data\":[" + fakeRepoInfo.toJson().toString(0) + "],\"version\":1}"
             )
+    }
+
+    @Test
+    fun `𝕄 upload file with aliases 𝕎 applyTask() { short aliases requested }`() {
+        // Given
+        testedTask.mappingFilePackagesAliases = mapOf(
+            "androidx.fragment.app" to "axfraga",
+            "androidx.activity" to "axact",
+            "androidx.activity.ComponentActivity" to "axact.ca",
+            "androidx.appcompat" to "axapp",
+            "androidx.work" to "axw",
+            "java.lang" to "jl",
+            "kotlin.collections" to "kc"
+        )
+        val fakeMappingFile = File(tempDir, fakeMappingFileName)
+        fileFromResourcesPath("mapping.txt").copyTo(fakeMappingFile)
+
+        testedTask.mappingFilePath = fakeMappingFile.path
+        val fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
+        testedTask.repositoryFile = fakeRepositoryFile
+        val expectedUrl = fakeSite.uploadEndpoint()
+        whenever(mockRepositoryDetector.detectRepositories(any(), eq("")))
+            .doReturn(listOf(fakeRepoInfo))
+
+        // When
+        testedTask.applyTask()
+
+        // Then
+        argumentCaptor<File> {
+            verify(mockUploader).upload(
+                eq(expectedUrl),
+                capture(),
+                eq(fakeRepositoryFile),
+                eq(fakeApiKey),
+                eq(
+                    DdAppIdentifier(
+                        serviceName = fakeService,
+                        version = fakeVersion,
+                        variant = fakeVariant
+                    )
+                ),
+                eq(fakeRepoInfo)
+            )
+            assertThat(lastValue).hasSameTextualContentAs(
+                fileFromResourcesPath("mapping-with-aliases.txt")
+            )
+        }
     }
 
     @Test
@@ -304,4 +352,12 @@ internal class DdMappingFileUploadTaskTest {
         // Then
         verifyZeroInteractions(mockUploader)
     }
+
+    // region private
+
+    private fun fileFromResourcesPath(resourceFilePath: String): File {
+        return File(javaClass.classLoader.getResource(resourceFilePath)!!.file)
+    }
+
+    // endregion
 }
