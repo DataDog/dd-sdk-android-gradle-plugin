@@ -35,6 +35,7 @@ internal class DdExtensionForgeryFactory : ForgeryFactory<DdExtension> {
                 forge.aStringMatching("[a-z]{3}(\\.[a-z]{5,10}){2,4}") to
                     forge.anAlphabeticalString()
             }
+            mappingFileTrimIndents = forge.aBool()
         }
     }
 }

@@ -98,6 +98,7 @@ class DdAndroidGradlePlugin @Inject constructor(
                 extensionConfiguration.mappingFilePackageAliases,
                 variant.applicationId
             )
+        uploadTask.mappingFileTrimIndents = extensionConfiguration.mappingFileTrimIndents
 
         val reportsDir = File(outputsDir, "reports")
         val datadogDir = File(reportsDir, "datadog")

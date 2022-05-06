@@ -15,6 +15,7 @@ import com.nhaarman.mockitokotlin2.eq
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyZeroInteractions
 import com.nhaarman.mockitokotlin2.whenever
+import fr.xgouchet.elmyr.Forge
 import fr.xgouchet.elmyr.annotation.Forgery
 import fr.xgouchet.elmyr.annotation.StringForgery
 import fr.xgouchet.elmyr.annotation.StringForgeryType
@@ -139,7 +140,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 upload file with aliases 𝕎 applyTask() { short aliases requested }`() {
+    fun `𝕄 upload file 𝕎 applyTask() { short aliases requested }`() {
         // Given
         testedTask.mappingFilePackagesAliases = mapOf(
             "androidx.fragment.app" to "axfraga",
@@ -182,6 +183,53 @@ internal class DdMappingFileUploadTaskTest {
             assertThat(lastValue).hasSameTextualContentAs(
                 fileFromResourcesPath("mapping-with-aliases.txt")
             )
+        }
+    }
+
+    @Test
+    fun `𝕄 upload file 𝕎 applyTask() { trim starting indents }`(
+        forge: Forge
+    ) {
+        // Given
+        val expectedLines = forge.aList {
+            forge.anAlphabeticalString() + forge.aString { ' ' }
+        }
+        val fakeMappingFile = File(tempDir, fakeMappingFileName)
+        fakeMappingFile.writeText(
+            expectedLines.joinToString(separator = "\n") {
+                val indent = if (forge.aBool()) forge.aString { ' ' } else ""
+                indent + it
+            }
+        )
+
+        testedTask.mappingFileTrimIndents = true
+        testedTask.mappingFilePath = fakeMappingFile.path
+        val fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
+        testedTask.repositoryFile = fakeRepositoryFile
+        val expectedUrl = fakeSite.uploadEndpoint()
+        whenever(mockRepositoryDetector.detectRepositories(any(), eq("")))
+            .doReturn(listOf(fakeRepoInfo))
+
+        // When
+        testedTask.applyTask()
+
+        // Then
+        argumentCaptor<File> {
+            verify(mockUploader).upload(
+                eq(expectedUrl),
+                capture(),
+                eq(fakeRepositoryFile),
+                eq(fakeApiKey),
+                eq(
+                    DdAppIdentifier(
+                        serviceName = fakeService,
+                        version = fakeVersion,
+                        variant = fakeVariant
+                    )
+                ),
+                eq(fakeRepoInfo)
+            )
+            assertThat(lastValue.readLines()).isEqualTo(expectedLines)
         }
     }
 

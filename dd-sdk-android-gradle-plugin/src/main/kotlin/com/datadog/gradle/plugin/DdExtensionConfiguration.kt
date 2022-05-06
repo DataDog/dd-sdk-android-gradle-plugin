@@ -47,9 +47,32 @@ open class DdExtensionConfiguration(
     var mappingFilePath: String? = null
 
     /**
-     * DO NOT SET THIS UNLESS YOU KNOW WHAT IT IS.
+     * Short aliases to use for package prefixes. Allows to replace, for example,
+     * androidx.appcompat with something shorter, reducing the size of the mapping file. Key is
+     * the prefix to replace, value is the replacement. Note, that these short aliases will be also
+     * in the deobfuscated stacktrace instead of the original prefixes. Sample usage:
+     *
+     * ```
+     *  "androidx.appcompat" to "axapp",
+     *  "androidx.work" to "axw",
+     *  "java.lang" to "jl",
+     *  "kotlin.collections" to "kc"
+     *  ...
+     * ```
+     *
+     * This property is not inherited, meaning in the particular variant configuration it should
+     * be declared explicitly, even if it exists in the root configuration.
+     *
+     * Warning: DO NOT SET THIS UNLESS YOU ARE OVER THE LIMIT OF THE MAPPING FILE SIZE.
      */
     var mappingFilePackageAliases: Map<String, String> = emptyMap()
+
+    /**
+     * This property removes indents from each line of the mapping file, reducing its size.
+     *
+     * Warning: DO NOT SET THIS UNLESS YOU ARE OVER THE LIMIT OF THE MAPPING FILE SIZE.
+     */
+    var mappingFileTrimIndents: Boolean = false
 
     internal fun updateWith(config: DdExtensionConfiguration) {
         config.versionName?.let { versionName = it }
@@ -59,5 +82,6 @@ open class DdExtensionConfiguration(
         config.checkProjectDependencies?.let { checkProjectDependencies = it }
         config.mappingFilePath?.let { mappingFilePath = it }
         mappingFilePackageAliases = config.mappingFilePackageAliases
+        mappingFileTrimIndents = config.mappingFileTrimIndents
     }
 }
