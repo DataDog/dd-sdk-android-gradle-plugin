@@ -16,20 +16,22 @@ android {
     defaultConfig {
         applicationId "com.example.variants"
         minSdkVersion 21
-        targetSdkVersion = 31
-        compileSdkVersion = 31
+        targetSdkVersion 31
         versionCode 1
         versionName "1.0"
         multiDexEnabled = true
     }
 
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
-    }
-
-    dependencies {
-        implementation("com.datadoghq:dd-sdk-android:1.12.0")
     }
 
     flavorDimensions("version", "colour")
@@ -52,4 +54,8 @@ android {
             dimension "colour"
         }
     }
+}
+
+datadog {
+    checkProjectDependencies = "none"
 }

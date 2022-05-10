@@ -501,7 +501,6 @@ internal class DdAndroidGradlePluginTest {
         val incompleteConfig = DdExtensionConfiguration().apply {
             this.mappingFilePackageAliases = mappingFilePackageAliases
         }
-        fakeExtension.variants = mock()
         whenever(fakeExtension.variants.findByName(variantName)) doReturn incompleteConfig
 
         // When
@@ -529,7 +528,6 @@ internal class DdAndroidGradlePluginTest {
         val incompleteConfig = DdExtensionConfiguration().apply {
             this.mappingFileTrimIndents = mappingFileTrimIndents
         }
-        fakeExtension.variants = mock()
         whenever(fakeExtension.variants.findByName(variantName)) doReturn incompleteConfig
 
         // When

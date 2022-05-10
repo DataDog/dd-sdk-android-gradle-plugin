@@ -198,7 +198,12 @@ open class DdMappingFileUploadTask
     ): File {
         if (!mappingFileTrimIndents && mappingFilePackagesAliases.isEmpty()) return mappingFile
 
-        val shrinkedFile = File(mappingFile.parent, "mapping-shrinked.txt")
+        LOGGER.info(
+            "Size of ${mappingFile.path} before optimization" +
+                " is ${mappingFile.length()} bytes"
+        )
+
+        val shrinkedFile = File(mappingFile.parent, MAPPING_OPTIMIZED_FILE_NAME)
         // sort is needed to have predictable replacement in the following case:
         // imagine there are 2 keys - "androidx.work" and "androidx.work.Job", and the latter
         // occurs much more often than the rest under "androidx.work.*". So for the more efficient
@@ -220,6 +225,8 @@ open class DdMappingFileUploadTask
             .forEach {
                 shrinkedFile.appendText(it + "\n")
             }
+
+        LOGGER.info("Size of optimized file is ${shrinkedFile.length()} bytes")
 
         return shrinkedFile
     }
@@ -255,8 +262,9 @@ open class DdMappingFileUploadTask
 
     // endregion
 
-    private companion object {
-        const val MAPPING_FILE_CHANGE_DELIMITER = "->"
-        const val MAPPING_FILE_COMMENT_CHAR = '#'
+    internal companion object {
+        private const val MAPPING_FILE_CHANGE_DELIMITER = "->"
+        private const val MAPPING_FILE_COMMENT_CHAR = '#'
+        const val MAPPING_OPTIMIZED_FILE_NAME = "mapping-shrinked.txt"
     }
 }
