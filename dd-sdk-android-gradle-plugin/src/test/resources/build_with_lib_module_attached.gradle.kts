@@ -52,15 +52,7 @@ android {
             applicationIdSuffix ".full"
             versionNameSuffix "-full"
         }
-        pro {
-            dimension "version"
-            applicationIdSuffix ".pro"
-            versionNameSuffix "-pro"
-        }
 
-        red {
-            dimension "colour"
-        }
         green {
             dimension "colour"
         }
