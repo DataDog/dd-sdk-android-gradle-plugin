@@ -317,7 +317,6 @@ internal class DdAndroidGradlePluginTest {
     ) {
         val variantName = fakeFlavorNames.variantName()
         mockVariant.mockFlavors(fakeFlavorNames, fakeBuildTypeName)
-        fakeExtension.variants = mock()
         whenever(fakeExtension.variants.findByName(variantName)) doReturn variantConfig
 
         // When
@@ -342,7 +341,6 @@ internal class DdAndroidGradlePluginTest {
         val incompleteConfig = DdExtensionConfiguration().apply {
             this.versionName = versionName
         }
-        fakeExtension.variants = mock()
         whenever(fakeExtension.variants.findByName(variantName)) doReturn incompleteConfig
 
         // When
@@ -366,7 +364,6 @@ internal class DdAndroidGradlePluginTest {
         val incompleteConfig = DdExtensionConfiguration().apply {
             this.serviceName = serviceName
         }
-        fakeExtension.variants = mock()
         whenever(fakeExtension.variants.findByName(variantName)) doReturn incompleteConfig
 
         // When
@@ -391,7 +388,6 @@ internal class DdAndroidGradlePluginTest {
         val incompleteConfig = DdExtensionConfiguration().apply {
             this.mappingFilePath = mappingFilePath
         }
-        fakeExtension.variants = mock()
         whenever(fakeExtension.variants.findByName(variantName)) doReturn incompleteConfig
 
         // When
@@ -416,7 +412,6 @@ internal class DdAndroidGradlePluginTest {
         val incompleteConfig = DdExtensionConfiguration().apply {
             this.site = site.name
         }
-        fakeExtension.variants = mock()
         whenever(fakeExtension.variants.findByName(variantName)) doReturn incompleteConfig
 
         // When
@@ -442,7 +437,6 @@ internal class DdAndroidGradlePluginTest {
         val incompleteConfig = DdExtensionConfiguration().apply {
             this.checkProjectDependencies = sdkCheckLevel
         }
-        fakeExtension.variants = mock()
         whenever(fakeExtension.variants.findByName(variantName)) doReturn incompleteConfig
 
         // When
@@ -466,7 +460,6 @@ internal class DdAndroidGradlePluginTest {
         val incompleteConfig = DdExtensionConfiguration().apply {
             this.remoteRepositoryUrl = fakeConfig.remoteRepositoryUrl
         }
-        fakeExtension.variants = mock()
         whenever(fakeExtension.variants.findByName(variantName)) doReturn incompleteConfig
 
         // When
@@ -503,7 +496,6 @@ internal class DdAndroidGradlePluginTest {
         }
         variantConfigC.apply { site = null }
         mockVariant.mockFlavors(flavorNames, fakeBuildTypeName)
-        fakeExtension.variants = mock()
         whenever(fakeExtension.variants.findByName(flavorA)) doReturn variantConfigA
         whenever(fakeExtension.variants.findByName(flavorB)) doReturn variantConfigB
         whenever(fakeExtension.variants.findByName(flavorC)) doReturn variantConfigC
@@ -536,7 +528,6 @@ internal class DdAndroidGradlePluginTest {
         variantConfigBC.apply { site = null }
         variantConfigBC.apply { checkProjectDependencies = null }
         mockVariant.mockFlavors(flavorNames, fakeBuildTypeName)
-        fakeExtension.variants = mock()
         whenever(
             fakeExtension.variants.findByName(
                 flavorA + flavorB.replaceFirstChar { capitalizeChar(it) }
@@ -576,7 +567,6 @@ internal class DdAndroidGradlePluginTest {
         val variantName = fakeFlavorNames.variantName() +
             fakeBuildTypeName.replaceFirstChar { capitalizeChar(it) }
         mockVariant.mockFlavors(fakeFlavorNames, fakeBuildTypeName)
-        fakeExtension.variants = mock()
         whenever(fakeExtension.variants.findByName(variantName)) doReturn configuration
 
         // When

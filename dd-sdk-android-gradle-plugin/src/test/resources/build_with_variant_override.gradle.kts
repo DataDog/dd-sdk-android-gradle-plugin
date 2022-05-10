@@ -41,15 +41,10 @@ android {
 
     flavorDimensions("version", "colour")
     productFlavors {
-        demo {
+        pro {
             dimension "version"
-            applicationIdSuffix ".demo"
-            versionNameSuffix "-demo"
-        }
-        full {
-            dimension "version"
-            applicationIdSuffix ".full"
-            versionNameSuffix "-full"
+            applicationIdSuffix ".pro"
+            versionNameSuffix "-pro"
         }
 
         green {
@@ -62,5 +57,11 @@ android {
 
     datadog {
         remoteRepositoryUrl = "http://github.com:fakeapp/repository.git"
+
+        variants {
+            pro {
+                remoteRepositoryUrl = "http://github.com:fakeapp-another/repository.git"
+            }
+        }
     }
 }

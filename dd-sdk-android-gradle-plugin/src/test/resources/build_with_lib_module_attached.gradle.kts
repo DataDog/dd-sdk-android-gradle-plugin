@@ -37,7 +37,7 @@ android {
 
     dependencies {
         implementation(project(':samples:lib-module'))
-        implementation("com.datadoghq:dd-sdk-android:1.11.1")
+        implementation("com.datadoghq:dd-sdk-android:1.12.0")
     }
 
     flavorDimensions("version", "colour")

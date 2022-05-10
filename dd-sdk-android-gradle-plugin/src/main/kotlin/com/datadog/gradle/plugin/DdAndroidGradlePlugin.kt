@@ -33,7 +33,6 @@ class DdAndroidGradlePlugin @Inject constructor(
     override fun apply(target: Project) {
 
         val extension = target.extensions.create(EXT_NAME, DdExtension::class.java)
-        extension.variants = target.container(DdExtensionConfiguration::class.java)
         val apiKey = resolveApiKey(target)
 
         target.afterEvaluate {

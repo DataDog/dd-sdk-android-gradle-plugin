@@ -36,7 +36,7 @@ android {
     }
 
     dependencies {
-        implementation("com.datadoghq:dd-sdk-android:1.11.1")
+        implementation("com.datadoghq:dd-sdk-android:1.12.0")
     }
 
     flavorDimensions("version", "colour")

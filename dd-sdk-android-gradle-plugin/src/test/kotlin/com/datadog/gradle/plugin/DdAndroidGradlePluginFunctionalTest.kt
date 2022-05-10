@@ -25,26 +25,26 @@ import org.junit.jupiter.api.io.TempDir
 internal class DdAndroidGradlePluginFunctionalTest {
     @TempDir
     lateinit var testProjectDir: File
-    lateinit var appRootDir: File
-    lateinit var libModuleRootDir: File
-    lateinit var appMainSrcDir: File
-    lateinit var appKotlinSourcesDir: File
-    lateinit var libModuleMainSrcDir: File
-    lateinit var libModuleKotlinSourcesDir: File
-    lateinit var settingsFile: File
-    lateinit var appBuildGradleFile: File
-    lateinit var libModuleBuildGradleFile: File
-    lateinit var appManifestFile: File
-    lateinit var libModuleManifestFile: File
-    lateinit var gradlePropertiesFile: File
-    lateinit var sampleApplicationClassFile: File
-    lateinit var libModulePlaceholderFile: File
+    private lateinit var appRootDir: File
+    private lateinit var libModuleRootDir: File
+    private lateinit var appMainSrcDir: File
+    private lateinit var appKotlinSourcesDir: File
+    private lateinit var libModuleMainSrcDir: File
+    private lateinit var libModuleKotlinSourcesDir: File
+    private lateinit var settingsFile: File
+    private lateinit var appBuildGradleFile: File
+    private lateinit var libModuleBuildGradleFile: File
+    private lateinit var appManifestFile: File
+    private lateinit var libModuleManifestFile: File
+    private lateinit var gradlePropertiesFile: File
+    private lateinit var sampleApplicationClassFile: File
+    private lateinit var libModulePlaceholderFile: File
 
     @StringForgery(regex = "http[s]?://github\\.com:[1-9]{2}/[a-z]+/repository\\.git")
     lateinit var fakeRemoteUrl: String
     private val colors = listOf("Blue", "Green")
     private val versions = listOf("Demo", "Full")
-    val variants: List<String> by lazy {
+    private val variants: List<String> by lazy {
         versions.flatMap { version ->
             colors.map {
                 "${version.lowercase()}$it"
@@ -379,6 +379,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
             "build_without_datadog_dep.gradle.kts",
             appBuildGradleFile
         )
+
         // When
         GradleRunner.create()
             .withProjectDir(testProjectDir)
@@ -405,12 +406,22 @@ internal class DdAndroidGradlePluginFunctionalTest {
         val taskName = resolveUploadTask(variant)
 
         // When
+        // since there is no explicit dependency between assemble and upload tasks, Gradle may
+        // optimize the execution and run them in parallel, ignoring the order in the command
+        // line, so we do the explicit split
+        GradleRunner.create()
+            .withProjectDir(testProjectDir)
+            .withArguments(":samples:app:assembleRelease")
+            .withPluginClasspath(getTestConfigurationClasspath())
+            .build()
+
         val result = GradleRunner.create()
             .withProjectDir(testProjectDir)
-            .withArguments(":samples:app:assembleRelease", taskName, "--info")
+            .withArguments(taskName, "--info")
             .withPluginClasspath(getTestConfigurationClasspath())
             .buildAndFail()
 
+        // Then
         assertThat(result.output).contains(
             "Uploading mapping file for " +
                 "com.example.variants.$variantVersionName:1.0-$variantVersionName " +
@@ -431,17 +442,53 @@ internal class DdAndroidGradlePluginFunctionalTest {
         val variant = "${version.lowercase()}$color"
         val taskName = resolveUploadTask(variant)
 
+        // When
+        GradleRunner.create()
+            .withProjectDir(testProjectDir)
+            .withArguments(":samples:app:assembleRelease")
+            .withPluginClasspath(getTestConfigurationClasspath())
+            .build()
+
         val result = GradleRunner.create()
             .withProjectDir(testProjectDir)
-            .withArguments(":samples:app:assembleRelease", taskName, "--info")
+            .withArguments(taskName, "--info")
             .withPluginClasspath(getTestConfigurationClasspath())
             .buildAndFail()
 
+        // Then
         assertThat(result.output).contains(
             "Uploading mapping file for " +
                 "com.example.variants.$variantVersionName:1.0-$variantVersionName " +
                 "{variant:$variant}:"
         )
+    }
+
+    @Test
+    fun `M try to upload the mapping file W upload {variant config override}`(forge: Forge) {
+        // Given
+        stubGradleBuildFromResourceFile(
+            "build_with_variant_override.gradle.kts",
+            appBuildGradleFile
+        )
+        val color = forge.anElementFrom(colors)
+        val variant = "pro$color"
+        val taskName = resolveUploadTask(variant)
+
+        // When
+        GradleRunner.create()
+            .withProjectDir(testProjectDir)
+            .withArguments(":samples:app:assembleRelease")
+            .withPluginClasspath(getTestConfigurationClasspath())
+            .build()
+
+        val result = GradleRunner.create()
+            .withProjectDir(testProjectDir)
+            .withArguments(taskName, "--info")
+            .withPluginClasspath(getTestConfigurationClasspath())
+            .buildAndFail()
+
+        // Then
+        assertThat(result.output).contains("http://github.com:fakeapp-another/repository.git")
     }
 
     @Test
