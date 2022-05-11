@@ -29,7 +29,7 @@ android {
     }
 
     dependencies {
-        implementation("com.datadoghq:dd-sdk-android:1.11.1")
+        implementation("com.datadoghq:dd-sdk-android:1.12.0")
     }
 
     flavorDimensions("version", "colour")
@@ -44,15 +44,7 @@ android {
             applicationIdSuffix ".full"
             versionNameSuffix "-full"
         }
-        pro {
-            dimension "version"
-            applicationIdSuffix ".pro"
-            versionNameSuffix "-pro"
-        }
 
-        red {
-            dimension "colour"
-        }
         green {
             dimension "colour"
         }

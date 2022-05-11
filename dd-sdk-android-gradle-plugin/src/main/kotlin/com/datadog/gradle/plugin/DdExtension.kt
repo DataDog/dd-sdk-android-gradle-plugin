@@ -7,39 +7,31 @@
 package com.datadog.gradle.plugin
 
 import groovy.lang.Closure
-import org.gradle.api.NamedDomainObjectContainer
+import javax.inject.Inject
+import org.gradle.api.model.ObjectFactory
 
 /**
  * Extension used to configure the `dd-android-gradle-plugin`.
  */
-open class DdExtension : DdExtensionConfiguration() {
+open class DdExtension(
+    @Inject private val objectFactory: ObjectFactory
+) : DdExtensionConfiguration() {
 
     /**
      * Whether the plugin should be enabled or not.
      */
     var enabled: Boolean = true
 
-    // introduced because cannot use lateinit with `variants` because of name
-    // ambiguity (method vs property). Consider switching to constructor injection
-    // via https://docs.gradle.org/current/javadoc/org/gradle/api/model/ObjectFactory.html#domainObjectContainer-java.lang.Class-
-    // once it is stable
-    private lateinit var _variants: NamedDomainObjectContainer<DdExtensionConfiguration>
-
     /**
      * Container for the variant's configurations.
      */
-    var variants: NamedDomainObjectContainer<DdExtensionConfiguration>
-        get() = _variants
-        set(value) {
-            _variants = value
-        }
+    internal val variants =
+        objectFactory.domainObjectContainer(DdExtensionConfiguration::class.java)
 
     /**
      * Closure method to create a DSL for variant configurations.
      */
     fun variants(configureClosure: Closure<DdExtensionConfiguration>) {
-        if (::_variants.isInitialized) {
-            _variants.configure(configureClosure)
-        }
+        variants.configure(configureClosure)
     }
 }
