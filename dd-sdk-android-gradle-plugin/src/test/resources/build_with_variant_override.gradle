@@ -16,8 +16,7 @@ android {
     defaultConfig {
         applicationId "com.example.variants"
         minSdkVersion 21
-        targetSdkVersion = 31
-        compileSdkVersion = 31
+        targetSdkVersion 31
         versionCode 1
         versionName "1.0"
         multiDexEnabled = true
@@ -35,17 +34,16 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 
+    dependencies {
+        implementation("com.datadoghq:dd-sdk-android:1.12.0")
+    }
+
     flavorDimensions("version", "colour")
     productFlavors {
-        demo {
+        pro {
             dimension "version"
-            applicationIdSuffix ".demo"
-            versionNameSuffix "-demo"
-        }
-        full {
-            dimension "version"
-            applicationIdSuffix ".full"
-            versionNameSuffix "-full"
+            applicationIdSuffix ".pro"
+            versionNameSuffix "-pro"
         }
 
         green {
@@ -53,6 +51,16 @@ android {
         }
         blue {
             dimension "colour"
+        }
+    }
+}
+
+datadog {
+    remoteRepositoryUrl = "http://github.com:fakeapp/repository.git"
+
+    variants {
+        pro {
+            remoteRepositoryUrl = "http://github.com:fakeapp-another/repository.git"
         }
     }
 }

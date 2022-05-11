@@ -9,7 +9,11 @@ import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.whenever
 import fr.xgouchet.elmyr.Case
+import fr.xgouchet.elmyr.Forge
+import fr.xgouchet.elmyr.annotation.AdvancedForgery
+import fr.xgouchet.elmyr.annotation.BoolForgery
 import fr.xgouchet.elmyr.annotation.Forgery
+import fr.xgouchet.elmyr.annotation.MapForgery
 import fr.xgouchet.elmyr.annotation.StringForgery
 import fr.xgouchet.elmyr.annotation.StringForgeryType
 import fr.xgouchet.elmyr.junit5.ForgeConfiguration
@@ -107,6 +111,8 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.site).isEqualTo(fakeExtension.site)
         assertThat(task.remoteRepositoryUrl).isEqualTo(fakeExtension.remoteRepositoryUrl)
         assertThat(task.mappingFilePath).isEqualTo(fakeExtension.mappingFilePath)
+        assertThat(task.mappingFilePackagesAliases)
+            .isEqualTo(fakeExtension.mappingFilePackageAliases)
     }
 
     @Test
@@ -147,6 +153,64 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.site).isEqualTo(fakeExtension.site)
         assertThat(task.remoteRepositoryUrl).isEqualTo(fakeExtension.remoteRepositoryUrl)
         assertThat(task.mappingFilePath).isEqualTo(fakeExtension.mappingFilePath)
+        assertThat(task.mappingFilePackagesAliases)
+            .isEqualTo(fakeExtension.mappingFilePackageAliases)
+        assertThat(task.mappingFileTrimIndents)
+            .isEqualTo(fakeExtension.mappingFileTrimIndents)
+    }
+
+    @Test
+    fun `𝕄 configure the upload task with sanitized mapping aliases 𝕎 configureVariant()`(
+        @StringForgery(case = Case.LOWER) flavorName: String,
+        @StringForgery(case = Case.LOWER) buildTypeName: String,
+        @StringForgery versionName: String,
+        @StringForgery packageName: String,
+        forge: Forge
+    ) {
+        // Given
+        val variantName = "$flavorName${buildTypeName.replaceFirstChar { capitalizeChar(it) }}"
+        whenever(mockVariant.name) doReturn variantName
+        whenever(mockVariant.flavorName) doReturn flavorName
+        whenever(mockVariant.versionName) doReturn versionName
+        whenever(mockVariant.applicationId) doReturn packageName
+        whenever(mockVariant.buildType) doReturn mockBuildType
+        whenever(mockBuildType.isMinifyEnabled) doReturn true
+        whenever(mockBuildType.name) doReturn fakeBuildTypeName
+
+        val aliasToFilterOut =
+            packageName.substring(0, forge.anInt(min = 1, max = packageName.length + 1)) to
+                forge.anAlphabeticalString()
+
+        fakeExtension.mappingFilePackageAliases = mutableMapOf<String, String>().apply {
+            putAll(fakeExtension.mappingFilePackageAliases)
+            plus(aliasToFilterOut)
+        }
+
+        // When
+        val task = testedPlugin.configureVariantForUploadTask(
+            fakeProject,
+            mockVariant,
+            fakeApiKey,
+            fakeExtension
+        )
+
+        // Then
+        check(task is DdMappingFileUploadTask)
+        assertThat(task.repositoryDetector).isInstanceOf(GitRepositoryDetector::class.java)
+        assertThat(task.name).isEqualTo(
+            "uploadMapping${variantName.replaceFirstChar { capitalizeChar(it) }}"
+        )
+        assertThat(task.apiKey).isEqualTo(fakeApiKey)
+        assertThat(task.variantName).isEqualTo(flavorName)
+        assertThat(task.versionName).isEqualTo(fakeExtension.versionName)
+        assertThat(task.serviceName).isEqualTo(fakeExtension.serviceName)
+        assertThat(task.site).isEqualTo(fakeExtension.site)
+        assertThat(task.remoteRepositoryUrl).isEqualTo(fakeExtension.remoteRepositoryUrl)
+        assertThat(task.mappingFilePath).isEqualTo(fakeExtension.mappingFilePath)
+        assertThat(task.mappingFilePackagesAliases)
+            .isEqualTo(fakeExtension.mappingFilePackageAliases.minus(aliasToFilterOut.first))
+        assertThat(task.mappingFileTrimIndents)
+            .isEqualTo(fakeExtension.mappingFileTrimIndents)
     }
 
     @Test
@@ -162,6 +226,8 @@ internal class DdAndroidGradlePluginTest {
         fakeExtension.site = null
         fakeExtension.remoteRepositoryUrl = null
         fakeExtension.mappingFilePath = null
+        fakeExtension.mappingFilePackageAliases = emptyMap()
+        fakeExtension.mappingFileTrimIndents = false
         val variantName = "$flavorName${buildTypeName.replaceFirstChar { capitalizeChar(it) }}"
         whenever(mockVariant.name) doReturn variantName
         whenever(mockVariant.flavorName) doReturn flavorName
@@ -193,6 +259,8 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.site).isEqualTo("")
         assertThat(task.mappingFilePath)
             .isEqualTo("${fakeProject.buildDir}/outputs/mapping/$variantName/mapping.txt")
+        assertThat(task.mappingFilePackagesAliases).isEmpty()
+        assertThat(task.mappingFileTrimIndents).isFalse
     }
 
     @Test
@@ -309,6 +377,11 @@ internal class DdAndroidGradlePluginTest {
         assertThat(config.remoteRepositoryUrl).isEqualTo(fakeExtension.remoteRepositoryUrl)
         assertThat(config.checkProjectDependencies)
             .isEqualTo(fakeExtension.checkProjectDependencies)
+        assertThat(config.mappingFilePath).isEqualTo(fakeExtension.mappingFilePath)
+        assertThat(config.mappingFilePackageAliases)
+            .isEqualTo(fakeExtension.mappingFilePackageAliases)
+        assertThat(config.mappingFileTrimIndents)
+            .isEqualTo(fakeExtension.mappingFileTrimIndents)
     }
 
     @Test
@@ -330,6 +403,10 @@ internal class DdAndroidGradlePluginTest {
         assertThat(config.checkProjectDependencies)
             .isEqualTo(variantConfig.checkProjectDependencies)
         assertThat(config.mappingFilePath).isEqualTo(variantConfig.mappingFilePath)
+        assertThat(config.mappingFilePackageAliases)
+            .isEqualTo(variantConfig.mappingFilePackageAliases)
+        assertThat(config.mappingFileTrimIndents)
+            .isEqualTo(variantConfig.mappingFileTrimIndents)
     }
 
     @Test
@@ -353,6 +430,9 @@ internal class DdAndroidGradlePluginTest {
         assertThat(config.remoteRepositoryUrl).isEqualTo(fakeExtension.remoteRepositoryUrl)
         assertThat(config.checkProjectDependencies)
             .isEqualTo(fakeExtension.checkProjectDependencies)
+        assertThat(config.mappingFilePath).isEqualTo(fakeExtension.mappingFilePath)
+        assertThat(config.mappingFilePackageAliases).isEmpty()
+        assertThat(config.mappingFileTrimIndents).isFalse
     }
 
     @Test
@@ -377,6 +457,8 @@ internal class DdAndroidGradlePluginTest {
         assertThat(config.remoteRepositoryUrl).isEqualTo(fakeExtension.remoteRepositoryUrl)
         assertThat(config.checkProjectDependencies)
             .isEqualTo(fakeExtension.checkProjectDependencies)
+        assertThat(config.mappingFilePackageAliases).isEmpty()
+        assertThat(config.mappingFileTrimIndents).isFalse
     }
 
     @Test
@@ -401,6 +483,68 @@ internal class DdAndroidGradlePluginTest {
         assertThat(config.remoteRepositoryUrl).isEqualTo(fakeExtension.remoteRepositoryUrl)
         assertThat(config.checkProjectDependencies)
             .isEqualTo(fakeExtension.checkProjectDependencies)
+        assertThat(config.mappingFilePackageAliases).isEmpty()
+        assertThat(config.mappingFileTrimIndents).isFalse
+    }
+
+    @Test
+    fun `𝕄 return config 𝕎 resolveExtensionConfiguration() { variant+mappingFilePackageAliases }`(
+        @MapForgery(
+            key = AdvancedForgery(
+                string = [StringForgery(regex = "[a-z]{3}(\\.[a-z]{5,10}){2,4}")]
+            ),
+            value = AdvancedForgery(string = [StringForgery(StringForgeryType.ALPHABETICAL)])
+        ) mappingFilePackageAliases: Map<String, String>
+    ) {
+        val variantName = fakeFlavorNames.variantName()
+        mockVariant.mockFlavors(fakeFlavorNames, fakeBuildTypeName)
+        val incompleteConfig = DdExtensionConfiguration().apply {
+            this.mappingFilePackageAliases = mappingFilePackageAliases
+        }
+        whenever(fakeExtension.variants.findByName(variantName)) doReturn incompleteConfig
+
+        // When
+        val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, mockVariant)
+
+        // Then
+        assertThat(config.versionName).isEqualTo(fakeExtension.versionName)
+        assertThat(config.site).isEqualTo(fakeExtension.site)
+        assertThat(config.serviceName).isEqualTo(fakeExtension.serviceName)
+        assertThat(config.remoteRepositoryUrl).isEqualTo(fakeExtension.remoteRepositoryUrl)
+        assertThat(config.checkProjectDependencies)
+            .isEqualTo(fakeExtension.checkProjectDependencies)
+        assertThat(config.mappingFilePath).isEqualTo(fakeExtension.mappingFilePath)
+        assertThat(config.mappingFilePackageAliases)
+            .isEqualTo(mappingFilePackageAliases)
+        assertThat(config.mappingFileTrimIndents).isFalse
+    }
+
+    @Test
+    fun `𝕄 return config 𝕎 resolveExtensionConfiguration() { variant+mappingFileTrimIndents }`(
+        @BoolForgery mappingFileTrimIndents: Boolean
+    ) {
+        val variantName = fakeFlavorNames.variantName()
+        mockVariant.mockFlavors(fakeFlavorNames, fakeBuildTypeName)
+        val incompleteConfig = DdExtensionConfiguration().apply {
+            this.mappingFileTrimIndents = mappingFileTrimIndents
+        }
+        whenever(fakeExtension.variants.findByName(variantName)) doReturn incompleteConfig
+
+        // When
+        val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, mockVariant)
+
+        // Then
+        assertThat(config.versionName).isEqualTo(fakeExtension.versionName)
+        assertThat(config.site).isEqualTo(fakeExtension.site)
+        assertThat(config.serviceName).isEqualTo(fakeExtension.serviceName)
+        assertThat(config.remoteRepositoryUrl).isEqualTo(fakeExtension.remoteRepositoryUrl)
+        assertThat(config.checkProjectDependencies)
+            .isEqualTo(fakeExtension.checkProjectDependencies)
+        assertThat(config.mappingFilePath).isEqualTo(fakeExtension.mappingFilePath)
+        assertThat(config.mappingFilePackageAliases)
+            .isEmpty()
+        assertThat(config.mappingFileTrimIndents)
+            .isEqualTo(mappingFileTrimIndents)
     }
 
     @Test
@@ -426,6 +570,8 @@ internal class DdAndroidGradlePluginTest {
         assertThat(config.checkProjectDependencies).isEqualTo(
             fakeExtension.checkProjectDependencies
         )
+        assertThat(config.mappingFilePackageAliases).isEmpty()
+        assertThat(config.mappingFileTrimIndents).isFalse
     }
 
     @Test
@@ -449,6 +595,8 @@ internal class DdAndroidGradlePluginTest {
         assertThat(config.mappingFilePath).isEqualTo(fakeExtension.mappingFilePath)
         assertThat(config.remoteRepositoryUrl).isEqualTo(fakeExtension.remoteRepositoryUrl)
         assertThat(config.checkProjectDependencies).isEqualTo(sdkCheckLevel)
+        assertThat(config.mappingFilePackageAliases).isEmpty()
+        assertThat(config.mappingFileTrimIndents).isFalse
     }
 
     @Test
@@ -474,6 +622,8 @@ internal class DdAndroidGradlePluginTest {
             fakeExtension.checkProjectDependencies
         )
         assertThat(config.mappingFilePath).isEqualTo(fakeExtension.mappingFilePath)
+        assertThat(config.mappingFilePackageAliases).isEmpty()
+        assertThat(config.mappingFileTrimIndents).isFalse
     }
 
     @Test
@@ -511,6 +661,10 @@ internal class DdAndroidGradlePluginTest {
             .isEqualTo(variantConfigC.checkProjectDependencies)
         assertThat(config.remoteRepositoryUrl).isEqualTo(variantConfigA.remoteRepositoryUrl)
         assertThat(config.mappingFilePath).isEqualTo(variantConfigA.mappingFilePath)
+        assertThat(config.mappingFilePackageAliases)
+            .isEqualTo(variantConfigA.mappingFilePackageAliases)
+        assertThat(config.mappingFileTrimIndents)
+            .isEqualTo(variantConfigA.mappingFileTrimIndents)
     }
 
     @Test
@@ -558,6 +712,10 @@ internal class DdAndroidGradlePluginTest {
             .isEqualTo(variantConfigAB.checkProjectDependencies)
         assertThat(config.remoteRepositoryUrl).isEqualTo(variantConfigAB.remoteRepositoryUrl)
         assertThat(config.mappingFilePath).isEqualTo(variantConfigAB.mappingFilePath)
+        assertThat(config.mappingFilePackageAliases)
+            .isEqualTo(variantConfigAB.mappingFilePackageAliases)
+        assertThat(config.mappingFileTrimIndents)
+            .isEqualTo(variantConfigAB.mappingFileTrimIndents)
     }
 
     @Test
@@ -580,6 +738,10 @@ internal class DdAndroidGradlePluginTest {
             .isEqualTo(configuration.checkProjectDependencies)
         assertThat(config.remoteRepositoryUrl).isEqualTo(configuration.remoteRepositoryUrl)
         assertThat(config.mappingFilePath).isEqualTo(configuration.mappingFilePath)
+        assertThat(config.mappingFilePackageAliases)
+            .isEqualTo(configuration.mappingFilePackageAliases)
+        assertThat(config.mappingFileTrimIndents)
+            .isEqualTo(configuration.mappingFileTrimIndents)
     }
 
     // endregion

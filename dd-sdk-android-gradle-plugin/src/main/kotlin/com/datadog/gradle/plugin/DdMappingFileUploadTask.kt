@@ -75,6 +75,18 @@ open class DdMappingFileUploadTask
     var mappingFilePath: String = ""
 
     /**
+     * Replacements for the source prefixes in the mapping file.
+     */
+    @get:Input
+    var mappingFilePackagesAliases: Map<String, String> = emptyMap()
+
+    /**
+     * Trim indents in the mapping file.
+     */
+    @get:Input
+    var mappingFileTrimIndents: Boolean = false
+
+    /**
      * The sourceSet root folders.
      */
     @get:InputFiles
@@ -102,8 +114,10 @@ open class DdMappingFileUploadTask
     fun applyTask() {
         validateConfiguration()
 
-        val mappingFile = File(mappingFilePath)
+        var mappingFile = File(mappingFilePath)
         if (!validateMappingFile(mappingFile)) return
+
+        mappingFile = shrinkMappingFile(mappingFile)
 
         val repositories = repositoryDetector.detectRepositories(
             sourceSetRoots,
@@ -179,5 +193,78 @@ open class DdMappingFileUploadTask
         return true
     }
 
+    private fun shrinkMappingFile(
+        mappingFile: File
+    ): File {
+        if (!mappingFileTrimIndents && mappingFilePackagesAliases.isEmpty()) return mappingFile
+
+        LOGGER.info(
+            "Size of ${mappingFile.path} before optimization" +
+                " is ${mappingFile.length()} bytes"
+        )
+
+        val shrinkedFile = File(mappingFile.parent, MAPPING_OPTIMIZED_FILE_NAME)
+        // sort is needed to have predictable replacement in the following case:
+        // imagine there are 2 keys - "androidx.work" and "androidx.work.Job", and the latter
+        // occurs much more often than the rest under "androidx.work.*". So for the more efficient
+        // compression we need first to process the replacement of "androidx.work.Job" and only
+        // after that any possible prefix (which has a smaller length).
+        val replacements = mappingFilePackagesAliases.entries
+            .sortedByDescending { it.key.length }
+            .map {
+                Regex("(?<=^|\\W)${it.key}(?=\\W)") to it.value
+            }
+
+        mappingFile.readLines()
+            .run {
+                if (mappingFileTrimIndents) map { it.trimStart() } else this
+            }
+            .map {
+                applyShortAliases(it, replacements)
+            }
+            .forEach {
+                shrinkedFile.appendText(it + "\n")
+            }
+
+        LOGGER.info("Size of optimized file is ${shrinkedFile.length()} bytes")
+
+        return shrinkedFile
+    }
+
+    private fun applyShortAliases(
+        line: String,
+        replacements: List<Pair<Regex, String>>
+    ): String {
+        val isLineWithRename = !line.startsWith(MAPPING_FILE_COMMENT_CHAR) &&
+            line.contains(MAPPING_FILE_CHANGE_DELIMITER)
+
+        return if (isLineWithRename) {
+            val parts = line.split(MAPPING_FILE_CHANGE_DELIMITER)
+            if (parts.size != 2) {
+                logger.info(
+                    "Unexpected number of '$MAPPING_FILE_CHANGE_DELIMITER'" +
+                        " (${parts.size - 1}) in the obfuscation line."
+                )
+                line
+            } else {
+                val (source, obfuscated) = parts
+                val aliasedSource =
+                    replacements.fold(source) { state, entry ->
+                        val (from, to) = entry
+                        state.replace(from, to)
+                    }
+                "$aliasedSource$MAPPING_FILE_CHANGE_DELIMITER$obfuscated"
+            }
+        } else {
+            line
+        }
+    }
+
     // endregion
+
+    internal companion object {
+        private const val MAPPING_FILE_CHANGE_DELIMITER = "->"
+        private const val MAPPING_FILE_COMMENT_CHAR = '#'
+        const val MAPPING_OPTIMIZED_FILE_NAME = "mapping-shrinked.txt"
+    }
 }

@@ -7,6 +7,7 @@ import fr.xgouchet.elmyr.junit5.ForgeConfiguration
 import fr.xgouchet.elmyr.junit5.ForgeExtension
 import java.io.File
 import java.util.Properties
+import kotlin.io.path.Path
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
@@ -76,7 +77,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         stubFile(libModulePlaceholderFile, LIB_MODULE_PLACEHOLDER_CLASS_CONTENT)
         stubFile(libModuleManifestFile, LIB_MODULE_MANIFEST_FILE_CONTENT)
         stubGradleBuildFromResourceFile(
-            "lib_module_build.gradle.kts",
+            "lib_module_build.gradle",
             libModuleBuildGradleFile
         )
         initializeGit(fakeRemoteUrl, appRootDir)
@@ -88,7 +89,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
     fun `M success W assembleRelease`() {
         // Given
         stubGradleBuildFromResourceFile(
-            "build_with_datadog_dep.gradle.kts",
+            "build_with_datadog_dep.gradle",
             appBuildGradleFile
         )
         // When
@@ -107,7 +108,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
     fun `M success W assembleRelease { project with library module }`() {
         // Given
         stubGradleBuildFromResourceFile(
-            "build_with_lib_module_attached.gradle.kts",
+            "build_with_lib_module_attached.gradle",
             appBuildGradleFile
         )
         // When
@@ -126,7 +127,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
     fun `M success W assembleRelease { build cache }`() {
         // Given
         stubGradleBuildFromResourceFile(
-            "build_with_datadog_dep.gradle.kts",
+            "build_with_datadog_dep.gradle",
             appBuildGradleFile
         )
 
@@ -146,7 +147,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
     fun `M success W assembleDebug`() {
         // Given
         stubGradleBuildFromResourceFile(
-            "build_with_datadog_dep.gradle.kts",
+            "build_with_datadog_dep.gradle",
             appBuildGradleFile
         )
         // When
@@ -165,7 +166,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
     fun `M success W assembleDebug { project with library module }`() {
         // Given
         stubGradleBuildFromResourceFile(
-            "build_with_lib_module_attached.gradle.kts",
+            "build_with_lib_module_attached.gradle",
             appBuildGradleFile
         )
         // When
@@ -184,7 +185,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
     fun `M success W assembleDebug { build cache }`() {
         // Given
         stubGradleBuildFromResourceFile(
-            "build_with_datadog_dep.gradle.kts",
+            "build_with_datadog_dep.gradle",
             appBuildGradleFile
         )
 
@@ -212,7 +213,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
 
         // Given
         stubGradleBuildFromResourceFile(
-            "build_with_datadog_dep.gradle.kts",
+            "build_with_datadog_dep.gradle",
             appBuildGradleFile
         )
 
@@ -239,7 +240,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
 
         // Given
         stubGradleBuildFromResourceFile(
-            "build_with_datadog_dep.gradle.kts",
+            "build_with_datadog_dep.gradle",
             appBuildGradleFile
         )
 
@@ -260,7 +261,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
 
         // Given
         stubGradleBuildFromResourceFile(
-            "build_with_check_deps_disabled.gradle.kts",
+            "build_with_check_deps_disabled.gradle",
             appBuildGradleFile
         )
 
@@ -288,7 +289,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
 
         // Given
         stubGradleBuildFromResourceFile(
-            "build_with_check_deps_disabled.gradle.kts",
+            "build_with_check_deps_disabled.gradle",
             appBuildGradleFile
         )
 
@@ -308,7 +309,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
     fun `M success W assembleRelease { Datadog SDK not in deps, checkDependencies to warn }`() {
         // Given
         stubGradleBuildFromResourceFile(
-            "build_with_check_deps_set_to_warn.gradle.kts",
+            "build_with_check_deps_set_to_warn.gradle",
             appBuildGradleFile
         )
 
@@ -334,7 +335,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
     fun `M success W assembleDebug { Datadog SDK not in deps, checkDependencies to warn }`() {
         // Given
         stubGradleBuildFromResourceFile(
-            "build_with_check_deps_set_to_warn.gradle.kts",
+            "build_with_check_deps_set_to_warn.gradle",
             appBuildGradleFile
         )
 
@@ -360,7 +361,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
     fun `M fail W assembleRelease { Datadog SDK not in deps }`() {
         // Given
         stubGradleBuildFromResourceFile(
-            "build_without_datadog_dep.gradle.kts",
+            "build_without_datadog_dep.gradle",
             appBuildGradleFile
         )
 
@@ -376,7 +377,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
     fun `M fail W assembleDebug { Datadog SDK not in deps }`() {
         // Given
         stubGradleBuildFromResourceFile(
-            "build_without_datadog_dep.gradle.kts",
+            "build_without_datadog_dep.gradle",
             appBuildGradleFile
         )
 
@@ -396,7 +397,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
     fun `M try to upload the mapping file W upload { using a fake API_KEY }`(forge: Forge) {
         // Given
         stubGradleBuildFromResourceFile(
-            "build_with_datadog_dep.gradle.kts",
+            "build_with_datadog_dep.gradle",
             appBuildGradleFile
         )
         val color = forge.anElementFrom(colors)
@@ -433,7 +434,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
     fun `M try to upload the mapping file W upload { custom remote repos url }`(forge: Forge) {
         // Given
         stubGradleBuildFromResourceFile(
-            "build_with_custom_remote_repos_url.gradle.kts",
+            "build_with_custom_remote_repos_url.gradle",
             appBuildGradleFile
         )
         val color = forge.anElementFrom(colors)
@@ -461,13 +462,64 @@ internal class DdAndroidGradlePluginFunctionalTest {
                 "com.example.variants.$variantVersionName:1.0-$variantVersionName " +
                 "{variant:$variant}:"
         )
+
+        assertThat(result.output).contains(
+            "http://github.com:fakeapp/repository.git"
+        )
+    }
+
+    @Test
+    fun `M try to upload the mapping file W upload { optimized mapping }`(forge: Forge) {
+        // Given
+        stubGradleBuildFromResourceFile(
+            "build_with_optimized_mapping.gradle",
+            appBuildGradleFile
+        )
+        val color = forge.anElementFrom(colors)
+        val version = forge.anElementFrom(versions)
+        val variantVersionName = version.lowercase()
+        val variant = "${version.lowercase()}$color"
+        val taskName = resolveUploadTask(variant)
+
+        // When
+        GradleRunner.create()
+            .withProjectDir(testProjectDir)
+            .withArguments(":samples:app:assembleRelease")
+            .withPluginClasspath(getTestConfigurationClasspath())
+            .build()
+
+        val result = GradleRunner.create()
+            .withProjectDir(testProjectDir)
+            .withArguments(taskName, "--info")
+            .withPluginClasspath(getTestConfigurationClasspath())
+            .buildAndFail()
+
+        // Then
+        assertThat(result.output).contains(
+            "Uploading mapping file for " +
+                "com.example.variants.$variantVersionName:1.0-$variantVersionName " +
+                "{variant:$variant}:"
+        )
+
+        val optimizedFile = Path(
+            appRootDir.path,
+            "build",
+            "outputs",
+            "mapping",
+            "${variant}Release",
+            DdMappingFileUploadTask.MAPPING_OPTIMIZED_FILE_NAME
+        ).toFile()
+
+        assertThat(result.output).contains(
+            "Size of optimized file is ${optimizedFile.length()} bytes"
+        )
     }
 
     @Test
     fun `M try to upload the mapping file W upload {variant config override}`(forge: Forge) {
         // Given
         stubGradleBuildFromResourceFile(
-            "build_with_variant_override.gradle.kts",
+            "build_with_variant_override.gradle",
             appBuildGradleFile
         )
         val color = forge.anElementFrom(colors)
@@ -495,7 +547,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
     fun `M not contain any uploadTasks W minifyNotEnabled`() {
         // Given
         stubGradleBuildFromResourceFile(
-            "build_with_minify_not_enabled.gradle.kts",
+            "build_with_minify_not_enabled.gradle",
             appBuildGradleFile
         )
 
