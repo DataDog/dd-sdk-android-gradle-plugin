@@ -1,3 +1,8 @@
+# 1.4.0 / 2022-05-17
+
+- [IMPROVEMENT] Add shrinking options for the R8/Proguard/DexGuard mapping file (short aliases, indents trim) [#86](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/86)
+- [IMPROVEMENT] Documentation updates [#79](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/79), [#84](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/84)
+
 # 1.3.0 / 2022-03-28
 
 - [IMPROVEMENT] Use OkHttp 4.9.x in plugin dependency
