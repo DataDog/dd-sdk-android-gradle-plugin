@@ -14,9 +14,9 @@ Your crash reports appear in [**Error Tracking**][1].
 
 If you have not set up the Android SDK yet, follow the [in-app setup instructions][2] or see the [Android RUM setup documentation][3].
 
-1. Download the latest version of the [RUM Android SDK][4].
-2. Configure your application's `version`, `env`, and `service` when [initializing the SDK][5].
-3. Upload your Proguard/R8 mapping file to Datadog to access deobfuscated stack traces. 
+1. Add the latest version of the [RUM Android SDK][4] to your Gradle dependencies.
+2. Configure your application's `env` and `variant` when [initializing the SDK][5].
+3. Run the Gradle task to upload your Proguard/R8 mapping file to Datadog in order to access deobfuscated stack traces. 
 
 For any given error, you can access to the file path, line number, as well as a code snippet for each frame of the related stack trace.
 
@@ -43,7 +43,7 @@ For any given error, you can access to the file path, line number, as well as a 
    }
    ```
 
-4. Run the upload task after your obfuscated APK builds:
+4. Run the upload task after your obfuscated APK starts being built:
     
    ```bash
    ./gradlew uploadMappingRelease
@@ -70,7 +70,7 @@ For any given error, you can access to the file path, line number, as well as a 
 
    ```groovy
    datadog {
-       site = "EU"
+       site = "EU1"
    }
    ```
 
@@ -118,9 +118,9 @@ This resolves the final value for the `versionName` property as `fooBar`.
 
 | Property name              | Description                                                                                                                                                                                               |
 |----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `versionName`              | The version name of the application.                                                                                                                                                                      |
-| `serviceName`              | The service name of the application.                                                                                                                                                                      |
-| `site`                     | The Datadog site to upload your data to (US, US3, US5, EU, or GOV)..                                                                                                                                       |
+| `versionName`              | The version name of the application (by default, the version declared in the `android` block of your `build.gradle` script).                                                                                                               |
+| `serviceName`              | The service name of the application (by default, the package name of your application as declared in the `android` block of your `build.gradle` script).                                                                                                                          |
+| `site`                     | The Datadog site to upload your data to (US1, US3, US5, EU1, or US1_FED).                                                                                                                                       |
 | `remoteRepositoryUrl`      | The URL of the remote repository where the source code was deployed. If this is not provided, this value is resolved from your Git configuration during the task execution time.                     |
 | `checkProjectDependencies` | This property controls if the plugin should check if the Datadog Android SDK is included in the dependencies. If not, "none" is ignored, "warn" logs a warning, and "fail" fails the build with an error (default). |
 
