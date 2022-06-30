@@ -35,7 +35,14 @@ For any given error, you can access to the file path, line number, as well as a 
    ```
 
 2. [Create a dedicated Datadog API key][2] and export it as an environment variable named `DD_API_KEY` (alternatively, pass it as a task property).
-3. Optionally, configure the plugin to upload files to the EU region by exporting two additional environment variables: `export DATADOG_SITE="datadoghq.eu"` and `export DATADOG_API_HOST="api.datadoghq.eu"`.
+3. Optionally, configure the plugin to upload files to the EU region by configuring the plugin in your Gradle script:
+   
+   ```
+   datadog {
+       site = "EU1"
+   }
+   ```
+
 4. Run the upload task after your obfuscated APK builds:
     
    ```bash
