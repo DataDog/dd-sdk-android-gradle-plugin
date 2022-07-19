@@ -105,15 +105,22 @@ internal class OkHttpUploaderTest {
     }
 
     @Test
-    fun `M use an OkHttpClient W callTimeout { 45 seconds }`() {
+    fun `M set client callTimeout W init()`() {
         assertThat(testedUploader.client.callTimeoutMillis).isEqualTo(
             OkHttpUploader.NETWORK_TIMEOUT_MS.toInt()
         )
     }
 
     @Test
-    fun `M use an OkHttpClient W writeTimeout { 45 seconds }`() {
+    fun `M set client writeTimeout W init()`() {
         assertThat(testedUploader.client.writeTimeoutMillis).isEqualTo(
+            OkHttpUploader.NETWORK_TIMEOUT_MS.toInt()
+        )
+    }
+
+    @Test
+    fun `M set client connectTimeout W init()`() {
+        assertThat(testedUploader.client.connectTimeoutMillis).isEqualTo(
             OkHttpUploader.NETWORK_TIMEOUT_MS.toInt()
         )
     }
@@ -139,12 +146,17 @@ internal class OkHttpUploaderTest {
         assertThat(mockWebServer.requestCount).isEqualTo(1)
         assertThat(dispatchedRequest)
             .hasMethod("POST")
-            .containsFormData("version", fakeIdentifier.version)
-            .containsFormData("service", fakeIdentifier.serviceName)
-            .containsFormData("variant", fakeIdentifier.variant)
-            .containsFormData("type", OkHttpUploader.TYPE_JVM_MAPPING_FILE)
             .containsFormData("git_repository_url", fakeRepositoryInfo.url)
             .containsFormData("git_commit_sha", fakeRepositoryInfo.hash)
+            .containsMultipartFile(
+                "event",
+                "event",
+                "{\"service\":\"${fakeIdentifier.serviceName}\"," +
+                        "\"variant\":\"${fakeIdentifier.variant}\"," +
+                        "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
+                        "\"version\":\"${fakeIdentifier.version}\"}",
+                "application/json; charset=utf-8"
+            )
             .containsMultipartFile(
                 "jvm_mapping_file",
                 fakeMappingFileName,
@@ -180,10 +192,15 @@ internal class OkHttpUploaderTest {
         assertThat(mockWebServer.requestCount).isEqualTo(1)
         assertThat(dispatchedRequest)
             .hasMethod("POST")
-            .containsFormData("version", fakeIdentifier.version)
-            .containsFormData("service", fakeIdentifier.serviceName)
-            .containsFormData("variant", fakeIdentifier.variant)
-            .containsFormData("type", OkHttpUploader.TYPE_JVM_MAPPING_FILE)
+            .containsMultipartFile(
+                "event",
+                "event",
+                "{\"service\":\"${fakeIdentifier.serviceName}\"," +
+                        "\"variant\":\"${fakeIdentifier.variant}\"," +
+                        "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
+                        "\"version\":\"${fakeIdentifier.version}\"}",
+                "application/json; charset=utf-8"
+            )
             .containsMultipartFile(
                 "jvm_mapping_file",
                 fakeMappingFileName,
@@ -218,12 +235,17 @@ internal class OkHttpUploaderTest {
         assertThat(mockWebServer.requestCount).isEqualTo(1)
         assertThat(dispatchedRequest)
             .hasMethod("POST")
-            .containsFormData("version", fakeIdentifier.version)
-            .containsFormData("service", fakeIdentifier.serviceName)
-            .containsFormData("variant", fakeIdentifier.variant)
-            .containsFormData("type", OkHttpUploader.TYPE_JVM_MAPPING_FILE)
             .containsFormData("git_repository_url", fakeRepositoryInfo.url)
             .containsFormData("git_commit_sha", fakeRepositoryInfo.hash)
+            .containsMultipartFile(
+                "event",
+                "event",
+                "{\"service\":\"${fakeIdentifier.serviceName}\"," +
+                        "\"variant\":\"${fakeIdentifier.variant}\"," +
+                        "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
+                        "\"version\":\"${fakeIdentifier.version}\"}",
+                "application/json; charset=utf-8"
+            )
             .containsMultipartFile(
                 "jvm_mapping_file",
                 fakeMappingFileName,
@@ -267,12 +289,17 @@ internal class OkHttpUploaderTest {
         assertThat(mockWebServer.requestCount).isEqualTo(1)
         assertThat(dispatchedRequest)
             .hasMethod("POST")
-            .containsFormData("version", fakeIdentifier.version)
-            .containsFormData("service", fakeIdentifier.serviceName)
-            .containsFormData("variant", fakeIdentifier.variant)
-            .containsFormData("type", OkHttpUploader.TYPE_JVM_MAPPING_FILE)
             .containsFormData("git_repository_url", fakeRepositoryInfo.url)
             .containsFormData("git_commit_sha", fakeRepositoryInfo.hash)
+            .containsMultipartFile(
+                "event",
+                "event",
+                "{\"service\":\"${fakeIdentifier.serviceName}\"," +
+                        "\"variant\":\"${fakeIdentifier.variant}\"," +
+                        "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
+                        "\"version\":\"${fakeIdentifier.version}\"}",
+                "application/json; charset=utf-8"
+            )
             .containsMultipartFile(
                 "jvm_mapping_file",
                 fakeMappingFileName,

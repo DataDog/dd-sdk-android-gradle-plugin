@@ -8,16 +8,22 @@ package com.datadog.gradle.plugin.internal
 
 import com.datadog.gradle.plugin.DdAndroidGradlePlugin.Companion.LOGGER
 import com.datadog.gradle.plugin.RepositoryInfo
-import java.io.File
-import java.lang.IllegalStateException
-import java.net.HttpURLConnection
-import java.util.concurrent.TimeUnit
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import okio.Buffer
+import org.json.JSONObject
+import java.io.File
+import java.io.IOException
+import java.net.HttpURLConnection
+import java.nio.charset.Charset
+import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 internal class OkHttpUploader : Uploader {
 
@@ -30,6 +36,7 @@ internal class OkHttpUploader : Uploader {
             .Builder()
             .callTimeout(NETWORK_TIMEOUT_MS, TimeUnit.MILLISECONDS)
             .writeTimeout(NETWORK_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+            .connectTimeout(NETWORK_TIMEOUT_MS, TimeUnit.MILLISECONDS)
             .build()
 
     @Suppress("TooGenericExceptionCaught")
@@ -81,12 +88,16 @@ internal class OkHttpUploader : Uploader {
                     .format(mappingFile.absolutePath)
             )
         }
+
+        val eventJson = JSONObject()
+        eventJson.put("version", identifier.version)
+        eventJson.put("service", identifier.serviceName)
+        eventJson.put("variant", identifier.variant)
+        eventJson.put("type", TYPE_JVM_MAPPING_FILE)
+
         val builder = MultipartBody.Builder()
         builder.setType(MultipartBody.FORM)
-            .addFormDataPart("version", identifier.version)
-            .addFormDataPart("service", identifier.serviceName)
-            .addFormDataPart("variant", identifier.variant)
-            .addFormDataPart("type", TYPE_JVM_MAPPING_FILE)
+            .addFormDataPart("event", "event", eventJson.toString(0).toRequestBody(MEDIA_TYPE_JSON))
             .addFormDataPart("jvm_mapping_file", mappingFile.name, mappingFileBody)
 
         if (repositoryFile != null) {
@@ -116,12 +127,19 @@ internal class OkHttpUploader : Uploader {
             )
             statusCode == HttpURLConnection.HTTP_FORBIDDEN -> throw IllegalStateException(
                 "Unable to upload mapping file for $identifier; " +
-                    "verify that you're using a valid API Key"
+                        "verify that you're using a valid API Key"
             )
-            statusCode >= HttpURLConnection.HTTP_BAD_REQUEST -> throw IllegalStateException(
-                "Unable to upload mapping file for $identifier; " +
-                    "it can be because the mapping file already exist for this version"
+            statusCode == HttpURLConnection.HTTP_CLIENT_TIMEOUT -> throw RuntimeException(
+                "Unable to upload mapping file for $identifier because of a request timeout; " +
+                        "check your network connection"
             )
+            statusCode >= HttpURLConnection.HTTP_BAD_REQUEST -> {
+                throw IllegalStateException(
+                    "Unable to upload mapping file for $identifier ($statusCode); " +
+                            "it can be because the mapping file already exist for this version.\n" +
+                            "${response.body?.string()}"
+                )
+            }
         }
     }
 
