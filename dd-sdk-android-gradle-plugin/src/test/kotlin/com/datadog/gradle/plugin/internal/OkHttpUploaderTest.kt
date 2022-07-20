@@ -150,20 +150,20 @@ internal class OkHttpUploaderTest {
                 "event",
                 "event",
                 "{\"service\":\"${fakeIdentifier.serviceName}\"," +
-                        "\"variant\":\"${fakeIdentifier.variant}\"," +
-                        "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
-                        "\"version\":\"${fakeIdentifier.version}\"}",
+                    "\"variant\":\"${fakeIdentifier.variant}\"," +
+                    "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
+                    "\"version\":\"${fakeIdentifier.version}\"}",
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
                 "jvm_mapping_file",
-                fakeMappingFileName,
+                "jvm_mapping",
                 fakeMappingFileContent,
                 "text/plain"
             )
             .containsMultipartFile(
                 "repository",
-                fakeRepositoryFileName,
+                "repository",
                 fakeRepositoryFileContent,
                 "application/json"
             )
@@ -194,14 +194,14 @@ internal class OkHttpUploaderTest {
                 "event",
                 "event",
                 "{\"service\":\"${fakeIdentifier.serviceName}\"," +
-                        "\"variant\":\"${fakeIdentifier.variant}\"," +
-                        "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
-                        "\"version\":\"${fakeIdentifier.version}\"}",
+                    "\"variant\":\"${fakeIdentifier.variant}\"," +
+                    "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
+                    "\"version\":\"${fakeIdentifier.version}\"}",
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
                 "jvm_mapping_file",
-                fakeMappingFileName,
+                "jvm_mapping",
                 fakeMappingFileContent,
                 "text/plain"
             )
@@ -239,20 +239,20 @@ internal class OkHttpUploaderTest {
                 "event",
                 "event",
                 "{\"service\":\"${fakeIdentifier.serviceName}\"," +
-                        "\"variant\":\"${fakeIdentifier.variant}\"," +
-                        "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
-                        "\"version\":\"${fakeIdentifier.version}\"}",
+                    "\"variant\":\"${fakeIdentifier.variant}\"," +
+                    "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
+                    "\"version\":\"${fakeIdentifier.version}\"}",
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
                 "jvm_mapping_file",
-                fakeMappingFileName,
+                "jvm_mapping",
                 fakeMappingFileContent,
                 "text/plain"
             )
             .containsMultipartFile(
                 "repository",
-                fakeRepositoryFileName,
+                "repository",
                 fakeRepositoryFileContent,
                 "application/json"
             )
@@ -293,20 +293,20 @@ internal class OkHttpUploaderTest {
                 "event",
                 "event",
                 "{\"service\":\"${fakeIdentifier.serviceName}\"," +
-                        "\"variant\":\"${fakeIdentifier.variant}\"," +
-                        "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
-                        "\"version\":\"${fakeIdentifier.version}\"}",
+                    "\"variant\":\"${fakeIdentifier.variant}\"," +
+                    "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
+                    "\"version\":\"${fakeIdentifier.version}\"}",
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
                 "jvm_mapping_file",
-                fakeMappingFileName,
+                "jvm_mapping",
                 fakeMappingFileContent,
                 "text/plain"
             )
             .containsMultipartFile(
                 "repository",
-                fakeRepositoryFileName,
+                "repository",
                 fakeRepositoryFileContent,
                 "application/json"
             )
