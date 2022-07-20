@@ -9,7 +9,6 @@ package com.datadog.gradle.plugin.internal
 import com.datadog.gradle.plugin.DdAndroidGradlePlugin.Companion.LOGGER
 import com.datadog.gradle.plugin.RepositoryInfo
 import java.io.File
-import java.lang.IllegalStateException
 import java.net.HttpURLConnection
 import java.util.concurrent.TimeUnit
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -17,7 +16,9 @@ import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import org.json.JSONObject
 
 internal class OkHttpUploader : Uploader {
 
@@ -28,8 +29,9 @@ internal class OkHttpUploader : Uploader {
     internal val client
         get() = OkHttpClient
             .Builder()
-            .callTimeout(NETWORK_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+            .callTimeout(0, TimeUnit.MILLISECONDS) // unlimited
             .writeTimeout(NETWORK_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+            .connectTimeout(NETWORK_TIMEOUT_MS, TimeUnit.MILLISECONDS)
             .build()
 
     @Suppress("TooGenericExceptionCaught")
@@ -81,17 +83,33 @@ internal class OkHttpUploader : Uploader {
                     .format(mappingFile.absolutePath)
             )
         }
+
+        val eventJson = JSONObject()
+        eventJson.put("version", identifier.version)
+        eventJson.put("service", identifier.serviceName)
+        eventJson.put("variant", identifier.variant)
+        eventJson.put("type", TYPE_JVM_MAPPING_FILE)
+
         val builder = MultipartBody.Builder()
         builder.setType(MultipartBody.FORM)
-            .addFormDataPart("version", identifier.version)
-            .addFormDataPart("service", identifier.serviceName)
-            .addFormDataPart("variant", identifier.variant)
-            .addFormDataPart("type", TYPE_JVM_MAPPING_FILE)
-            .addFormDataPart("jvm_mapping_file", mappingFile.name, mappingFileBody)
+            .addFormDataPart(
+                KEY_EVENT,
+                KEY_EVENT,
+                eventJson.toString(0).toRequestBody(MEDIA_TYPE_JSON)
+            )
+            .addFormDataPart(
+                KEY_JVM_MAPPING_FILE,
+                KEY_JVM_MAPPING,
+                mappingFileBody
+            )
 
         if (repositoryFile != null) {
             val repositoryFileBody = repositoryFile.asRequestBody(MEDIA_TYPE_JSON)
-            builder.addFormDataPart("repository", repositoryFile.name, repositoryFileBody)
+            builder.addFormDataPart(
+                KEY_REPOSITORY,
+                KEY_REPOSITORY,
+                repositoryFileBody
+            )
         }
         if (repositoryInfo != null) {
             builder.addFormDataPart("git_repository_url", repositoryInfo.url)
@@ -118,10 +136,17 @@ internal class OkHttpUploader : Uploader {
                 "Unable to upload mapping file for $identifier; " +
                     "verify that you're using a valid API Key"
             )
-            statusCode >= HttpURLConnection.HTTP_BAD_REQUEST -> throw IllegalStateException(
-                "Unable to upload mapping file for $identifier; " +
-                    "it can be because the mapping file already exist for this version"
+            statusCode == HttpURLConnection.HTTP_CLIENT_TIMEOUT -> throw RuntimeException(
+                "Unable to upload mapping file for $identifier because of a request timeout; " +
+                    "check your network connection"
             )
+            statusCode >= HttpURLConnection.HTTP_BAD_REQUEST -> {
+                throw IllegalStateException(
+                    "Unable to upload mapping file for $identifier ($statusCode); " +
+                        "it can be because the mapping file already exist for this version.\n" +
+                        "${response.body?.string()}"
+                )
+            }
         }
     }
 
@@ -136,6 +161,11 @@ internal class OkHttpUploader : Uploader {
         internal const val HEADER_EVP_ORIGIN = "DD-EVP-ORIGIN"
         internal const val HEADER_EVP_ORIGIN_VERSION = "DD-EVP-ORIGIN-VERSION"
         internal const val HEADER_REQUEST_ID = "DD-REQUEST-ID"
+
+        internal const val KEY_EVENT = "event"
+        internal const val KEY_JVM_MAPPING_FILE = "jvm_mapping_file"
+        internal const val KEY_JVM_MAPPING = "jvm_mapping"
+        internal const val KEY_REPOSITORY = "repository"
 
         internal val NETWORK_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(45)
         internal val MEDIA_TYPE_TXT = "text/plain".toMediaTypeOrNull()
