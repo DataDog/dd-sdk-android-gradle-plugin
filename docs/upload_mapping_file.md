@@ -18,7 +18,7 @@ If you have not set up the Android SDK yet, follow the [in-app setup instruction
 2. Configure your application's `env` and `variant` when [initializing the SDK][5].
 3. Run the Gradle task to upload your Proguard/R8 mapping file to Datadog in order to access deobfuscated stack traces. 
 
-For any given error, you can access to the file path, line number, as well as a code snippet for each frame of the related stack trace.
+For any given error, you can access the file path, line number, and a code snippet for each frame of the related stack trace.
 
 ## Upload your mapping file
 
@@ -35,7 +35,7 @@ For any given error, you can access to the file path, line number, as well as a 
    ```
 
 2. [Create a dedicated Datadog API key][2] and export it as an environment variable named `DD_API_KEY` (alternatively, pass it as a task property).
-3. Optionally, configure the plugin to upload files to the EU region by configuring the plugin in your Gradle script:
+3. Optionally, configure the plugin to upload files to the EU region by configuring the plugin in your `build.gradle` script:
    
    ```
    datadog {
@@ -43,7 +43,7 @@ For any given error, you can access to the file path, line number, as well as a 
    }
    ```
 
-4. Run the upload task after your obfuscated APK starts being built:
+4. Run the upload task after your obfuscated APK builds:
     
    ```bash
    ./gradlew uploadMappingRelease
