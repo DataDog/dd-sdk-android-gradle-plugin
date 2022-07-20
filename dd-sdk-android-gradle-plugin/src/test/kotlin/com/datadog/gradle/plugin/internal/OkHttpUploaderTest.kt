@@ -105,10 +105,8 @@ internal class OkHttpUploaderTest {
     }
 
     @Test
-    fun `M set client callTimeout W init()`() {
-        assertThat(testedUploader.client.callTimeoutMillis).isEqualTo(
-            OkHttpUploader.NETWORK_TIMEOUT_MS.toInt()
-        )
+    fun `M set unlimited client callTimeout W init()`() {
+        assertThat(testedUploader.client.callTimeoutMillis).isEqualTo(0)
     }
 
     @Test

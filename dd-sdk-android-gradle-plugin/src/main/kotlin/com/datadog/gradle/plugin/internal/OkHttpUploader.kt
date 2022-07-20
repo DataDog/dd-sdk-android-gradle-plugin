@@ -12,17 +12,12 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
-import okio.Buffer
 import org.json.JSONObject
 import java.io.File
-import java.io.IOException
 import java.net.HttpURLConnection
-import java.nio.charset.Charset
-import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 internal class OkHttpUploader : Uploader {
@@ -34,7 +29,7 @@ internal class OkHttpUploader : Uploader {
     internal val client
         get() = OkHttpClient
             .Builder()
-            .callTimeout(NETWORK_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+            .callTimeout(0, TimeUnit.MILLISECONDS) // unlimited
             .writeTimeout(NETWORK_TIMEOUT_MS, TimeUnit.MILLISECONDS)
             .connectTimeout(NETWORK_TIMEOUT_MS, TimeUnit.MILLISECONDS)
             .build()
