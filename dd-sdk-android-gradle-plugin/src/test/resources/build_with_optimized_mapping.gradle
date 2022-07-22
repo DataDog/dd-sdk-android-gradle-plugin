@@ -34,10 +34,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 
-    dependencies {
-        implementation("com.datadoghq:dd-sdk-android:1.14.0-beta1")
-    }
-
     flavorDimensions("version", "colour")
     productFlavors {
         demo {
@@ -58,6 +54,10 @@ android {
             dimension "colour"
         }
     }
+}
+
+dependencies {
+    implementation("com.datadoghq:dd-sdk-android:1.14.0-beta1")
 }
 
 datadog {
