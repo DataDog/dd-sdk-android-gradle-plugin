@@ -7,6 +7,7 @@
 package com.datadog.gradle.plugin
 
 import com.datadog.gradle.plugin.DdAndroidGradlePlugin.Companion.LOGGER
+import com.datadog.gradle.plugin.internal.ApiKeySource
 import com.datadog.gradle.plugin.internal.DdAppIdentifier
 import com.datadog.gradle.plugin.internal.OkHttpUploader
 import com.datadog.gradle.plugin.internal.Uploader
@@ -14,11 +15,14 @@ import java.io.File
 import javax.inject.Inject
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.json.JSONArray
+import org.json.JSONException
 import org.json.JSONObject
 
 /**
@@ -32,11 +36,18 @@ open class DdMappingFileUploadTask
     @get:Internal
     internal var uploader: Uploader = OkHttpUploader()
 
+    // TODO RUMM-2382 use Provider<String>
     /**
      * The API Key used to upload the data.
      */
-    @get: Input
+    @get:Input
     var apiKey: String = ""
+
+    /**
+     * Source of the API key set: environment, gradle property, etc.
+     */
+    @get:Input
+    var apiKeySource: ApiKeySource = ApiKeySource.NONE
 
     /**
      * The variant name of the application.
@@ -47,25 +58,25 @@ open class DdMappingFileUploadTask
     /**
      * The version name of the application.
      */
-    @get: Input
+    @get:Input
     var versionName: String = ""
 
     /**
      * The service name of the application (by default, it is your app's package name).
      */
-    @get: Input
+    @get:Input
     var serviceName: String = ""
 
     /**
      * The Datadog site to upload to (one of "US", "EU", "GOV").
      */
-    @get: Input
+    @get:Input
     var site: String = ""
 
     /**
      * The url of the remote repository where the source code was deployed.
      */
-    @get: Input
+    @get:Input
     var remoteRepositoryUrl: String = ""
 
     /**
@@ -85,6 +96,13 @@ open class DdMappingFileUploadTask
      */
     @get:Input
     var mappingFileTrimIndents: Boolean = false
+
+    /**
+     * datadog-ci.json file, if found or applicable for the particular task.
+     */
+    @Optional
+    @get:InputFile
+    var datadogCiFile: File? = null
 
     /**
      * The sourceSet root folders.
@@ -112,6 +130,9 @@ open class DdMappingFileUploadTask
      */
     @TaskAction
     fun applyTask() {
+        datadogCiFile?.let {
+            applyDatadogCiConfig(it)
+        }
         validateConfiguration()
 
         var mappingFile = File(mappingFilePath)
@@ -142,6 +163,52 @@ open class DdMappingFileUploadTask
         )
     }
 
+    private fun applyDatadogCiConfig(datadogCiFile: File) {
+        try {
+            val config = JSONObject(datadogCiFile.readText())
+            applyApiKeyFromDatadogCiConfig(config)
+            applySiteFromDatadogCiConfig(config)
+        } catch (e: JSONException) {
+            LOGGER.error("Failed to parse Datadog CI config file.", e)
+        }
+    }
+
+    private fun applyApiKeyFromDatadogCiConfig(config: JSONObject) {
+        val apiKey = config.optString(DATADOG_CI_API_KEY_PROPERTY, null)
+        if (!apiKey.isNullOrEmpty()) {
+            if (this.apiKeySource == ApiKeySource.GRADLE_PROPERTY) {
+                LOGGER.info(
+                    "API key found in Datadog CI config file, but it will be ignored," +
+                        " because also an explicit one was provided as a gradle property."
+                )
+            } else {
+                LOGGER.info("API key found in Datadog CI config file, using it.")
+                this.apiKey = apiKey
+                this.apiKeySource = ApiKeySource.DATADOG_CI_CONFIG_FILE
+            }
+        }
+    }
+
+    private fun applySiteFromDatadogCiConfig(config: JSONObject) {
+        if (this.site.isNotEmpty()) {
+            LOGGER.info(
+                "Site property found in Datadog CI config file, but it will be ignored," +
+                    " because also an explicit one was provided in extension."
+            )
+            return
+        }
+        val siteAsDomain = config.optString(DATADOG_CI_SITE_PROPERTY, null)
+        if (!siteAsDomain.isNullOrEmpty()) {
+            val site = DatadogSite.fromDomain(siteAsDomain)
+            if (site == null) {
+                LOGGER.warn("Unknown Datadog domain provided: $siteAsDomain, ignoring it.")
+            } else {
+                LOGGER.info("Site property found in Datadog CI config file, using it.")
+                this.site = site.name
+            }
+        }
+    }
+
     // endregion
 
     // region Internal
@@ -150,7 +217,8 @@ open class DdMappingFileUploadTask
     private fun validateConfiguration() {
         check(apiKey.isNotBlank()) {
             "Make sure you define an API KEY to upload your mapping files to Datadog. " +
-                "Create a DD_API_KEY environment variable or gradle property."
+                "Create a DD_API_KEY environment variable, gradle property or define it" +
+                " in datadog-ci.json file."
         }
 
         if (site.isBlank()) {
@@ -241,7 +309,7 @@ open class DdMappingFileUploadTask
         return if (isLineWithRename) {
             val parts = line.split(MAPPING_FILE_CHANGE_DELIMITER)
             if (parts.size != 2) {
-                logger.info(
+                LOGGER.info(
                     "Unexpected number of '$MAPPING_FILE_CHANGE_DELIMITER'" +
                         " (${parts.size - 1}) in the obfuscation line."
                 )
@@ -266,5 +334,8 @@ open class DdMappingFileUploadTask
         private const val MAPPING_FILE_CHANGE_DELIMITER = "->"
         private const val MAPPING_FILE_COMMENT_CHAR = '#'
         const val MAPPING_OPTIMIZED_FILE_NAME = "mapping-shrinked.txt"
+
+        private const val DATADOG_CI_API_KEY_PROPERTY = "apiKey"
+        private const val DATADOG_CI_SITE_PROPERTY = "datadogSite"
     }
 }

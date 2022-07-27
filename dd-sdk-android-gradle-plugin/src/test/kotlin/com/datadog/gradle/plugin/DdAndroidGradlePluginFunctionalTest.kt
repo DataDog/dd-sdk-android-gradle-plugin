@@ -12,6 +12,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.testkit.runner.internal.PluginUnderTestMetadataReading
+import org.json.JSONObject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -465,6 +466,53 @@ internal class DdAndroidGradlePluginFunctionalTest {
 
         val result = GradleRunner.create()
             .withProjectDir(testProjectDir)
+            .withArguments(taskName, "--info", "-PDD_API_KEY=fakekey")
+            .withPluginClasspath(getTestConfigurationClasspath())
+            .buildAndFail()
+
+        // Then
+        assertThat(result.output).contains(
+            "Uploading mapping file for " +
+                "com.example.variants.$variantVersionName:1.0-$variantVersionName " +
+                "{variant:$variant}:"
+        )
+    }
+
+    @Test
+    fun `M try to upload the mapping file W upload { datadog-ci file, parent dir }`(forge: Forge) {
+        // Given
+        stubGradleBuildFromResourceFile(
+            "build_with_datadog_dep.gradle",
+            appBuildGradleFile
+        )
+        val color = forge.anElementFrom(colors)
+        val version = forge.anElementFrom(versions)
+        val variantVersionName = version.lowercase()
+        val variant = "${version.lowercase()}$color"
+        val taskName = resolveUploadTask(variant)
+
+        val datadogCiFile = File(testProjectDir.parent, "datadog-ci.json")
+        datadogCiFile.createNewFile()
+
+        datadogCiFile.writeText(
+            JSONObject().apply {
+                put("apiKey", "someKey")
+                put("datadogSite", "datadoghq.eu")
+            }.toString()
+        )
+
+        // When
+        // since there is no explicit dependency between assemble and upload tasks, Gradle may
+        // optimize the execution and run them in parallel, ignoring the order in the command
+        // line, so we do the explicit split
+        GradleRunner.create()
+            .withProjectDir(testProjectDir)
+            .withArguments(":samples:app:assembleRelease")
+            .withPluginClasspath(getTestConfigurationClasspath())
+            .build()
+
+        val result = GradleRunner.create()
+            .withProjectDir(testProjectDir)
             .withArguments(taskName, "--info")
             .withPluginClasspath(getTestConfigurationClasspath())
             .buildAndFail()
@@ -475,6 +523,11 @@ internal class DdAndroidGradlePluginFunctionalTest {
                 "com.example.variants.$variantVersionName:1.0-$variantVersionName " +
                 "{variant:$variant}:"
         )
+        assertThat(result.output).contains("API key found in Datadog CI config file, using it.")
+        assertThat(result.output)
+            .contains("Site property found in Datadog CI config file, using it.")
+
+        datadogCiFile.delete()
     }
 
     @Test
@@ -499,7 +552,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
 
         val result = GradleRunner.create()
             .withProjectDir(testProjectDir)
-            .withArguments(taskName, "--info")
+            .withArguments(taskName, "--info", "-PDD_API_KEY=fakekey")
             .withPluginClasspath(getTestConfigurationClasspath())
             .buildAndFail()
 
@@ -537,7 +590,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
 
         val result = GradleRunner.create()
             .withProjectDir(testProjectDir)
-            .withArguments(taskName, "--info")
+            .withArguments(taskName, "--info", "-PDD_API_KEY=fakekey")
             .withPluginClasspath(getTestConfigurationClasspath())
             .buildAndFail()
 
@@ -582,7 +635,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
 
         val result = GradleRunner.create()
             .withProjectDir(testProjectDir)
-            .withArguments(taskName, "--info")
+            .withArguments(taskName, "--info", "-PDD_API_KEY=fakekey")
             .withPluginClasspath(getTestConfigurationClasspath())
             .buildAndFail()
 
@@ -722,7 +775,6 @@ internal class DdAndroidGradlePluginFunctionalTest {
         val GRADLE_PROPERTIES_FILE_CONTENT = """
            org.gradle.jvmargs=-Xmx2560m -XX:MaxPermSize=1024m
            android.useAndroidX=true
-           DD_API_KEY=fakekey
         """.trimIndent()
     }
 }

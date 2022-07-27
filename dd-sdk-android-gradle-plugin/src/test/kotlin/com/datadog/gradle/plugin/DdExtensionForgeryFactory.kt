@@ -36,6 +36,7 @@ internal class DdExtensionForgeryFactory : ForgeryFactory<DdExtension> {
                     forge.anAlphabeticalString()
             }
             mappingFileTrimIndents = forge.aBool()
+            ignoreDatadogCiFileConfig = forge.aBool()
         }
     }
 }
