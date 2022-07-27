@@ -706,7 +706,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
                             useModule("com.android.tools.build:gradle:7.1.2")
                         }
                         if (requested.id.id == "kotlin-android") {
-                            useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.21")
+                            useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.10")
                         }
                     }
                 }
