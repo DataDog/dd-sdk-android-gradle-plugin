@@ -41,9 +41,10 @@ open class DdExtensionConfiguration(
 
     /**
      * This property controls if plugin should check if Datadog SDK is included in the dependencies
-     * and if it is not: "none" - ignore, "warn" - log a warning, "fail" - fail the build
-     * with an error (default).
+     * and if it is not: "none" - ignore (default), "warn" - log a warning, "fail" - fail the build
+     * with an error.
      */
+    // TODO RUMM-2344
     var checkProjectDependencies: SdkCheckLevel? = null
 
     /**

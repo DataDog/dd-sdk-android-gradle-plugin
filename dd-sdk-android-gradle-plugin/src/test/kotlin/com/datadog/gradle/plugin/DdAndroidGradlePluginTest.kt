@@ -754,8 +754,9 @@ internal class DdAndroidGradlePluginTest {
 
     // region configureVariantForSdkCheck
 
+    // TODO RUMM-2344 switch back to FAIL
     @Test
-    fun `𝕄 use FAIL when configuring checkDepsTask { checkProjectDependencies not set }`(
+    fun `𝕄 use NONE when configuring checkDepsTask { checkProjectDependencies not set }`(
         @StringForgery(case = Case.LOWER) flavorName: String,
         @StringForgery(case = Case.LOWER) buildTypeName: String,
         @StringForgery versionName: String,
@@ -786,15 +787,7 @@ internal class DdAndroidGradlePluginTest {
             fakeExtension
         )
 
-        val task = checkSdkDepsTaskProvider?.get()
-
-        assertThat(task).isNotNull()
-        assertThat(task?.sdkCheckLevel?.get())
-            .isEqualTo(SdkCheckLevel.FAIL)
-        assertThat(task?.configurationName?.get())
-            .isEqualTo(configurationName)
-        assertThat(task?.variantName?.get())
-            .isEqualTo(variantName)
+        assertThat(checkSdkDepsTaskProvider).isNull()
     }
 
     @Test

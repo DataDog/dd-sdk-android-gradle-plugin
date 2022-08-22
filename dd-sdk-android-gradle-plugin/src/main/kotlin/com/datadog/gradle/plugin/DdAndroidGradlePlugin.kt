@@ -139,7 +139,9 @@ class DdAndroidGradlePlugin @Inject constructor(
                 extension,
                 variant
             )
-            if (extensionConfiguration.checkProjectDependencies == SdkCheckLevel.NONE) {
+            if (extensionConfiguration.checkProjectDependencies == SdkCheckLevel.NONE ||
+                extensionConfiguration.checkProjectDependencies == null
+            ) {
                 return null
             }
             val checkDepsTaskName = "checkSdkDeps${variant.name.capitalize()}"

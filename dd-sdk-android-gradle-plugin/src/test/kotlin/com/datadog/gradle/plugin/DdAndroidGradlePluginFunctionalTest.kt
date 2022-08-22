@@ -18,8 +18,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.testkit.runner.internal.PluginUnderTestMetadataReading
-import org.junit.Ignore
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.extension.Extensions
@@ -207,13 +207,14 @@ internal class DdAndroidGradlePluginFunctionalTest {
             .isEqualTo(TaskOutcome.SUCCESS)
     }
 
-    @Ignore(
+    @Disabled(
         "This test is ignored for now because of these tasks: " +
             "collect[Flavour1][Flavour2]ReleaseDependencies. This is caused under the hood" +
             "by this task: PerModuleReportDependenciesTask which accesses the project object" +
             "inside the action method. " +
             "There is already an opened issue here: https://github.com/gradle/gradle/issues/12871"
     )
+    @Test
     fun `M success W assembleRelease { configuration cache, checkProjectDependencies enabled }`() {
         // TODO: https://datadoghq.atlassian.net/browse/RUMM-1894
 
@@ -235,12 +236,13 @@ internal class DdAndroidGradlePluginFunctionalTest {
             .isEqualTo(TaskOutcome.SUCCESS)
     }
 
-    @Ignore(
+    @Disabled(
         "This test is ignored for now as we are using the Configuration object at the " +
             "task action level in our DdCheckSdkDepsTask and this is breaking " +
             "the --configuration-cache. There is no workaround this yet and this is " +
             "also present in some internal build.gradle tasks (see the test comment above)"
     )
+    @Test
     fun `M success W assembleDebug { configuration cache, checkProjectDependencies enabled }`() {
         // TODO: https://datadoghq.atlassian.net/browse/RUMM-1893
 
@@ -283,13 +285,14 @@ internal class DdAndroidGradlePluginFunctionalTest {
             .isEqualTo(TaskOutcome.SUCCESS)
     }
 
-    @Ignore(
+    @Disabled(
         "This test is ignored for now because of these tasks: " +
             "collect[Flavour1][Flavour2]ReleaseDependencies. This is caused under the hood" +
             "by this task: PerModuleReportDependenciesTask which accesses the project object" +
             "inside the action method. " +
             "There is already an opened issue here: https://github.com/gradle/gradle/issues/12871"
     )
+    @Test
     fun `M success W assembleRelease { configuration cache, checkDependencies disabled  }`() {
         // TODO: https://datadoghq.atlassian.net/browse/RUMM-1894
 
@@ -363,6 +366,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         }
     }
 
+    @Disabled("RUMM-2344")
     @Test
     fun `M fail W assembleRelease { Datadog SDK not in deps }`() {
         // Given
@@ -379,6 +383,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
             .buildAndFail()
     }
 
+    @Disabled("RUMM-2344")
     @Test
     fun `M fail W assembleDebug { Datadog SDK not in deps }`() {
         // Given
@@ -393,6 +398,48 @@ internal class DdAndroidGradlePluginFunctionalTest {
             .withArguments(":samples:app:assembleDebug")
             .withPluginClasspath(getTestConfigurationClasspath())
             .buildAndFail()
+    }
+
+    // TODO remove once RUMM-2344 is done
+    @Test
+    fun `M success W assembleRelease { Datadog SDK not in deps }`() {
+        // Given
+        stubGradleBuildFromResourceFile(
+            "build_without_datadog_dep.gradle",
+            appBuildGradleFile
+        )
+
+        // When
+        val result = GradleRunner.create()
+            .withProjectDir(testProjectDir)
+            .withArguments(":samples:app:assembleRelease")
+            .withPluginClasspath(getTestConfigurationClasspath())
+            .build()
+
+        // Then
+        assertThat(result.task(":samples:app:assembleRelease")?.outcome)
+            .isEqualTo(TaskOutcome.SUCCESS)
+    }
+
+    // TODO remove once RUMM-2344 is done
+    @Test
+    fun `M success W assembleDebug { Datadog SDK not in deps }`() {
+        // Given
+        stubGradleBuildFromResourceFile(
+            "build_without_datadog_dep.gradle",
+            appBuildGradleFile
+        )
+
+        // When
+        val result = GradleRunner.create()
+            .withProjectDir(testProjectDir)
+            .withArguments(":samples:app:assembleDebug")
+            .withPluginClasspath(getTestConfigurationClasspath())
+            .build()
+
+        // Then
+        assertThat(result.task(":samples:app:assembleDebug")?.outcome)
+            .isEqualTo(TaskOutcome.SUCCESS)
     }
 
     // endregion
