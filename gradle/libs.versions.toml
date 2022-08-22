@@ -1,6 +1,6 @@
 [versions]
 # Commons
-kotlin = "1.5.21"
+kotlin = "1.6.10"
 json = "20180813"
 okHttp = "4.9.3"
 
