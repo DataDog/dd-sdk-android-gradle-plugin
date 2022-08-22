@@ -81,6 +81,11 @@ open class DdExtensionConfiguration(
      */
     var mappingFileTrimIndents: Boolean = false
 
+    /**
+     * Ignore the config declared in `datadog-ci.json` file if found.
+     */
+    var ignoreDatadogCiFileConfig: Boolean = false
+
     internal fun updateWith(config: DdExtensionConfiguration) {
         config.versionName?.let { versionName = it }
         config.serviceName?.let { serviceName = it }
@@ -90,5 +95,6 @@ open class DdExtensionConfiguration(
         config.mappingFilePath?.let { mappingFilePath = it }
         mappingFilePackageAliases = config.mappingFilePackageAliases
         mappingFileTrimIndents = config.mappingFileTrimIndents
+        ignoreDatadogCiFileConfig = config.ignoreDatadogCiFileConfig
     }
 }

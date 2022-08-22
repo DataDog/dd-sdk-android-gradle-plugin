@@ -9,6 +9,8 @@ package com.datadog.gradle.plugin
 import com.android.build.gradle.api.ApplicationVariant
 import com.android.builder.model.BuildType
 import com.android.builder.model.ProductFlavor
+import com.datadog.gradle.plugin.internal.ApiKey
+import com.datadog.gradle.plugin.internal.ApiKeySource
 import com.datadog.gradle.plugin.internal.GitRepositoryDetector
 import com.datadog.gradle.plugin.utils.capitalizeChar
 import com.nhaarman.mockitokotlin2.doReturn
@@ -24,6 +26,7 @@ import fr.xgouchet.elmyr.annotation.StringForgery
 import fr.xgouchet.elmyr.annotation.StringForgeryType
 import fr.xgouchet.elmyr.junit5.ForgeConfiguration
 import fr.xgouchet.elmyr.junit5.ForgeExtension
+import java.io.File
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -58,8 +61,7 @@ internal class DdAndroidGradlePluginTest {
     @Forgery
     lateinit var fakeExtension: DdExtension
 
-    @StringForgery(StringForgeryType.HEXADECIMAL)
-    lateinit var fakeApiKey: String
+    lateinit var fakeApiKey: ApiKey
 
     @StringForgery(case = Case.LOWER)
     lateinit var fakeFlavorNames: List<String>
@@ -68,7 +70,11 @@ internal class DdAndroidGradlePluginTest {
     lateinit var fakeBuildTypeName: String
 
     @BeforeEach
-    fun `set up`() {
+    fun `set up`(forge: Forge) {
+        fakeApiKey = ApiKey(
+            value = forge.anHexadecimalString(),
+            source = forge.aValueFrom(ApiKeySource::class.java)
+        )
         fakeFlavorNames = fakeFlavorNames.take(5) // A D F G A♭ A A♭ G F
         fakeProject = ProjectBuilder.builder().build()
         testedPlugin = DdAndroidGradlePlugin(mock())
@@ -110,7 +116,8 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.name).isEqualTo(
             "uploadMapping${variantName.replaceFirstChar { capitalizeChar(it) }}"
         )
-        assertThat(task.apiKey).isEqualTo(fakeApiKey)
+        assertThat(task.apiKey).isEqualTo(fakeApiKey.value)
+        assertThat(task.apiKeySource).isEqualTo(fakeApiKey.source)
         assertThat(task.variantName).isEqualTo(flavorName)
         assertThat(task.versionName).isEqualTo(versionName)
         assertThat(task.serviceName).isEqualTo(packageName)
@@ -119,6 +126,7 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.mappingFilePath).isEqualTo(fakeExtension.mappingFilePath)
         assertThat(task.mappingFilePackagesAliases)
             .isEqualTo(fakeExtension.mappingFilePackageAliases)
+        assertThat(task.datadogCiFile).isNull()
     }
 
     @Test
@@ -152,7 +160,8 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.name).isEqualTo(
             "uploadMapping${variantName.replaceFirstChar { capitalizeChar(it) }}"
         )
-        assertThat(task.apiKey).isEqualTo(fakeApiKey)
+        assertThat(task.apiKey).isEqualTo(fakeApiKey.value)
+        assertThat(task.apiKeySource).isEqualTo(fakeApiKey.source)
         assertThat(task.variantName).isEqualTo(flavorName)
         assertThat(task.versionName).isEqualTo(fakeExtension.versionName)
         assertThat(task.serviceName).isEqualTo(fakeExtension.serviceName)
@@ -163,6 +172,7 @@ internal class DdAndroidGradlePluginTest {
             .isEqualTo(fakeExtension.mappingFilePackageAliases)
         assertThat(task.mappingFileTrimIndents)
             .isEqualTo(fakeExtension.mappingFileTrimIndents)
+        assertThat(task.datadogCiFile).isNull()
     }
 
     @Test
@@ -206,7 +216,8 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.name).isEqualTo(
             "uploadMapping${variantName.replaceFirstChar { capitalizeChar(it) }}"
         )
-        assertThat(task.apiKey).isEqualTo(fakeApiKey)
+        assertThat(task.apiKey).isEqualTo(fakeApiKey.value)
+        assertThat(task.apiKeySource).isEqualTo(fakeApiKey.source)
         assertThat(task.variantName).isEqualTo(flavorName)
         assertThat(task.versionName).isEqualTo(fakeExtension.versionName)
         assertThat(task.serviceName).isEqualTo(fakeExtension.serviceName)
@@ -217,6 +228,7 @@ internal class DdAndroidGradlePluginTest {
             .isEqualTo(fakeExtension.mappingFilePackageAliases.minus(aliasToFilterOut.first))
         assertThat(task.mappingFileTrimIndents)
             .isEqualTo(fakeExtension.mappingFileTrimIndents)
+        assertThat(task.datadogCiFile).isNull()
     }
 
     @Test
@@ -257,7 +269,8 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.name).isEqualTo(
             "uploadMapping${variantName.replaceFirstChar { capitalizeChar(it) }}"
         )
-        assertThat(task.apiKey).isEqualTo(fakeApiKey)
+        assertThat(task.apiKey).isEqualTo(fakeApiKey.value)
+        assertThat(task.apiKeySource).isEqualTo(fakeApiKey.source)
         assertThat(task.variantName).isEqualTo(flavorName)
         assertThat(task.versionName).isEqualTo(versionName)
         assertThat(task.serviceName).isEqualTo(packageName)
@@ -267,6 +280,119 @@ internal class DdAndroidGradlePluginTest {
             .isEqualTo("${fakeProject.buildDir}/outputs/mapping/$variantName/mapping.txt")
         assertThat(task.mappingFilePackagesAliases).isEmpty()
         assertThat(task.mappingFileTrimIndents).isFalse
+        assertThat(task.datadogCiFile).isNull()
+    }
+
+    @Test
+    fun `𝕄 apply datadog CI file 𝕎 configureVariant()`(
+        @StringForgery(case = Case.LOWER) flavorName: String,
+        @StringForgery(case = Case.LOWER) buildTypeName: String,
+        @StringForgery versionName: String,
+        @StringForgery packageName: String
+    ) {
+        // Given
+        fakeExtension.serviceName = null
+        fakeExtension.versionName = null
+        fakeExtension.site = null
+        fakeExtension.remoteRepositoryUrl = null
+        fakeExtension.mappingFilePath = null
+        fakeExtension.mappingFilePackageAliases = emptyMap()
+        fakeExtension.mappingFileTrimIndents = false
+        fakeExtension.ignoreDatadogCiFileConfig = false
+        val variantName = "$flavorName${buildTypeName.replaceFirstChar { capitalizeChar(it) }}"
+        whenever(mockVariant.name) doReturn variantName
+        whenever(mockVariant.flavorName) doReturn flavorName
+        whenever(mockVariant.versionName) doReturn versionName
+        whenever(mockVariant.applicationId) doReturn packageName
+        whenever(mockVariant.buildType) doReturn mockBuildType
+        whenever(mockBuildType.isMinifyEnabled) doReturn true
+        whenever(mockBuildType.name) doReturn fakeBuildTypeName
+
+        val fakeDatadogCiFile = File(fakeProject.projectDir, "datadog-ci.json")
+        fakeDatadogCiFile.createNewFile()
+
+        // When
+        val task = testedPlugin.configureVariantForUploadTask(
+            fakeProject,
+            mockVariant,
+            fakeApiKey,
+            fakeExtension
+        )
+
+        // Then
+        check(task is DdMappingFileUploadTask)
+        assertThat(task.repositoryDetector).isInstanceOf(GitRepositoryDetector::class.java)
+        assertThat(task.name).isEqualTo(
+            "uploadMapping${variantName.replaceFirstChar { capitalizeChar(it) }}"
+        )
+        assertThat(task.apiKey).isEqualTo(fakeApiKey.value)
+        assertThat(task.apiKeySource).isEqualTo(fakeApiKey.source)
+        assertThat(task.variantName).isEqualTo(flavorName)
+        assertThat(task.versionName).isEqualTo(versionName)
+        assertThat(task.serviceName).isEqualTo(packageName)
+        assertThat(task.remoteRepositoryUrl).isEmpty()
+        assertThat(task.site).isEqualTo("")
+        assertThat(task.mappingFilePath)
+            .isEqualTo("${fakeProject.buildDir}/outputs/mapping/$variantName/mapping.txt")
+        assertThat(task.mappingFilePackagesAliases).isEmpty()
+        assertThat(task.mappingFileTrimIndents).isFalse
+        assertThat(task.datadogCiFile).isEqualTo(fakeDatadogCiFile)
+    }
+
+    @Test
+    fun `𝕄 not apply datadog CI file 𝕎 configureVariant() { ignoreDatadogCiFileConfig }`(
+        @StringForgery(case = Case.LOWER) flavorName: String,
+        @StringForgery(case = Case.LOWER) buildTypeName: String,
+        @StringForgery versionName: String,
+        @StringForgery packageName: String
+    ) {
+        // Given
+        fakeExtension.serviceName = null
+        fakeExtension.versionName = null
+        fakeExtension.site = null
+        fakeExtension.remoteRepositoryUrl = null
+        fakeExtension.mappingFilePath = null
+        fakeExtension.mappingFilePackageAliases = emptyMap()
+        fakeExtension.mappingFileTrimIndents = false
+        fakeExtension.ignoreDatadogCiFileConfig = true
+        val variantName = "$flavorName${buildTypeName.replaceFirstChar { capitalizeChar(it) }}"
+        whenever(mockVariant.name) doReturn variantName
+        whenever(mockVariant.flavorName) doReturn flavorName
+        whenever(mockVariant.versionName) doReturn versionName
+        whenever(mockVariant.applicationId) doReturn packageName
+        whenever(mockVariant.buildType) doReturn mockBuildType
+        whenever(mockBuildType.isMinifyEnabled) doReturn true
+        whenever(mockBuildType.name) doReturn fakeBuildTypeName
+
+        val fakeDatadogCiFile = File(fakeProject.projectDir, "datadog-ci.json")
+        fakeDatadogCiFile.createNewFile()
+
+        // When
+        val task = testedPlugin.configureVariantForUploadTask(
+            fakeProject,
+            mockVariant,
+            fakeApiKey,
+            fakeExtension
+        )
+
+        // Then
+        check(task is DdMappingFileUploadTask)
+        assertThat(task.repositoryDetector).isInstanceOf(GitRepositoryDetector::class.java)
+        assertThat(task.name).isEqualTo(
+            "uploadMapping${variantName.replaceFirstChar { capitalizeChar(it) }}"
+        )
+        assertThat(task.apiKey).isEqualTo(fakeApiKey.value)
+        assertThat(task.apiKeySource).isEqualTo(fakeApiKey.source)
+        assertThat(task.variantName).isEqualTo(flavorName)
+        assertThat(task.versionName).isEqualTo(versionName)
+        assertThat(task.serviceName).isEqualTo(packageName)
+        assertThat(task.remoteRepositoryUrl).isEmpty()
+        assertThat(task.site).isEqualTo("")
+        assertThat(task.mappingFilePath)
+            .isEqualTo("${fakeProject.buildDir}/outputs/mapping/$variantName/mapping.txt")
+        assertThat(task.mappingFilePackagesAliases).isEmpty()
+        assertThat(task.mappingFileTrimIndents).isFalse
+        assertThat(task.datadogCiFile).isNull()
     }
 
     @Test
@@ -336,25 +462,28 @@ internal class DdAndroidGradlePluginTest {
     fun `𝕄 resolve API KEY from project properties 𝕎 resolveApiKey()`() {
         // Given
         fakeProject = mock()
-        whenever(fakeProject.findProperty(DdAndroidGradlePlugin.DD_API_KEY)) doReturn fakeApiKey
+        whenever(fakeProject.findProperty(DdAndroidGradlePlugin.DD_API_KEY)) doReturn
+            fakeApiKey.value
 
         // When
         val apiKey = testedPlugin.resolveApiKey(fakeProject)
 
         // Then
-        assertThat(apiKey).isEqualTo(fakeApiKey)
+        assertThat(apiKey.value).isEqualTo(fakeApiKey.value)
+        assertThat(apiKey.source).isEqualTo(ApiKeySource.GRADLE_PROPERTY)
     }
 
     @Test
     fun `𝕄 resolve API KEY from environment variable 𝕎 resolveApiKey()`() {
         // Given
-        setEnv(DdAndroidGradlePlugin.DD_API_KEY, fakeApiKey)
+        setEnv(DdAndroidGradlePlugin.DD_API_KEY, fakeApiKey.value)
 
         // When
         val apiKey = testedPlugin.resolveApiKey(fakeProject)
 
         // Then
-        assertThat(apiKey).isEqualTo(fakeApiKey)
+        assertThat(apiKey.value).isEqualTo(fakeApiKey.value)
+        assertThat(apiKey.source).isEqualTo(ApiKeySource.ENVIRONMENT)
     }
 
     @Test
@@ -363,7 +492,7 @@ internal class DdAndroidGradlePluginTest {
         val apiKey = testedPlugin.resolveApiKey(fakeProject)
 
         // Then
-        assertThat(apiKey).isEmpty()
+        assertThat(apiKey).isEqualTo(ApiKey.NONE)
     }
 
     // endregion
@@ -388,6 +517,8 @@ internal class DdAndroidGradlePluginTest {
             .isEqualTo(fakeExtension.mappingFilePackageAliases)
         assertThat(config.mappingFileTrimIndents)
             .isEqualTo(fakeExtension.mappingFileTrimIndents)
+        assertThat(config.ignoreDatadogCiFileConfig)
+            .isEqualTo(fakeExtension.ignoreDatadogCiFileConfig)
     }
 
     @Test
@@ -413,6 +544,8 @@ internal class DdAndroidGradlePluginTest {
             .isEqualTo(variantConfig.mappingFilePackageAliases)
         assertThat(config.mappingFileTrimIndents)
             .isEqualTo(variantConfig.mappingFileTrimIndents)
+        assertThat(config.ignoreDatadogCiFileConfig)
+            .isEqualTo(variantConfig.ignoreDatadogCiFileConfig)
     }
 
     @Test
@@ -439,6 +572,7 @@ internal class DdAndroidGradlePluginTest {
         assertThat(config.mappingFilePath).isEqualTo(fakeExtension.mappingFilePath)
         assertThat(config.mappingFilePackageAliases).isEmpty()
         assertThat(config.mappingFileTrimIndents).isFalse
+        assertThat(config.ignoreDatadogCiFileConfig).isFalse
     }
 
     @Test
@@ -465,6 +599,7 @@ internal class DdAndroidGradlePluginTest {
             .isEqualTo(fakeExtension.checkProjectDependencies)
         assertThat(config.mappingFilePackageAliases).isEmpty()
         assertThat(config.mappingFileTrimIndents).isFalse
+        assertThat(config.ignoreDatadogCiFileConfig).isFalse
     }
 
     @Test
@@ -491,6 +626,7 @@ internal class DdAndroidGradlePluginTest {
             .isEqualTo(fakeExtension.checkProjectDependencies)
         assertThat(config.mappingFilePackageAliases).isEmpty()
         assertThat(config.mappingFileTrimIndents).isFalse
+        assertThat(config.ignoreDatadogCiFileConfig).isFalse
     }
 
     @Test
@@ -523,6 +659,7 @@ internal class DdAndroidGradlePluginTest {
         assertThat(config.mappingFilePackageAliases)
             .isEqualTo(mappingFilePackageAliases)
         assertThat(config.mappingFileTrimIndents).isFalse
+        assertThat(config.ignoreDatadogCiFileConfig).isFalse
     }
 
     @Test
@@ -551,6 +688,7 @@ internal class DdAndroidGradlePluginTest {
             .isEmpty()
         assertThat(config.mappingFileTrimIndents)
             .isEqualTo(mappingFileTrimIndents)
+        assertThat(config.ignoreDatadogCiFileConfig).isFalse
     }
 
     @Test
@@ -578,6 +716,7 @@ internal class DdAndroidGradlePluginTest {
         )
         assertThat(config.mappingFilePackageAliases).isEmpty()
         assertThat(config.mappingFileTrimIndents).isFalse
+        assertThat(config.ignoreDatadogCiFileConfig).isFalse
     }
 
     @Test
@@ -603,6 +742,7 @@ internal class DdAndroidGradlePluginTest {
         assertThat(config.checkProjectDependencies).isEqualTo(sdkCheckLevel)
         assertThat(config.mappingFilePackageAliases).isEmpty()
         assertThat(config.mappingFileTrimIndents).isFalse
+        assertThat(config.ignoreDatadogCiFileConfig).isFalse
     }
 
     @Test
@@ -630,6 +770,36 @@ internal class DdAndroidGradlePluginTest {
         assertThat(config.mappingFilePath).isEqualTo(fakeExtension.mappingFilePath)
         assertThat(config.mappingFilePackageAliases).isEmpty()
         assertThat(config.mappingFileTrimIndents).isFalse
+        assertThat(config.ignoreDatadogCiFileConfig).isFalse
+    }
+
+    @Test
+    fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { variant + ignoreDdConfig }`(
+        @Forgery fakeConfig: DdExtensionConfiguration
+    ) {
+        val variantName = fakeFlavorNames.variantName()
+        mockVariant.mockFlavors(fakeFlavorNames, fakeBuildTypeName)
+        val incompleteConfig = DdExtensionConfiguration().apply {
+            this.ignoreDatadogCiFileConfig = fakeConfig.ignoreDatadogCiFileConfig
+        }
+        whenever(fakeExtension.variants.findByName(variantName)) doReturn incompleteConfig
+
+        // When
+        val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, mockVariant)
+
+        // Then
+        assertThat(config.versionName).isEqualTo(fakeExtension.versionName)
+        assertThat(config.serviceName).isEqualTo(fakeExtension.serviceName)
+        assertThat(config.site).isEqualTo(fakeExtension.site)
+        assertThat(config.remoteRepositoryUrl).isEqualTo(fakeExtension.remoteRepositoryUrl)
+        assertThat(config.checkProjectDependencies).isEqualTo(
+            fakeExtension.checkProjectDependencies
+        )
+        assertThat(config.mappingFilePath).isEqualTo(fakeExtension.mappingFilePath)
+        assertThat(config.mappingFilePackageAliases).isEmpty()
+        assertThat(config.mappingFileTrimIndents).isFalse
+        assertThat(config.ignoreDatadogCiFileConfig)
+            .isEqualTo(incompleteConfig.ignoreDatadogCiFileConfig)
     }
 
     @Test
@@ -671,6 +841,8 @@ internal class DdAndroidGradlePluginTest {
             .isEqualTo(variantConfigA.mappingFilePackageAliases)
         assertThat(config.mappingFileTrimIndents)
             .isEqualTo(variantConfigA.mappingFileTrimIndents)
+        assertThat(config.ignoreDatadogCiFileConfig)
+            .isEqualTo(variantConfigA.ignoreDatadogCiFileConfig)
     }
 
     @Test
@@ -722,6 +894,8 @@ internal class DdAndroidGradlePluginTest {
             .isEqualTo(variantConfigAB.mappingFilePackageAliases)
         assertThat(config.mappingFileTrimIndents)
             .isEqualTo(variantConfigAB.mappingFileTrimIndents)
+        assertThat(config.ignoreDatadogCiFileConfig)
+            .isEqualTo(variantConfigAB.ignoreDatadogCiFileConfig)
     }
 
     @Test
@@ -748,6 +922,8 @@ internal class DdAndroidGradlePluginTest {
             .isEqualTo(configuration.mappingFilePackageAliases)
         assertThat(config.mappingFileTrimIndents)
             .isEqualTo(configuration.mappingFileTrimIndents)
+        assertThat(config.ignoreDatadogCiFileConfig)
+            .isEqualTo(configuration.ignoreDatadogCiFileConfig)
     }
 
     // endregion

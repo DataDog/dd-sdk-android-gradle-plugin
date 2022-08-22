@@ -8,6 +8,8 @@ package com.datadog.gradle.plugin
 
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.api.ApplicationVariant
+import com.datadog.gradle.plugin.internal.ApiKey
+import com.datadog.gradle.plugin.internal.ApiKeySource
 import com.datadog.gradle.plugin.internal.GitRepositoryDetector
 import com.datadog.gradle.plugin.internal.VariantIterator
 import java.io.File
@@ -24,7 +26,7 @@ import org.slf4j.LoggerFactory
  * Plugin adding tasks for Android projects using Datadog's SDK for Android.
  */
 class DdAndroidGradlePlugin @Inject constructor(
-    @Suppress("UnstableApiUsage") private val execOps: ExecOperations
+    private val execOps: ExecOperations
 ) : Plugin<Project> {
 
     // region Plugin
@@ -52,21 +54,22 @@ class DdAndroidGradlePlugin @Inject constructor(
 
     // region Internal
 
-    internal fun resolveApiKey(target: Project): String {
+    // TODO RUMM-2382 use ProviderFactory/Provider APIs to watch changes in external environment
+    internal fun resolveApiKey(target: Project): ApiKey {
         val propertyKey = target.findProperty(DD_API_KEY)?.toString()
-        if (!propertyKey.isNullOrBlank()) return propertyKey
+        if (!propertyKey.isNullOrBlank()) return ApiKey(propertyKey, ApiKeySource.GRADLE_PROPERTY)
 
         val environmentKey = System.getenv(DD_API_KEY)
-        if (!environmentKey.isNullOrBlank()) return environmentKey
+        if (!environmentKey.isNullOrBlank()) return ApiKey(environmentKey, ApiKeySource.ENVIRONMENT)
 
-        return ""
+        return ApiKey.NONE
     }
 
     @Suppress("DefaultLocale")
     internal fun configureVariantForUploadTask(
         target: Project,
         variant: ApplicationVariant,
-        apiKey: String,
+        apiKey: ApiKey,
         extension: DdExtension
     ): Task? {
         if (!variant.buildType.isMinifyEnabled) {
@@ -81,6 +84,7 @@ class DdAndroidGradlePlugin @Inject constructor(
 
         val flavorName = variant.flavorName
         val uploadTaskName = UPLOAD_TASK_NAME + variant.name.capitalize()
+        // TODO RUMM-2382 use tasks.register
         val uploadTask = target.tasks.create(
             uploadTaskName,
             DdMappingFileUploadTask::class.java,
@@ -99,6 +103,9 @@ class DdAndroidGradlePlugin @Inject constructor(
                 variant.applicationId
             )
         uploadTask.mappingFileTrimIndents = extensionConfiguration.mappingFileTrimIndents
+        if (!extensionConfiguration.ignoreDatadogCiFileConfig) {
+            uploadTask.datadogCiFile = findDatadogCiFile(target.projectDir)
+        }
 
         val reportsDir = File(outputsDir, "reports")
         val datadogDir = File(reportsDir, "datadog")
@@ -215,12 +222,13 @@ class DdAndroidGradlePlugin @Inject constructor(
 
     private fun configureVariantTask(
         uploadTask: DdMappingFileUploadTask,
-        apiKey: String,
+        apiKey: ApiKey,
         flavorName: String,
         extensionConfiguration: DdExtensionConfiguration,
         variant: ApplicationVariant
     ) {
-        uploadTask.apiKey = apiKey
+        uploadTask.apiKey = apiKey.value
+        uploadTask.apiKeySource = apiKey.source
         uploadTask.variantName = flavorName
 
         uploadTask.site = extensionConfiguration.site ?: ""
@@ -248,6 +256,21 @@ class DdAndroidGradlePlugin @Inject constructor(
         return configuration
     }
 
+    private fun findDatadogCiFile(projectDir: File): File? {
+        var currentDir = projectDir
+        var levelsUp = 0
+        @Suppress("SENSELESS_COMPARISON") // parentFile can return null, Kotlin is wrong here
+        while (currentDir != null && levelsUp < MAX_DATADOG_CI_FILE_LOOKUP_LEVELS) {
+            val datadogCiFile = File(currentDir, "datadog-ci.json")
+            if (datadogCiFile.exists()) {
+                return datadogCiFile
+            }
+            currentDir = currentDir.parentFile
+            levelsUp++
+        }
+        return null
+    }
+
     // endregion
 
     companion object {
@@ -262,5 +285,7 @@ class DdAndroidGradlePlugin @Inject constructor(
 
         private const val ERROR_NOT_ANDROID = "The dd-android-gradle-plugin has been applied on " +
             "a non android application project"
+
+        private const val MAX_DATADOG_CI_FILE_LOOKUP_LEVELS = 4
     }
 }

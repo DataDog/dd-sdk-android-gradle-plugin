@@ -6,6 +6,8 @@
 
 package com.datadog.gradle.plugin
 
+import com.datadog.gradle.plugin.internal.ApiKey
+import com.datadog.gradle.plugin.internal.ApiKeySource
 import com.datadog.gradle.plugin.internal.DdAppIdentifier
 import com.datadog.gradle.plugin.internal.Uploader
 import com.nhaarman.mockitokotlin2.any
@@ -18,12 +20,13 @@ import com.nhaarman.mockitokotlin2.whenever
 import fr.xgouchet.elmyr.Forge
 import fr.xgouchet.elmyr.annotation.Forgery
 import fr.xgouchet.elmyr.annotation.StringForgery
-import fr.xgouchet.elmyr.annotation.StringForgeryType
 import fr.xgouchet.elmyr.junit5.ForgeConfiguration
 import fr.xgouchet.elmyr.junit5.ForgeExtension
 import java.io.File
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testfixtures.ProjectBuilder
+import org.json.JSONArray
+import org.json.JSONObject
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -64,8 +67,7 @@ internal class DdMappingFileUploadTaskTest {
     @StringForgery
     lateinit var fakeService: String
 
-    @StringForgery(StringForgeryType.HEXADECIMAL)
-    lateinit var fakeApiKey: String
+    lateinit var fakeApiKey: ApiKey
 
     @Forgery
     lateinit var fakeSite: DatadogSite
@@ -86,7 +88,7 @@ internal class DdMappingFileUploadTaskTest {
     lateinit var fakeRepoInfo: RepositoryInfo
 
     @BeforeEach
-    fun `set up`() {
+    fun `set up`(forge: Forge) {
         val fakeProject = ProjectBuilder.builder()
             .withProjectDir(tempDir)
             .build()
@@ -98,7 +100,12 @@ internal class DdMappingFileUploadTaskTest {
         )
 
         testedTask.uploader = mockUploader
-        testedTask.apiKey = fakeApiKey
+        fakeApiKey = ApiKey(
+            value = forge.anHexadecimalString(),
+            source = forge.aValueFrom(ApiKeySource::class.java)
+        )
+        testedTask.apiKey = fakeApiKey.value
+        testedTask.apiKeySource = fakeApiKey.source
         testedTask.variantName = fakeVariant
         testedTask.versionName = fakeVersion
         testedTask.serviceName = fakeService
@@ -125,7 +132,7 @@ internal class DdMappingFileUploadTaskTest {
             expectedUrl,
             fakeMappingFile,
             fakeRepositoryFile,
-            fakeApiKey,
+            fakeApiKey.value,
             DdAppIdentifier(
                 serviceName = fakeService,
                 version = fakeVersion,
@@ -170,7 +177,7 @@ internal class DdMappingFileUploadTaskTest {
                 eq(expectedUrl),
                 capture(),
                 eq(fakeRepositoryFile),
-                eq(fakeApiKey),
+                eq(fakeApiKey.value),
                 eq(
                     DdAppIdentifier(
                         serviceName = fakeService,
@@ -219,7 +226,7 @@ internal class DdMappingFileUploadTaskTest {
                 eq(expectedUrl),
                 capture(),
                 eq(fakeRepositoryFile),
-                eq(fakeApiKey),
+                eq(fakeApiKey.value),
                 eq(
                     DdAppIdentifier(
                         serviceName = fakeService,
@@ -254,7 +261,7 @@ internal class DdMappingFileUploadTaskTest {
             expectedUrl,
             fakeMappingFile,
             fakeRepositoryFile,
-            fakeApiKey,
+            fakeApiKey.value,
             DdAppIdentifier(
                 serviceName = fakeService,
                 version = fakeVersion,
@@ -288,7 +295,7 @@ internal class DdMappingFileUploadTaskTest {
             expectedUrl,
             fakeMappingFile,
             null,
-            fakeApiKey,
+            fakeApiKey.value,
             DdAppIdentifier(
                 serviceName = fakeService,
                 version = fakeVersion,
@@ -305,6 +312,7 @@ internal class DdMappingFileUploadTaskTest {
         fakeMappingFile.writeText(fakeMappingFileContent)
         testedTask.mappingFilePath = fakeMappingFile.path
         testedTask.apiKey = ""
+        testedTask.apiKeySource = ApiKeySource.NONE
 
         // When
         assertThrows<IllegalStateException> {
@@ -357,7 +365,7 @@ internal class DdMappingFileUploadTaskTest {
             expectedUrl,
             fakeMappingFile,
             fakeRepositoryFile,
-            fakeApiKey,
+            fakeApiKey.value,
             DdAppIdentifier(
                 serviceName = fakeService,
                 version = fakeVersion,
@@ -399,6 +407,191 @@ internal class DdMappingFileUploadTaskTest {
 
         // Then
         verifyZeroInteractions(mockUploader)
+    }
+
+    @Test
+    fun `𝕄 apply datadog CI config if exists 𝕎 applyTask()`(forge: Forge) {
+
+        // Given
+        val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
+
+        val fakeDatadogCiApiKey = forge.anAlphabeticalString()
+        val fakeDatadogCiDomain = forge.aValueFrom(DatadogSite::class.java).domain
+
+        fakeDatadogCiFile.writeText(
+            JSONObject().apply {
+                put("apiKey", fakeDatadogCiApiKey)
+                put("datadogSite", fakeDatadogCiDomain)
+            }.toString()
+        )
+
+        testedTask.apiKeySource = forge.aValueFrom(
+            ApiKeySource::class.java,
+            exclude = listOf(ApiKeySource.GRADLE_PROPERTY)
+        )
+        testedTask.datadogCiFile = fakeDatadogCiFile
+        testedTask.site = ""
+
+        // When
+        testedTask.applyTask()
+
+        // Then
+        assertThat(testedTask.apiKey).isEqualTo(fakeDatadogCiApiKey)
+        assertThat(testedTask.apiKeySource).isEqualTo(ApiKeySource.DATADOG_CI_CONFIG_FILE)
+        assertThat(testedTask.site).isEqualTo(DatadogSite.fromDomain(fakeDatadogCiDomain)?.name)
+    }
+
+    @Test
+    fun `𝕄 apply datadog CI config if exists 𝕎 applyTask() {apiKey from gradle}`(forge: Forge) {
+
+        // Given
+        val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
+
+        val fakeDatadogCiApiKey = forge.anAlphabeticalString()
+        val fakeDatadogCiDomain = forge.aValueFrom(DatadogSite::class.java).domain
+
+        fakeDatadogCiFile.writeText(
+            JSONObject().apply {
+                put("apiKey", fakeDatadogCiApiKey)
+                put("datadogSite", fakeDatadogCiDomain)
+            }.toString()
+        )
+
+        testedTask.apiKeySource = ApiKeySource.GRADLE_PROPERTY
+        testedTask.datadogCiFile = fakeDatadogCiFile
+        testedTask.site = ""
+
+        // When
+        testedTask.applyTask()
+
+        // Then
+        assertThat(testedTask.apiKey).isEqualTo(fakeApiKey.value)
+        assertThat(testedTask.apiKeySource).isEqualTo(ApiKeySource.GRADLE_PROPERTY)
+        assertThat(testedTask.site).isEqualTo(DatadogSite.fromDomain(fakeDatadogCiDomain)?.name)
+    }
+
+    @Test
+    fun `𝕄 apply datadog CI config if exists 𝕎 applyTask() { apiKey is missing }`(forge: Forge) {
+
+        // Given
+        val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
+
+        val fakeDatadogCiDomain = forge.aValueFrom(DatadogSite::class.java).domain
+
+        fakeDatadogCiFile.writeText(
+            JSONObject().apply {
+                put("datadogSite", fakeDatadogCiDomain)
+            }.toString()
+        )
+
+        testedTask.datadogCiFile = fakeDatadogCiFile
+        testedTask.site = ""
+
+        // When
+        testedTask.applyTask()
+
+        // Then
+        assertThat(testedTask.apiKey).isEqualTo(fakeApiKey.value)
+        assertThat(testedTask.site).isEqualTo(DatadogSite.fromDomain(fakeDatadogCiDomain)?.name)
+    }
+
+    @Test
+    fun `𝕄 apply datadog CI config if exists 𝕎 applyTask() {datadogSite missing}`(forge: Forge) {
+
+        // Given
+        val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
+
+        val fakeDatadogCiApiKey = forge.anAlphabeticalString()
+
+        fakeDatadogCiFile.writeText(
+            JSONObject().apply {
+                put("apiKey", fakeDatadogCiApiKey)
+            }.toString()
+        )
+
+        testedTask.apiKeySource = forge.aValueFrom(
+            ApiKeySource::class.java,
+            exclude = listOf(ApiKeySource.GRADLE_PROPERTY)
+        )
+        testedTask.datadogCiFile = fakeDatadogCiFile
+
+        // When
+        testedTask.applyTask()
+
+        // Then
+        assertThat(testedTask.apiKey).isEqualTo(fakeDatadogCiApiKey)
+        assertThat(testedTask.apiKeySource).isEqualTo(ApiKeySource.DATADOG_CI_CONFIG_FILE)
+        assertThat(testedTask.site).isEqualTo(fakeSite.name)
+    }
+
+    @Test
+    fun `𝕄 apply datadog CI config if exists 𝕎 applyTask() {datadogSite unknown}`(forge: Forge) {
+
+        // Given
+        val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
+
+        val fakeDatadogCiDomain = forge.aStringMatching("[a-z]+\\.com")
+
+        fakeDatadogCiFile.writeText(
+            JSONObject().apply {
+                put("datadogSite", fakeDatadogCiDomain)
+            }.toString()
+        )
+
+        testedTask.datadogCiFile = fakeDatadogCiFile
+        testedTask.site = ""
+
+        // When
+        testedTask.applyTask()
+
+        // Then
+        assertThat(testedTask.apiKey).isEqualTo(fakeApiKey.value)
+        assertThat(testedTask.apiKeySource).isEqualTo(fakeApiKey.source)
+        assertThat(testedTask.site).isEqualTo(DatadogSite.US1.name)
+    }
+
+    @Test
+    fun `𝕄 apply datadog CI config if exists 𝕎 applyTask() {site is set already}`(forge: Forge) {
+
+        // Given
+        val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
+
+        val fakeDatadogCiDomain = forge.aValueFrom(DatadogSite::class.java).domain
+
+        fakeDatadogCiFile.writeText(
+            JSONObject().apply {
+                put("datadogSite", fakeDatadogCiDomain)
+            }.toString()
+        )
+
+        testedTask.datadogCiFile = fakeDatadogCiFile
+
+        // When
+        testedTask.applyTask()
+
+        // Then
+        assertThat(testedTask.apiKey).isEqualTo(fakeApiKey.value)
+        assertThat(testedTask.apiKeySource).isEqualTo(fakeApiKey.source)
+        assertThat(testedTask.site).isEqualTo(fakeSite.name)
+    }
+
+    @Test
+    fun `𝕄 not apply datadog CI config if exists 𝕎 applyTask() { malformed json }`(forge: Forge) {
+
+        // Given
+        val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
+
+        fakeDatadogCiFile.writeText(forge.anElementFrom(forge.aString(), JSONArray().toString()))
+
+        testedTask.datadogCiFile = fakeDatadogCiFile
+
+        // When
+        testedTask.applyTask()
+
+        // Then
+        assertThat(testedTask.apiKey).isEqualTo(fakeApiKey.value)
+        assertThat(testedTask.apiKeySource).isEqualTo(fakeApiKey.source)
+        assertThat(testedTask.site).isEqualTo(fakeSite.name)
     }
 
     // region private
