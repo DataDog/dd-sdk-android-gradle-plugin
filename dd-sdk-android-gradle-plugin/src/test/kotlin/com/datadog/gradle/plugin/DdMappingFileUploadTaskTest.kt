@@ -110,6 +110,7 @@ internal class DdMappingFileUploadTaskTest {
         testedTask.versionName = fakeVersion
         testedTask.serviceName = fakeService
         testedTask.site = fakeSite.name
+        setEnv(DdMappingFileUploadTask.DATADOG_SITE, "")
     }
 
     @Test
@@ -565,6 +566,39 @@ internal class DdMappingFileUploadTaskTest {
         )
 
         testedTask.datadogCiFile = fakeDatadogCiFile
+
+        // When
+        testedTask.applyTask()
+
+        // Then
+        assertThat(testedTask.apiKey).isEqualTo(fakeApiKey.value)
+        assertThat(testedTask.apiKeySource).isEqualTo(fakeApiKey.source)
+        assertThat(testedTask.site).isEqualTo(fakeSite.name)
+    }
+
+    @Test
+    fun `𝕄 read site from environment variable 𝕎 applyTask() {site is not set}`(forge: Forge) {
+
+        // Given
+        val fakeDatadogEnvDomain = forge.aValueFrom(DatadogSite::class.java).domain
+        setEnv(DdMappingFileUploadTask.DATADOG_SITE, fakeDatadogEnvDomain)
+        testedTask.site = ""
+
+        // When
+        testedTask.applyTask()
+
+        // Then
+        assertThat(testedTask.apiKey).isEqualTo(fakeApiKey.value)
+        assertThat(testedTask.apiKeySource).isEqualTo(fakeApiKey.source)
+        assertThat(testedTask.site).isEqualTo(DatadogSite.fromDomain(fakeDatadogEnvDomain)?.name)
+    }
+
+    @Test
+    fun `𝕄 read site from environment variable 𝕎 applyTask() {site is set}`(forge: Forge) {
+
+        // Given
+        val fakeDatadogEnvDomain = forge.aValueFrom(DatadogSite::class.java).domain
+        setEnv(DdAndroidGradlePlugin.DATADOG_API_KEY, fakeDatadogEnvDomain)
 
         // When
         testedTask.applyTask()

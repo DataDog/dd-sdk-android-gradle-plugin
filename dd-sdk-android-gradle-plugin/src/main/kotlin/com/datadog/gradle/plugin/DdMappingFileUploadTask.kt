@@ -133,6 +133,7 @@ open class DdMappingFileUploadTask
         datadogCiFile?.let {
             applyDatadogCiConfig(it)
         }
+        applySiteFromEnvironment()
         validateConfiguration()
 
         var mappingFile = File(mappingFilePath)
@@ -161,6 +162,26 @@ open class DdMappingFileUploadTask
             ),
             repositories.firstOrNull()
         )
+    }
+
+    private fun applySiteFromEnvironment() {
+        val environmentSite = System.getenv(DATADOG_SITE)
+        if (!environmentSite.isNullOrEmpty()) {
+            if (this.site.isNotEmpty()) {
+                LOGGER.info(
+                    "Site property found as DATADOG_SITE env variable, but it will be ignored," +
+                        " because also an explicit one was provided in extension."
+                )
+                return
+            }
+            val site = DatadogSite.fromDomain(environmentSite)
+            if (site == null) {
+                LOGGER.warn("Unknown Datadog domain provided: $environmentSite, ignoring it.")
+            } else {
+                LOGGER.info("Site property found in Datadog CI config file, using it.")
+                this.site = site.name
+            }
+        }
     }
 
     private fun applyDatadogCiConfig(datadogCiFile: File) {
@@ -337,5 +358,6 @@ open class DdMappingFileUploadTask
 
         private const val DATADOG_CI_API_KEY_PROPERTY = "apiKey"
         private const val DATADOG_CI_SITE_PROPERTY = "datadogSite"
+        const val DATADOG_SITE = "DATADOG_SITE"
     }
 }
