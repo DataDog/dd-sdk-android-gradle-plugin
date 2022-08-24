@@ -34,7 +34,7 @@ For any given error, you can access the file path, line number, and a code snipp
    }
    ```
 
-2. [Create a dedicated Datadog API key][2] and export it as an environment variable named `DD_API_KEY` (alternatively, pass it as a task property or if you have `datadog-ci.json` file in the root of your project, it can be taken from `apiKey` property there).
+2. [Create a dedicated Datadog API key][2] and export it as an environment variable named `DD_API_KEY` or `DATADOG_API_KEY` (alternatively, pass it as a task property or if you have `datadog-ci.json` file in the root of your project, it can be taken from `apiKey` property there).
 3. Optionally, configure the plugin to upload files to the EU region by configuring the plugin in your `build.gradle` script:
    
    ```
@@ -65,7 +65,7 @@ For any given error, you can access the file path, line number, and a code snipp
    }
    ```
 
-2. [Create a dedicated Datadog API key][2] and export it as an environment variable named `DD_API_KEY` (alternatively, pass it as a task property or if you have `datadog-ci.json` file in the root of your project, it can be taken from `apiKey` property there).
+2. [Create a dedicated Datadog API key][2] and export it as an environment variable named `DD_API_KEY` or `DATADOG_API_KEY` (alternatively, pass it as a task property or if you have `datadog-ci.json` file in the root of your project, it can be taken from `apiKey` property there).
 3. Configure the plugin to use the EU region by adding the following snippet in your app's `build.gradle` script file:
 
    ```groovy

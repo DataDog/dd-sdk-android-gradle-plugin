@@ -217,8 +217,8 @@ open class DdMappingFileUploadTask
     private fun validateConfiguration() {
         check(apiKey.isNotBlank()) {
             "Make sure you define an API KEY to upload your mapping files to Datadog. " +
-                "Create a DD_API_KEY environment variable, gradle property or define it" +
-                " in datadog-ci.json file."
+                "Create a DD_API_KEY or DATADOG_API_KEY environment variable, gradle" +
+                " property or define it in datadog-ci.json file."
         }
 
         if (site.isBlank()) {
