@@ -62,6 +62,10 @@ class DdAndroidGradlePlugin @Inject constructor(
         val environmentKey = System.getenv(DD_API_KEY)
         if (!environmentKey.isNullOrBlank()) return ApiKey(environmentKey, ApiKeySource.ENVIRONMENT)
 
+        val alternativeEnvironmentKey = System.getenv(DATADOG_API_KEY)
+        if (!alternativeEnvironmentKey.isNullOrBlank()) {
+            return ApiKey(alternativeEnvironmentKey, ApiKeySource.ENVIRONMENT)
+        }
         return ApiKey.NONE
     }
 
@@ -276,6 +280,8 @@ class DdAndroidGradlePlugin @Inject constructor(
     companion object {
 
         internal const val DD_API_KEY = "DD_API_KEY"
+
+        internal const val DATADOG_API_KEY = "DATADOG_API_KEY"
 
         internal val LOGGER = LoggerFactory.getLogger("DdAndroidGradlePlugin")
 

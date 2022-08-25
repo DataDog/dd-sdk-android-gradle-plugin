@@ -78,6 +78,8 @@ internal class DdAndroidGradlePluginTest {
         fakeFlavorNames = fakeFlavorNames.take(5) // A D F G A♭ A A♭ G F
         fakeProject = ProjectBuilder.builder().build()
         testedPlugin = DdAndroidGradlePlugin(mock())
+        setEnv(DdAndroidGradlePlugin.DD_API_KEY, "")
+        setEnv(DdAndroidGradlePlugin.DATADOG_API_KEY, "")
     }
 
     // region configureVariant()
@@ -477,6 +479,19 @@ internal class DdAndroidGradlePluginTest {
     fun `𝕄 resolve API KEY from environment variable 𝕎 resolveApiKey()`() {
         // Given
         setEnv(DdAndroidGradlePlugin.DD_API_KEY, fakeApiKey.value)
+
+        // When
+        val apiKey = testedPlugin.resolveApiKey(fakeProject)
+
+        // Then
+        assertThat(apiKey.value).isEqualTo(fakeApiKey.value)
+        assertThat(apiKey.source).isEqualTo(ApiKeySource.ENVIRONMENT)
+    }
+
+    @Test
+    fun `𝕄 resolve API KEY from alternative environment variable 𝕎 resolveApiKey()`() {
+        // Given
+        setEnv(DdAndroidGradlePlugin.DATADOG_API_KEY, fakeApiKey.value)
 
         // When
         val apiKey = testedPlugin.resolveApiKey(fakeProject)
