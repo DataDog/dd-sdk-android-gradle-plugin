@@ -260,10 +260,9 @@ class DdAndroidGradlePlugin @Inject constructor(
         return configuration
     }
 
-    private fun findDatadogCiFile(projectDir: File): File? {
-        var currentDir = projectDir
+    internal fun findDatadogCiFile(projectDir: File): File? {
+        var currentDir: File? = projectDir
         var levelsUp = 0
-        @Suppress("SENSELESS_COMPARISON") // parentFile can return null, Kotlin is wrong here
         while (currentDir != null && levelsUp < MAX_DATADOG_CI_FILE_LOOKUP_LEVELS) {
             val datadogCiFile = File(currentDir, "datadog-ci.json")
             if (datadogCiFile.exists()) {
