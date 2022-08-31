@@ -1,3 +1,15 @@
+# 1.5.1 / 2022-08-30
+
+- [BUGFIX] Fix a NPE during `datadog-ci.json` file lookup [#112](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/112)
+
+# 1.5.0 / 2022-08-25
+
+- [IMPROVEMENT] Switch to API v2 of the mapping file intake [#99](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/99)
+- [IMPROVEMENT] Disable dependencies check task by default [#102](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/102)
+- [IMPROVEMENT] Gradle 7.5 & Kotlin 1.6.10 [#103](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/103)
+- [IMPROVEMENT] Read config properties from datadog-ci.json [#104](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/104)
+- [IMPROVEMENT] Add support of `DATADOG_SITE` and `DATADOG_API_KEY` environment variables [#109](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/109)
+
 # 1.4.0 / 2022-05-17
 
 - [IMPROVEMENT] Add shrinking options for the R8/Proguard/DexGuard mapping file (short aliases, indents trim) [#86](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/86)
