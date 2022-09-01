@@ -50,5 +50,5 @@ android {
 }
 
 dependencies {
-    implementation("com.datadoghq:dd-sdk-android:1.14.0-beta1")
+    implementation("com.datadoghq:dd-sdk-android:1.14.0-beta2")
 }
