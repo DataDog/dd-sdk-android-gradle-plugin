@@ -58,5 +58,5 @@ android {
 
 dependencies {
     implementation(project(':samples:lib-module'))
-    implementation("com.datadoghq:dd-sdk-android:1.14.0-beta2")
+    implementation("com.datadoghq:dd-sdk-android:1.14.0")
 }
