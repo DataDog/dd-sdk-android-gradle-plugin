@@ -6,7 +6,6 @@
 
 package com.datadog.gradle.plugin.transdeps
 
-import java.io.File
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ProjectDependency
@@ -14,6 +13,7 @@ import org.gradle.api.artifacts.SelfResolvingDependency
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+import java.io.File
 
 open class TransitiveDependenciesTask : DefaultTask() {
 
@@ -64,9 +64,9 @@ open class TransitiveDependenciesTask : DefaultTask() {
     }
 
     private fun allFilesOfDependencies(configuration: Configuration): Set<File> =
-            // ProjectDependency (i.e. local modules) don't have a file associated
-            // SelfResolvingDependency is not from any repo and belongs to Gradle DSL
-            configuration.files { it !is ProjectDependency && it !is SelfResolvingDependency }
+        // ProjectDependency (i.e. local modules) don't have a file associated
+        // SelfResolvingDependency is not from any repo and belongs to Gradle DSL
+        configuration.files { it !is ProjectDependency && it !is SelfResolvingDependency }
 
     private fun getDependencyFileDescription(it: File): String {
         val hash = it.parentFile

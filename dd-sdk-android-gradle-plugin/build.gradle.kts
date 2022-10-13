@@ -11,7 +11,6 @@ import com.datadog.gradle.config.jacocoConfig
 import com.datadog.gradle.config.javadocConfig
 import com.datadog.gradle.config.junitConfig
 import com.datadog.gradle.config.kotlinConfig
-import com.datadog.gradle.config.ktLintConfig
 import com.datadog.gradle.config.publishingConfig
 
 plugins {
@@ -28,7 +27,6 @@ plugins {
     // Analysis tools
     id("com.github.ben-manes.versions")
     id("io.gitlab.arturbosch.detekt")
-    id("org.jlleitschuh.gradle.ktlint")
 
     // Tests
     jacoco
@@ -55,7 +53,6 @@ dependencies {
 
 kotlinConfig()
 detektConfig()
-ktLintConfig()
 junitConfig()
 jacocoConfig()
 javadocConfig()

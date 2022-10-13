@@ -12,8 +12,6 @@ import com.datadog.gradle.plugin.internal.ApiKey
 import com.datadog.gradle.plugin.internal.ApiKeySource
 import com.datadog.gradle.plugin.internal.GitRepositoryDetector
 import com.datadog.gradle.plugin.internal.VariantIterator
-import java.io.File
-import javax.inject.Inject
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -21,6 +19,8 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.process.ExecOperations
 import org.slf4j.LoggerFactory
+import java.io.File
+import javax.inject.Inject
 
 /**
  * Plugin adding tasks for Android projects using Datadog's SDK for Android.

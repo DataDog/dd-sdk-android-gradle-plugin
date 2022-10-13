@@ -7,7 +7,6 @@
 package com.datadog.gradle.config
 
 import com.datadog.gradle.utils.Version
-import java.net.URI
 import org.gradle.api.Project
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.publish.PublishingExtension
@@ -15,6 +14,7 @@ import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.jvm.tasks.Jar
 import org.gradle.kotlin.dsl.findByType
 import org.gradle.plugins.signing.SigningExtension
+import java.net.URI
 
 object MavenConfig {
 

@@ -7,16 +7,17 @@
 package com.datadog.gradle.plugin.checklicenses
 
 import com.android.build.gradle.internal.tasks.factory.dependsOn
-import java.io.File
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import java.io.File
 
 class ThirdPartyLicensesPlugin : Plugin<Project> {
 
     override fun apply(target: Project) {
         val extension = target.extensions
             .create(EXT_NAME, ThirdPartyLicensesExtension::class.java)
-        extension.csvFile = File(target.rootDir,
+        extension.csvFile = File(
+            target.rootDir,
             ThirdPartyLicensesExtension.DEFAULT_TP_LICENCE_FILENAME
         )
 

@@ -30,8 +30,8 @@ The whole project is covered by a set of static analysis tools, linters and test
 # launches the detekt static analysis
 ./gradlew :dd-sdk-android-gradle-plugin:detekt
 
-# launches the ktlint format check
-./gradlew :dd-sdk-android-gradle-plugin:ktlintCheck
+# launches the ktlint check and formatter for all Kotlin files (the ktlint client needs to be installed on your machine)
+ktlint -F "**/*.kt" "**/*.kts" '!**/build/generated/**' '!**/build/kspCaches/**'
 
 
 # launches all the tests described above
@@ -128,6 +128,7 @@ same feature from a Java source code.
 Our coding style is ensured by [KtLint](https://ktlint.github.io/), with the
 default settings. A KtLint check is ran on every PR to ensure that all new code
 follow this rule.
+Current KtLint version: 0.45.1
 
 Classes should group their methods in folding regions named after the declaring
 class. Private methods should be grouped in an `Internal` named folding region. 
@@ -161,13 +162,11 @@ class Foo :Observable(), Runnable {
 }
 
 ```
-There is also a gradle task that you can use to automatically format the code following the
-required styling rules:
+There is also a command that you can use to automatically format the code following the
+required styling rules (require ktlint installed on your machine):
 
 ```console
-
-./gradlew :dd-sdk-android:ktlintFormat
-
+ktlint -F "**/*.kt" "**/*.kts" '!**/build/generated/**' '!**/build/kspCaches/**'
 ```
 
 ### #TestMatters

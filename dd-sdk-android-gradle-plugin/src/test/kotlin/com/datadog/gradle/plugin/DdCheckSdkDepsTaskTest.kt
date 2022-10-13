@@ -19,11 +19,6 @@ import fr.xgouchet.elmyr.ForgeryException
 import fr.xgouchet.elmyr.annotation.StringForgery
 import fr.xgouchet.elmyr.junit5.ForgeConfiguration
 import fr.xgouchet.elmyr.junit5.ForgeExtension
-import java.io.EOFException
-import java.io.File
-import java.io.FileNotFoundException
-import java.io.IOException
-import java.io.UncheckedIOException
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.gradle.api.Project
@@ -44,6 +39,11 @@ import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.junit.jupiter.MockitoSettings
 import org.mockito.quality.Strictness
 import org.slf4j.Logger
+import java.io.EOFException
+import java.io.File
+import java.io.FileNotFoundException
+import java.io.IOException
+import java.io.UncheckedIOException
 
 @Extensions(
     ExtendWith(MockitoExtension::class),

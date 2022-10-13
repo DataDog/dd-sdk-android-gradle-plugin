@@ -6,8 +6,8 @@
 
 package com.datadog.gradle.plugin
 
-import java.io.File
 import org.gradle.api.Project
+import java.io.File
 
 /**
  * Describes a class which can detect information about the version control
