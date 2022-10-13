@@ -1,8 +1,8 @@
 package com.example.variants
 
-// unused import is on purpose
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import com.example.lib.Placeholder // ktlint-disable no-unused-imports  unused import is on purpose
 import com.example.variants.ext.toast
 
 class MainActivity : AppCompatActivity() {

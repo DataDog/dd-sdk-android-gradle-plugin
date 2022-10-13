@@ -34,4 +34,5 @@ task<Delete>("clean") {
     delete(rootProject.buildDir)
 }
 
+// Empty task defined by one of our CI pipeline which does not apply here.
 tasks.register("checkGeneratedFiles") {}
