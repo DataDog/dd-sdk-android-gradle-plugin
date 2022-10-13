@@ -7,12 +7,12 @@
 package com.datadog.gradle.config
 
 import com.datadog.gradle.Dependencies
-import java.math.BigDecimal
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.getByName
 import org.gradle.testing.jacoco.plugins.JacocoPluginExtension
 import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification
 import org.gradle.testing.jacoco.tasks.JacocoReport
+import java.math.BigDecimal
 
 fun Project.jacocoConfig() {
 
@@ -59,8 +59,8 @@ fun Project.jacocoConfig() {
 
     tasks.named("test") {
         finalizedBy(
-                jacocoTestReport,
-                jacocoTestCoverageVerification
+            jacocoTestReport,
+            jacocoTestCoverageVerification
         )
     }
 }

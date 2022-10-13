@@ -11,9 +11,9 @@ import com.datadog.gradle.plugin.RepositoryDetector
 import com.datadog.gradle.plugin.RepositoryInfo
 import com.datadog.gradle.plugin.internal.sanitizer.GitRemoteUrlSanitizer
 import com.datadog.gradle.plugin.internal.sanitizer.UrlSanitizer
-import java.io.File
 import org.gradle.process.ExecOperations
 import org.gradle.process.internal.ExecException
+import java.io.File
 
 // TODO RUMM-1095 handle git submodules
 // TODO RUMM-1096 handle git subtrees

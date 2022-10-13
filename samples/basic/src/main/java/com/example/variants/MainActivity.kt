@@ -3,7 +3,6 @@ package com.example.variants
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 // unused import is on purpose
-import com.example.lib.Placeholder
 
 class MainActivity : AppCompatActivity() {
 

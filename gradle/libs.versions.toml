@@ -28,7 +28,6 @@ mockitoKotlin = "2.2.0"
 
 # Tools
 detekt = "1.17.0"
-ktLint = "10.2.0"
 dokka = "1.4.32"
 unmock = "0.7.5"
 
@@ -50,7 +49,6 @@ datadogPluginGradle = "1.2.1"
 # Gradle version catalog doesn't allow names to end with plugin, that is why strange names
 androidToolsPluginGradle = { module = "com.android.tools.build:gradle", version.ref = "androidToolsPlugin" }
 kotlinPluginGradle = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
-ktLintPluginGradle = { module = "org.jlleitschuh.gradle:ktlint-gradle", version.ref = "ktLint" }
 dokkaPluginGradle = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
 unmockPluginGradle = { module = "de.mobilej.unmock:UnMockPlugin", version.ref = "unmock" }
 detektPluginGradle = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }

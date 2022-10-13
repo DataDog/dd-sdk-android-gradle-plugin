@@ -52,14 +52,13 @@ create_key:
 
 # STATIC ANALYSIS
 
-analysis:ktlint:
-  tags: [ "runner:main" ]
-  image: $CI_IMAGE_DOCKER
+static-analysis:
   stage: analysis
-  timeout: 30m
-  script:
-    - git fetch --depth=1 origin main
-    - GRADLE_OPTS="-XX:MaxPermSize=512m -Xmx2560m" ./gradlew :dd-sdk-android-gradle-plugin:ktlintCheck --stacktrace --no-daemon
+  variables: 
+    GRADLE_OPTS: "-Xmx2560m -Dorg.gradle.daemon=false -Dorg.gradle.logging.stacktrace=all"
+  trigger:
+    include: "https://gitlab-templates.ddbuild.io/mobile/v10457335-704c8fae/static-analysis.yml"
+    strategy: depend
 
 analysis:detekt:
   tags: [ "runner:main" ]

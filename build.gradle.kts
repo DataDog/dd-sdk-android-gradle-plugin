@@ -15,7 +15,6 @@ buildscript {
     dependencies {
         classpath(libs.androidToolsPluginGradle)
         classpath(libs.kotlinPluginGradle)
-        classpath(libs.ktLintPluginGradle)
         classpath(libs.dokkaPluginGradle)
         // Uncomment to use the samples
         // classpath(libs.datadogPluginGradle)
@@ -34,3 +33,5 @@ allprojects {
 task<Delete>("clean") {
     delete(rootProject.buildDir)
 }
+
+tasks.register("checkGeneratedFiles") {}

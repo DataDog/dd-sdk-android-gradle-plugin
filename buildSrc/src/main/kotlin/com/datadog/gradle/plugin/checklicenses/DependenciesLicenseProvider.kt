@@ -7,7 +7,6 @@
 package com.datadog.gradle.plugin.checklicenses
 
 import com.datadog.gradle.utils.asSequence
-import javax.xml.parsers.DocumentBuilderFactory
 import org.gradle.api.Project
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.result.ComponentSelectionCause
@@ -16,6 +15,7 @@ import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.maven.MavenModule
 import org.gradle.maven.MavenPomArtifact
 import org.w3c.dom.Document
+import javax.xml.parsers.DocumentBuilderFactory
 
 class DependenciesLicenseProvider {
 

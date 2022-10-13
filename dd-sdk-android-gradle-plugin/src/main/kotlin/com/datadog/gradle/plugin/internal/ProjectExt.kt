@@ -7,9 +7,9 @@
 package com.datadog.gradle.plugin.internal
 
 import com.datadog.gradle.plugin.DdAndroidGradlePlugin.Companion.LOGGER
-import java.io.ByteArrayOutputStream
 import org.gradle.process.ExecOperations
 import org.gradle.process.internal.ExecException
+import java.io.ByteArrayOutputStream
 
 @Suppress("UnstableApiUsage")
 internal fun ExecOperations.execShell(vararg command: String): String {

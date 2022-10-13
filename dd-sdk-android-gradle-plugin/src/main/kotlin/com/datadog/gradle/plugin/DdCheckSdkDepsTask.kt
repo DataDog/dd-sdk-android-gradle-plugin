@@ -7,8 +7,6 @@
 package com.datadog.gradle.plugin
 
 import com.datadog.gradle.plugin.internal.MissingSdkException
-import java.util.LinkedList
-import java.util.Queue
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedDependency
@@ -17,6 +15,8 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.slf4j.LoggerFactory
+import java.util.LinkedList
+import java.util.Queue
 
 /**
  * A Gradle task to check the Datadog SDK throughout the variant dependencies.

@@ -7,8 +7,8 @@
 package com.datadog.gradle.plugin
 
 import groovy.lang.Closure
-import javax.inject.Inject
 import org.gradle.api.model.ObjectFactory
+import javax.inject.Inject
 
 /**
  * Extension used to configure the `dd-android-gradle-plugin`.
