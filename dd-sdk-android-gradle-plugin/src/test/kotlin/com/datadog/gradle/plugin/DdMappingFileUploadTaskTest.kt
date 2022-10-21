@@ -395,7 +395,6 @@ internal class DdMappingFileUploadTaskTest {
 
     @Test
     fun `𝕄 throw error 𝕎 applyTask() {mapping file is dir}`() {
-
         // Given
         val fakeMappingFile = File(tempDir, fakeMappingFileName)
         fakeMappingFile.mkdirs()
@@ -412,7 +411,6 @@ internal class DdMappingFileUploadTaskTest {
 
     @Test
     fun `𝕄 apply datadog CI config if exists 𝕎 applyTask()`(forge: Forge) {
-
         // Given
         val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
 
@@ -444,7 +442,6 @@ internal class DdMappingFileUploadTaskTest {
 
     @Test
     fun `𝕄 apply datadog CI config if exists 𝕎 applyTask() {apiKey from gradle}`(forge: Forge) {
-
         // Given
         val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
 
@@ -473,7 +470,6 @@ internal class DdMappingFileUploadTaskTest {
 
     @Test
     fun `𝕄 apply datadog CI config if exists 𝕎 applyTask() { apiKey is missing }`(forge: Forge) {
-
         // Given
         val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
 
@@ -498,7 +494,6 @@ internal class DdMappingFileUploadTaskTest {
 
     @Test
     fun `𝕄 apply datadog CI config if exists 𝕎 applyTask() {datadogSite missing}`(forge: Forge) {
-
         // Given
         val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
 
@@ -527,7 +522,6 @@ internal class DdMappingFileUploadTaskTest {
 
     @Test
     fun `𝕄 apply datadog CI config if exists 𝕎 applyTask() {datadogSite unknown}`(forge: Forge) {
-
         // Given
         val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
 
@@ -553,7 +547,6 @@ internal class DdMappingFileUploadTaskTest {
 
     @Test
     fun `𝕄 apply datadog CI config if exists 𝕎 applyTask() {site is set already}`(forge: Forge) {
-
         // Given
         val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
 
@@ -578,7 +571,6 @@ internal class DdMappingFileUploadTaskTest {
 
     @Test
     fun `𝕄 read site from environment variable 𝕎 applyTask() {site is not set}`(forge: Forge) {
-
         // Given
         val fakeDatadogEnvDomain = forge.aValueFrom(DatadogSite::class.java).domain
         setEnv(DdMappingFileUploadTask.DATADOG_SITE, fakeDatadogEnvDomain)
@@ -595,7 +587,6 @@ internal class DdMappingFileUploadTaskTest {
 
     @Test
     fun `𝕄 read site from environment variable 𝕎 applyTask() {site is set}`(forge: Forge) {
-
         // Given
         val fakeDatadogEnvDomain = forge.aValueFrom(DatadogSite::class.java).domain
         setEnv(DdAndroidGradlePlugin.DATADOG_API_KEY, fakeDatadogEnvDomain)
@@ -611,7 +602,6 @@ internal class DdMappingFileUploadTaskTest {
 
     @Test
     fun `𝕄 not apply datadog CI config if exists 𝕎 applyTask() { malformed json }`(forge: Forge) {
-
         // Given
         val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
 

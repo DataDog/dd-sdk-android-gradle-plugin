@@ -75,7 +75,6 @@ internal class OkHttpUploader : Uploader {
         repositoryFile: File?,
         repositoryInfo: RepositoryInfo?
     ): MultipartBody {
-
         val mappingFileBody = mappingFile.asRequestBody(MEDIA_TYPE_TXT)
         if (mappingFileBody.contentLength() > MAX_MAP_FILE_SIZE_IN_BYTES) {
             throw MaxSizeExceededException(

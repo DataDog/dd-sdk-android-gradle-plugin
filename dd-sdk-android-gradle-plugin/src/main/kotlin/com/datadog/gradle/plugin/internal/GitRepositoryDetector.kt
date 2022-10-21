@@ -77,7 +77,6 @@ internal class GitRepositoryDetector(
         sourceSetRoot: File,
         files: MutableList<String>
     ) {
-
         // output will be relative to the project root
         val sourceSetFiles = execOperations.execShell(
             "git",
