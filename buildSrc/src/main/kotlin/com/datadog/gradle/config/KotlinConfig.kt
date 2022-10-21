@@ -13,7 +13,6 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
 
 fun Project.kotlinConfig() {
-
     taskConfig<KotlinCompile> {
         kotlinOptions {
             jvmTarget = JavaVersion.VERSION_1_8.toString()

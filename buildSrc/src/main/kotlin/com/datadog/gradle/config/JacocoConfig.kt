@@ -15,7 +15,6 @@ import org.gradle.testing.jacoco.tasks.JacocoReport
 import java.math.BigDecimal
 
 fun Project.jacocoConfig() {
-
     val jacocoTestReport = tasks.getByName("jacocoTestReport", JacocoReport::class)
     jacocoTestReport.reports {
         csv.required.set(false)

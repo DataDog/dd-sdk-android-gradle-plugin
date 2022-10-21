@@ -10,7 +10,6 @@ import io.gitlab.arturbosch.detekt.extensions.DetektExtension
 import org.gradle.api.Project
 
 fun Project.detektConfig() {
-
     extensionConfig<DetektExtension> {
         input = files("$projectDir/src/main/kotlin")
         config = files("${project.rootDir}/detekt.yml")

@@ -33,7 +33,6 @@ class DdAndroidGradlePlugin @Inject constructor(
 
     /** @inheritdoc */
     override fun apply(target: Project) {
-
         val extension = target.extensions.create(EXT_NAME, DdExtension::class.java)
         val apiKey = resolveApiKey(target)
 
@@ -130,7 +129,6 @@ class DdAndroidGradlePlugin @Inject constructor(
         variant: ApplicationVariant,
         extension: DdExtension
     ): Provider<DdCheckSdkDepsTask>? {
-
         if (!extension.enabled) {
             LOGGER.warn("Extension disabled for variant ${variant.name}, no sdk check task created")
             return null

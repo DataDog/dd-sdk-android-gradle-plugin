@@ -140,14 +140,18 @@ internal class VariantIteratorTest {
             // first flavor always appear first
             if (it.contains(firstFlavor)) {
                 it.startsWith(firstFlavor)
-            } else true
+            } else {
+                true
+            }
         }.allMatch {
             // last flavor always appear last
             if (it.contains(lastFlavorCapitalized)) {
                 it.endsWith(lastFlavorCapitalized)
             } else if (it.contains(lastFlavor)) {
                 it == (lastFlavor)
-            } else true
+            } else {
+                true
+            }
         }
     }
 }

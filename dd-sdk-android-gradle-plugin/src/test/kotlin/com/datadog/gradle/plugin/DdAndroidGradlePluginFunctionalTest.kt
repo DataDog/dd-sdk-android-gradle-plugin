@@ -267,7 +267,6 @@ internal class DdAndroidGradlePluginFunctionalTest {
 
     @Test
     fun `M success W assembleDebug { configuration cache, checkDependencies disabled }`() {
-
         // Given
         stubGradleBuildFromResourceFile(
             "build_with_check_deps_disabled.gradle",

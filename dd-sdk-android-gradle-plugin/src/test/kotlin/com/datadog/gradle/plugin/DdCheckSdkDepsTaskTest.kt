@@ -112,7 +112,6 @@ internal class DdCheckSdkDepsTaskTest {
 
     @Test
     fun `𝕄 log info + exception 𝕎 configuration cannot be found`() {
-
         // GIVEN
         fakeProject.configurations.remove(mockConfiguration)
 
@@ -170,7 +169,6 @@ internal class DdCheckSdkDepsTaskTest {
     fun `𝕄 throw exception 𝕎 sdk dependency could not be found { sdkCheckLevel = FAIL }`(
         forge: Forge
     ) {
-
         // GIVEN
         val dependencies = forge.aList {
             val dependency = mock<ResolvedDependency>()
@@ -192,7 +190,6 @@ internal class DdCheckSdkDepsTaskTest {
     fun `𝕄 log a warning 𝕎 sdk dependency could not be found { sdkCheckLevel = WARN }`(
         forge: Forge
     ) {
-
         // GIVEN
         val dependencies = forge.aList {
             val dependency = mock<ResolvedDependency>()
@@ -217,7 +214,6 @@ internal class DdCheckSdkDepsTaskTest {
     fun `𝕄 do nothing 𝕎 sdk dependency was found`(
         forge: Forge
     ) {
-
         // GIVEN
         val dependencies = forge.aList {
             val dependency = mock<ResolvedDependency>()

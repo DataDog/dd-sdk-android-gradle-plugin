@@ -1031,7 +1031,6 @@ internal class DdAndroidGradlePluginTest {
         @StringForgery(case = Case.LOWER) flavorName: String,
         @StringForgery(case = Case.LOWER) buildTypeName: String
     ) {
-
         // let's check that there are no tasks just in case if setup is modified
         assertThat(fakeProject.tasks.isEmpty()).isTrue()
 

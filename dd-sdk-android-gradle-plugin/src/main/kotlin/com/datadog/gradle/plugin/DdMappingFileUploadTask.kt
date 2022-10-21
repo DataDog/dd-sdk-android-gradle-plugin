@@ -253,7 +253,6 @@ open class DdMappingFileUploadTask
     }
 
     private fun generateRepositoryFile(repositories: List<RepositoryInfo>) {
-
         val data = JSONArray()
         repositories.forEach {
             data.put(it.toJson())
