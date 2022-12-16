@@ -136,6 +136,26 @@ For example:
 tasks["minify${variant}WithR8"].finalizedBy { tasks["uploadMapping${variant}"] }
 ```
 
+## Limitations
+
+For now, we can only upload mapping files with a size smaller than 50 Mb. If your project has a mapping file larger
+than 50Mb, you can try several options to reduce the file size and be able to upload it.
+
+- set the `mappingFileTrimIndents` option to true, this will reduce your file size by 5% on average
+- set a map of `mappingFilePackagesAliases`: this will replace package names by shorter alias. The main caveat is that the stacktrace in Datadog will use the same alias instead of the original package name, so it's better to use it for third party dependencies.
+
+```
+datadog {
+    mappingFileTrimIndents = false
+    mappingFilePackageAliases = mapOf(
+        "kotlinx.coroutines" to "kx.cor",
+        "com.google.android.material" to "material",
+        "com.google.gson" to "gson",
+        "com.squareup.picasso" to "picasso"
+    )
+}
+```
+
 ## Further Reading
 
 {{< partial name="whats-next/whats-next.html" >}}
