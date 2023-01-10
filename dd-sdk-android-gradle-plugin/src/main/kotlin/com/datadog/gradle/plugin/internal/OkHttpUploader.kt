@@ -6,6 +6,7 @@
 
 package com.datadog.gradle.plugin.internal
 
+import com.datadog.gradle.plugin.DatadogSite
 import com.datadog.gradle.plugin.DdAndroidGradlePlugin.Companion.LOGGER
 import com.datadog.gradle.plugin.RepositoryInfo
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -15,7 +16,9 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import org.json.JSONException
 import org.json.JSONObject
+import org.json.JSONTokener
 import java.io.File
 import java.net.HttpURLConnection
 import java.util.concurrent.TimeUnit
@@ -36,18 +39,18 @@ internal class OkHttpUploader : Uploader {
 
     @Suppress("TooGenericExceptionCaught")
     override fun upload(
-        url: String,
+        site: DatadogSite,
         mappingFile: File,
         repositoryFile: File?,
         apiKey: String,
         identifier: DdAppIdentifier,
         repositoryInfo: RepositoryInfo?
     ) {
-        LOGGER.info("Uploading mapping file for $identifier:\n")
+        LOGGER.info("Uploading mapping file for $identifier (site=${site.domain}):\n")
         val body = createBody(identifier, mappingFile, repositoryFile, repositoryInfo)
 
         val request = Request.Builder()
-            .url(url)
+            .url(site.uploadEndpoint())
             .post(body)
             .header(HEADER_EVP_ORIGIN, "dd-sdk-android-gradle-plugin")
             .header(HEADER_EVP_ORIGIN_VERSION, VERSION)
@@ -62,7 +65,7 @@ internal class OkHttpUploader : Uploader {
             null
         }
 
-        handleResponse(response, identifier)
+        handleResponse(response, site, apiKey, identifier)
     }
 
     // endregion
@@ -121,6 +124,8 @@ internal class OkHttpUploader : Uploader {
     @Suppress("ThrowingInternalException", "TooGenericExceptionThrown")
     private fun handleResponse(
         response: Response?,
+        site: DatadogSite,
+        apiKey: String,
         identifier: DdAppIdentifier
     ) {
         val statusCode = response?.code
@@ -131,23 +136,69 @@ internal class OkHttpUploader : Uploader {
             statusCode in successfulCodes -> LOGGER.info(
                 "Mapping file upload successful for $identifier"
             )
-            statusCode == HttpURLConnection.HTTP_FORBIDDEN -> throw IllegalStateException(
-                "Unable to upload mapping file for $identifier; " +
-                    "verify that you're using a valid API Key"
+            statusCode == HttpURLConnection.HTTP_FORBIDDEN -> throw InvalidApiKeyException(
+                identifier,
+                site
             )
             statusCode == HttpURLConnection.HTTP_CLIENT_TIMEOUT -> throw RuntimeException(
                 "Unable to upload mapping file for $identifier because of a request timeout; " +
                     "check your network connection"
             )
             statusCode >= HttpURLConnection.HTTP_BAD_REQUEST -> {
+                if (statusCode == HttpURLConnection.HTTP_BAD_REQUEST &&
+                    validateApiKey(site, apiKey) == false
+                ) {
+                    throw InvalidApiKeyException(identifier, site)
+                }
                 throw IllegalStateException(
-                    "Unable to upload mapping file for $identifier ($statusCode); " +
-                        "it can be because the mapping file already exist for this version.\n" +
+                    "Unable to upload mapping file for $identifier ($statusCode);\n" +
                         "${response.body?.string()}"
                 )
             }
         }
     }
+
+    private fun validateApiKey(site: DatadogSite, apiKey: String): Boolean? {
+        val request = Request.Builder()
+            .url(site.apiKeyVerificationEndpoint())
+            .header(HEADER_API_KEY, apiKey)
+            .build()
+
+        val call = client.newCall(request)
+        val response = try {
+            call.execute()
+        } catch (@Suppress("TooGenericExceptionCaught") e: Throwable) {
+            LOGGER.error("Error checking the validity of API key", e)
+            null
+        } ?: return null
+
+        return when (response.code) {
+            HttpURLConnection.HTTP_OK -> {
+                val body = response.body?.string()
+                if (body != null) {
+                    try {
+                        val json = JSONObject(JSONTokener(body))
+                        json.getBoolean("valid")
+                    } catch (jse: JSONException) {
+                        LOGGER.error("Unexpected format of API key validity check response", jse)
+                        null
+                    }
+                } else {
+                    null
+                }
+            }
+            HttpURLConnection.HTTP_FORBIDDEN -> false
+            else -> null
+        }
+    }
+
+    internal inner class InvalidApiKeyException(
+        uploadIdentifier: DdAppIdentifier,
+        site: DatadogSite
+    ) : RuntimeException(
+        "Unable to upload mapping file for $uploadIdentifier (site=${site.domain}); " +
+            "verify that you're using a valid API Key"
+    )
 
     // endregion
 

@@ -151,7 +151,7 @@ open class DdMappingFileUploadTask
 
         val site = DatadogSite.valueOf(site)
         uploader.upload(
-            site.uploadEndpoint(),
+            site,
             mappingFile,
             if (repositories.isEmpty()) null else repositoryFile,
             apiKey,

@@ -121,7 +121,6 @@ internal class DdMappingFileUploadTaskTest {
         testedTask.mappingFilePath = fakeMappingFile.path
         val fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
         testedTask.repositoryFile = fakeRepositoryFile
-        val expectedUrl = fakeSite.uploadEndpoint()
         whenever(mockRepositoryDetector.detectRepositories(any(), eq("")))
             .doReturn(listOf(fakeRepoInfo))
 
@@ -130,7 +129,7 @@ internal class DdMappingFileUploadTaskTest {
 
         // Then
         verify(mockUploader).upload(
-            expectedUrl,
+            fakeSite,
             fakeMappingFile,
             fakeRepositoryFile,
             fakeApiKey.value,
@@ -165,7 +164,6 @@ internal class DdMappingFileUploadTaskTest {
         testedTask.mappingFilePath = fakeMappingFile.path
         val fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
         testedTask.repositoryFile = fakeRepositoryFile
-        val expectedUrl = fakeSite.uploadEndpoint()
         whenever(mockRepositoryDetector.detectRepositories(any(), eq("")))
             .doReturn(listOf(fakeRepoInfo))
 
@@ -175,7 +173,7 @@ internal class DdMappingFileUploadTaskTest {
         // Then
         argumentCaptor<File> {
             verify(mockUploader).upload(
-                eq(expectedUrl),
+                eq(fakeSite),
                 capture(),
                 eq(fakeRepositoryFile),
                 eq(fakeApiKey.value),
@@ -214,7 +212,6 @@ internal class DdMappingFileUploadTaskTest {
         testedTask.mappingFilePath = fakeMappingFile.path
         val fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
         testedTask.repositoryFile = fakeRepositoryFile
-        val expectedUrl = fakeSite.uploadEndpoint()
         whenever(mockRepositoryDetector.detectRepositories(any(), eq("")))
             .doReturn(listOf(fakeRepoInfo))
 
@@ -224,7 +221,7 @@ internal class DdMappingFileUploadTaskTest {
         // Then
         argumentCaptor<File> {
             verify(mockUploader).upload(
-                eq(expectedUrl),
+                eq(fakeSite),
                 capture(),
                 eq(fakeRepositoryFile),
                 eq(fakeApiKey.value),
@@ -250,7 +247,6 @@ internal class DdMappingFileUploadTaskTest {
         testedTask.remoteRepositoryUrl = fakeRemoteUrl
         val fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
         testedTask.repositoryFile = fakeRepositoryFile
-        val expectedUrl = fakeSite.uploadEndpoint()
         whenever(mockRepositoryDetector.detectRepositories(any(), eq(fakeRemoteUrl)))
             .doReturn(listOf(fakeRepoInfo))
 
@@ -259,7 +255,7 @@ internal class DdMappingFileUploadTaskTest {
 
         // Then
         verify(mockUploader).upload(
-            expectedUrl,
+            fakeSite,
             fakeMappingFile,
             fakeRepositoryFile,
             fakeApiKey.value,
@@ -284,7 +280,6 @@ internal class DdMappingFileUploadTaskTest {
         testedTask.mappingFilePath = fakeMappingFile.path
         val fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
         testedTask.repositoryFile = fakeRepositoryFile
-        val expectedUrl = fakeSite.uploadEndpoint()
         whenever(mockRepositoryDetector.detectRepositories(any(), eq("")))
             .doReturn(emptyList())
 
@@ -293,7 +288,7 @@ internal class DdMappingFileUploadTaskTest {
 
         // Then
         verify(mockUploader).upload(
-            expectedUrl,
+            fakeSite,
             fakeMappingFile,
             null,
             fakeApiKey.value,
@@ -354,7 +349,6 @@ internal class DdMappingFileUploadTaskTest {
         val fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
         testedTask.repositoryFile = fakeRepositoryFile
         testedTask.site = ""
-        val expectedUrl = DatadogSite.US1.uploadEndpoint()
         whenever(mockRepositoryDetector.detectRepositories(any(), eq("")))
             .doReturn(listOf(fakeRepoInfo))
 
@@ -363,7 +357,7 @@ internal class DdMappingFileUploadTaskTest {
 
         // Then
         verify(mockUploader).upload(
-            expectedUrl,
+            DatadogSite.US1,
             fakeMappingFile,
             fakeRepositoryFile,
             fakeApiKey.value,

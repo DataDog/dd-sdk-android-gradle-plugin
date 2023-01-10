@@ -479,7 +479,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         assertThat(result.output).contains(
             "Uploading mapping file for " +
                 "com.example.variants.$variantVersionName:1.0-$variantVersionName " +
-                "{variant:$variant}:"
+                "{variant:$variant} (site=datadoghq.com):"
         )
     }
 
@@ -526,7 +526,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         assertThat(result.output).contains(
             "Uploading mapping file for " +
                 "com.example.variants.$variantVersionName:1.0-$variantVersionName " +
-                "{variant:$variant}:"
+                "{variant:$variant} (site=datadoghq.eu):"
         )
         assertThat(result.output).contains("API key found in Datadog CI config file, using it.")
         assertThat(result.output)
@@ -565,7 +565,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         assertThat(result.output).contains(
             "Uploading mapping file for " +
                 "com.example.variants.$variantVersionName:1.0-$variantVersionName " +
-                "{variant:$variant}:"
+                "{variant:$variant} (site=datadoghq.com):"
         )
 
         assertThat(result.output).contains(
@@ -603,7 +603,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         assertThat(result.output).contains(
             "Uploading mapping file for " +
                 "com.example.variants.$variantVersionName:1.0-$variantVersionName " +
-                "{variant:$variant}:"
+                "{variant:$variant} (site=datadoghq.com):"
         )
 
         val optimizedFile = Path(

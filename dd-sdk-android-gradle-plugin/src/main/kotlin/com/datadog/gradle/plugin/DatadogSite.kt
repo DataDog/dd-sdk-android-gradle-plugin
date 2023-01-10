@@ -57,6 +57,10 @@ enum class DatadogSite(internal val domain: String) {
         return "https://sourcemap-intake.$domain/api/v2/srcmap"
     }
 
+    internal fun apiKeyVerificationEndpoint(): String {
+        return "https://api.$domain/api/v1/validate"
+    }
+
     companion object {
         internal val validIds = DatadogSite.values().map { it.name }
 
