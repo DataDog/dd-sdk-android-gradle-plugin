@@ -136,6 +136,12 @@ open class DdMappingFileUploadTask
         applySiteFromEnvironment()
         validateConfiguration()
 
+        if (apiKey.contains("\"") || apiKey.contains("'")) {
+            throw IllegalStateException(
+                "DD-API-KEY provided shouldn't contain quotes or apostrophes."
+            )
+        }
+
         var mappingFile = File(mappingFilePath)
         if (!validateMappingFile(mappingFile)) return
 

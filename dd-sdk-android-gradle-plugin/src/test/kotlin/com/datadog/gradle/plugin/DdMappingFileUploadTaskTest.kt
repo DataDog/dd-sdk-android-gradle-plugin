@@ -320,6 +320,31 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
+    fun `𝕄 throw error 𝕎 applyTask() {api key contains quotes or apostrophes}`(
+        forge: Forge
+    ) {
+        // Given
+        val fakeMappingFile = File(tempDir, fakeMappingFileName)
+        fakeMappingFile.writeText(fakeMappingFileContent)
+        testedTask.mappingFilePath = fakeMappingFile.path
+        testedTask.apiKey = forge.anAlphaNumericalString().let {
+            val splitIndex = forge.anInt(min = 0, max = it.length) + 1
+            it.substring(0, splitIndex) +
+                forge.anElementFrom("\"", "'") +
+                it.substring(splitIndex)
+        }
+        testedTask.apiKeySource = ApiKeySource.NONE
+
+        // When
+        assertThrows<IllegalStateException> {
+            testedTask.applyTask()
+        }
+
+        // Then
+        verifyZeroInteractions(mockUploader)
+    }
+
+    @Test
     fun `𝕄 throw error 𝕎 applyTask() {invalid site}`(
         @StringForgery siteName: String
     ) {
