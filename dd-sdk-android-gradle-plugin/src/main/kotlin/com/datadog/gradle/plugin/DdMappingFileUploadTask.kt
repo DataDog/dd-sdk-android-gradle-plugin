@@ -138,7 +138,7 @@ open class DdMappingFileUploadTask
 
         if (apiKey.contains("\"") || apiKey.contains("'")) {
             throw IllegalStateException(
-                "DD-API-KEY provided shouldn't contain quotes or apostrophes."
+                "DD_API_KEY provided shouldn't contain quotes or apostrophes."
             )
         }
 
