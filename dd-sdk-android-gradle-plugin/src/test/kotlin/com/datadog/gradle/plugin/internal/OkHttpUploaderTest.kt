@@ -7,6 +7,7 @@
 package com.datadog.gradle.plugin.internal
 
 import com.datadog.gradle.plugin.Configurator
+import com.datadog.gradle.plugin.DatadogSite
 import com.datadog.gradle.plugin.RecordedRequestAssert.Companion.assertThat
 import com.datadog.gradle.plugin.RepositoryInfo
 import com.nhaarman.mockitokotlin2.doReturn
@@ -27,17 +28,19 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.RepeatedTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.extension.Extensions
 import org.junit.jupiter.api.io.TempDir
+import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.junit.jupiter.MockitoSettings
 import org.mockito.quality.Strictness
 import java.io.File
-import java.lang.IllegalStateException
 import java.net.HttpURLConnection
+import kotlin.IllegalStateException
 
 @Extensions(
     ExtendWith(MockitoExtension::class),
@@ -76,13 +79,21 @@ internal class OkHttpUploaderTest {
     @StringForgery
     lateinit var fakeRepositoryFileContent: String
 
+    @Mock
+    lateinit var mockSite: DatadogSite
+
     lateinit var mockWebServer: MockWebServer
 
-    lateinit var mockResponse: MockResponse
+    lateinit var mockUploadResponse: MockResponse
+    lateinit var mockApiKeyValidationResponse: MockResponse
 
     lateinit var mockDispatcher: Dispatcher
 
-    var dispatchedRequest: RecordedRequest? = null
+    lateinit var fakeUploadUrl: String
+    lateinit var fakeApiKeyValidationUrl: String
+
+    var dispatchedUploadRequest: RecordedRequest? = null
+    var dispatchedApiKeyValidationRequest: RecordedRequest? = null
 
     @BeforeEach
     fun `set up`() {
@@ -96,12 +107,19 @@ internal class OkHttpUploaderTest {
         mockDispatcher = MockDispatcher()
         mockWebServer.dispatcher = mockDispatcher
         testedUploader = OkHttpUploader()
+
+        fakeUploadUrl = mockWebServer.url("/upload").toString()
+        fakeApiKeyValidationUrl = mockWebServer.url("/api-key-validation").toString()
+
+        whenever(mockSite.uploadEndpoint()) doReturn fakeUploadUrl
+        whenever(mockSite.apiKeyVerificationEndpoint()) doReturn fakeApiKeyValidationUrl
     }
 
     @AfterEach
     fun `tear down`() {
         mockWebServer.shutdown()
-        dispatchedRequest = null
+        dispatchedUploadRequest = null
+        dispatchedApiKeyValidationRequest = null
     }
 
     @Test
@@ -126,13 +144,13 @@ internal class OkHttpUploaderTest {
     @Test
     fun `𝕄 upload proper request 𝕎 upload()`() {
         // Given
-        mockResponse = MockResponse()
+        mockUploadResponse = MockResponse()
             .setResponseCode(HttpURLConnection.HTTP_OK)
             .setBody("{}")
 
         // When
         testedUploader.upload(
-            mockWebServer.url("/").toString(),
+            mockSite,
             fakeMappingFile,
             fakeRepositoryFile,
             fakeApiKey,
@@ -142,7 +160,7 @@ internal class OkHttpUploaderTest {
 
         // Then
         assertThat(mockWebServer.requestCount).isEqualTo(1)
-        assertThat(dispatchedRequest)
+        assertThat(dispatchedUploadRequest)
             .hasMethod("POST")
             .containsFormData("git_repository_url", fakeRepositoryInfo.url)
             .containsFormData("git_commit_sha", fakeRepositoryInfo.hash)
@@ -172,13 +190,13 @@ internal class OkHttpUploaderTest {
     @Test
     fun `𝕄 upload proper request 𝕎 upload() {repository=null}`() {
         // Given
-        mockResponse = MockResponse()
+        mockUploadResponse = MockResponse()
             .setResponseCode(HttpURLConnection.HTTP_OK)
             .setBody("{}")
 
         // When
         testedUploader.upload(
-            mockWebServer.url("/").toString(),
+            mockSite,
             fakeMappingFile,
             null,
             fakeApiKey,
@@ -188,7 +206,7 @@ internal class OkHttpUploaderTest {
 
         // Then
         assertThat(mockWebServer.requestCount).isEqualTo(1)
-        assertThat(dispatchedRequest)
+        assertThat(dispatchedUploadRequest)
             .hasMethod("POST")
             .containsMultipartFile(
                 "event",
@@ -213,14 +231,14 @@ internal class OkHttpUploaderTest {
     @Test
     fun `𝕄 throw exception 𝕎 upload() {response 403}`() {
         // Given
-        mockResponse = MockResponse()
+        mockUploadResponse = MockResponse()
             .setResponseCode(403)
             .setBody("{}")
 
         // When
-        assertThrows<IllegalStateException> {
+        assertThrows<OkHttpUploader.InvalidApiKeyException> {
             testedUploader.upload(
-                mockWebServer.url("/").toString(),
+                mockSite,
                 fakeMappingFile,
                 fakeRepositoryFile,
                 fakeApiKey,
@@ -231,7 +249,7 @@ internal class OkHttpUploaderTest {
 
         // Then
         assertThat(mockWebServer.requestCount).isEqualTo(1)
-        assertThat(dispatchedRequest)
+        assertThat(dispatchedUploadRequest)
             .hasMethod("POST")
             .containsFormData("git_repository_url", fakeRepositoryInfo.url)
             .containsFormData("git_commit_sha", fakeRepositoryInfo.hash)
@@ -259,22 +277,22 @@ internal class OkHttpUploaderTest {
     }
 
     @Test
-    fun `𝕄 throw exception 𝕎 upload() {response 400-599}`(
-        @IntForgery(400, 600) statusCode: Int
+    fun `𝕄 throw exception 𝕎 upload() {response 401-599}`(
+        @IntForgery(401, 600) statusCode: Int
     ) {
         // 407 will actually throw a protocol exception
         // Received HTTP_PROXY_AUTH (407) code while not using proxy
-        assumeTrue(statusCode != 407)
+        assumeTrue(statusCode != 407 && statusCode != 403)
 
         // Given
-        mockResponse = MockResponse()
+        mockUploadResponse = MockResponse()
             .setResponseCode(statusCode)
             .setBody("{}")
 
         // When
         assertThrows<IllegalStateException> {
             testedUploader.upload(
-                mockWebServer.url("/").toString(),
+                mockSite,
                 fakeMappingFile,
                 fakeRepositoryFile,
                 fakeApiKey,
@@ -285,7 +303,7 @@ internal class OkHttpUploaderTest {
 
         // Then
         assertThat(mockWebServer.requestCount).isEqualTo(1)
-        assertThat(dispatchedRequest)
+        assertThat(dispatchedUploadRequest)
             .hasMethod("POST")
             .containsFormData("git_repository_url", fakeRepositoryInfo.url)
             .containsFormData("git_commit_sha", fakeRepositoryInfo.hash)
@@ -310,6 +328,236 @@ internal class OkHttpUploaderTest {
                 fakeRepositoryFileContent,
                 "application/json"
             )
+    }
+
+    @Test
+    fun `𝕄 throw generic exception 𝕎 upload() {response 400, API key validation returned true}`() {
+        // Given
+        mockUploadResponse = MockResponse()
+            .setResponseCode(HttpURLConnection.HTTP_BAD_REQUEST)
+            .setBody("{}")
+        mockApiKeyValidationResponse = MockResponse()
+            .setResponseCode(HttpURLConnection.HTTP_OK)
+            .setBody("{ \"valid\": true }")
+
+        // When
+        assertThrows<IllegalStateException> {
+            testedUploader.upload(
+                mockSite,
+                fakeMappingFile,
+                fakeRepositoryFile,
+                fakeApiKey,
+                fakeIdentifier,
+                fakeRepositoryInfo
+            )
+        }
+
+        // Then
+        assertThat(mockWebServer.requestCount).isEqualTo(2)
+        assertThat(dispatchedUploadRequest)
+            .hasMethod("POST")
+            .containsFormData("git_repository_url", fakeRepositoryInfo.url)
+            .containsFormData("git_commit_sha", fakeRepositoryInfo.hash)
+            .containsMultipartFile(
+                "event",
+                "event",
+                "{\"service\":\"${fakeIdentifier.serviceName}\"," +
+                    "\"variant\":\"${fakeIdentifier.variant}\"," +
+                    "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
+                    "\"version\":\"${fakeIdentifier.version}\"}",
+                "application/json; charset=utf-8"
+            )
+            .containsMultipartFile(
+                "jvm_mapping_file",
+                "jvm_mapping",
+                fakeMappingFileContent,
+                "text/plain"
+            )
+            .containsMultipartFile(
+                "repository",
+                "repository",
+                fakeRepositoryFileContent,
+                "application/json"
+            )
+
+        assertThat(dispatchedApiKeyValidationRequest)
+            .hasHeaderValue("DD-API-KEY", fakeApiKey)
+    }
+
+    @RepeatedTest(8)
+    fun `𝕄 throw generic exception 𝕎 upload() {response 400, API key validation failed}`(
+        forge: Forge
+    ) {
+        // Given
+        mockUploadResponse = MockResponse()
+            .setResponseCode(HttpURLConnection.HTTP_BAD_REQUEST)
+            .setBody("{}")
+        mockApiKeyValidationResponse = forge.anElementFrom(
+            // wrong body
+            MockResponse()
+                .setResponseCode(HttpURLConnection.HTTP_OK)
+                .setBody("{}"),
+            // no body
+            MockResponse()
+                .setResponseCode(HttpURLConnection.HTTP_OK),
+            // unexpected code
+            MockResponse()
+                .setResponseCode(forge.anInt(min = 400, max = 403)),
+            MockResponse()
+                .setResponseCode(forge.anInt(min = 404, max = 600))
+        )
+
+        // When
+        assertThrows<IllegalStateException> {
+            testedUploader.upload(
+                mockSite,
+                fakeMappingFile,
+                fakeRepositoryFile,
+                fakeApiKey,
+                fakeIdentifier,
+                fakeRepositoryInfo
+            )
+        }
+
+        // Then
+        assertThat(mockWebServer.requestCount).isEqualTo(2)
+        assertThat(dispatchedUploadRequest)
+            .hasMethod("POST")
+            .containsFormData("git_repository_url", fakeRepositoryInfo.url)
+            .containsFormData("git_commit_sha", fakeRepositoryInfo.hash)
+            .containsMultipartFile(
+                "event",
+                "event",
+                "{\"service\":\"${fakeIdentifier.serviceName}\"," +
+                    "\"variant\":\"${fakeIdentifier.variant}\"," +
+                    "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
+                    "\"version\":\"${fakeIdentifier.version}\"}",
+                "application/json; charset=utf-8"
+            )
+            .containsMultipartFile(
+                "jvm_mapping_file",
+                "jvm_mapping",
+                fakeMappingFileContent,
+                "text/plain"
+            )
+            .containsMultipartFile(
+                "repository",
+                "repository",
+                fakeRepositoryFileContent,
+                "application/json"
+            )
+
+        assertThat(dispatchedApiKeyValidationRequest)
+            .hasHeaderValue("DD-API-KEY", fakeApiKey)
+    }
+
+    @Test
+    fun `𝕄 throw API key validation exception 𝕎 upload() {response 400, API key validation returned false}`() {
+        // Given
+        mockUploadResponse = MockResponse()
+            .setResponseCode(HttpURLConnection.HTTP_BAD_REQUEST)
+            .setBody("{}")
+
+        mockApiKeyValidationResponse = MockResponse()
+            .setResponseCode(HttpURLConnection.HTTP_OK)
+            .setBody("{ \"valid\": false }")
+
+        // When
+        assertThrows<OkHttpUploader.InvalidApiKeyException> {
+            testedUploader.upload(
+                mockSite,
+                fakeMappingFile,
+                fakeRepositoryFile,
+                fakeApiKey,
+                fakeIdentifier,
+                fakeRepositoryInfo
+            )
+        }
+
+        // Then
+        assertThat(mockWebServer.requestCount).isEqualTo(2)
+        assertThat(dispatchedUploadRequest)
+            .hasMethod("POST")
+            .containsFormData("git_repository_url", fakeRepositoryInfo.url)
+            .containsFormData("git_commit_sha", fakeRepositoryInfo.hash)
+            .containsMultipartFile(
+                "event",
+                "event",
+                "{\"service\":\"${fakeIdentifier.serviceName}\"," +
+                    "\"variant\":\"${fakeIdentifier.variant}\"," +
+                    "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
+                    "\"version\":\"${fakeIdentifier.version}\"}",
+                "application/json; charset=utf-8"
+            )
+            .containsMultipartFile(
+                "jvm_mapping_file",
+                "jvm_mapping",
+                fakeMappingFileContent,
+                "text/plain"
+            )
+            .containsMultipartFile(
+                "repository",
+                "repository",
+                fakeRepositoryFileContent,
+                "application/json"
+            )
+
+        assertThat(dispatchedApiKeyValidationRequest)
+            .hasHeaderValue("DD-API-KEY", fakeApiKey)
+    }
+
+    @Test
+    fun `𝕄 throw API key validation exception 𝕎 upload() {response 400, API key validation returned 403}`() {
+        // Given
+        mockUploadResponse = MockResponse()
+            .setResponseCode(HttpURLConnection.HTTP_BAD_REQUEST)
+            .setBody("{}")
+
+        mockApiKeyValidationResponse = MockResponse()
+            .setResponseCode(HttpURLConnection.HTTP_FORBIDDEN)
+
+        // When
+        assertThrows<OkHttpUploader.InvalidApiKeyException> {
+            testedUploader.upload(
+                mockSite,
+                fakeMappingFile,
+                fakeRepositoryFile,
+                fakeApiKey,
+                fakeIdentifier,
+                fakeRepositoryInfo
+            )
+        }
+
+        // Then
+        assertThat(mockWebServer.requestCount).isEqualTo(2)
+        assertThat(dispatchedUploadRequest)
+            .hasMethod("POST")
+            .containsFormData("git_repository_url", fakeRepositoryInfo.url)
+            .containsFormData("git_commit_sha", fakeRepositoryInfo.hash)
+            .containsMultipartFile(
+                "event",
+                "event",
+                "{\"service\":\"${fakeIdentifier.serviceName}\"," +
+                    "\"variant\":\"${fakeIdentifier.variant}\"," +
+                    "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
+                    "\"version\":\"${fakeIdentifier.version}\"}",
+                "application/json; charset=utf-8"
+            )
+            .containsMultipartFile(
+                "jvm_mapping_file",
+                "jvm_mapping",
+                fakeMappingFileContent,
+                "text/plain"
+            )
+            .containsMultipartFile(
+                "repository",
+                "repository",
+                fakeRepositoryFileContent,
+                "application/json"
+            )
+
+        assertThat(dispatchedApiKeyValidationRequest)
+            .hasHeaderValue("DD-API-KEY", fakeApiKey)
     }
 
     @Test
@@ -326,7 +574,7 @@ internal class OkHttpUploaderTest {
         // THEN
         assertThrows<MaxSizeExceededException> {
             testedUploader.upload(
-                mockWebServer.url("/").toString(),
+                mockSite,
                 fakeTooLargeMappingFile,
                 fakeRepositoryFile,
                 fakeApiKey,
@@ -347,13 +595,13 @@ internal class OkHttpUploaderTest {
         val fakeTooLargeMappingFile = spy(File(tempDir, forge.anAlphabeticalString()))
         doReturn(fakeFileSize)
             .whenever(fakeTooLargeMappingFile).length()
-        mockResponse = MockResponse()
+        mockUploadResponse = MockResponse()
             .setResponseCode(HttpURLConnection.HTTP_OK)
             .setBody("{}")
 
         // When
         testedUploader.upload(
-            mockWebServer.url("/").toString(),
+            mockSite,
             fakeMappingFile,
             fakeRepositoryFile,
             fakeApiKey,
@@ -373,13 +621,13 @@ internal class OkHttpUploaderTest {
         val fakeTooLargeMappingFile = spy(File(tempDir, forge.anAlphabeticalString()))
         doReturn(OkHttpUploader.MAX_MAP_FILE_SIZE_IN_BYTES)
             .whenever(fakeTooLargeMappingFile).length()
-        mockResponse = MockResponse()
+        mockUploadResponse = MockResponse()
             .setResponseCode(HttpURLConnection.HTTP_OK)
             .setBody("{}")
 
         // When
         testedUploader.upload(
-            mockWebServer.url("/").toString(),
+            mockSite,
             fakeMappingFile,
             fakeRepositoryFile,
             fakeApiKey,
@@ -393,8 +641,17 @@ internal class OkHttpUploaderTest {
 
     inner class MockDispatcher : Dispatcher() {
         override fun dispatch(request: RecordedRequest): MockResponse {
-            dispatchedRequest = request
-            return mockResponse
+            return when (request.requestUrl?.encodedPath) {
+                "/upload" -> {
+                    dispatchedUploadRequest = request
+                    mockUploadResponse
+                }
+                "/api-key-validation" -> {
+                    dispatchedApiKeyValidationRequest = request
+                    mockApiKeyValidationResponse
+                }
+                else -> throw IllegalStateException("Unexpected path for url=${request.requestUrl}")
+            }
         }
     }
 }

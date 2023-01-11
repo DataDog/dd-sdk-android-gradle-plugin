@@ -60,6 +60,14 @@ internal class RecordedRequestAssert(actual: RecordedRequest?) :
         return this
     }
 
+    fun hasHeaderValue(header: String, expected: String): RecordedRequestAssert {
+        isNotNull
+        assertThat(actual.headers.names()).contains(header)
+        val actual = actual.getHeader(header)
+        assertThat(actual).isEqualTo(expected)
+        return this
+    }
+
     companion object {
         fun assertThat(actual: RecordedRequest?): RecordedRequestAssert {
             return RecordedRequestAssert(actual)

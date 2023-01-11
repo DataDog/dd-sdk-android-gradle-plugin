@@ -6,6 +6,7 @@
 
 package com.datadog.gradle.plugin.internal
 
+import com.datadog.gradle.plugin.DatadogSite
 import com.datadog.gradle.plugin.RepositoryInfo
 import java.io.File
 
@@ -13,7 +14,7 @@ internal interface Uploader {
 
     @Suppress("LongParameterList")
     fun upload(
-        url: String,
+        site: DatadogSite,
         mappingFile: File,
         repositoryFile: File?,
         apiKey: String,
