@@ -63,10 +63,10 @@ gradlePlugin {
 
     website.set("https://docs.datadoghq.com/real_user_monitoring/error_tracking/android/")
     vcsUrl.set("https://github.com/DataDog/dd-sdk-android-gradle-plugin")
-    description = "This plugin is used to upload your Proguard/R8 mapping files to Datadog."
 
     plugins {
         register("dd-sdk-android-gradle-plugin") {
+            description = "This plugin is used to upload your Proguard/R8 mapping files to Datadog."
             id = "com.datadoghq.dd-sdk-android-gradle-plugin" // the alias
             implementationClass = "com.datadog.gradle.plugin.DdAndroidGradlePlugin"
             displayName = "Gradle Plugin for Datadog Android SDK"
