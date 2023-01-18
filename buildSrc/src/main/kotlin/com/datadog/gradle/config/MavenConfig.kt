@@ -13,6 +13,8 @@ import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.jvm.tasks.Jar
 import org.gradle.kotlin.dsl.findByType
+import org.gradle.kotlin.dsl.get
+import org.gradle.kotlin.dsl.named
 import org.gradle.plugins.signing.SigningExtension
 import java.net.URI
 
@@ -26,27 +28,32 @@ object MavenConfig {
 @Suppress("UnstableApiUsage")
 fun Project.publishingConfig(projectDescription: String) {
     val projectName = name
+    val signingExtension = extensions.findByType(SigningExtension::class)
 
-    @Suppress("UnstableApiUsage")
-    tasks.register("generateJavadocJar", Jar::class.java) {
-        group = "publishing"
-        dependsOn("dokkaJavadoc")
-        archiveClassifier.convention("javadoc")
-        from("${buildDir.canonicalPath}/reports/javadoc")
+    if (signingExtension == null) {
+        System.err.println("Missing signing extension for $projectName")
+        return
     }
-
-    @Suppress("UnstableApiUsage")
-    tasks.register("generateSourcesJar", Jar::class.java) {
-        group = "publishing"
-        archiveClassifier.convention("sources")
-        from("${projectDir.canonicalPath}/src/main")
+    signingExtension.apply {
+        val privateKey = System.getenv("GPG_PRIVATE_KEY")
+        val password = System.getenv("GPG_PASSWORD")
+        isRequired = !hasProperty("dd-skip-signing")
+        useInMemoryPgpKeys(privateKey, password)
+        // com.gradle.plugin-publish plugin will automatically add signing task "signPluginMavenPublication"
+        // sign(publishingExtension.publications.getByName(MavenConfig.PUBLICATION))
     }
 
     afterEvaluate {
+        tasks.named("javadocJar", Jar::class.java).configure {
+            group = "publishing"
+            dependsOn("dokkaJavadoc")
+            archiveClassifier.convention("javadoc")
+            from("${buildDir.canonicalPath}/reports/javadoc")
+        }
+
         val publishingExtension = extensions.findByType(PublishingExtension::class)
-        val signingExtension = extensions.findByType(SigningExtension::class)
-        if (publishingExtension == null || signingExtension == null) {
-            System.err.println("Missing publishing or signing extension for $projectName")
+        if (publishingExtension == null) {
+            System.err.println("Missing publishing extension for $projectName")
             return@afterEvaluate
         }
 
@@ -67,8 +74,6 @@ fun Project.publishingConfig(projectDescription: String) {
 
             publications.getByName(MavenConfig.PUBLICATION) {
                 check(this is MavenPublication)
-                artifact(tasks.findByName("generateSourcesJar"))
-                artifact(tasks.findByName("generateJavadocJar"))
 
                 groupId = MavenConfig.GROUP_ID
                 artifactId = projectName
@@ -109,15 +114,6 @@ fun Project.publishingConfig(projectDescription: String) {
                     }
                 }
             }
-        }
-
-        signingExtension.apply {
-            val privateKey = System.getenv("GPG_PRIVATE_KEY")
-            val password = System.getenv("GPG_PASSWORD")
-            isRequired = !hasProperty("dd-skip-signing")
-            useInMemoryPgpKeys(privateKey, password)
-            // com.gradle.plugin-publish plugin will automatically add signing task "signPluginMavenPublication"
-            // sign(publishingExtension.publications.getByName(MavenConfig.PUBLICATION))
         }
     }
 }
