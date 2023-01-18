@@ -1,3 +1,10 @@
+# 1.6.0 / 2023-01-17
+
+- [IMPROVEMENT] Improve mapping upload flow. See [#131](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/131)
+- [MAINTENANCE] Dependencies update. See [#133](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/133)
+- [CI] Use shared CI template. See [#119](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/119)
+- [CI] Update `ktlint` to 0.47.1. See [#121](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/121)
+
 # 1.5.1 / 2022-08-30
 
 - [BUGFIX] Fix a NPE during `datadog-ci.json` file lookup [#112](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/112)
