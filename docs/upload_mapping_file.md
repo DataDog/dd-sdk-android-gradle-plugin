@@ -146,7 +146,7 @@ than 50Mb, you can try several options to reduce the file size and be able to up
 
 ```
 datadog {
-    mappingFileTrimIndents = false
+    mappingFileTrimIndents = true
     mappingFilePackageAliases = mapOf(
         "kotlinx.coroutines" to "kx.cor",
         "com.google.android.material" to "material",
