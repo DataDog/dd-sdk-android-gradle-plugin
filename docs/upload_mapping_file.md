@@ -138,11 +138,10 @@ tasks["minify${variant}WithR8"].finalizedBy { tasks["uploadMapping${variant}"] }
 
 ## Limitations
 
-For now, we can only upload mapping files with a size smaller than 50 Mb. If your project has a mapping file larger
-than 50Mb, you can try several options to reduce the file size and be able to upload it.
+Mapping files are limited to 50 Mb. If your project has a mapping file larger than 50 Mb, use one of the following options to reduce the file size:
 
-- set the `mappingFileTrimIndents` option to true, this will reduce your file size by 5% on average
-- set a map of `mappingFilePackagesAliases`: this will replace package names by shorter alias. The main caveat is that the stacktrace in Datadog will use the same alias instead of the original package name, so it's better to use it for third party dependencies.
+- Set the `mappingFileTrimIndents` option to `true`. This reduces your file size by 5%, on average.
+- Set a map of `mappingFilePackagesAliases`: This replaces package names with shorter aliases. **Note**: Datadog's stacktrace uses the same alias instead of the original package name, so it's better to use this option for third party dependencies.
 
 ```
 datadog {
