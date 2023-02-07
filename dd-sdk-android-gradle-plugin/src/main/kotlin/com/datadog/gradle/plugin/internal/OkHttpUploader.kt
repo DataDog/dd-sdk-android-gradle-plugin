@@ -47,7 +47,7 @@ internal class OkHttpUploader : Uploader {
         repositoryInfo: RepositoryInfo?
     ) {
         LOGGER.info("Uploading mapping file for $identifier (site=${site.domain}):\n")
-        val body = createBody(identifier, mappingFile, repositoryFile, repositoryInfo)
+        val body = createBody(site, identifier, mappingFile, repositoryFile, repositoryInfo)
 
         val request = Request.Builder()
             .url(site.uploadEndpoint())
@@ -73,16 +73,23 @@ internal class OkHttpUploader : Uploader {
     // region Internal
 
     private fun createBody(
+        site: DatadogSite,
         identifier: DdAppIdentifier,
         mappingFile: File,
         repositoryFile: File?,
         repositoryInfo: RepositoryInfo?
     ): MultipartBody {
         val mappingFileBody = mappingFile.asRequestBody(MEDIA_TYPE_TXT)
-        if (mappingFileBody.contentLength() > MAX_MAP_FILE_SIZE_IN_BYTES) {
+        // have to use name, because comparison of enum vs spied/mocked enum directly will always fail
+        val sizeLimit = if (site.name == DatadogSite.US1.name) {
+            MAX_MAP_FILE_SIZE_IN_BYTES_US1
+        } else {
+            MAX_MAP_FILE_SIZE_IN_BYTES
+        }
+        if (mappingFileBody.contentLength() > sizeLimit) {
             throw MaxSizeExceededException(
                 MAX_MAP_SIZE_EXCEEDED_ERROR_FORMAT
-                    .format(mappingFile.absolutePath)
+                    .format(mappingFile.absolutePath, sizeLimit / MEGABYTE_IN_BYTES)
             )
         }
 
@@ -217,12 +224,18 @@ internal class OkHttpUploader : Uploader {
         internal const val KEY_JVM_MAPPING = "jvm_mapping"
         internal const val KEY_REPOSITORY = "repository"
 
-        internal val NETWORK_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(45)
+        // 60s is currently only for US1, others have 45s. But anyway server can drop connection
+        // by itself.
+        internal val NETWORK_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(60)
         internal val MEDIA_TYPE_TXT = "text/plain".toMediaTypeOrNull()
         internal val MEDIA_TYPE_JSON = "application/json".toMediaTypeOrNull()
-        internal const val MAX_MAP_FILE_SIZE_IN_BYTES = 50L * 1024L * 1024L // 50 MB
+        internal const val MEGABYTE_IN_BYTES = 1024 * 1024L
+        internal const val MAX_MAP_FILE_SIZE_IN_BYTES = 50L * MEGABYTE_IN_BYTES // 50 MB
+
+        // temporary until all DCs have a common limit
+        internal const val MAX_MAP_FILE_SIZE_IN_BYTES_US1 = 100L * MEGABYTE_IN_BYTES // 100 MB
         internal const val MAX_MAP_SIZE_EXCEEDED_ERROR_FORMAT =
-            "The proguard mapping file at: [%s] size exceeded the maximum 50 MB size. " +
+            "The proguard mapping file at: [%s] size exceeded the maximum %s MB size. " +
                 "This task cannot be performed."
         internal val successfulCodes = arrayOf(
             HttpURLConnection.HTTP_OK,
