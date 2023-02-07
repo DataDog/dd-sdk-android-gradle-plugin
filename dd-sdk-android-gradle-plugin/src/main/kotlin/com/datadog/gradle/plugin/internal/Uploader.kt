@@ -19,6 +19,7 @@ internal interface Uploader {
         repositoryFile: File?,
         apiKey: String,
         identifier: DdAppIdentifier,
-        repositoryInfo: RepositoryInfo?
+        repositoryInfo: RepositoryInfo?,
+        useGzip: Boolean
     )
 }

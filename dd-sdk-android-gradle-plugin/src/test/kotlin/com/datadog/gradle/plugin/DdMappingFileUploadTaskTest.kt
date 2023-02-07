@@ -47,7 +47,7 @@ import java.io.File
 @ForgeConfiguration(Configurator::class)
 internal class DdMappingFileUploadTaskTest {
 
-    lateinit var testedTask: DdMappingFileUploadTask
+    private lateinit var testedTask: DdMappingFileUploadTask
 
     @TempDir
     lateinit var tempDir: File
@@ -138,7 +138,8 @@ internal class DdMappingFileUploadTaskTest {
                 version = fakeVersion,
                 variant = fakeVariant
             ),
-            fakeRepoInfo
+            fakeRepoInfo,
+            useGzip = true
         )
         assertThat(fakeRepositoryFile.readText())
             .isEqualTo(
@@ -184,7 +185,8 @@ internal class DdMappingFileUploadTaskTest {
                         variant = fakeVariant
                     )
                 ),
-                eq(fakeRepoInfo)
+                eq(fakeRepoInfo),
+                useGzip = eq(true)
             )
             assertThat(lastValue).hasSameTextualContentAs(
                 fileFromResourcesPath("mapping-with-aliases.txt")
@@ -232,7 +234,8 @@ internal class DdMappingFileUploadTaskTest {
                         variant = fakeVariant
                     )
                 ),
-                eq(fakeRepoInfo)
+                eq(fakeRepoInfo),
+                useGzip = eq(true)
             )
             assertThat(lastValue.readLines()).isEqualTo(expectedLines)
         }
@@ -264,7 +267,8 @@ internal class DdMappingFileUploadTaskTest {
                 version = fakeVersion,
                 variant = fakeVariant
             ),
-            fakeRepoInfo
+            fakeRepoInfo,
+            useGzip = true
         )
         assertThat(fakeRepositoryFile.readText())
             .isEqualTo(
@@ -297,7 +301,8 @@ internal class DdMappingFileUploadTaskTest {
                 version = fakeVersion,
                 variant = fakeVariant
             ),
-            null
+            null,
+            useGzip = true
         )
     }
 
@@ -391,7 +396,8 @@ internal class DdMappingFileUploadTaskTest {
                 version = fakeVersion,
                 variant = fakeVariant
             ),
-            fakeRepoInfo
+            fakeRepoInfo,
+            useGzip = true
         )
         assertThat(fakeRepositoryFile.readText())
             .isEqualTo(
