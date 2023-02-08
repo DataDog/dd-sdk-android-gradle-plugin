@@ -156,13 +156,63 @@ internal class OkHttpUploaderTest {
             fakeRepositoryFile,
             fakeApiKey,
             fakeIdentifier,
-            fakeRepositoryInfo
+            fakeRepositoryInfo,
+            useGzip = true
         )
 
         // Then
         assertThat(mockWebServer.requestCount).isEqualTo(1)
         assertThat(dispatchedUploadRequest)
             .hasMethod("POST")
+            .hasHeaderValue("Content-Encoding", "gzip")
+            .containsFormData("git_repository_url", fakeRepositoryInfo.url)
+            .containsFormData("git_commit_sha", fakeRepositoryInfo.hash)
+            .containsMultipartFile(
+                "event",
+                "event",
+                "{\"service\":\"${fakeIdentifier.serviceName}\"," +
+                    "\"variant\":\"${fakeIdentifier.variant}\"," +
+                    "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
+                    "\"version\":\"${fakeIdentifier.version}\"}",
+                "application/json; charset=utf-8"
+            )
+            .containsMultipartFile(
+                "jvm_mapping_file",
+                "jvm_mapping",
+                fakeMappingFileContent,
+                "text/plain"
+            )
+            .containsMultipartFile(
+                "repository",
+                "repository",
+                fakeRepositoryFileContent,
+                "application/json"
+            )
+    }
+
+    @Test
+    fun `𝕄 upload proper request 𝕎 upload() { without gzip }`() {
+        // Given
+        mockUploadResponse = MockResponse()
+            .setResponseCode(HttpURLConnection.HTTP_OK)
+            .setBody("{}")
+
+        // When
+        testedUploader.upload(
+            mockSite,
+            fakeMappingFile,
+            fakeRepositoryFile,
+            fakeApiKey,
+            fakeIdentifier,
+            fakeRepositoryInfo,
+            useGzip = false
+        )
+
+        // Then
+        assertThat(mockWebServer.requestCount).isEqualTo(1)
+        assertThat(dispatchedUploadRequest)
+            .hasMethod("POST")
+            .doesNotHaveHeader("Content-Encoding")
             .containsFormData("git_repository_url", fakeRepositoryInfo.url)
             .containsFormData("git_commit_sha", fakeRepositoryInfo.hash)
             .containsMultipartFile(
@@ -202,13 +252,15 @@ internal class OkHttpUploaderTest {
             null,
             fakeApiKey,
             fakeIdentifier,
-            null
+            null,
+            useGzip = true
         )
 
         // Then
         assertThat(mockWebServer.requestCount).isEqualTo(1)
         assertThat(dispatchedUploadRequest)
             .hasMethod("POST")
+            .hasHeaderValue("Content-Encoding", "gzip")
             .containsMultipartFile(
                 "event",
                 "event",
@@ -244,7 +296,8 @@ internal class OkHttpUploaderTest {
                 fakeRepositoryFile,
                 fakeApiKey,
                 fakeIdentifier,
-                fakeRepositoryInfo
+                fakeRepositoryInfo,
+                useGzip = true
             )
         }
 
@@ -252,6 +305,7 @@ internal class OkHttpUploaderTest {
         assertThat(mockWebServer.requestCount).isEqualTo(1)
         assertThat(dispatchedUploadRequest)
             .hasMethod("POST")
+            .hasHeaderValue("Content-Encoding", "gzip")
             .containsFormData("git_repository_url", fakeRepositoryInfo.url)
             .containsFormData("git_commit_sha", fakeRepositoryInfo.hash)
             .containsMultipartFile(
@@ -298,7 +352,8 @@ internal class OkHttpUploaderTest {
                 fakeRepositoryFile,
                 fakeApiKey,
                 fakeIdentifier,
-                fakeRepositoryInfo
+                fakeRepositoryInfo,
+                useGzip = true
             )
         }
 
@@ -306,6 +361,7 @@ internal class OkHttpUploaderTest {
         assertThat(mockWebServer.requestCount).isEqualTo(1)
         assertThat(dispatchedUploadRequest)
             .hasMethod("POST")
+            .hasHeaderValue("Content-Encoding", "gzip")
             .containsFormData("git_repository_url", fakeRepositoryInfo.url)
             .containsFormData("git_commit_sha", fakeRepositoryInfo.hash)
             .containsMultipartFile(
@@ -349,7 +405,8 @@ internal class OkHttpUploaderTest {
                 fakeRepositoryFile,
                 fakeApiKey,
                 fakeIdentifier,
-                fakeRepositoryInfo
+                fakeRepositoryInfo,
+                useGzip = true
             )
         }
 
@@ -357,6 +414,7 @@ internal class OkHttpUploaderTest {
         assertThat(mockWebServer.requestCount).isEqualTo(2)
         assertThat(dispatchedUploadRequest)
             .hasMethod("POST")
+            .hasHeaderValue("Content-Encoding", "gzip")
             .containsFormData("git_repository_url", fakeRepositoryInfo.url)
             .containsFormData("git_commit_sha", fakeRepositoryInfo.hash)
             .containsMultipartFile(
@@ -416,7 +474,8 @@ internal class OkHttpUploaderTest {
                 fakeRepositoryFile,
                 fakeApiKey,
                 fakeIdentifier,
-                fakeRepositoryInfo
+                fakeRepositoryInfo,
+                useGzip = true
             )
         }
 
@@ -424,6 +483,7 @@ internal class OkHttpUploaderTest {
         assertThat(mockWebServer.requestCount).isEqualTo(2)
         assertThat(dispatchedUploadRequest)
             .hasMethod("POST")
+            .hasHeaderValue("Content-Encoding", "gzip")
             .containsFormData("git_repository_url", fakeRepositoryInfo.url)
             .containsFormData("git_commit_sha", fakeRepositoryInfo.hash)
             .containsMultipartFile(
@@ -471,7 +531,8 @@ internal class OkHttpUploaderTest {
                 fakeRepositoryFile,
                 fakeApiKey,
                 fakeIdentifier,
-                fakeRepositoryInfo
+                fakeRepositoryInfo,
+                useGzip = true
             )
         }
 
@@ -479,6 +540,7 @@ internal class OkHttpUploaderTest {
         assertThat(mockWebServer.requestCount).isEqualTo(2)
         assertThat(dispatchedUploadRequest)
             .hasMethod("POST")
+            .hasHeaderValue("Content-Encoding", "gzip")
             .containsFormData("git_repository_url", fakeRepositoryInfo.url)
             .containsFormData("git_commit_sha", fakeRepositoryInfo.hash)
             .containsMultipartFile(
@@ -525,7 +587,8 @@ internal class OkHttpUploaderTest {
                 fakeRepositoryFile,
                 fakeApiKey,
                 fakeIdentifier,
-                fakeRepositoryInfo
+                fakeRepositoryInfo,
+                useGzip = true
             )
         }
 
@@ -533,6 +596,7 @@ internal class OkHttpUploaderTest {
         assertThat(mockWebServer.requestCount).isEqualTo(2)
         assertThat(dispatchedUploadRequest)
             .hasMethod("POST")
+            .hasHeaderValue("Content-Encoding", "gzip")
             .containsFormData("git_repository_url", fakeRepositoryInfo.url)
             .containsFormData("git_commit_sha", fakeRepositoryInfo.hash)
             .containsMultipartFile(
@@ -580,7 +644,8 @@ internal class OkHttpUploaderTest {
                 fakeRepositoryFile,
                 fakeApiKey,
                 fakeIdentifier,
-                fakeRepositoryInfo
+                fakeRepositoryInfo,
+                useGzip = true
             )
         }
         assertThat(exception.message).isEqualTo(
@@ -614,7 +679,8 @@ internal class OkHttpUploaderTest {
                 fakeRepositoryFile,
                 fakeApiKey,
                 fakeIdentifier,
-                fakeRepositoryInfo
+                fakeRepositoryInfo,
+                useGzip = true
             )
         }
         assertThat(exception.message).isEqualTo(
@@ -648,7 +714,8 @@ internal class OkHttpUploaderTest {
             fakeRepositoryFile,
             fakeApiKey,
             fakeIdentifier,
-            fakeRepositoryInfo
+            fakeRepositoryInfo,
+            useGzip = true
         )
 
         // Then
@@ -678,7 +745,8 @@ internal class OkHttpUploaderTest {
             fakeRepositoryFile,
             fakeApiKey,
             fakeIdentifier,
-            fakeRepositoryInfo
+            fakeRepositoryInfo,
+            useGzip = true
         )
 
         // Then
@@ -704,7 +772,8 @@ internal class OkHttpUploaderTest {
             fakeRepositoryFile,
             fakeApiKey,
             fakeIdentifier,
-            fakeRepositoryInfo
+            fakeRepositoryInfo,
+            useGzip = true
         )
 
         // Then

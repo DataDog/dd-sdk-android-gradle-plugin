@@ -476,6 +476,45 @@ internal class DdAndroidGradlePluginFunctionalTest {
             .buildAndFail()
 
         // Then
+        assertThat(result.output).contains("Creating request with GZIP encoding.")
+        assertThat(result.output).contains(
+            "Uploading mapping file for " +
+                "com.example.variants.$variantVersionName:1.0-$variantVersionName " +
+                "{variant:$variant} (site=datadoghq.com):"
+        )
+    }
+
+    @Test
+    fun `M try to upload the mapping file W upload { using a fake API_KEY, gzip disabled }`(forge: Forge) {
+        // Given
+        stubGradleBuildFromResourceFile(
+            "build_with_datadog_dep.gradle",
+            appBuildGradleFile
+        )
+        val color = forge.anElementFrom(colors)
+        val version = forge.anElementFrom(versions)
+        val variantVersionName = version.lowercase()
+        val variant = "${version.lowercase()}$color"
+        val taskName = resolveUploadTask(variant)
+
+        // When
+        // since there is no explicit dependency between assemble and upload tasks, Gradle may
+        // optimize the execution and run them in parallel, ignoring the order in the command
+        // line, so we do the explicit split
+        GradleRunner.create()
+            .withProjectDir(testProjectDir)
+            .withArguments(":samples:app:assembleRelease")
+            .withPluginClasspath(getTestConfigurationClasspath())
+            .build()
+
+        val result = GradleRunner.create()
+            .withProjectDir(testProjectDir)
+            .withArguments(taskName, "--info", "-PDD_API_KEY=fakekey", "-Pdd-disable-gzip")
+            .withPluginClasspath(getTestConfigurationClasspath())
+            .buildAndFail()
+
+        // Then
+        assertThat(result.output).contains("Creating request without GZIP encoding.")
         assertThat(result.output).contains(
             "Uploading mapping file for " +
                 "com.example.variants.$variantVersionName:1.0-$variantVersionName " +

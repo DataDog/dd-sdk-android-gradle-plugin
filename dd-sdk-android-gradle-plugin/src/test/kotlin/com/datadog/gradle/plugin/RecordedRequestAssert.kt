@@ -7,6 +7,8 @@
 package com.datadog.gradle.plugin
 
 import okhttp3.mockwebserver.RecordedRequest
+import okio.GzipSource
+import okio.buffer
 import org.assertj.core.api.AbstractObjectAssert
 import org.assertj.core.api.Assertions.assertThat
 
@@ -16,7 +18,12 @@ internal class RecordedRequestAssert(actual: RecordedRequest?) :
         RecordedRequestAssert::class.java
     ) {
 
-    val bodyContentUtf8 = actual?.body?.readUtf8()
+    private val bodyContentUtf8 = if (actual?.getHeader("Content-Encoding") == "gzip") {
+        val gzipSource = GzipSource(actual.body)
+        gzipSource.buffer().readUtf8()
+    } else {
+        actual?.body?.readUtf8()
+    }
 
     fun containsFormData(name: String, value: String): RecordedRequestAssert {
         isNotNull()
@@ -65,6 +72,12 @@ internal class RecordedRequestAssert(actual: RecordedRequest?) :
         assertThat(actual.headers.names()).contains(header)
         val actual = actual.getHeader(header)
         assertThat(actual).isEqualTo(expected)
+        return this
+    }
+
+    fun doesNotHaveHeader(header: String): RecordedRequestAssert {
+        isNotNull
+        assertThat(actual.headers.names()).doesNotContain(header)
         return this
     }
 

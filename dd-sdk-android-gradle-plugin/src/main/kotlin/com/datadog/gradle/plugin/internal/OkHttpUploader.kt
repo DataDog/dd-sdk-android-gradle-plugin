@@ -9,17 +9,23 @@ package com.datadog.gradle.plugin.internal
 import com.datadog.gradle.plugin.DatadogSite
 import com.datadog.gradle.plugin.DdAndroidGradlePlugin.Companion.LOGGER
 import com.datadog.gradle.plugin.RepositoryInfo
+import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import okio.BufferedSink
+import okio.GzipSink
+import okio.buffer
 import org.json.JSONException
 import org.json.JSONObject
 import org.json.JSONTokener
 import java.io.File
+import java.io.IOException
 import java.net.HttpURLConnection
 import java.util.concurrent.TimeUnit
 
@@ -44,18 +50,29 @@ internal class OkHttpUploader : Uploader {
         repositoryFile: File?,
         apiKey: String,
         identifier: DdAppIdentifier,
-        repositoryInfo: RepositoryInfo?
+        repositoryInfo: RepositoryInfo?,
+        useGzip: Boolean
     ) {
         LOGGER.info("Uploading mapping file for $identifier (site=${site.domain}):\n")
         val body = createBody(site, identifier, mappingFile, repositoryFile, repositoryInfo)
 
-        val request = Request.Builder()
+        val requestBuilder = Request.Builder()
             .url(site.uploadEndpoint())
-            .post(body)
             .header(HEADER_EVP_ORIGIN, "dd-sdk-android-gradle-plugin")
             .header(HEADER_EVP_ORIGIN_VERSION, VERSION)
             .header(HEADER_API_KEY, apiKey)
-            .build()
+        val request = if (useGzip) {
+            LOGGER.info("Creating request with GZIP encoding.")
+            requestBuilder
+                .post(body.gzip())
+                .header(HEADER_CONTENT_ENCODING, ENCODING_GZIP)
+                .build()
+        } else {
+            LOGGER.info("Creating request without GZIP encoding.")
+            requestBuilder
+                .post(body)
+                .build()
+        }
 
         val call = client.newCall(request)
         val response = try {
@@ -209,6 +226,30 @@ internal class OkHttpUploader : Uploader {
 
     // endregion
 
+    private fun RequestBody.gzip(): RequestBody {
+        val uncompressedBody = this
+        return object : RequestBody() {
+            override fun contentType(): MediaType? {
+                return uncompressedBody.contentType()
+            }
+
+            override fun contentLength(): Long {
+                return -1 // We don't know the compressed length in advance!
+            }
+
+            @Throws(IOException::class)
+            override fun writeTo(sink: BufferedSink) {
+                val gzipSink = GzipSink(sink).buffer()
+                uncompressedBody.writeTo(gzipSink)
+                gzipSink.close()
+            }
+
+            override fun isOneShot(): Boolean {
+                return uncompressedBody.isOneShot()
+            }
+        }
+    }
+
     companion object {
 
         // TODO add a plugin to automatically sync this with the `MavenConfig` value
@@ -218,6 +259,8 @@ internal class OkHttpUploader : Uploader {
         internal const val HEADER_EVP_ORIGIN = "DD-EVP-ORIGIN"
         internal const val HEADER_EVP_ORIGIN_VERSION = "DD-EVP-ORIGIN-VERSION"
         internal const val HEADER_REQUEST_ID = "DD-REQUEST-ID"
+        internal const val HEADER_CONTENT_ENCODING = "Content-Encoding"
+        internal const val ENCODING_GZIP = "gzip"
 
         internal const val KEY_EVENT = "event"
         internal const val KEY_JVM_MAPPING_FILE = "jvm_mapping_file"

@@ -12,6 +12,8 @@ import com.datadog.gradle.plugin.internal.DdAppIdentifier
 import com.datadog.gradle.plugin.internal.OkHttpUploader
 import com.datadog.gradle.plugin.internal.Uploader
 import org.gradle.api.DefaultTask
+import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
@@ -30,6 +32,7 @@ import javax.inject.Inject
  */
 open class DdMappingFileUploadTask
 @Inject constructor(
+    providerFactory: ProviderFactory,
     @get:Internal internal val repositoryDetector: RepositoryDetector
 ) : DefaultTask() {
 
@@ -42,6 +45,9 @@ open class DdMappingFileUploadTask
      */
     @get:Input
     var apiKey: String = ""
+
+    private val disableGzipOption: Provider<String> =
+        providerFactory.gradleProperty(DISABLE_GZIP_GRADLE_PROPERTY)
 
     /**
      * Source of the API key set: environment, gradle property, etc.
@@ -166,7 +172,8 @@ open class DdMappingFileUploadTask
                 version = versionName,
                 variant = variantName
             ),
-            repositories.firstOrNull()
+            repositories.firstOrNull(),
+            !disableGzipOption.isPresent
         )
     }
 
@@ -364,5 +371,6 @@ open class DdMappingFileUploadTask
         private const val DATADOG_CI_API_KEY_PROPERTY = "apiKey"
         private const val DATADOG_CI_SITE_PROPERTY = "datadogSite"
         const val DATADOG_SITE = "DATADOG_SITE"
+        const val DISABLE_GZIP_GRADLE_PROPERTY = "dd-disable-gzip"
     }
 }
