@@ -1,3 +1,8 @@
+# 1.7.0 / 2023-02-08
+
+- [FEATURE] Add Gzip support for mapping file upload. See [#143](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/143)
+- [IMPROVEMENT] Raise upload limit to 100MB for US1 datacenter. See [#142](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/142)
+
 # 1.6.0 / 2023-01-17
 
 - [IMPROVEMENT] Improve mapping upload flow. See [#131](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/131)
