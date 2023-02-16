@@ -4,8 +4,6 @@
  * Copyright 2020-Present Datadog, Inc.
  */
 
-enableFeaturePreview("VERSION_CATALOGS")
-
 include(":dd-sdk-android-gradle-plugin")
 
 include(":samples:basic")

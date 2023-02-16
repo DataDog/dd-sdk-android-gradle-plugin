@@ -4,8 +4,6 @@
  * Copyright 2020-Present Datadog, Inc.
  */
 
-enableFeaturePreview("VERSION_CATALOGS")
-@Suppress("UnstableApiUsage")
 dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {

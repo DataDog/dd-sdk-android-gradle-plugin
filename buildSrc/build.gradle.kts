@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     `kotlin-dsl`
     id("java-gradle-plugin")
-    @Suppress("DSL_SCOPE_VIOLATION", "UnstableApiUsage")
+    @Suppress("DSL_SCOPE_VIOLATION")
     alias(libs.plugins.versionsPluginGradle)
 }
 
@@ -62,7 +62,7 @@ gradlePlugin {
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = JavaVersion.VERSION_1_8.toString()
+    kotlinOptions.jvmTarget = JavaVersion.VERSION_11.toString()
 }
 
 tasks {
