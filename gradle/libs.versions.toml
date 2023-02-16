@@ -1,6 +1,6 @@
 [versions]
 # Commons
-kotlin = "1.6.21"
+kotlin = "1.8.10"
 json = "20180813"
 okHttp = "4.9.3"
 
@@ -28,7 +28,7 @@ mockitoKotlin = "2.2.0"
 
 # Tools
 detekt = "1.17.0"
-dokka = "1.6.21"
+dokka = "1.7.20"
 unmock = "0.7.5"
 
 fuzzyWuzzy = "1.2.0"
