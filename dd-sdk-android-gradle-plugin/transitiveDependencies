@@ -1,8 +1,10 @@
 Dependencies List
 
-com.squareup.okhttp3:okhttp:4.9.3                               :  773 Kb
-com.squareup.okio:okio:2.8.0                                    :  237 Kb
+com.squareup.okhttp3:okhttp:4.10.0                              :  764 Kb
+com.squareup.okio:okio-jvm:3.0.0                                :  342 Kb
 org.jetbrains.kotlin:kotlin-stdlib-common:1.8.10                :  212 Kb
+org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.10                  :  963 b 
+org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.10                  :  969 b 
 org.jetbrains.kotlin:kotlin-stdlib:1.8.10                       : 1598 Kb
 org.jetbrains:annotations:13.0                                  :   17 Kb
 org.json:json:20180813                                          :   63 Kb
