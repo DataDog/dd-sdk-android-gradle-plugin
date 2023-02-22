@@ -1,5 +1,5 @@
 package com.datadog.example.variants
 
-class VaryingClass : VaryingInfo {
+internal class VaryingClass : VaryingInfo {
     override fun getName(): String = "full"
 }

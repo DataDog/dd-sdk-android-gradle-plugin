@@ -1,5 +1,5 @@
 package com.datadog.example.variants
 
-interface VaryingInfo {
+internal interface VaryingInfo {
     fun getName(): String
 }

@@ -3,7 +3,7 @@ package com.datadog.example.basic
 import android.content.Context
 import android.widget.Toast
 
-class Toaster(context: Context) {
+internal class Toaster(context: Context) {
 
     val appContext = context.applicationContext
 
