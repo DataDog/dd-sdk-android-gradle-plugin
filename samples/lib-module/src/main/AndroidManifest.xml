@@ -6,6 +6,6 @@
   -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.lib">
+    package="com.datadog.example.lib">
 
 </manifest>

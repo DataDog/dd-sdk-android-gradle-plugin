@@ -145,7 +145,7 @@ internal class OkHttpUploader : Uploader {
         return builder.build()
     }
 
-    @Suppress("ThrowingInternalException", "TooGenericExceptionThrown")
+    @Suppress("ThrowingInternalException", "TooGenericExceptionThrown", "ThrowsCount")
     private fun handleResponse(
         response: Response?,
         site: DatadogSite,

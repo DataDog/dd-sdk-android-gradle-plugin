@@ -6,7 +6,7 @@
   -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.example.variants">
+          package="com.datadog.example.variants">
 
     <application
         android:allowBackup="true"

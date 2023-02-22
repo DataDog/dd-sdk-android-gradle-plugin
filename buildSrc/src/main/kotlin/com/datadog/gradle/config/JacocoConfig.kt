@@ -23,7 +23,10 @@ fun Project.jacocoConfig() {
         html.outputLocation.set(layout.buildDirectory.dir("reports/jacoco/jacocoTestReport/html"))
     }
 
-    val jacocoTestCoverageVerification = tasks.getByName("jacocoTestCoverageVerification", JacocoCoverageVerification::class)
+    val jacocoTestCoverageVerification = tasks.getByName(
+        "jacocoTestCoverageVerification",
+        JacocoCoverageVerification::class
+    )
     jacocoTestCoverageVerification.violationRules {
         rule {
             limit {

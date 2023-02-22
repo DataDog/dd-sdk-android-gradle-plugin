@@ -54,20 +54,11 @@ create_key:
 
 static-analysis:
   stage: analysis
-  variables: 
-    GRADLE_OPTS: "-Xmx2560m -Dorg.gradle.daemon=false -Dorg.gradle.logging.stacktrace=all"
+  variables:
+    DETEKT_PUBLIC_API: "true"
   trigger:
-    include: "https://gitlab-templates.ddbuild.io/mobile/release/static-analysis.yml"
+    include: "https://gitlab-templates.ddbuild.io/mobile/v13284631-3b5f5110/static-analysis.yml"
     strategy: depend
-
-analysis:detekt:
-  tags: [ "runner:main" ]
-  image: $CI_IMAGE_DOCKER
-  stage: analysis
-  timeout: 30m
-  script:
-    - git fetch --depth=1 origin main
-    - GRADLE_OPTS="-XX:MaxPermSize=512m -Xmx2560m" ./gradlew :dd-sdk-android-gradle-plugin:detekt --stacktrace --no-daemon
 
 analysis:licenses:
   tags: [ "runner:main" ]

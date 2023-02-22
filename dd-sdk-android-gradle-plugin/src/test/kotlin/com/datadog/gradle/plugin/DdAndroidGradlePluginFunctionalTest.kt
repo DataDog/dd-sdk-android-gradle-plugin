@@ -738,14 +738,6 @@ internal class DdAndroidGradlePluginFunctionalTest {
             .readImplementationClasspath("gradle-runner-classpath", properties)
     }
 
-    private fun String.extractVariantName(): String {
-        return substringAfter("uploadMapping", "")
-            .substringBefore("Release")
-            .let {
-                it[0].lowercase() + it.substring(1)
-            }
-    }
-
     // endregion
 
     companion object {

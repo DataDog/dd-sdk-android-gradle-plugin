@@ -53,6 +53,7 @@ abstract class DdCheckSdkDepsTask : DefaultTask() {
     /**
      * Checks if the Datadog SDK is present in the variant dependencies.
      */
+    @Suppress("ThrowsCount")
     @TaskAction
     fun applyTask() {
         val configuration =

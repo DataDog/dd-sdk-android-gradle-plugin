@@ -4,8 +4,6 @@
  * Copyright 2020-Present Datadog, Inc.
  */
 
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
     `kotlin-dsl`
     id("java-gradle-plugin")
@@ -59,10 +57,6 @@ gradlePlugin {
             implementationClass = "com.datadog.gradle.plugin.transdeps.TransitiveDependenciesPlugin"
         }
     }
-}
-
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = JavaVersion.VERSION_11.toString()
 }
 
 tasks {

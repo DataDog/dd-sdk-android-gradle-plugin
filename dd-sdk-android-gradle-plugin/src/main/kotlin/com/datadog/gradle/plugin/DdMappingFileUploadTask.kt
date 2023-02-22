@@ -142,10 +142,8 @@ open class DdMappingFileUploadTask
         applySiteFromEnvironment()
         validateConfiguration()
 
-        if (apiKey.contains("\"") || apiKey.contains("'")) {
-            throw IllegalStateException(
-                "DD_API_KEY provided shouldn't contain quotes or apostrophes."
-            )
+        check(!(apiKey.contains("\"") || apiKey.contains("'"))) {
+            "DD_API_KEY provided shouldn't contain quotes or apostrophes."
         }
 
         var mappingFile = File(mappingFilePath)
@@ -269,7 +267,7 @@ open class DdMappingFileUploadTask
         val data = JSONArray()
         repositories.forEach {
             data.put(it.toJson())
-            LOGGER.info("Detected repository:\n${it.toJson().toString(4)}")
+            LOGGER.info("Detected repository:\n${it.toJson().toString(INDENT)}")
         }
 
         val jsonObject = JSONObject()
@@ -364,6 +362,8 @@ open class DdMappingFileUploadTask
     // endregion
 
     internal companion object {
+        private const val INDENT = 4
+
         private const val MAPPING_FILE_CHANGE_DELIMITER = "->"
         private const val MAPPING_FILE_COMMENT_CHAR = '#'
         const val MAPPING_OPTIMIZED_FILE_NAME = "mapping-shrinked.txt"
