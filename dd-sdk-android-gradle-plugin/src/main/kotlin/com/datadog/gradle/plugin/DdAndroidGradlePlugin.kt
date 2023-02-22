@@ -53,6 +53,7 @@ class DdAndroidGradlePlugin @Inject constructor(
 
     // region Internal
 
+    @Suppress("ReturnCount")
     // TODO RUMM-2382 use ProviderFactory/Provider APIs to watch changes in external environment
     internal fun resolveApiKey(target: Project): ApiKey {
         val propertyKey = target.findProperty(DD_API_KEY)?.toString()
@@ -68,7 +69,7 @@ class DdAndroidGradlePlugin @Inject constructor(
         return ApiKey.NONE
     }
 
-    @Suppress("DefaultLocale")
+    @Suppress("DefaultLocale", "ReturnCount")
     internal fun configureVariantForUploadTask(
         target: Project,
         variant: ApplicationVariant,
@@ -123,7 +124,7 @@ class DdAndroidGradlePlugin @Inject constructor(
         return uploadTask
     }
 
-    @Suppress("DefaultLocale")
+    @Suppress("DefaultLocale", "ReturnCount")
     internal fun configureVariantForSdkCheck(
         target: Project,
         variant: ApplicationVariant,

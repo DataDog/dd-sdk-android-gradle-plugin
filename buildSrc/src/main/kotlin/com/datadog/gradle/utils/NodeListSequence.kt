@@ -18,6 +18,7 @@ class NodeListSequence(
         return Iterator(nodeList)
     }
 
+    @Suppress("IteratorNotThrowingNoSuchElementException")
     class Iterator(
         private val nodeList: NodeList
     ) : KIterator<Node> {

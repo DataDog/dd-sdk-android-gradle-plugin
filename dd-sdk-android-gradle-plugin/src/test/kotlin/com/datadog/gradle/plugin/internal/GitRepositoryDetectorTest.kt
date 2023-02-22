@@ -131,12 +131,12 @@ internal class GitRepositoryDetectorTest {
     private fun initializeSourceSets(forge: Forge) {
         val sourceSetFolders = mutableListOf<File>()
         val trackedFiles = mutableListOf<String>()
-        for (i in 0..forge.anInt(1, 5)) {
+        repeat(forge.anInt(1, 5)) {
             val sourceName = forge.anAlphabeticalString()
             val sourceSetFolder = File(fakeProject.rootDir, sourceName)
             sourceSetFolder.mkdirs()
             sourceSetFolders.add(sourceSetFolder)
-            for (j in 0..forge.anInt(1, 5)) {
+            repeat(forge.anInt(1, 5)) {
                 val fileName = forge.aStringMatching("[a-z]{3,8}\\.[a-z]{3}")
                 val file = File(sourceSetFolder, fileName)
                 file.writeText(forge.anAlphabeticalString())

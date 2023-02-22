@@ -138,6 +138,7 @@ class DependenciesLicenseProvider {
         }
     }
 
+    @Suppress("ReturnCount")
     private fun configurationToComponent(configuration: String): ThirdPartyDependency.Component {
         if (configuration in knownImportConfiguration) {
             return ThirdPartyDependency.Component.IMPORT
@@ -188,7 +189,6 @@ class DependenciesLicenseProvider {
         private const val TAG_LICENSES = "licenses"
         private const val TAG_LICENSE = "license"
         private const val TAG_NAME = "name"
-        private const val TAG_URL = "url"
 
         private val knownImportConfiguration = setOf(
             "archives",

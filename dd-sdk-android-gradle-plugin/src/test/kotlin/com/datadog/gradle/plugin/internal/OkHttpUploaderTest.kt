@@ -791,7 +791,7 @@ internal class OkHttpUploaderTest {
                     dispatchedApiKeyValidationRequest = request
                     mockApiKeyValidationResponse
                 }
-                else -> throw IllegalStateException("Unexpected path for url=${request.requestUrl}")
+                else -> error("Unexpected path for url=${request.requestUrl}")
             }
         }
     }
