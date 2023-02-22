@@ -1,4 +1,4 @@
-package com.example.variants
+package com.datadog.example.basic
 
 import android.content.Context
 import android.widget.Toast

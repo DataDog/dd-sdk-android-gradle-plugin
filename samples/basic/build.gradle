@@ -9,7 +9,7 @@ android {
     buildToolsVersion = AndroidConfig.BUILD_TOOLS_VERSION
 
     defaultConfig {
-        applicationId "com.example.basic"
+        applicationId "com.datadog.example.basic"
         minSdkVersion AndroidConfig.MIN_SDK
         targetSdkVersion AndroidConfig.TARGET_SDK
         versionCode 1
@@ -23,6 +23,15 @@ android {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    kotlinOptions {
+        jvmTarget = '11'
     }
 }
 

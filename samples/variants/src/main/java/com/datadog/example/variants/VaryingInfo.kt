@@ -1,4 +1,4 @@
-package com.example.variants
+package com.datadog.example.variants
 
 interface VaryingInfo {
     fun getName(): String

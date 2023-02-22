@@ -1,4 +1,4 @@
-package com.example.lib
+package com.datadog.example.lib
 
 class Placeholder {
     // no-op class, just to have a compilation unit

@@ -1,4 +1,4 @@
-package com.example.variants.ext
+package com.datadog.example.variants.ext
 
 import android.app.Activity
 import android.widget.Toast

@@ -1,22 +1,20 @@
-package com.example.variants
+package com.datadog.example.variants
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.example.lib.Placeholder // ktlint-disable no-unused-imports  unused import is on purpose
+import com.datadog.example.variants.ext.toast
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var toaster: Toaster
+    private val varyingClass: VaryingInfo = VaryingClass()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        toaster = Toaster(this)
         setContentView(R.layout.activity_main)
     }
 
     override fun onResume() {
         super.onResume()
-        toaster.toast("Hello world !")
+        toast("Hello World, with ${varyingClass.getName()}")
     }
 }

@@ -1,6 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-//apply plugin: 'com.datadoghq.dd-sdk-android-gradle-plugin'
+//apply plugin: 'com.datadog.dd-sdk-android-gradle-plugin'
 
 import com.datadog.gradle.config.AndroidConfig
 
@@ -9,7 +9,7 @@ android {
     buildToolsVersion = AndroidConfig.BUILD_TOOLS_VERSION
 
     defaultConfig {
-        applicationId "com.example.variants"
+        applicationId "com.datadog.example.variants"
         minSdkVersion AndroidConfig.MIN_SDK
         targetSdkVersion AndroidConfig.TARGET_SDK
         versionCode 1
@@ -55,6 +55,15 @@ android {
         blue {
             dimension "colour"
         }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    kotlinOptions {
+        jvmTarget = '11'
     }
 }
 
