@@ -3,6 +3,7 @@ package com.datadog.example.variants
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.datadog.example.variants.ext.toast
+import com.datadog.example.lib.Placeholder // ktlint-disable no-unused-imports unused import is on purpose
 
 class MainActivity : AppCompatActivity() {
 
