@@ -48,7 +48,12 @@ enum class DatadogSite(internal val domain: String) {
     /**
      *  The EU1 site: [app.datadoghq.eu](https://app.datadoghq.eu).
      */
-    EU1("datadoghq.eu");
+    EU1("datadoghq.eu"),
+
+    /**
+     *  The AP1 site: [ap1.datadoghq.com](https://ap1.datadoghq.com).
+     */
+    AP1("ap1.datadoghq.com");
 
     /**
      * Returns the endpoint to use to upload sourcemap to this site.
