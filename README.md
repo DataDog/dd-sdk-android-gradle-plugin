@@ -24,7 +24,7 @@ You can configure the plugin by adding the following block at the end of your `b
 datadog {
     versionName = "1.3.0" // Optional, by default it is read from your Android plugin configuration's version name
     serviceName = "my-service" // Optional, by default it is read from your Android plugin configuration's package name
-    site = "US" // Optional, can be "US", "EU" or "GOV". Default is "US"
+    site = "US1" // Optional, can be "US1", "EU1" or "US1_FED", etc. (check `DatadogSite` documentation for the full list). Default is "US1"
     checkProjectDependencies = "warn" // Optional, can be "warn", "fail" or "none". Default is "fail". Will check if Datadog SDK is in the project dependencies.
     mappingFilePath = "path/to/mapping.txt" // Optional, provides a custom mapping file path. Default is "buils/outputs/mapping/{variant}/mapping.txt".
 }
@@ -34,10 +34,10 @@ If you're using variants, you can set a custom configuration per variant using t
 
 ```groovy
 datadog {
-    site = "US" // Variants with no configurations will use this as default
+    site = "US1" // Variants with no configurations will use this as default
     variants {
         fr {
-            site = "EU"
+            site = "EU1"
             mappingFilePath = "path/to/fr/mapping.txt"
         }
     }

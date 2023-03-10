@@ -21,6 +21,7 @@ import okhttp3.Response
 import okio.BufferedSink
 import okio.GzipSink
 import okio.buffer
+import okio.use
 import org.json.JSONException
 import org.json.JSONObject
 import org.json.JSONTokener
@@ -174,10 +175,12 @@ internal class OkHttpUploader : Uploader {
                 ) {
                     throw InvalidApiKeyException(identifier, site)
                 }
-                throw IllegalStateException(
-                    "Unable to upload mapping file for $identifier ($statusCode);\n" +
-                        "${response.body?.string()}"
-                )
+                response.body.use {
+                    throw IllegalStateException(
+                        "Unable to upload mapping file for $identifier ($statusCode);\n" +
+                            "${it?.string()}"
+                    )
+                }
             }
         }
     }

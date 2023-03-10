@@ -74,7 +74,7 @@ open class DdMappingFileUploadTask
     var serviceName: String = ""
 
     /**
-     * The Datadog site to upload to (one of "US", "EU", "GOV").
+     * The Datadog site to upload to (one of "US1", "EU1", "US1_FED").
      */
     @get:Input
     var site: String = ""
