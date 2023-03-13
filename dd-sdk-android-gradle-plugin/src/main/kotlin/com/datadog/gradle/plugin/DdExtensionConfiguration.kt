@@ -29,7 +29,7 @@ open class DdExtensionConfiguration(
     var serviceName: String? = null
 
     /**
-     * The Datadog site to upload your data to (one of "US", "EU", "GOV").
+     * The Datadog site to upload your data to (one of names in [DatadogSite], e.g. "US1", "EU1", etc.).
      */
     var site: String? = null
 
