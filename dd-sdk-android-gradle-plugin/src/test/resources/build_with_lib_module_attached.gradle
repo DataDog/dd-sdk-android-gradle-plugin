@@ -58,5 +58,5 @@ android {
 
 dependencies {
     implementation(project(':samples:lib-module'))
-    implementation("com.datadoghq:dd-sdk-android:1.17.1")
+    implementation("com.datadoghq:dd-sdk-android:1.18.0")
 }
