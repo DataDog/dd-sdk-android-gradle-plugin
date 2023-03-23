@@ -1,3 +1,16 @@
+# 1.8.0 / 2023-03-22
+
+* [FEATURE] Add support to AP1. See [#150](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/150)
+* [FEATURE] Add support for Staging upload. See [#151](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/151)
+* [IMPROVEMENT] Minor improvements. See [#155](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/155)
+* [MAINTENANCE] Next dev version 1.8.0. See [#145](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/145)
+* [MAINTENANCE] Update Gradle to version 8.0, update Kotlin, AGP, OkHttp versions as well. See [#148](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/148)
+* [MAINTENANCE] Update to version 1.17.1. See [#149](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/149)
+* [MAINTENANCE] Fix CI warnings and issues. See [#152](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/152)
+* [MAINTENANCE] Update to version 1.17.2. See [#153](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/153)
+* [MAINTENANCE] Update to version 1.18.0. See [#156](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/156)
+* [DOCS] Improve the documentation for 50Mb limit. See [#141](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/141)
+
 # 1.7.0 / 2023-02-08
 
 - [FEATURE] Add Gzip support for mapping file upload. See [#143](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/143)
