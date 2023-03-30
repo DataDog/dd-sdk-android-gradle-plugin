@@ -57,7 +57,7 @@ android {
 }
 
 dependencies {
-    implementation("com.datadoghq:dd-sdk-android:1.18.0")
+    implementation("com.datadoghq:dd-sdk-android:1.18.1")
 }
 
 datadog {
