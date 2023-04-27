@@ -1,3 +1,7 @@
+# 1.8.1 / 2023-04-27
+
+* [BUGFIX] Update OkHttp version to 4.11.0. See [#161](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/161)
+
 # 1.8.0 / 2023-03-22
 
 * [FEATURE] Add support to AP1. See [#150](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/150)
