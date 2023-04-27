@@ -2,7 +2,7 @@
 # Commons
 kotlin = "1.8.10"
 json = "20180813"
-okHttp = "4.10.0"
+okHttp = "4.11.0"
 
 # Android
 androidToolsPlugin = "7.4.1"
