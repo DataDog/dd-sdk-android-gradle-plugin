@@ -12,6 +12,11 @@ import org.gradle.api.tasks.testing.Test
 @Suppress("UnstableApiUsage")
 fun Project.junitConfig() {
     tasks.withType(Test::class.java) {
+        jvmArgs(
+            "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED",
+            "--add-opens=java.base/java.util.concurrent=ALL-UNNAMED",
+            "--add-opens=java.base/java.util=ALL-UNNAMED"
+        )
         useJUnitPlatform {
             includeEngines("spek", "junit-jupiter", "junit-vintage")
         }

@@ -6,6 +6,7 @@
 
 package com.datadog.gradle.plugin.utils
 
+import java.lang.invoke.MethodHandles
 import java.lang.reflect.Field
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
@@ -250,9 +251,16 @@ private fun <R> setFieldValue(instance: Any?, field: Field, fieldValue: R): Bool
     field.isAccessible = true
     // Make it non final
     try {
-        val accessField = resolveAccessField()
-        accessField.isAccessible = true
-        accessField.setInt(field, field.modifiers and Modifier.FINAL.inv())
+        val lookup = MethodHandles.privateLookupIn(
+            Field::class.java,
+            MethodHandles.lookup()
+        )
+        val handle = lookup.findVarHandle(
+            Field::class.java,
+            "modifiers",
+            Int::class.javaPrimitiveType
+        )
+        handle.set(field, field.modifiers and Modifier.FINAL.inv())
     } catch (e: NoSuchFieldException) {
         e.printStackTrace()
         return false
