@@ -24,6 +24,9 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
+    namespace = "com.datadog.example.variants"
+
     sourceSets.named("main") {
         java.srcDir("src/main/kotlin")
     }

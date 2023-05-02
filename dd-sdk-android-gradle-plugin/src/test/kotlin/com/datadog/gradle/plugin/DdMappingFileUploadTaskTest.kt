@@ -19,6 +19,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testfixtures.ProjectBuilder
 import org.json.JSONArray
 import org.json.JSONObject
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -111,6 +112,11 @@ internal class DdMappingFileUploadTaskTest {
         testedTask.serviceName = fakeService
         testedTask.site = fakeSite.name
         setEnv(DdMappingFileUploadTask.DATADOG_SITE, "")
+    }
+
+    @AfterEach
+    fun `tear down`() {
+        removeEnv(DdMappingFileUploadTask.DATADOG_SITE)
     }
 
     @Test
