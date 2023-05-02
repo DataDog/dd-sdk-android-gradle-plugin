@@ -15,6 +15,7 @@ import java.io.File
 fun Project.kotlinConfig() {
     taskConfig<KotlinCompile> {
         kotlinOptions {
+            // TODO RUMM-3257 Target Java 17 bytecode at some point
             jvmTarget = JavaVersion.VERSION_11.toString()
         }
     }

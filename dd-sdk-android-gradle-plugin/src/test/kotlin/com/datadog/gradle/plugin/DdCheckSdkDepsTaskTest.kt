@@ -8,12 +8,6 @@ package com.datadog.gradle.plugin
 
 import com.datadog.gradle.plugin.internal.MissingSdkException
 import com.datadog.gradle.plugin.utils.setStaticValue
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.eq
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.verify
-import com.nhaarman.mockitokotlin2.verifyZeroInteractions
-import com.nhaarman.mockitokotlin2.whenever
 import fr.xgouchet.elmyr.Forge
 import fr.xgouchet.elmyr.ForgeryException
 import fr.xgouchet.elmyr.annotation.StringForgery
@@ -37,6 +31,12 @@ import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.junit.jupiter.MockitoSettings
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
+import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
 import org.slf4j.Logger
 import java.io.EOFException
@@ -235,7 +235,7 @@ internal class DdCheckSdkDepsTaskTest {
         testedTask.applyTask()
 
         // THEN
-        verifyZeroInteractions(mockLogger)
+        verifyNoInteractions(mockLogger)
         assertThat(testedTask.isLastRunSuccessful).isTrue()
     }
 

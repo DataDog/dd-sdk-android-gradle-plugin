@@ -13,9 +13,6 @@ import com.datadog.gradle.plugin.internal.ApiKey
 import com.datadog.gradle.plugin.internal.ApiKeySource
 import com.datadog.gradle.plugin.internal.GitRepositoryDetector
 import com.datadog.gradle.plugin.utils.capitalizeChar
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.whenever
 import fr.xgouchet.elmyr.Case
 import fr.xgouchet.elmyr.Forge
 import fr.xgouchet.elmyr.annotation.AdvancedForgery
@@ -38,6 +35,9 @@ import org.junit.jupiter.api.io.TempDir
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.junit.jupiter.MockitoSettings
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
 import java.io.File
 

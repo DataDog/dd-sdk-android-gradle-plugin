@@ -10,7 +10,6 @@ import com.datadog.gradle.plugin.Configurator
 import com.datadog.gradle.plugin.RepositoryDetector
 import com.datadog.gradle.plugin.internal.sanitizer.UrlSanitizer
 import com.datadog.gradle.plugin.utils.initializeGit
-import com.nhaarman.mockitokotlin2.whenever
 import fr.xgouchet.elmyr.Forge
 import fr.xgouchet.elmyr.annotation.StringForgery
 import fr.xgouchet.elmyr.junit5.ForgeConfiguration
@@ -28,6 +27,7 @@ import org.junit.jupiter.api.io.TempDir
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.junit.jupiter.MockitoSettings
+import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
 import java.io.File
 

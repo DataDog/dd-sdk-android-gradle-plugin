@@ -4,7 +4,7 @@ include:
 # SETUP
 
 variables:
-  CURRENT_CI_IMAGE: "1"
+  CURRENT_CI_IMAGE: "2"
   CI_IMAGE_DOCKER: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/dd-sdk-android-gradle-plugin:$CURRENT_CI_IMAGE
   GIT_DEPTH: 5
 
@@ -28,7 +28,7 @@ ci-image:
   when: manual
   except: [ tags, schedules ]
   tags: [ "runner:docker" ]
-  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/docker:18.03.1
+  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/docker:20.10.13
   script:
     - docker build --tag $CI_IMAGE_DOCKER -f Dockerfile.gitlab .
     - docker push $CI_IMAGE_DOCKER
@@ -67,7 +67,7 @@ analysis:licenses:
   timeout: 30m
   script:
     - git fetch --depth=1 origin main
-    - GRADLE_OPTS="-XX:MaxPermSize=512m -Xmx2560m" ./gradlew :dd-sdk-android-gradle-plugin:checkThirdPartyLicences --stacktrace --no-daemon
+    - GRADLE_OPTS="-Xmx2560m" ./gradlew :dd-sdk-android-gradle-plugin:checkThirdPartyLicences --stacktrace --no-daemon
 
 analysis:woke:
   tags: [ "runner:main" ]
@@ -89,7 +89,7 @@ test:plugin:
     - git fetch --depth=1 origin main
     - rm -rf ~/.gradle/daemon/
     - CODECOV_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android-gradle-plugin.codecov-token --with-decryption --query "Parameter.Value" --out text)
-    - GRADLE_OPTS="-XX:MaxPermSize=512m -Xmx2560m" ./gradlew :dd-sdk-android-gradle-plugin:test --stacktrace --no-daemon
+    - GRADLE_OPTS="-Xmx2560m" ./gradlew :dd-sdk-android-gradle-plugin:test --stacktrace --no-daemon
     - bash <(cat ./codecov.sh) -t $CODECOV_TOKEN
   artifacts:
     reports:

@@ -809,7 +809,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
             include(":samples:lib-module")
         """
         val GRADLE_PROPERTIES_FILE_CONTENT = """
-           org.gradle.jvmargs=-Xmx2560m -XX:MaxPermSize=1024m
+           org.gradle.jvmargs=-Xmx2560m
            android.useAndroidX=true
         """.trimIndent()
     }
