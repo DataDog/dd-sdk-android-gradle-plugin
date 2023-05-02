@@ -10,9 +10,6 @@ import com.datadog.gradle.plugin.Configurator
 import com.datadog.gradle.plugin.DatadogSite
 import com.datadog.gradle.plugin.RecordedRequestAssert.Companion.assertThat
 import com.datadog.gradle.plugin.RepositoryInfo
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.spy
-import com.nhaarman.mockitokotlin2.whenever
 import fr.xgouchet.elmyr.Forge
 import fr.xgouchet.elmyr.annotation.Forgery
 import fr.xgouchet.elmyr.annotation.IntForgery
@@ -37,6 +34,9 @@ import org.junit.jupiter.api.io.TempDir
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.junit.jupiter.MockitoSettings
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.spy
+import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
 import java.io.File
 import java.net.HttpURLConnection

@@ -24,7 +24,7 @@ jUnit-mockitoExt = "3.4.6"
 # Tests Tools
 assertJ = "3.18.1"
 elmyr = "1.3.1"
-mockitoKotlin = "2.2.0"
+mockitoKotlin = "4.1.0"
 
 # Tools
 detekt = "1.17.0"
@@ -83,7 +83,7 @@ elmyr-inject = { module = "com.github.xgouchet.Elmyr:inject", version.ref = "elm
 elmyr-jUnit4 = { module = "com.github.xgouchet.Elmyr:junit4", version.ref = "elmyr" }
 elmyr-jUnit5 = { module = "com.github.xgouchet.Elmyr:junit5", version.ref = "elmyr" }
 elmyr-jvm = { module = "com.github.xgouchet.Elmyr:jvm", version.ref = "elmyr" }
-mockitoKotlin = { module = "com.nhaarman.mockitokotlin2:mockito-kotlin", version.ref = "mockitoKotlin" }
+mockitoKotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockitoKotlin" }
 kotlinReflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
 
 # Tools

@@ -10,13 +10,6 @@ import com.datadog.gradle.plugin.internal.ApiKey
 import com.datadog.gradle.plugin.internal.ApiKeySource
 import com.datadog.gradle.plugin.internal.DdAppIdentifier
 import com.datadog.gradle.plugin.internal.Uploader
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.argumentCaptor
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.eq
-import com.nhaarman.mockitokotlin2.verify
-import com.nhaarman.mockitokotlin2.verifyZeroInteractions
-import com.nhaarman.mockitokotlin2.whenever
 import fr.xgouchet.elmyr.Forge
 import fr.xgouchet.elmyr.annotation.Forgery
 import fr.xgouchet.elmyr.annotation.StringForgery
@@ -36,6 +29,13 @@ import org.junit.jupiter.api.io.TempDir
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.junit.jupiter.MockitoSettings
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
+import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
 import java.io.File
 
@@ -321,7 +321,7 @@ internal class DdMappingFileUploadTaskTest {
         }
 
         // Then
-        verifyZeroInteractions(mockUploader)
+        verifyNoInteractions(mockUploader)
     }
 
     @Test
@@ -346,7 +346,7 @@ internal class DdMappingFileUploadTaskTest {
         }
 
         // Then
-        verifyZeroInteractions(mockUploader)
+        verifyNoInteractions(mockUploader)
     }
 
     @Test
@@ -367,7 +367,7 @@ internal class DdMappingFileUploadTaskTest {
         }
 
         // Then
-        verifyZeroInteractions(mockUploader)
+        verifyNoInteractions(mockUploader)
     }
 
     @Test
@@ -415,7 +415,7 @@ internal class DdMappingFileUploadTaskTest {
         testedTask.applyTask()
 
         // Then
-        verifyZeroInteractions(mockUploader)
+        verifyNoInteractions(mockUploader)
     }
 
     @Test
@@ -431,7 +431,7 @@ internal class DdMappingFileUploadTaskTest {
         }
 
         // Then
-        verifyZeroInteractions(mockUploader)
+        verifyNoInteractions(mockUploader)
     }
 
     @Test

@@ -6,13 +6,13 @@
 
 package com.datadog.gradle.plugin
 
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.whenever
 import fr.xgouchet.elmyr.Forge
 import fr.xgouchet.elmyr.ForgeryFactory
 import org.gradle.api.model.ObjectFactory
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 internal class DdExtensionForgeryFactory : ForgeryFactory<DdExtension> {
     override fun getForgery(forge: Forge): DdExtension {
