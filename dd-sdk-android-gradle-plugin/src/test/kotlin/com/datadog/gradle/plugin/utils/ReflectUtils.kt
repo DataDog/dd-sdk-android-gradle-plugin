@@ -268,16 +268,3 @@ private fun <R> setFieldValue(instance: Any?, field: Field, fieldValue: R): Bool
     field.set(instance, fieldValue)
     return true
 }
-
-@SuppressWarnings("SwallowedException")
-private fun resolveAccessField(): Field {
-    // Android JVM does not use the JDK sources for reflection therefore the property access type
-    // field is named `accessFlags` instead of `modifiers` as in a default JVM
-    // Because these methods are being shared between JUnit and AndroidJUnit runtimes we will
-    // have to support both implementations.
-    return try {
-        Field::class.java.getDeclaredField("modifiers")
-    } catch (e: NoSuchFieldException) {
-        Field::class.java.getDeclaredField("accessFlags")
-    }
-}
