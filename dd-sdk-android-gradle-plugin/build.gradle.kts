@@ -76,6 +76,11 @@ gradlePlugin {
     }
 }
 
+// TODO RUMM-3257 Target Java 17 bytecode at some point
+java {
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
 tasks.withType<Test> {
     dependsOn("pluginUnderTestMetadata")
 }
