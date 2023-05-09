@@ -53,6 +53,7 @@ open class DdExtensionConfiguration(
      */
     var mappingFilePath: String? = null
 
+    // TODO RUMM-0000 Deprecate and then remove this API once all DCs support large file upload
     /**
      * Short aliases to use for package prefixes. Allows to replace, for example,
      * androidx.appcompat with something shorter, reducing the size of the mapping file. Key is
@@ -74,6 +75,7 @@ open class DdExtensionConfiguration(
      */
     var mappingFilePackageAliases: Map<String, String> = emptyMap()
 
+    // TODO RUMM-0000 Deprecate and then remove this API once all DCs support large file upload
     /**
      * This property removes indents from each line of the mapping file, reducing its size.
      *
