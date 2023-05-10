@@ -1,3 +1,11 @@
+# 1.9.0 / 2023-05-10
+
+* [IMPROVEMENT] Remove mapping file size check. See [#166](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/166)
+* [MAINTENANCE] Support building with Java 17. See [#162](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/162)
+* [MAINTENANCE] Bump AGP to version 8.0.1. See [#163](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/163)
+* [MAINTENANCE] Setup CodeQL scan. See [#164](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/164)
+* [DOCS] Unsingle Source Android Error Tracking Doc Page. See [#165](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/165)
+
 # 1.8.1 / 2023-04-27
 
 * [BUGFIX] Update OkHttp version to 4.11.0. See [#161](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/161)
