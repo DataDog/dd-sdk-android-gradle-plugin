@@ -28,6 +28,7 @@ import org.json.JSONTokener
 import java.io.File
 import java.io.IOException
 import java.net.HttpURLConnection
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 internal class OkHttpUploader : Uploader {
@@ -55,7 +56,7 @@ internal class OkHttpUploader : Uploader {
         useGzip: Boolean
     ) {
         LOGGER.info("Uploading mapping file for $identifier (site=${site.domain}):\n")
-        val body = createBody(site, identifier, mappingFile, repositoryFile, repositoryInfo)
+        val body = createBody(identifier, mappingFile, repositoryFile, repositoryInfo)
 
         val requestBuilder = Request.Builder()
             .url(site.uploadEndpoint())
@@ -91,25 +92,12 @@ internal class OkHttpUploader : Uploader {
     // region Internal
 
     private fun createBody(
-        site: DatadogSite,
         identifier: DdAppIdentifier,
         mappingFile: File,
         repositoryFile: File?,
         repositoryInfo: RepositoryInfo?
     ): MultipartBody {
         val mappingFileBody = mappingFile.asRequestBody(MEDIA_TYPE_TXT)
-        // have to use name, because comparison of enum vs spied/mocked enum directly will always fail
-        val sizeLimit = if (site.name == DatadogSite.US1.name) {
-            MAX_MAP_FILE_SIZE_IN_BYTES_US1
-        } else {
-            MAX_MAP_FILE_SIZE_IN_BYTES
-        }
-        if (mappingFileBody.contentLength() > sizeLimit) {
-            throw MaxSizeExceededException(
-                MAX_MAP_SIZE_EXCEEDED_ERROR_FORMAT
-                    .format(mappingFile.absolutePath, sizeLimit / MEGABYTE_IN_BYTES)
-            )
-        }
 
         val eventJson = JSONObject()
         eventJson.put("version", identifier.version)
@@ -169,6 +157,10 @@ internal class OkHttpUploader : Uploader {
                 "Unable to upload mapping file for $identifier because of a request timeout; " +
                     "check your network connection"
             )
+            statusCode == HttpURLConnection.HTTP_ENTITY_TOO_LARGE ->
+                throw MaxSizeExceededException(
+                    MAX_MAP_SIZE_EXCEEDED_ERROR.format(Locale.US, identifier)
+                )
             statusCode >= HttpURLConnection.HTTP_BAD_REQUEST -> {
                 if (statusCode == HttpURLConnection.HTTP_BAD_REQUEST &&
                     validateApiKey(site, apiKey) == false
@@ -256,7 +248,7 @@ internal class OkHttpUploader : Uploader {
     companion object {
 
         // TODO add a plugin to automatically sync this with the `MavenConfig` value
-        internal const val VERSION = "1.8.0"
+        internal const val VERSION = "1.9.0"
 
         internal const val HEADER_API_KEY = "DD-API-KEY"
         internal const val HEADER_EVP_ORIGIN = "DD-EVP-ORIGIN"
@@ -270,19 +262,14 @@ internal class OkHttpUploader : Uploader {
         internal const val KEY_JVM_MAPPING = "jvm_mapping"
         internal const val KEY_REPOSITORY = "repository"
 
-        // 60s is currently only for US1, others have 45s. But anyway server can drop connection
-        // by itself.
         internal val NETWORK_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(60)
         internal val MEDIA_TYPE_TXT = "text/plain".toMediaTypeOrNull()
         internal val MEDIA_TYPE_JSON = "application/json".toMediaTypeOrNull()
-        internal const val MEGABYTE_IN_BYTES = 1024 * 1024L
-        internal const val MAX_MAP_FILE_SIZE_IN_BYTES = 50L * MEGABYTE_IN_BYTES // 50 MB
 
-        // temporary until all DCs have a common limit
-        internal const val MAX_MAP_FILE_SIZE_IN_BYTES_US1 = 100L * MEGABYTE_IN_BYTES // 100 MB
-        internal const val MAX_MAP_SIZE_EXCEEDED_ERROR_FORMAT =
-            "The proguard mapping file at: [%s] size exceeded the maximum %s MB size. " +
-                "This task cannot be performed."
+        internal const val MAX_MAP_SIZE_EXCEEDED_ERROR =
+            "Unable to upload mapping file for %s because mapping file is too" +
+                " large; please refer to documentation regarding the limits"
+
         internal val successfulCodes = arrayOf(
             HttpURLConnection.HTTP_OK,
             HttpURLConnection.HTTP_CREATED,
