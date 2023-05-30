@@ -39,7 +39,7 @@ kotlinGrammarParser = "c35b50fa44"
 
 # Datadog
 datadogSdk = "1.19.1"
-datadogPluginGradle = "1.8.0"
+datadogPluginGradle = "1.9.0"
 
 [libraries]
 
