@@ -16,6 +16,7 @@ import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.testkit.runner.internal.PluginUnderTestMetadataReading
 import org.json.JSONObject
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -60,6 +61,8 @@ internal class DdAndroidGradlePluginFunctionalTest {
         }
     }
 
+    private lateinit var datadogCiFile: File
+
     @BeforeEach
     fun `set up`() {
         appRootDir = File(testProjectDir, "samples/app").apply { mkdirs() }
@@ -76,6 +79,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         libModuleManifestFile = File(libModuleMainSrcDir, "AndroidManifest.xml")
         sampleApplicationClassFile = File(appKotlinSourcesDir, "SampleApplication.kt")
         libModulePlaceholderFile = File(libModuleKotlinSourcesDir, "Placeholder.kt")
+        datadogCiFile = File(testProjectDir.parent, "datadog-ci.json")
 
         stubFile(settingsFile, SETTINGS_FILE_CONTENT)
         stubFile(sampleApplicationClassFile, APPLICATION_CLASS_CONTENT)
@@ -88,6 +92,13 @@ internal class DdAndroidGradlePluginFunctionalTest {
             libModuleBuildGradleFile
         )
         initializeGit(fakeRemoteUrl, appRootDir)
+    }
+
+    @AfterEach
+    fun `tear down`() {
+        if (datadogCiFile.exists()) {
+            datadogCiFile.delete()
+        }
     }
 
     // region Assemble
@@ -478,9 +489,10 @@ internal class DdAndroidGradlePluginFunctionalTest {
         // Then
         assertThat(result.output).contains("Creating request with GZIP encoding.")
         assertThat(result.output).contains(
-            "Uploading mapping file for " +
-                "com.example.variants.$variantVersionName:1.0-$variantVersionName " +
-                "{variant:$variant} (site=datadoghq.com):"
+            "Uploading mapping file with tags " +
+                "`service:com.example.variants.$variantVersionName`, " +
+                "`version:1.0-$variantVersionName`, " +
+                "`variant:$variant` (site=datadoghq.com):"
         )
     }
 
@@ -516,9 +528,10 @@ internal class DdAndroidGradlePluginFunctionalTest {
         // Then
         assertThat(result.output).contains("Creating request without GZIP encoding.")
         assertThat(result.output).contains(
-            "Uploading mapping file for " +
-                "com.example.variants.$variantVersionName:1.0-$variantVersionName " +
-                "{variant:$variant} (site=datadoghq.com):"
+            "Uploading mapping file with tags " +
+                "`service:com.example.variants.$variantVersionName`, " +
+                "`version:1.0-$variantVersionName`, " +
+                "`variant:$variant` (site=datadoghq.com):"
         )
     }
 
@@ -535,7 +548,6 @@ internal class DdAndroidGradlePluginFunctionalTest {
         val variant = "${version.lowercase()}$color"
         val taskName = resolveUploadTask(variant)
 
-        val datadogCiFile = File(testProjectDir.parent, "datadog-ci.json")
         datadogCiFile.createNewFile()
 
         datadogCiFile.writeText(
@@ -563,15 +575,14 @@ internal class DdAndroidGradlePluginFunctionalTest {
 
         // Then
         assertThat(result.output).contains(
-            "Uploading mapping file for " +
-                "com.example.variants.$variantVersionName:1.0-$variantVersionName " +
-                "{variant:$variant} (site=datadoghq.eu):"
+            "Uploading mapping file with tags " +
+                "`service:com.example.variants.$variantVersionName`, " +
+                "`version:1.0-$variantVersionName`, " +
+                "`variant:$variant` (site=datadoghq.eu):"
         )
         assertThat(result.output).contains("API key found in Datadog CI config file, using it.")
         assertThat(result.output)
             .contains("Site property found in Datadog CI config file, using it.")
-
-        datadogCiFile.delete()
     }
 
     @Test
@@ -602,11 +613,11 @@ internal class DdAndroidGradlePluginFunctionalTest {
 
         // Then
         assertThat(result.output).contains(
-            "Uploading mapping file for " +
-                "com.example.variants.$variantVersionName:1.0-$variantVersionName " +
-                "{variant:$variant} (site=datadoghq.com):"
+            "Uploading mapping file with tags " +
+                "`service:com.example.variants.$variantVersionName`, " +
+                "`version:1.0-$variantVersionName`, " +
+                "`variant:$variant` (site=datadoghq.com):"
         )
-
         assertThat(result.output).contains(
             "http://github.com:fakeapp/repository.git"
         )
@@ -640,11 +651,11 @@ internal class DdAndroidGradlePluginFunctionalTest {
 
         // Then
         assertThat(result.output).contains(
-            "Uploading mapping file for " +
-                "com.example.variants.$variantVersionName:1.0-$variantVersionName " +
-                "{variant:$variant} (site=datadoghq.com):"
+            "Uploading mapping file with tags " +
+                "`service:com.example.variants.$variantVersionName`, " +
+                "`version:1.0-$variantVersionName`, " +
+                "`variant:$variant` (site=datadoghq.com):"
         )
-
         val optimizedFile = Path(
             appRootDir.path,
             "build",
@@ -653,7 +664,6 @@ internal class DdAndroidGradlePluginFunctionalTest {
             "${variant}Release",
             DdMappingFileUploadTask.MAPPING_OPTIMIZED_FILE_NAME
         ).toFile()
-
         assertThat(result.output).contains(
             "Size of optimized file is ${optimizedFile.length()} bytes"
         )

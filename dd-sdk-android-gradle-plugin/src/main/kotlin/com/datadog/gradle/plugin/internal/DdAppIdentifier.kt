@@ -13,6 +13,6 @@ internal data class DdAppIdentifier(
 ) {
 
     override fun toString(): String {
-        return "$serviceName:$version {variant:$variant}"
+        return "`service:$serviceName`, `version:$version`, `variant:$variant`"
     }
 }
