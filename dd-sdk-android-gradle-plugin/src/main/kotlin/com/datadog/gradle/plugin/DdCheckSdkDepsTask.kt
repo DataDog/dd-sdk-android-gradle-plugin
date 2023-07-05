@@ -81,7 +81,7 @@ abstract class DdCheckSdkDepsTask : DefaultTask() {
             } catch (re: ResolveException) {
                 re
             }
-            LOGGER.info("Couldn't resolve configuration ${configurationName.get()}", error)
+            LOGGER.warn("Couldn't resolve configuration ${configurationName.get()}", error)
             return
         }
 

@@ -138,7 +138,7 @@ internal class DdCheckSdkDepsTaskTest {
         testedTask.applyTask()
 
         // THEN
-        verify(mockLogger).info(anyString(), eq(resolveException))
+        verify(mockLogger).warn(anyString(), eq(resolveException))
     }
 
     @Test

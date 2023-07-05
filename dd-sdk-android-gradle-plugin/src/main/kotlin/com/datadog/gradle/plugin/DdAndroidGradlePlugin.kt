@@ -15,10 +15,10 @@ import com.datadog.gradle.plugin.internal.VariantIterator
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.process.ExecOperations
-import org.slf4j.LoggerFactory
 import java.io.File
 import javax.inject.Inject
 
@@ -281,7 +281,7 @@ class DdAndroidGradlePlugin @Inject constructor(
 
         internal const val DATADOG_API_KEY = "DATADOG_API_KEY"
 
-        internal val LOGGER = LoggerFactory.getLogger("DdAndroidGradlePlugin")
+        internal val LOGGER = Logging.getLogger("DdAndroidGradlePlugin")
 
         private const val EXT_NAME = "datadog"
 

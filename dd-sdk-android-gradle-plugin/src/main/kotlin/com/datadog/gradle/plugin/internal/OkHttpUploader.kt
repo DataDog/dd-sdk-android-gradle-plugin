@@ -55,7 +55,7 @@ internal class OkHttpUploader : Uploader {
         repositoryInfo: RepositoryInfo?,
         useGzip: Boolean
     ) {
-        LOGGER.info("Uploading mapping file for $identifier (site=${site.domain}):\n")
+        LOGGER.info("Uploading mapping file with tags $identifier (site=${site.domain}):\n")
         val body = createBody(identifier, mappingFile, repositoryFile, repositoryInfo)
 
         val requestBuilder = Request.Builder()
@@ -144,17 +144,20 @@ internal class OkHttpUploader : Uploader {
         val statusCode = response?.code
         when {
             statusCode == null -> throw RuntimeException(
-                "Unable to upload mapping file for $identifier; check your network connection"
+                "Unable to upload mapping file with tags $identifier; check your network connection"
             )
-            statusCode in successfulCodes -> LOGGER.info(
-                "Mapping file upload successful for $identifier"
+            statusCode in successfulCodes -> LOGGER.quiet(
+                "Mapping file upload successful with tags $identifier. \n" +
+                    "Make sure the SDK is initialized with the same values to ensure " +
+                    "proper deobfuscation. Mapping files will be processed and ready within " +
+                    "the next five minutes."
             )
             statusCode == HttpURLConnection.HTTP_FORBIDDEN -> throw InvalidApiKeyException(
                 identifier,
                 site
             )
             statusCode == HttpURLConnection.HTTP_CLIENT_TIMEOUT -> throw RuntimeException(
-                "Unable to upload mapping file for $identifier because of a request timeout; " +
+                "Unable to upload mapping file with tags $identifier because of a request timeout; " +
                     "check your network connection"
             )
             statusCode == HttpURLConnection.HTTP_ENTITY_TOO_LARGE ->
@@ -169,7 +172,7 @@ internal class OkHttpUploader : Uploader {
                 }
                 response.body.use {
                     throw IllegalStateException(
-                        "Unable to upload mapping file for $identifier ($statusCode);\n" +
+                        "Unable to upload mapping file with tags $identifier ($statusCode);\n" +
                             "${it?.string()}"
                     )
                 }
