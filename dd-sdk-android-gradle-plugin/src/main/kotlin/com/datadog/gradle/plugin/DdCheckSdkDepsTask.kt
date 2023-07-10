@@ -118,7 +118,7 @@ abstract class DdCheckSdkDepsTask : DefaultTask() {
         while (queue.isNotEmpty()) {
             val dep = queue.remove()
             if (dep.moduleGroup == DD_SDK_GROUP &&
-                dep.moduleName == DD_SDK_NAME
+                (dep.moduleName == DD_SDK_V1_NAME || dep.moduleName == DD_SDK_V2_CORE_NAME)
             ) {
                 return true
             }
@@ -134,7 +134,8 @@ abstract class DdCheckSdkDepsTask : DefaultTask() {
             " the variant %s in the configurations list, please" +
             " report the issue at" +
             " https://github.com/DataDog/dd-sdk-android-gradle-plugin/issues"
-        internal const val DD_SDK_NAME = "dd-sdk-android"
+        internal const val DD_SDK_V1_NAME = "dd-sdk-android"
+        internal const val DD_SDK_V2_CORE_NAME = "dd-sdk-android-core"
         internal const val DD_SDK_GROUP = "com.datadoghq"
 
         internal val LOGGER = LoggerFactory.getLogger("DdCheckSdkDepsTask")
