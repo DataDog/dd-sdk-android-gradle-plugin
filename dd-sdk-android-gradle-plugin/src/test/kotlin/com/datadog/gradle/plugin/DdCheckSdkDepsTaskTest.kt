@@ -211,13 +211,38 @@ internal class DdCheckSdkDepsTaskTest {
     }
 
     @Test
-    fun `𝕄 do nothing 𝕎 sdk dependency was found`(
-        forge: Forge
-    ) {
+    fun `𝕄 do nothing 𝕎 sdk dependency was found { v1 }`(forge: Forge) {
         // GIVEN
         val dependencies = forge.aList {
             val dependency = mock<ResolvedDependency>()
             whenever(dependency.moduleName) doReturn "dd-sdk-android"
+            whenever(dependency.moduleGroup) doReturn "com.datadoghq"
+            dependency
+        }
+        whenever(mockResolvedConfiguration.firstLevelModuleDependencies).thenReturn(
+            dependencies.toSet()
+        )
+        testedTask.sdkCheckLevel.set(
+            forge.aValueFrom(
+                SdkCheckLevel::class.java,
+                exclude = listOf(SdkCheckLevel.NONE)
+            )
+        )
+
+        // WHEN
+        testedTask.applyTask()
+
+        // THEN
+        verifyNoInteractions(mockLogger)
+        assertThat(testedTask.isLastRunSuccessful).isTrue()
+    }
+
+    @Test
+    fun `𝕄 do nothing 𝕎 sdk dependency was found { v2 }`(forge: Forge) {
+        // GIVEN
+        val dependencies = forge.aList {
+            val dependency = mock<ResolvedDependency>()
+            whenever(dependency.moduleName) doReturn "dd-sdk-android-core"
             whenever(dependency.moduleGroup) doReturn "com.datadoghq"
             dependency
         }
@@ -249,7 +274,10 @@ internal class DdCheckSdkDepsTaskTest {
     ) {
         // GIVEN
         val sdkDependency = mock<ResolvedDependency>()
-        whenever(sdkDependency.moduleName) doReturn "dd-sdk-android"
+        whenever(sdkDependency.moduleName) doReturn forge.anElementFrom(
+            "dd-sdk-android",
+            "dd-sdk-android-core"
+        )
         whenever(sdkDependency.moduleGroup) doReturn "com.datadoghq"
 
         val otherDependencies = forge.aList {
@@ -273,7 +301,10 @@ internal class DdCheckSdkDepsTaskTest {
     ) {
         // GIVEN
         val sdkDependency = mock<ResolvedDependency>()
-        whenever(sdkDependency.moduleName) doReturn "dd-sdk-android"
+        whenever(sdkDependency.moduleName) doReturn forge.anElementFrom(
+            "dd-sdk-android",
+            "dd-sdk-android-core"
+        )
         whenever(sdkDependency.moduleGroup) doReturn "com.datadoghq"
 
         val fakeDependencyGenerator: Forge.() -> ResolvedDependency = {

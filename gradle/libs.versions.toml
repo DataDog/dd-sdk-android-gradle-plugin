@@ -38,7 +38,7 @@ versionsPluginGradle = "0.33.0"
 kotlinGrammarParser = "c35b50fa44"
 
 # Datadog
-datadogSdk = "1.19.2"
+datadogSdk = "2.0.0-beta1"
 datadogPluginGradle = "1.9.0"
 
 [libraries]
@@ -93,7 +93,7 @@ okHttpMock = { module = "com.squareup.okhttp3:mockwebserver", version.ref = "okH
 fuzzyWuzzy = { module = "me.xdrop:fuzzywuzzy", version.ref = "fuzzyWuzzy" }
 
 # Datadog
-datadogSdk = { module = "com.datadoghq:dd-sdk-android", version.ref = "datadogSdk" }
+datadogSdkRum = { module = "com.datadoghq:dd-sdk-android-rum", version.ref = "datadogSdk" }
 datadogPluginGradle = { module = "com.datadoghq:dd-sdk-android-gradle-plugin", version.ref = "datadogPluginGradle" }
 
 [bundles]

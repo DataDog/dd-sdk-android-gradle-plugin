@@ -9,6 +9,6 @@ package com.datadog.gradle.config
 object AndroidConfig {
 
     const val TARGET_SDK = 33
-    const val MIN_SDK = 19
-    const val BUILD_TOOLS_VERSION = "33.0.0"
+    const val MIN_SDK = 21
+    const val BUILD_TOOLS_VERSION = "33.0.1"
 }
