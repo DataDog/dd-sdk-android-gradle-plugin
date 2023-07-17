@@ -1,3 +1,8 @@
+# 1.10.0 / 2023-07-17
+
+* [IMPROVEMENT] Improve output of gradle plugin upload. See [#173](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/173)
+* [IMPROVEMENT] Support dependencies check for both v1 and v2 SDKs. See [#174](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/174)
+
 # 1.9.0 / 2023-05-10
 
 * [IMPROVEMENT] Remove mapping file size check. See [#166](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/166)
