@@ -24,6 +24,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.extension.Extensions
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
+import java.util.Locale
 import java.util.Properties
 import kotlin.io.path.Path
 
@@ -64,7 +65,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
     private lateinit var datadogCiFile: File
 
     @BeforeEach
-    fun `set up`() {
+    fun `set up`(forge: Forge) {
         appRootDir = File(testProjectDir, "samples/app").apply { mkdirs() }
         libModuleRootDir = File(testProjectDir, "samples/lib-module").apply { mkdirs() }
         settingsFile = File(testProjectDir, "settings.gradle")
@@ -81,7 +82,10 @@ internal class DdAndroidGradlePluginFunctionalTest {
         libModulePlaceholderFile = File(libModuleKotlinSourcesDir, "Placeholder.kt")
         datadogCiFile = File(testProjectDir.parent, "datadog-ci.json")
 
-        stubFile(settingsFile, SETTINGS_FILE_CONTENT)
+        // we need to check that our plugin supports different AGP versions (backward and forward
+        // compatible)
+        val agpVersion = forge.anElementFrom(OLD_AGP_VERSION, LATEST_AGP_VERSION)
+        stubFile(settingsFile, SETTINGS_FILE_CONTENT.format(Locale.US, agpVersion))
         stubFile(sampleApplicationClassFile, APPLICATION_CLASS_CONTENT)
         stubFile(appManifestFile, APP_MANIFEST_FILE_CONTENT)
         stubFile(gradlePropertiesFile, GRADLE_PROPERTIES_FILE_CONTENT)
@@ -802,7 +806,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
                 resolutionStrategy {
                     eachPlugin {
                         if (requested.id.id == "com.android.application") {
-                            useModule("com.android.tools.build:gradle:7.1.2")
+                            useModule("com.android.tools.build:gradle:%s")
                         }
                         if (requested.id.id == "kotlin-android") {
                             useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.10")
@@ -822,5 +826,8 @@ internal class DdAndroidGradlePluginFunctionalTest {
            org.gradle.jvmargs=-Xmx2560m
            android.useAndroidX=true
         """.trimIndent()
+
+        const val OLD_AGP_VERSION = "7.1.2"
+        const val LATEST_AGP_VERSION = "8.1.0"
     }
 }
