@@ -462,7 +462,7 @@ internal class DdAndroidGradlePluginTest {
     // region resolveApiKey
 
     @Test
-    fun `𝕄 resolve API KEY from project properties 𝕎 resolveApiKey()`() {
+    fun `𝕄 resolve API KEY from project properties 𝕎 resolveApiKey() { as DD_API_KEY }`() {
         // Given
         fakeProject = mock()
         whenever(fakeProject.findProperty(DdAndroidGradlePlugin.DD_API_KEY)) doReturn
@@ -477,7 +477,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 resolve API KEY from environment variable 𝕎 resolveApiKey()`() {
+    fun `𝕄 resolve API KEY from environment variable 𝕎 resolveApiKey() { as DD_API_KEY }`() {
         // Given
         setEnv(DdAndroidGradlePlugin.DD_API_KEY, fakeApiKey.value)
 
@@ -490,7 +490,22 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 resolve API KEY from alternative environment variable 𝕎 resolveApiKey()`() {
+    fun `𝕄 resolve API KEY from project properties 𝕎 resolveApiKey() { as DATADOG_API_KEY }`() {
+        // Given
+        fakeProject = mock()
+        whenever(fakeProject.findProperty(DdAndroidGradlePlugin.DATADOG_API_KEY)) doReturn
+            fakeApiKey.value
+
+        // When
+        val apiKey = testedPlugin.resolveApiKey(fakeProject)
+
+        // Then
+        assertThat(apiKey.value).isEqualTo(fakeApiKey.value)
+        assertThat(apiKey.source).isEqualTo(ApiKeySource.GRADLE_PROPERTY)
+    }
+
+    @Test
+    fun `𝕄 resolve API KEY from environment variable 𝕎 resolveApiKey() { as DATADOG_API_KEY }`() {
         // Given
         setEnv(DdAndroidGradlePlugin.DATADOG_API_KEY, fakeApiKey.value)
 
