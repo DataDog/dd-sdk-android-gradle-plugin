@@ -248,6 +248,59 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
+    fun `𝕄 upload file 𝕎 applyTask() { delete old shrinked mapping file before writing }`(
+        forge: Forge
+    ) {
+        // Given
+        val expectedLines = forge.aList {
+            forge.anAlphabeticalString() + forge.aString { ' ' }
+        }
+        val fakeMappingFile = File(tempDir, fakeMappingFileName)
+        fakeMappingFile.writeText(
+            expectedLines.joinToString(separator = "\n") {
+                val indent = if (forge.aBool()) forge.aString { ' ' } else ""
+                indent + it
+            }
+        )
+
+        testedTask.mappingFileTrimIndents = true
+        testedTask.mappingFilePath = fakeMappingFile.path
+        val fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
+        testedTask.repositoryFile = fakeRepositoryFile
+        whenever(mockRepositoryDetector.detectRepositories(any(), eq("")))
+            .doReturn(listOf(fakeRepoInfo))
+        val oldShrinkedMappingFile = File(
+            fakeMappingFile.parent,
+            DdMappingFileUploadTask.MAPPING_OPTIMIZED_FILE_NAME
+        )
+        oldShrinkedMappingFile.createNewFile()
+        oldShrinkedMappingFile.writeText(forge.aString())
+
+        // When
+        testedTask.applyTask()
+
+        // Then
+        argumentCaptor<File> {
+            verify(mockUploader).upload(
+                eq(fakeSite),
+                capture(),
+                eq(fakeRepositoryFile),
+                eq(fakeApiKey.value),
+                eq(
+                    DdAppIdentifier(
+                        serviceName = fakeService,
+                        version = fakeVersion,
+                        variant = fakeVariant
+                    )
+                ),
+                eq(fakeRepoInfo),
+                useGzip = eq(true)
+            )
+            assertThat(lastValue.readLines()).isEqualTo(expectedLines)
+        }
+    }
+
+    @Test
     fun `𝕄 upload file 𝕎 applyTask { remote url provided }`() {
         // Given
         val fakeMappingFile = File(tempDir, fakeMappingFileName)

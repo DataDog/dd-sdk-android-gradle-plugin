@@ -303,6 +303,9 @@ open class DdMappingFileUploadTask
         )
 
         val shrinkedFile = File(mappingFile.parent, MAPPING_OPTIMIZED_FILE_NAME)
+        if (shrinkedFile.exists()) {
+            shrinkedFile.delete()
+        }
         // sort is needed to have predictable replacement in the following case:
         // imagine there are 2 keys - "androidx.work" and "androidx.work.Job", and the latter
         // occurs much more often than the rest under "androidx.work.*". So for the more efficient
