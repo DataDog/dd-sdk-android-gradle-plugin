@@ -1,3 +1,9 @@
+# 1.11.0 / 2023-09-13
+
+* [BUGFIX] Delete old shrinked mapping file before writing to it. See [#189](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/189)
+* [IMPROVEMENT] Read `DATADOG_API_KEY` from gradle properties. See [#186](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/186)
+* [MAINTENANCE] Update AGP to 8.1.0. See [#182](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/182)
+
 # 1.10.0 / 2023-07-17
 
 * [IMPROVEMENT] Improve output of gradle plugin upload. See [#173](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/173)
