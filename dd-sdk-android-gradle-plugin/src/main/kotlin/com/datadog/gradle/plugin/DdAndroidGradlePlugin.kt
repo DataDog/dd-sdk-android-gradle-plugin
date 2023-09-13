@@ -56,17 +56,14 @@ class DdAndroidGradlePlugin @Inject constructor(
     @Suppress("ReturnCount")
     // TODO RUMM-2382 use ProviderFactory/Provider APIs to watch changes in external environment
     internal fun resolveApiKey(target: Project): ApiKey {
-        val propertyKey = target.findProperty(DD_API_KEY)?.toString()
-        if (!propertyKey.isNullOrBlank()) return ApiKey(propertyKey, ApiKeySource.GRADLE_PROPERTY)
+        val apiKey = listOf(
+            ApiKey(target.stringProperty(DD_API_KEY).orEmpty(), ApiKeySource.GRADLE_PROPERTY),
+            ApiKey(target.stringProperty(DATADOG_API_KEY).orEmpty(), ApiKeySource.GRADLE_PROPERTY),
+            ApiKey(System.getenv(DD_API_KEY).orEmpty(), ApiKeySource.ENVIRONMENT),
+            ApiKey(System.getenv(DATADOG_API_KEY).orEmpty(), ApiKeySource.ENVIRONMENT)
+        ).firstOrNull { it.value.isNotBlank() }
 
-        val environmentKey = System.getenv(DD_API_KEY)
-        if (!environmentKey.isNullOrBlank()) return ApiKey(environmentKey, ApiKeySource.ENVIRONMENT)
-
-        val alternativeEnvironmentKey = System.getenv(DATADOG_API_KEY)
-        if (!alternativeEnvironmentKey.isNullOrBlank()) {
-            return ApiKey(alternativeEnvironmentKey, ApiKeySource.ENVIRONMENT)
-        }
-        return ApiKey.NONE
+        return apiKey ?: ApiKey.NONE
     }
 
     @Suppress("DefaultLocale", "ReturnCount")
@@ -271,6 +268,10 @@ class DdAndroidGradlePlugin @Inject constructor(
             levelsUp++
         }
         return null
+    }
+
+    private fun Project.stringProperty(propertyName: String): String? {
+        return findProperty(propertyName)?.toString()
     }
 
     // endregion

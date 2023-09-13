@@ -251,7 +251,7 @@ internal class OkHttpUploader : Uploader {
     companion object {
 
         // TODO add a plugin to automatically sync this with the `MavenConfig` value
-        internal const val VERSION = "1.10.0"
+        internal const val VERSION = "1.11.0"
 
         internal const val HEADER_API_KEY = "DD-API-KEY"
         internal const val HEADER_EVP_ORIGIN = "DD-EVP-ORIGIN"

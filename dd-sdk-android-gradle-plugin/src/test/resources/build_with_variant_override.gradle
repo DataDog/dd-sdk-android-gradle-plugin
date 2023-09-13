@@ -54,7 +54,7 @@ android {
 }
 
 dependencies {
-    implementation("com.datadoghq:dd-sdk-android-rum:2.0.0-beta2")
+    implementation("com.datadoghq:dd-sdk-android-rum:2.1.0")
 }
 
 datadog {

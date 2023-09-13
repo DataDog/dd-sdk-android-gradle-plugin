@@ -26,6 +26,12 @@ internal fun initializeGit(remoteUrl: String, rootDirectory: File) {
             .waitForSuccess(5, TimeUnit.SECONDS)
     )
     check(
+        ProcessBuilder("git", "config", "commit.gpgsign", "false")
+            .directory(rootDirectory)
+            .start()
+            .waitForSuccess(5, TimeUnit.SECONDS)
+    )
+    check(
         ProcessBuilder("git", "config", "user.name", "\"Some User\"")
             .directory(rootDirectory)
             .start()
