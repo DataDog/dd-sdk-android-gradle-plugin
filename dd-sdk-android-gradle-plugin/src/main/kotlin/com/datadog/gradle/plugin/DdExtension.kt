@@ -25,13 +25,36 @@ open class DdExtension(
     /**
      * Container for the variant's configurations.
      */
-    internal val variants =
-        objectFactory.domainObjectContainer(DdExtensionConfiguration::class.java)
+    internal val variants = objectFactory.domainObjectContainer(DdExtensionConfiguration::class.java)
 
     /**
-     * Closure method to create a DSL for variant configurations.
+     * Closure method to create a groovy DSL for variant configurations.
      */
     fun variants(configureClosure: Closure<DdExtensionConfiguration>) {
         variants.configure(configureClosure)
+    }
+
+    /**
+     * Method compatible with Kotlin Script to create a DSL for variant configurations.
+     */
+    fun variants(configure: VariantScope.() -> Unit) {
+        configure(VariantScope())
+    }
+
+    /**
+     * Inner class used for Kotlin DSL.
+     */
+    inner class VariantScope {
+
+        /**
+         * Defines a new named object, which will be created and configured when it is required.
+         * @param name the name of the variant to configure
+         * @param configuration the action to run to configure the variant
+         */
+        fun register(name: String, configuration: DdExtensionConfiguration.() -> Unit) {
+            variants.register(name) {
+                configuration(it)
+            }
+        }
     }
 }
