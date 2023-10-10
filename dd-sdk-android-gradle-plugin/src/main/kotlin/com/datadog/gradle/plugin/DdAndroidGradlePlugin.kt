@@ -74,12 +74,12 @@ class DdAndroidGradlePlugin @Inject constructor(
         extension: DdExtension
     ): Task? {
         if (!variant.buildType.isMinifyEnabled) {
-            LOGGER.warn("Minifying disabled for variant ${variant.name}, no upload task created")
+            LOGGER.info("Minifying disabled for variant ${variant.name}, no upload task created")
             return null
         }
 
         if (!extension.enabled) {
-            LOGGER.warn("Extension disabled for variant ${variant.name}, no upload task created")
+            LOGGER.info("Extension disabled for variant ${variant.name}, no upload task created")
             return null
         }
 
@@ -128,7 +128,7 @@ class DdAndroidGradlePlugin @Inject constructor(
         extension: DdExtension
     ): Provider<DdCheckSdkDepsTask>? {
         if (!extension.enabled) {
-            LOGGER.warn("Extension disabled for variant ${variant.name}, no sdk check task created")
+            LOGGER.info("Extension disabled for variant ${variant.name}, no sdk check task created")
             return null
         }
 
