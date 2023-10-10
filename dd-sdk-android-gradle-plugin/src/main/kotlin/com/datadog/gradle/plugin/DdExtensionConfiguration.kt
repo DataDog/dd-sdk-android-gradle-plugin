@@ -84,6 +84,13 @@ open class DdExtensionConfiguration(
     var mappingFileTrimIndents: Boolean = false
 
     /**
+     * This property declares that the obfuscation technology used is not the default
+     * R8/Proguard included in the Android toolchain (e.g.: Dexguard, …).
+     * Doing so will create an upload task for all variants and all build types
+     */
+    var nonDefaultObfuscation: Boolean = false
+
+    /**
      * Ignore the config declared in `datadog-ci.json` file if found.
      */
     var ignoreDatadogCiFileConfig: Boolean = false
@@ -98,5 +105,6 @@ open class DdExtensionConfiguration(
         mappingFilePackageAliases = config.mappingFilePackageAliases
         mappingFileTrimIndents = config.mappingFileTrimIndents
         ignoreDatadogCiFileConfig = config.ignoreDatadogCiFileConfig
+        nonDefaultObfuscation = config.nonDefaultObfuscation
     }
 }
