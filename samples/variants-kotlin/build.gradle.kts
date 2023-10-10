@@ -1,12 +1,12 @@
+@file:Suppress("StringLiteralDuplication")
+
 import com.datadog.gradle.config.AndroidConfig
-import com.datadog.gradle.plugin.DdExtensionConfiguration
 
 plugins {
     id("com.android.application")
     id("kotlin-android")
 //    id("com.datadoghq.dd-sdk-android-gradle-plugin")
 }
-
 
 android {
     compileSdk = AndroidConfig.TARGET_SDK
@@ -29,7 +29,6 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
-
 
     sourceSets.named("main") {
         java.srcDir("src/main/kotlin")
@@ -82,7 +81,6 @@ dependencies {
     implementation(libs.androidx.core)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.constraintlayout)
-
 }
 
 /*
