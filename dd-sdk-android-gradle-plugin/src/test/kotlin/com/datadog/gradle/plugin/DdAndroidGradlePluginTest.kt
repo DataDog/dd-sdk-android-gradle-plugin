@@ -250,6 +250,7 @@ internal class DdAndroidGradlePluginTest {
         fakeExtension.mappingFilePackageAliases = emptyMap()
         fakeExtension.mappingFileTrimIndents = false
         val variantName = "$flavorName${buildTypeName.replaceFirstChar { capitalizeChar(it) }}"
+        val fakeMappingFilePath = "${fakeProject.buildDir}/outputs/mapping/$variantName/mapping.txt"
         whenever(mockVariant.name) doReturn variantName
         whenever(mockVariant.flavorName) doReturn flavorName
         whenever(mockVariant.versionName) doReturn versionName
@@ -279,8 +280,7 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.serviceName).isEqualTo(packageName)
         assertThat(task.remoteRepositoryUrl).isEmpty()
         assertThat(task.site).isEqualTo("")
-        assertThat(task.mappingFilePath)
-            .isEqualTo("${fakeProject.buildDir}/outputs/mapping/$variantName/mapping.txt")
+        assertThat(task.mappingFilePath).isEqualTo(fakeMappingFilePath)
         assertThat(task.mappingFilePackagesAliases).isEmpty()
         assertThat(task.mappingFileTrimIndents).isFalse
         assertThat(task.datadogCiFile).isNull()
@@ -303,6 +303,7 @@ internal class DdAndroidGradlePluginTest {
         fakeExtension.mappingFileTrimIndents = false
         fakeExtension.ignoreDatadogCiFileConfig = false
         val variantName = "$flavorName${buildTypeName.replaceFirstChar { capitalizeChar(it) }}"
+        val fakeMappingFilePath = "${fakeProject.buildDir}/outputs/mapping/$variantName/mapping.txt"
         whenever(mockVariant.name) doReturn variantName
         whenever(mockVariant.flavorName) doReturn flavorName
         whenever(mockVariant.versionName) doReturn versionName
@@ -335,8 +336,7 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.serviceName).isEqualTo(packageName)
         assertThat(task.remoteRepositoryUrl).isEmpty()
         assertThat(task.site).isEqualTo("")
-        assertThat(task.mappingFilePath)
-            .isEqualTo("${fakeProject.buildDir}/outputs/mapping/$variantName/mapping.txt")
+        assertThat(task.mappingFilePath).isEqualTo(fakeMappingFilePath)
         assertThat(task.mappingFilePackagesAliases).isEmpty()
         assertThat(task.mappingFileTrimIndents).isFalse
         assertThat(task.datadogCiFile).isEqualTo(fakeDatadogCiFile)
@@ -359,6 +359,7 @@ internal class DdAndroidGradlePluginTest {
         fakeExtension.mappingFileTrimIndents = false
         fakeExtension.ignoreDatadogCiFileConfig = true
         val variantName = "$flavorName${buildTypeName.replaceFirstChar { capitalizeChar(it) }}"
+        val fakeMappingFilePath = "${fakeProject.buildDir}/outputs/mapping/$variantName/mapping.txt"
         whenever(mockVariant.name) doReturn variantName
         whenever(mockVariant.flavorName) doReturn flavorName
         whenever(mockVariant.versionName) doReturn versionName
@@ -391,21 +392,49 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.serviceName).isEqualTo(packageName)
         assertThat(task.remoteRepositoryUrl).isEmpty()
         assertThat(task.site).isEqualTo("")
-        assertThat(task.mappingFilePath)
-            .isEqualTo("${fakeProject.buildDir}/outputs/mapping/$variantName/mapping.txt")
+        assertThat(task.mappingFilePath).isEqualTo(fakeMappingFilePath)
         assertThat(task.mappingFilePackagesAliases).isEmpty()
         assertThat(task.mappingFileTrimIndents).isFalse
         assertThat(task.datadogCiFile).isNull()
     }
 
     @Test
-    fun `𝕄 do nothing 𝕎 configureVariant() {minify disabled}`(
+    fun `𝕄 do nothing 𝕎 configureVariant() { no deobfuscation }`(
         @StringForgery(case = Case.LOWER) flavorName: String,
         @StringForgery(case = Case.LOWER) buildTypeName: String,
         @StringForgery versionName: String,
         @StringForgery packageName: String
     ) {
         // Given
+        val variantName = "$flavorName${buildTypeName.replaceFirstChar { capitalizeChar(it) }}"
+        whenever(mockVariant.name) doReturn variantName
+        whenever(mockVariant.flavorName) doReturn flavorName
+        whenever(mockVariant.versionName) doReturn versionName
+        whenever(mockVariant.applicationId) doReturn packageName
+        whenever(mockVariant.buildType) doReturn mockBuildType
+        whenever(mockBuildType.name) doReturn fakeBuildTypeName
+
+        // When
+        val task = testedPlugin.configureVariantForUploadTask(
+            fakeProject,
+            mockVariant,
+            fakeApiKey,
+            fakeExtension
+        )
+
+        // Then
+        assertThat(task).isNull()
+    }
+
+    @Test
+    fun `𝕄 configure the upload task 𝕎 configureVariant() { non default obfuscation }`(
+        @StringForgery(case = Case.LOWER) flavorName: String,
+        @StringForgery(case = Case.LOWER) buildTypeName: String,
+        @StringForgery versionName: String,
+        @StringForgery packageName: String
+    ) {
+        // Given
+        fakeExtension.nonDefaultObfuscation = true
         val variantName = "$flavorName${buildTypeName.replaceFirstChar { capitalizeChar(it) }}"
         whenever(mockVariant.name) doReturn variantName
         whenever(mockVariant.flavorName) doReturn flavorName
@@ -424,37 +453,24 @@ internal class DdAndroidGradlePluginTest {
         )
 
         // Then
-        assertThat(task).isNull()
-    }
-
-    @Test
-    fun `𝕄 do nothing 𝕎 configureVariant() {plugin disabled}`(
-        @StringForgery(case = Case.LOWER) flavorName: String,
-        @StringForgery(case = Case.LOWER) buildTypeName: String,
-        @StringForgery versionName: String,
-        @StringForgery packageName: String
-    ) {
-        // Given
-        fakeExtension.enabled = false
-        val variantName = "$flavorName${buildTypeName.replaceFirstChar { capitalizeChar(it) }}"
-        whenever(mockVariant.name) doReturn variantName
-        whenever(mockVariant.flavorName) doReturn flavorName
-        whenever(mockVariant.versionName) doReturn versionName
-        whenever(mockVariant.applicationId) doReturn packageName
-        whenever(mockVariant.buildType) doReturn mockBuildType
-        whenever(mockBuildType.isMinifyEnabled) doReturn true
-        whenever(mockBuildType.name) doReturn fakeBuildTypeName
-
-        // When
-        val task = testedPlugin.configureVariantForUploadTask(
-            fakeProject,
-            mockVariant,
-            fakeApiKey,
-            fakeExtension
+        check(task is DdMappingFileUploadTask)
+        assertThat(task.repositoryDetector).isInstanceOf(GitRepositoryDetector::class.java)
+        assertThat(task.name).isEqualTo(
+            "uploadMapping${variantName.replaceFirstChar { capitalizeChar(it) }}"
         )
-
-        // Then
-        assertThat(task).isNull()
+        assertThat(task.apiKey).isEqualTo(fakeApiKey.value)
+        assertThat(task.apiKeySource).isEqualTo(fakeApiKey.source)
+        assertThat(task.variantName).isEqualTo(flavorName)
+        assertThat(task.versionName).isEqualTo(fakeExtension.versionName)
+        assertThat(task.serviceName).isEqualTo(fakeExtension.serviceName)
+        assertThat(task.site).isEqualTo(fakeExtension.site)
+        assertThat(task.remoteRepositoryUrl).isEqualTo(fakeExtension.remoteRepositoryUrl)
+        assertThat(task.mappingFilePath).isEqualTo(fakeExtension.mappingFilePath)
+        assertThat(task.mappingFilePackagesAliases)
+            .isEqualTo(fakeExtension.mappingFilePackageAliases)
+        assertThat(task.mappingFileTrimIndents)
+            .isEqualTo(fakeExtension.mappingFileTrimIndents)
+        assertThat(task.datadogCiFile).isNull()
     }
 
     // endregion
