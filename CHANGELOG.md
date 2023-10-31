@@ -1,3 +1,9 @@
+# 1.12.0 / 2023-10-30
+
+* [IMPROVEMENT] Make plugin compatible with Kotlin Script. See [#197](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/197)
+* [IMPROVEMENT] Lower log level from warning to info when no minification enabled. See [#198](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/198)
+* [IMPROVEMENT] Allow customer to use non-standard obfuscation. See [#199](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/199)
+
 # 1.11.0 / 2023-09-13
 
 * [BUGFIX] Delete old shrinked mapping file before writing to it. See [#189](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/189)

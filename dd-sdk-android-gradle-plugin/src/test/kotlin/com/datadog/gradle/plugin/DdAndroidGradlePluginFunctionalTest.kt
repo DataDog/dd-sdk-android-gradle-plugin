@@ -42,6 +42,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
     private lateinit var libModuleMainSrcDir: File
     private lateinit var libModuleKotlinSourcesDir: File
     private lateinit var settingsFile: File
+    private lateinit var localPropertiesFile: File
     private lateinit var appBuildGradleFile: File
     private lateinit var libModuleBuildGradleFile: File
     private lateinit var appManifestFile: File
@@ -69,6 +70,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         appRootDir = File(testProjectDir, "samples/app").apply { mkdirs() }
         libModuleRootDir = File(testProjectDir, "samples/lib-module").apply { mkdirs() }
         settingsFile = File(testProjectDir, "settings.gradle")
+        localPropertiesFile = File(testProjectDir, "local.properties")
         gradlePropertiesFile = File(testProjectDir, "gradle.properties")
         appMainSrcDir = File(appRootDir, "src/main").apply { mkdirs() }
         appKotlinSourcesDir = File(appMainSrcDir, "kotlin").apply { mkdirs() }
@@ -86,6 +88,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         // compatible)
         val agpVersion = forge.anElementFrom(OLD_AGP_VERSION, LATEST_AGP_VERSION)
         stubFile(settingsFile, SETTINGS_FILE_CONTENT.format(Locale.US, agpVersion))
+        stubFile(localPropertiesFile, "sdk.dir=${System.getenv("ANDROID_HOME")}")
         stubFile(sampleApplicationClassFile, APPLICATION_CLASS_CONTENT)
         stubFile(appManifestFile, APP_MANIFEST_FILE_CONTENT)
         stubFile(gradlePropertiesFile, GRADLE_PROPERTIES_FILE_CONTENT)
@@ -117,7 +120,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         // When
         val result = GradleRunner.create()
             .withProjectDir(testProjectDir)
-            .withArguments(":samples:app:assembleRelease")
+            .withArguments("--info", ":samples:app:assembleRelease")
             .withPluginClasspath(getTestConfigurationClasspath())
             .build()
 
@@ -136,7 +139,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         // When
         val result = GradleRunner.create()
             .withProjectDir(testProjectDir)
-            .withArguments(":samples:app:assembleRelease")
+            .withArguments("--info", ":samples:app:assembleRelease")
             .withPluginClasspath(getTestConfigurationClasspath())
             .build()
 
@@ -175,7 +178,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         // When
         val result = GradleRunner.create()
             .withProjectDir(testProjectDir)
-            .withArguments(":samples:app:assembleDebug")
+            .withArguments("--info", ":samples:app:assembleDebug")
             .withPluginClasspath(getTestConfigurationClasspath())
             .build()
 
@@ -194,13 +197,52 @@ internal class DdAndroidGradlePluginFunctionalTest {
         // When
         val result = GradleRunner.create()
             .withProjectDir(testProjectDir)
-            .withArguments(":samples:app:assembleDebug")
+            .withArguments("--info", ":samples:app:assembleDebug")
             .withPluginClasspath(getTestConfigurationClasspath())
             .build()
 
         // Then
         assertThat(result.task(":samples:app:assembleDebug")?.outcome)
             .isEqualTo(TaskOutcome.SUCCESS)
+    }
+
+    @Test
+    fun `M success W assembleDebug { non default obfuscation }`() {
+        // Given
+        stubGradleBuildFromResourceFile(
+            "build_with_non_default_obfuscation.gradle",
+            appBuildGradleFile
+        )
+        // When
+        val result = GradleRunner.create()
+            .withProjectDir(testProjectDir)
+            .withArguments("--info", ":samples:app:assembleDebug")
+            .withPluginClasspath(getTestConfigurationClasspath())
+            .build()
+
+        // Then
+        assertThat(result.task(":samples:app:assembleDebug")?.outcome)
+            .isEqualTo(TaskOutcome.SUCCESS)
+    }
+
+    @Test
+    fun `M success W assembleDebug { plugin disabled }`() {
+        // Given
+        stubGradleBuildFromResourceFile(
+            "build_with_plugin_disabled.gradle",
+            appBuildGradleFile
+        )
+        // When
+        val result = GradleRunner.create()
+            .withProjectDir(testProjectDir)
+            .withArguments("--info", ":samples:app:assembleDebug")
+            .withPluginClasspath(getTestConfigurationClasspath())
+            .build()
+
+        // Then
+        assertThat(result.task(":samples:app:assembleDebug")?.outcome)
+            .isEqualTo(TaskOutcome.SUCCESS)
+        assertThat(result.output).contains("Datadog extension disabled, no upload task created")
     }
 
     @Test
@@ -340,7 +382,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         // When
         val result = GradleRunner.create()
             .withProjectDir(testProjectDir)
-            .withArguments(":samples:app:assembleRelease")
+            .withArguments("--info", ":samples:app:assembleRelease")
             .withPluginClasspath(getTestConfigurationClasspath())
             .build()
 
@@ -366,7 +408,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         // When
         val result = GradleRunner.create()
             .withProjectDir(testProjectDir)
-            .withArguments(":samples:app:assembleDebug")
+            .withArguments("--info", ":samples:app:assembleDebug")
             .withPluginClasspath(getTestConfigurationClasspath())
             .build()
 
@@ -393,7 +435,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         // When
         GradleRunner.create()
             .withProjectDir(testProjectDir)
-            .withArguments(":samples:app:assembleRelease")
+            .withArguments("--info", ":samples:app:assembleRelease")
             .withPluginClasspath(getTestConfigurationClasspath())
             .buildAndFail()
     }
@@ -410,7 +452,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         // When
         GradleRunner.create()
             .withProjectDir(testProjectDir)
-            .withArguments(":samples:app:assembleDebug")
+            .withArguments("--info", ":samples:app:assembleDebug")
             .withPluginClasspath(getTestConfigurationClasspath())
             .buildAndFail()
     }
@@ -427,7 +469,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         // When
         val result = GradleRunner.create()
             .withProjectDir(testProjectDir)
-            .withArguments(":samples:app:assembleRelease")
+            .withArguments("--info", ":samples:app:assembleRelease")
             .withPluginClasspath(getTestConfigurationClasspath())
             .build()
 
@@ -448,7 +490,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         // When
         val result = GradleRunner.create()
             .withProjectDir(testProjectDir)
-            .withArguments(":samples:app:assembleDebug")
+            .withArguments("--info", ":samples:app:assembleDebug")
             .withPluginClasspath(getTestConfigurationClasspath())
             .build()
 
@@ -480,13 +522,13 @@ internal class DdAndroidGradlePluginFunctionalTest {
         // line, so we do the explicit split
         GradleRunner.create()
             .withProjectDir(testProjectDir)
-            .withArguments(":samples:app:assembleRelease")
+            .withArguments("--info", ":samples:app:assembleRelease")
             .withPluginClasspath(getTestConfigurationClasspath())
             .build()
 
         val result = GradleRunner.create()
             .withProjectDir(testProjectDir)
-            .withArguments(taskName, "--info", "-PDD_API_KEY=fakekey")
+            .withArguments(taskName, "--info", "--stacktrace", "-PDD_API_KEY=fakekey")
             .withPluginClasspath(getTestConfigurationClasspath())
             .buildAndFail()
 
@@ -519,13 +561,13 @@ internal class DdAndroidGradlePluginFunctionalTest {
         // line, so we do the explicit split
         GradleRunner.create()
             .withProjectDir(testProjectDir)
-            .withArguments(":samples:app:assembleRelease")
+            .withArguments("--info", ":samples:app:assembleRelease")
             .withPluginClasspath(getTestConfigurationClasspath())
             .build()
 
         val result = GradleRunner.create()
             .withProjectDir(testProjectDir)
-            .withArguments(taskName, "--info", "-PDD_API_KEY=fakekey", "-Pdd-disable-gzip")
+            .withArguments(taskName, "--info", "--stacktrace", "-PDD_API_KEY=fakekey", "-Pdd-disable-gzip")
             .withPluginClasspath(getTestConfigurationClasspath())
             .buildAndFail()
 
@@ -567,7 +609,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         // line, so we do the explicit split
         GradleRunner.create()
             .withProjectDir(testProjectDir)
-            .withArguments(":samples:app:assembleRelease")
+            .withArguments("--info", ":samples:app:assembleRelease")
             .withPluginClasspath(getTestConfigurationClasspath())
             .build()
 
@@ -605,13 +647,13 @@ internal class DdAndroidGradlePluginFunctionalTest {
         // When
         GradleRunner.create()
             .withProjectDir(testProjectDir)
-            .withArguments(":samples:app:assembleRelease")
+            .withArguments("--info", ":samples:app:assembleRelease")
             .withPluginClasspath(getTestConfigurationClasspath())
             .build()
 
         val result = GradleRunner.create()
             .withProjectDir(testProjectDir)
-            .withArguments(taskName, "--info", "-PDD_API_KEY=fakekey")
+            .withArguments(taskName, "--info", "--stacktrace", "-PDD_API_KEY=fakekey")
             .withPluginClasspath(getTestConfigurationClasspath())
             .buildAndFail()
 
@@ -643,13 +685,13 @@ internal class DdAndroidGradlePluginFunctionalTest {
         // When
         GradleRunner.create()
             .withProjectDir(testProjectDir)
-            .withArguments(":samples:app:assembleRelease")
+            .withArguments("--info", ":samples:app:assembleRelease")
             .withPluginClasspath(getTestConfigurationClasspath())
             .build()
 
         val result = GradleRunner.create()
             .withProjectDir(testProjectDir)
-            .withArguments(taskName, "--info", "-PDD_API_KEY=fakekey")
+            .withArguments(taskName, "--info", "--stacktrace", "-PDD_API_KEY=fakekey")
             .withPluginClasspath(getTestConfigurationClasspath())
             .buildAndFail()
 
@@ -687,13 +729,13 @@ internal class DdAndroidGradlePluginFunctionalTest {
         // When
         GradleRunner.create()
             .withProjectDir(testProjectDir)
-            .withArguments(":samples:app:assembleRelease")
+            .withArguments("--info", ":samples:app:assembleRelease")
             .withPluginClasspath(getTestConfigurationClasspath())
             .build()
 
         val result = GradleRunner.create()
             .withProjectDir(testProjectDir)
-            .withArguments(taskName, "--info", "-PDD_API_KEY=fakekey")
+            .withArguments(taskName, "--info", "--stacktrace", "-PDD_API_KEY=fakekey")
             .withPluginClasspath(getTestConfigurationClasspath())
             .buildAndFail()
 
@@ -712,7 +754,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         // When
         val result = GradleRunner.create()
             .withProjectDir(testProjectDir)
-            .withArguments(":samples:app:tasks")
+            .withArguments("--info", ":samples:app:tasks")
             .withPluginClasspath(getTestConfigurationClasspath())
             .build()
 

@@ -25,6 +25,7 @@ import javax.inject.Inject
 /**
  * Plugin adding tasks for Android projects using Datadog's SDK for Android.
  */
+@Suppress("TooManyFunctions")
 class DdAndroidGradlePlugin @Inject constructor(
     private val execOps: ExecOperations
 ) : Plugin<Project> {
@@ -40,6 +41,8 @@ class DdAndroidGradlePlugin @Inject constructor(
             val androidExtension = target.extensions.findByType(AppExtension::class.java)
             if (androidExtension == null) {
                 LOGGER.error(ERROR_NOT_ANDROID)
+            } else if (!extension.enabled) {
+                LOGGER.info("Datadog extension disabled, no upload task created")
             } else {
                 androidExtension.applicationVariants.all { variant ->
                     configureVariantForUploadTask(target, variant, apiKey, extension)
@@ -73,13 +76,13 @@ class DdAndroidGradlePlugin @Inject constructor(
         apiKey: ApiKey,
         extension: DdExtension
     ): Task? {
-        if (!variant.buildType.isMinifyEnabled) {
-            LOGGER.warn("Minifying disabled for variant ${variant.name}, no upload task created")
-            return null
-        }
+        val extensionConfiguration = resolveExtensionConfiguration(extension, variant)
+        val isDefaultObfuscationEnabled = variant.buildType.isMinifyEnabled
+        val isNonDefaultObfuscationEnabled = extensionConfiguration.nonDefaultObfuscation
+        val isObfuscationEnabled = isDefaultObfuscationEnabled || isNonDefaultObfuscationEnabled
 
-        if (!extension.enabled) {
-            LOGGER.warn("Extension disabled for variant ${variant.name}, no upload task created")
+        if (!isObfuscationEnabled) {
+            LOGGER.info("Minifying disabled for variant ${variant.name}, no upload task created")
             return null
         }
 
@@ -91,13 +94,10 @@ class DdAndroidGradlePlugin @Inject constructor(
             DdMappingFileUploadTask::class.java,
             GitRepositoryDetector(execOps)
         )
-        val extensionConfiguration = resolveExtensionConfiguration(extension, variant)
 
         configureVariantTask(uploadTask, apiKey, flavorName, extensionConfiguration, variant)
 
-        val outputsDir = File(target.buildDir, "outputs")
-        uploadTask.mappingFilePath =
-            resolveMappingFilePath(extensionConfiguration, outputsDir, variant)
+        uploadTask.mappingFilePath = resolveMappingFilePath(extensionConfiguration, target, variant)
         uploadTask.mappingFilePackagesAliases =
             filterMappingFileReplacements(
                 extensionConfiguration.mappingFilePackageAliases,
@@ -108,9 +108,7 @@ class DdAndroidGradlePlugin @Inject constructor(
             uploadTask.datadogCiFile = findDatadogCiFile(target.projectDir)
         }
 
-        val reportsDir = File(outputsDir, "reports")
-        val datadogDir = File(reportsDir, "datadog")
-        uploadTask.repositoryFile = File(datadogDir, "repository.json")
+        uploadTask.repositoryFile = resolveDatadogRepositoryFile(target)
 
         val roots = mutableListOf<File>()
         variant.sourceSets.forEach {
@@ -128,7 +126,7 @@ class DdAndroidGradlePlugin @Inject constructor(
         extension: DdExtension
     ): Provider<DdCheckSdkDepsTask>? {
         if (!extension.enabled) {
-            LOGGER.warn("Extension disabled for variant ${variant.name}, no sdk check task created")
+            LOGGER.info("Extension disabled for variant ${variant.name}, no sdk check task created")
             return null
         }
 
@@ -187,17 +185,25 @@ class DdAndroidGradlePlugin @Inject constructor(
 
     private fun resolveMappingFilePath(
         extensionConfiguration: DdExtensionConfiguration,
-        outputsDir: File,
+        target: Project,
         variant: ApplicationVariant
     ): String {
         val customPath = extensionConfiguration.mappingFilePath
         return if (customPath != null) {
             customPath
         } else {
+            val outputsDir = File(target.buildDir, "outputs")
             val mappingDir = File(outputsDir, "mapping")
             val flavorDir = File(mappingDir, variant.name)
             File(flavorDir, "mapping.txt").path
         }
+    }
+
+    private fun resolveDatadogRepositoryFile(target: Project): File {
+        val outputsDir = File(target.buildDir, "outputs")
+        val reportsDir = File(outputsDir, "reports")
+        val datadogDir = File(reportsDir, "datadog")
+        return File(datadogDir, "repository.json")
     }
 
     private fun filterMappingFileReplacements(

@@ -32,11 +32,27 @@ datadog {
 
 If you're using variants, you can set a custom configuration per variant using the following syntax.
 
+#### Groovy 
+
 ```groovy
 datadog {
     site = "US1" // Variants with no configurations will use this as default
     variants {
         fr {
+            site = "EU1"
+            mappingFilePath = "path/to/fr/mapping.txt"
+        }
+    }
+}
+```
+
+#### Kotlin Script
+
+```kotlin
+datadog {
+    site = "US1" // Variants with no configurations will use this as default
+    variants {
+        register("fr") {
             site = "EU1"
             mappingFilePath = "path/to/fr/mapping.txt"
         }

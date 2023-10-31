@@ -20,7 +20,7 @@ import java.net.URI
 
 object MavenConfig {
 
-    val VERSION = Version(1, 11, 0, Version.Type.Release)
+    val VERSION = Version(1, 12, 0, Version.Type.Release)
     const val GROUP_ID = "com.datadoghq"
     const val PUBLICATION = "pluginMaven"
 }
@@ -37,7 +37,7 @@ fun Project.publishingConfig(projectDescription: String) {
     signingExtension.apply {
         val privateKey = System.getenv("GPG_PRIVATE_KEY")
         val password = System.getenv("GPG_PASSWORD")
-        isRequired = !hasProperty("dd-skip-signing")
+        isRequired = System.getenv("CI").toBoolean() && !hasProperty("dd-skip-signing")
         useInMemoryPgpKeys(privateKey, password)
         // com.gradle.plugin-publish plugin will automatically add signing task "signPluginMavenPublication"
         // sign(publishingExtension.publications.getByName(MavenConfig.PUBLICATION))
