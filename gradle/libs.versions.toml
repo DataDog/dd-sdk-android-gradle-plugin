@@ -5,7 +5,7 @@ json = "20180813"
 okHttp = "4.11.0"
 
 # Android
-androidToolsPlugin = "8.1.0"
+androidToolsPlugin = "8.1.4"
 
 # AndroidX
 androidx-core ="1.3.2"
@@ -16,15 +16,15 @@ androidx-constraintlayout = "2.0.4"
 jUnit4 = "4.13.2"
 
 # JUnit 5
-jUnit-jupiter = "5.6.2"
-jUnit-vintage = "5.6.2"
-jUnit-platform = "1.6.2"
-jUnit-mockitoExt = "3.4.6"
+jUnit-jupiter = "5.9.3"
+jUnit-vintage = "5.9.3"
+jUnit-platform = "1.9.3"
+jUnit-mockitoExt = "5.4.0"
 
 # Tests Tools
 assertJ = "3.18.1"
 elmyr = "1.3.1"
-mockitoKotlin = "4.1.0"
+mockitoKotlin = "5.0.0"
 
 # Tools
 detekt = "1.17.0"

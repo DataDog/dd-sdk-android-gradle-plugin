@@ -10,13 +10,13 @@ repositories {
 }
 
 android {
-    compileSdkVersion = 33
-    buildToolsVersion = "33.0.1"
+    compileSdkVersion = 34
+    buildToolsVersion = "34.0.0"
 
     defaultConfig {
         applicationId "com.example.variants"
         minSdkVersion 21
-        targetSdkVersion 33
+        targetSdkVersion 34
         versionCode 1
         versionName "1.0"
         multiDexEnabled = true
