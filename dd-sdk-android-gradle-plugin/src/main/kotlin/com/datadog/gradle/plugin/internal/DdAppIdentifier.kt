@@ -9,11 +9,13 @@ package com.datadog.gradle.plugin.internal
 internal data class DdAppIdentifier(
     val serviceName: String,
     val version: String,
+    val versionCode: Int,
     val variant: String,
     val buildId: String
 ) {
 
     override fun toString(): String {
-        return "`service:$serviceName`, `version:$version`, `variant:$variant`, `buildId:$buildId`"
+        return "`service:$serviceName`, `version:$version`, `versionCode:$versionCode`," +
+            " `variant:$variant`, `buildId:$buildId`"
     }
 }

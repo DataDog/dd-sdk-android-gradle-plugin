@@ -592,6 +592,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
             "Uploading mapping file with tags " +
                 "`service:com.example.variants.$variantVersionName`, " +
                 "`version:1.0-$variantVersionName`, " +
+                "`versionCode:1`, " +
                 "`variant:$variant`, " +
                 "`buildId:${testProjectDir.findBuildId(variant)}` (site=datadoghq.com):"
         )
@@ -634,6 +635,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
             "Uploading mapping file with tags " +
                 "`service:com.example.variants.$variantVersionName`, " +
                 "`version:1.0-$variantVersionName`, " +
+                "`versionCode:1`, " +
                 "`variant:$variant`, " +
                 "`buildId:${testProjectDir.findBuildId(variant)}` (site=datadoghq.com):"
         )
@@ -676,6 +678,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
             "Uploading mapping file with tags " +
                 "`service:com.example.variants.$variantVersionName`, " +
                 "`version:1.0-$variantVersionName`, " +
+                "`versionCode:1`, " +
                 "`variant:$variant`, " +
                 "`buildId:${testProjectDir.findBuildId(variant)}` (site=datadoghq.eu):"
         )
@@ -716,6 +719,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
             "Uploading mapping file with tags " +
                 "`service:com.example.variants.$variantVersionName`, " +
                 "`version:1.0-$variantVersionName`, " +
+                "`versionCode:1`, " +
                 "`variant:$variant`, " +
                 "`buildId:${testProjectDir.findBuildId(variant)}` (site=datadoghq.com):"
         )
@@ -756,6 +760,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
             "Uploading mapping file with tags " +
                 "`service:com.example.variants.$variantVersionName`, " +
                 "`version:1.0-$variantVersionName`, " +
+                "`versionCode:1`, " +
                 "`variant:$variant`, " +
                 "`buildId:${testProjectDir.findBuildId(variant)}` (site=datadoghq.com):"
         )

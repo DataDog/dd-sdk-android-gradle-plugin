@@ -12,6 +12,7 @@ import com.datadog.gradle.plugin.internal.DdAppIdentifier
 import com.datadog.gradle.plugin.internal.Uploader
 import fr.xgouchet.elmyr.Forge
 import fr.xgouchet.elmyr.annotation.Forgery
+import fr.xgouchet.elmyr.annotation.IntForgery
 import fr.xgouchet.elmyr.annotation.StringForgery
 import fr.xgouchet.elmyr.junit5.ForgeConfiguration
 import fr.xgouchet.elmyr.junit5.ForgeExtension
@@ -70,6 +71,9 @@ internal class DdMappingFileUploadTaskTest {
     @StringForgery
     lateinit var fakeVersion: String
 
+    @IntForgery(min = 0)
+    var fakeVersionCode: Int = 0
+
     @StringForgery
     lateinit var fakeService: String
 
@@ -115,6 +119,7 @@ internal class DdMappingFileUploadTaskTest {
         testedTask.apiKeySource = fakeApiKey.source
         testedTask.variantName = fakeVariant
         testedTask.versionName = fakeVersion
+        testedTask.versionCode = fakeVersionCode
         testedTask.serviceName = fakeService
         testedTask.site = fakeSite.name
         testedTask.buildId = mock<Provider<String>>().apply { whenever(get()) doReturn fakeBuildId }
@@ -149,6 +154,7 @@ internal class DdMappingFileUploadTaskTest {
             DdAppIdentifier(
                 serviceName = fakeService,
                 version = fakeVersion,
+                versionCode = fakeVersionCode,
                 variant = fakeVariant,
                 buildId = fakeBuildId
             ),
@@ -196,6 +202,7 @@ internal class DdMappingFileUploadTaskTest {
                     DdAppIdentifier(
                         serviceName = fakeService,
                         version = fakeVersion,
+                        versionCode = fakeVersionCode,
                         variant = fakeVariant,
                         buildId = fakeBuildId
                     )
@@ -246,6 +253,7 @@ internal class DdMappingFileUploadTaskTest {
                     DdAppIdentifier(
                         serviceName = fakeService,
                         version = fakeVersion,
+                        versionCode = fakeVersionCode,
                         variant = fakeVariant,
                         buildId = fakeBuildId
                     )
@@ -300,6 +308,7 @@ internal class DdMappingFileUploadTaskTest {
                     DdAppIdentifier(
                         serviceName = fakeService,
                         version = fakeVersion,
+                        versionCode = fakeVersionCode,
                         variant = fakeVariant,
                         buildId = fakeBuildId
                     )
@@ -335,6 +344,7 @@ internal class DdMappingFileUploadTaskTest {
             DdAppIdentifier(
                 serviceName = fakeService,
                 version = fakeVersion,
+                versionCode = fakeVersionCode,
                 variant = fakeVariant,
                 buildId = fakeBuildId
             ),
@@ -370,6 +380,7 @@ internal class DdMappingFileUploadTaskTest {
             DdAppIdentifier(
                 serviceName = fakeService,
                 version = fakeVersion,
+                versionCode = fakeVersionCode,
                 variant = fakeVariant,
                 buildId = fakeBuildId
             ),
@@ -466,6 +477,7 @@ internal class DdMappingFileUploadTaskTest {
             DdAppIdentifier(
                 serviceName = fakeService,
                 version = fakeVersion,
+                versionCode = fakeVersionCode,
                 variant = fakeVariant,
                 buildId = fakeBuildId
             ),

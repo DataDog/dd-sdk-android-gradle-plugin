@@ -16,6 +16,7 @@ internal class IdentifierForgeryFactory : ForgeryFactory<DdAppIdentifier> {
         return DdAppIdentifier(
             serviceName = forge.aStringMatching("[a-z]{3}(\\.[a-z]{5,10}){2,4}"),
             version = forge.aStringMatching("\\d\\.\\d{1,2}\\.\\d{1,3}"),
+            versionCode = forge.aPositiveInt(),
             variant = forge.anAlphabeticalString(),
             buildId = forge.getForgery<UUID>().toString()
         )

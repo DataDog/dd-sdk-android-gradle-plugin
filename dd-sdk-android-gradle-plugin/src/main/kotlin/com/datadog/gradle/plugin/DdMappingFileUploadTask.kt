@@ -68,6 +68,12 @@ open class DdMappingFileUploadTask
     var versionName: String = ""
 
     /**
+     * The version code of the application.
+     */
+    @get:Input
+    var versionCode: Int = 0
+
+    /**
      * The service name of the application (by default, it is your app's package name).
      */
     @get:Input
@@ -174,6 +180,7 @@ open class DdMappingFileUploadTask
             DdAppIdentifier(
                 serviceName = serviceName,
                 version = versionName,
+                versionCode = versionCode,
                 variant = variantName,
                 buildId = buildId.get()
             ),
