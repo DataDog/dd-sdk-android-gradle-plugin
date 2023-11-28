@@ -171,6 +171,7 @@ internal class OkHttpUploaderTest {
                 "event",
                 "{\"service\":\"${fakeIdentifier.serviceName}\"," +
                     "\"variant\":\"${fakeIdentifier.variant}\"," +
+                    "\"buildId\":\"${fakeIdentifier.buildId}\"," +
                     "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
                     "\"version\":\"${fakeIdentifier.version}\"}",
                 "application/json; charset=utf-8"
@@ -219,6 +220,7 @@ internal class OkHttpUploaderTest {
                 "event",
                 "{\"service\":\"${fakeIdentifier.serviceName}\"," +
                     "\"variant\":\"${fakeIdentifier.variant}\"," +
+                    "\"buildId\":\"${fakeIdentifier.buildId}\"," +
                     "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
                     "\"version\":\"${fakeIdentifier.version}\"}",
                 "application/json; charset=utf-8"
@@ -265,6 +267,7 @@ internal class OkHttpUploaderTest {
                 "event",
                 "{\"service\":\"${fakeIdentifier.serviceName}\"," +
                     "\"variant\":\"${fakeIdentifier.variant}\"," +
+                    "\"buildId\":\"${fakeIdentifier.buildId}\"," +
                     "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
                     "\"version\":\"${fakeIdentifier.version}\"}",
                 "application/json; charset=utf-8"
@@ -312,6 +315,7 @@ internal class OkHttpUploaderTest {
                 "event",
                 "{\"service\":\"${fakeIdentifier.serviceName}\"," +
                     "\"variant\":\"${fakeIdentifier.variant}\"," +
+                    "\"buildId\":\"${fakeIdentifier.buildId}\"," +
                     "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
                     "\"version\":\"${fakeIdentifier.version}\"}",
                 "application/json; charset=utf-8"
@@ -368,6 +372,7 @@ internal class OkHttpUploaderTest {
                 "event",
                 "{\"service\":\"${fakeIdentifier.serviceName}\"," +
                     "\"variant\":\"${fakeIdentifier.variant}\"," +
+                    "\"buildId\":\"${fakeIdentifier.buildId}\"," +
                     "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
                     "\"version\":\"${fakeIdentifier.version}\"}",
                 "application/json; charset=utf-8"
@@ -421,6 +426,7 @@ internal class OkHttpUploaderTest {
                 "event",
                 "{\"service\":\"${fakeIdentifier.serviceName}\"," +
                     "\"variant\":\"${fakeIdentifier.variant}\"," +
+                    "\"buildId\":\"${fakeIdentifier.buildId}\"," +
                     "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
                     "\"version\":\"${fakeIdentifier.version}\"}",
                 "application/json; charset=utf-8"
@@ -490,6 +496,7 @@ internal class OkHttpUploaderTest {
                 "event",
                 "{\"service\":\"${fakeIdentifier.serviceName}\"," +
                     "\"variant\":\"${fakeIdentifier.variant}\"," +
+                    "\"buildId\":\"${fakeIdentifier.buildId}\"," +
                     "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
                     "\"version\":\"${fakeIdentifier.version}\"}",
                 "application/json; charset=utf-8"
@@ -547,6 +554,7 @@ internal class OkHttpUploaderTest {
                 "event",
                 "{\"service\":\"${fakeIdentifier.serviceName}\"," +
                     "\"variant\":\"${fakeIdentifier.variant}\"," +
+                    "\"buildId\":\"${fakeIdentifier.buildId}\"," +
                     "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
                     "\"version\":\"${fakeIdentifier.version}\"}",
                 "application/json; charset=utf-8"
@@ -603,6 +611,7 @@ internal class OkHttpUploaderTest {
                 "event",
                 "{\"service\":\"${fakeIdentifier.serviceName}\"," +
                     "\"variant\":\"${fakeIdentifier.variant}\"," +
+                    "\"buildId\":\"${fakeIdentifier.buildId}\"," +
                     "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
                     "\"version\":\"${fakeIdentifier.version}\"}",
                 "application/json; charset=utf-8"

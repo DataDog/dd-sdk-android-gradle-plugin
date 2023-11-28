@@ -86,6 +86,12 @@ open class DdMappingFileUploadTask
     var remoteRepositoryUrl: String = ""
 
     /**
+     * Build ID which will be used for mapping file matching.
+     */
+    @get:Input
+    var buildId: Provider<String> = providerFactory.provider { "" }
+
+    /**
      * The path to the mapping file to upload.
      */
     @get:Input
@@ -123,7 +129,7 @@ open class DdMappingFileUploadTask
     var repositoryFile: File = File("")
 
     init {
-        group = "datadog"
+        group = DdAndroidGradlePlugin.DATADOG_TASK_GROUP
         description = "Uploads the Proguard/R8 mapping file to Datadog"
         // it is never up-to-date, because request may fail
         outputs.upToDateWhen { false }
@@ -168,7 +174,8 @@ open class DdMappingFileUploadTask
             DdAppIdentifier(
                 serviceName = serviceName,
                 version = versionName,
-                variant = variantName
+                variant = variantName,
+                buildId = buildId.get()
             ),
             repositories.firstOrNull(),
             !disableGzipOption.isPresent

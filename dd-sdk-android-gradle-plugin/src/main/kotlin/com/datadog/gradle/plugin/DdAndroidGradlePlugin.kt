@@ -18,6 +18,7 @@ import org.gradle.api.Task
 import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.process.ExecOperations
 import java.io.File
 import javax.inject.Inject
@@ -45,8 +46,7 @@ class DdAndroidGradlePlugin @Inject constructor(
                 LOGGER.info("Datadog extension disabled, no upload task created")
             } else {
                 androidExtension.applicationVariants.all { variant ->
-                    configureVariantForUploadTask(target, variant, apiKey, extension)
-                    configureVariantForSdkCheck(target, variant, extension)
+                    configureTasksForVariant(target, androidExtension, extension, variant, apiKey)
                 }
             }
         }
@@ -55,6 +55,30 @@ class DdAndroidGradlePlugin @Inject constructor(
     // endregion
 
     // region Internal
+
+    internal fun configureTasksForVariant(
+        target: Project,
+        androidExtension: AppExtension,
+        datadogExtension: DdExtension,
+        variant: ApplicationVariant,
+        apiKey: ApiKey
+    ) {
+        if (isObfuscationEnabled(variant, datadogExtension)) {
+            val buildIdGenerationTask =
+                configureBuildIdGenerationTask(target, androidExtension, variant)
+
+            configureVariantForUploadTask(
+                target,
+                variant,
+                buildIdGenerationTask,
+                apiKey,
+                datadogExtension
+            )
+        } else {
+            LOGGER.info("Minifying disabled for variant ${variant.name}, no upload task created")
+        }
+        configureVariantForSdkCheck(target, variant, datadogExtension)
+    }
 
     @Suppress("ReturnCount")
     // TODO RUMM-2382 use ProviderFactory/Provider APIs to watch changes in external environment
@@ -69,23 +93,46 @@ class DdAndroidGradlePlugin @Inject constructor(
         return apiKey ?: ApiKey.NONE
     }
 
+    internal fun configureBuildIdGenerationTask(
+        target: Project,
+        appExtension: AppExtension,
+        variant: ApplicationVariant
+    ): TaskProvider<GenerateBuildIdTask> {
+        val buildIdGenerationTask = GenerateBuildIdTask.register(target, variant)
+
+        val buildIdDirectoryProvider = buildIdGenerationTask.flatMap { it.buildIdDirectory }
+        appExtension.sourceSets.getByName(variant.name).assets.srcDir(
+            buildIdDirectoryProvider
+        )
+
+        val variantName = variant.name.capitalize()
+        listOf(
+            "package${variantName}Bundle",
+            "build${variantName}PreBundle",
+            "lintVitalAnalyze$variantName"
+        ).forEach {
+            target.tasks.findByName(it)?.dependsOn(buildIdGenerationTask)
+        }
+
+        listOf(
+            variant.packageApplicationProvider,
+            variant.mergeAssetsProvider
+        ).forEach {
+            it.configure { it.dependsOn(buildIdGenerationTask) }
+        }
+
+        return buildIdGenerationTask
+    }
+
     @Suppress("DefaultLocale", "ReturnCount")
     internal fun configureVariantForUploadTask(
         target: Project,
         variant: ApplicationVariant,
+        buildIdGenerationTask: TaskProvider<GenerateBuildIdTask>,
         apiKey: ApiKey,
         extension: DdExtension
-    ): Task? {
+    ): Task {
         val extensionConfiguration = resolveExtensionConfiguration(extension, variant)
-        val isDefaultObfuscationEnabled = variant.buildType.isMinifyEnabled
-        val isNonDefaultObfuscationEnabled = extensionConfiguration.nonDefaultObfuscation
-        val isObfuscationEnabled = isDefaultObfuscationEnabled || isNonDefaultObfuscationEnabled
-
-        if (!isObfuscationEnabled) {
-            LOGGER.info("Minifying disabled for variant ${variant.name}, no upload task created")
-            return null
-        }
-
         val flavorName = variant.flavorName
         val uploadTaskName = UPLOAD_TASK_NAME + variant.name.capitalize()
         // TODO RUMM-2382 use tasks.register
@@ -97,6 +144,11 @@ class DdAndroidGradlePlugin @Inject constructor(
 
         configureVariantTask(uploadTask, apiKey, flavorName, extensionConfiguration, variant)
 
+        uploadTask.buildId = buildIdGenerationTask.flatMap {
+            it.buildIdFile.map {
+                it.asFile.readText().trim()
+            }
+        }
         uploadTask.mappingFilePath = resolveMappingFilePath(extensionConfiguration, target, variant)
         uploadTask.mappingFilePackagesAliases =
             filterMappingFileReplacements(
@@ -115,6 +167,7 @@ class DdAndroidGradlePlugin @Inject constructor(
             roots.addAll(it.javaDirectories)
         }
         uploadTask.sourceSetRoots = roots
+        uploadTask.dependsOn(buildIdGenerationTask)
 
         return uploadTask
     }
@@ -199,6 +252,7 @@ class DdAndroidGradlePlugin @Inject constructor(
         }
     }
 
+    @Suppress("StringLiteralDuplication")
     private fun resolveDatadogRepositoryFile(target: Project): File {
         val outputsDir = File(target.buildDir, "outputs")
         val reportsDir = File(outputsDir, "reports")
@@ -280,6 +334,16 @@ class DdAndroidGradlePlugin @Inject constructor(
         return findProperty(propertyName)?.toString()
     }
 
+    private fun isObfuscationEnabled(
+        variant: ApplicationVariant,
+        extension: DdExtension
+    ): Boolean {
+        val extensionConfiguration = resolveExtensionConfiguration(extension, variant)
+        val isDefaultObfuscationEnabled = variant.buildType.isMinifyEnabled
+        val isNonDefaultObfuscationEnabled = extensionConfiguration.nonDefaultObfuscation
+        return isDefaultObfuscationEnabled || isNonDefaultObfuscationEnabled
+    }
+
     // endregion
 
     companion object {
@@ -288,11 +352,13 @@ class DdAndroidGradlePlugin @Inject constructor(
 
         internal const val DATADOG_API_KEY = "DATADOG_API_KEY"
 
+        internal const val DATADOG_TASK_GROUP = "datadog"
+
         internal val LOGGER = Logging.getLogger("DdAndroidGradlePlugin")
 
         private const val EXT_NAME = "datadog"
 
-        private const val UPLOAD_TASK_NAME = "uploadMapping"
+        internal const val UPLOAD_TASK_NAME = "uploadMapping"
 
         private const val ERROR_NOT_ANDROID = "The dd-android-gradle-plugin has been applied on " +
             "a non android application project"
