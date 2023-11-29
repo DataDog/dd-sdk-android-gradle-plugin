@@ -3,15 +3,16 @@ package com.datadog.gradle.plugin
 import com.android.build.gradle.api.ApplicationVariant
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
+import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFile
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskProvider
 import java.util.UUID
-import kotlin.io.path.Path
 
 /**
  * This task generates unique Build ID which is later used to match error and mapping file.
@@ -27,12 +28,18 @@ abstract class GenerateBuildIdTask : DefaultTask() {
     /**
      * File containing build ID.
      */
-    @get:OutputFile
+    @get:Internal
     val buildIdFile: Provider<RegularFile> = buildIdDirectory.file(BUILD_ID_FILE_NAME)
+
+    /**
+     * Variant name this task is linked to.
+     */
+    @get:Internal
+    abstract val variantName: Property<String>
 
     init {
         outputs.upToDateWhen { false }
-        group = DdAndroidGradlePlugin.DATADOG_TASK_GROUP
+        // not a part of any group, we don't want to expose it
         description = "Generates a unique build ID to associate mapping file and application."
     }
 
@@ -45,6 +52,7 @@ abstract class GenerateBuildIdTask : DefaultTask() {
         buildIdDirectory.mkdirs()
 
         val buildId = UUID.randomUUID().toString()
+        logger.info("Generated buildId=$buildId for variant=${variantName.get()}")
         buildIdFile.get().asFile
             .writeText(buildId)
     }
@@ -62,16 +70,15 @@ abstract class GenerateBuildIdTask : DefaultTask() {
          */
         fun register(
             target: Project,
-            variant: ApplicationVariant
+            variant: ApplicationVariant,
+            buildIdDirectory: Provider<Directory>
         ): TaskProvider<GenerateBuildIdTask> {
-            val variantName = variant.name.capitalize()
-            val buildIdDirectory = target.layout.buildDirectory
-                .dir(Path("generated", "datadog", "buildId", variant.name).toString())
             val generateBuildIdTask = target.tasks.register(
-                TASK_NAME + variantName,
+                TASK_NAME + variant.name.capitalize(),
                 GenerateBuildIdTask::class.java
             ) {
                 it.buildIdDirectory.set(buildIdDirectory)
+                it.variantName.set(variant.name)
             }
 
             return generateBuildIdTask

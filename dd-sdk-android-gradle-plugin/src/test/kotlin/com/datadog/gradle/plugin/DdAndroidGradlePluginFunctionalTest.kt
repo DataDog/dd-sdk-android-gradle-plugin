@@ -220,6 +220,9 @@ internal class DdAndroidGradlePluginFunctionalTest {
         assertThat(result.task(":samples:app:assembleDebug")?.outcome)
             .isEqualTo(TaskOutcome.SUCCESS)
         assertThat(result.output).contains("Datadog extension disabled, no upload task created")
+        assertThat(result.tasks).noneMatch {
+            it.path.contains(DdAndroidGradlePlugin.UPLOAD_TASK_NAME)
+        }
     }
 
     @Test
@@ -496,9 +499,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         assertThat(apks.size).isEqualTo(buildIdFiles.size)
 
         val buildIds = apks.map {
-            it.getInputStream(it.getEntry(BUILD_ID_FILE_PATH_APK))
-                .bufferedReader()
-                .use { it.readText().trim() }
+            it.readBuildId(BUILD_ID_FILE_PATH_APK)
                 .let { UUID.fromString(it) }
         }
 
@@ -544,9 +545,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         assertThat(bundles.size).isEqualTo(buildIdFiles.size)
 
         val buildIds = bundles.map {
-            it.getInputStream(it.getEntry(BUILD_ID_FILE_PATH_AAB))
-                .bufferedReader()
-                .use { it.readText().trim() }
+            it.readBuildId(BUILD_ID_FILE_PATH_AAB)
                 .let { UUID.fromString(it) }
         }
 
@@ -588,13 +587,18 @@ internal class DdAndroidGradlePluginFunctionalTest {
 
         // Then
         assertThat(result.output).contains("Creating request with GZIP encoding.")
+
+        val buildIdInOriginFile = testProjectDir.findBuildIdInOriginFile(variant)
+        val buildIdInApk = testProjectDir.findBuildIdInApk(variant)
+        assertThat(buildIdInApk).isEqualTo(buildIdInOriginFile)
+
         assertThat(result.output).contains(
             "Uploading mapping file with tags " +
                 "`service:com.example.variants.$variantVersionName`, " +
                 "`version:1.0-$variantVersionName`, " +
                 "`versionCode:1`, " +
                 "`variant:$variant`, " +
-                "`buildId:${testProjectDir.findBuildId(variant)}` (site=datadoghq.com):"
+                "`buildId:$buildIdInOriginFile` (site=datadoghq.com):"
         )
     }
 
@@ -631,13 +635,18 @@ internal class DdAndroidGradlePluginFunctionalTest {
 
         // Then
         assertThat(result.output).contains("Creating request without GZIP encoding.")
+
+        val buildIdInOriginFile = testProjectDir.findBuildIdInOriginFile(variant)
+        val buildIdInApk = testProjectDir.findBuildIdInApk(variant)
+        assertThat(buildIdInApk).isEqualTo(buildIdInOriginFile)
+
         assertThat(result.output).contains(
             "Uploading mapping file with tags " +
                 "`service:com.example.variants.$variantVersionName`, " +
                 "`version:1.0-$variantVersionName`, " +
                 "`versionCode:1`, " +
                 "`variant:$variant`, " +
-                "`buildId:${testProjectDir.findBuildId(variant)}` (site=datadoghq.com):"
+                "`buildId:$buildIdInOriginFile` (site=datadoghq.com):"
         )
     }
 
@@ -674,13 +683,17 @@ internal class DdAndroidGradlePluginFunctionalTest {
             .buildAndFail()
 
         // Then
+        val buildIdInOriginFile = testProjectDir.findBuildIdInOriginFile(variant)
+        val buildIdInApk = testProjectDir.findBuildIdInApk(variant)
+        assertThat(buildIdInApk).isEqualTo(buildIdInOriginFile)
+
         assertThat(result.output).contains(
             "Uploading mapping file with tags " +
                 "`service:com.example.variants.$variantVersionName`, " +
                 "`version:1.0-$variantVersionName`, " +
                 "`versionCode:1`, " +
                 "`variant:$variant`, " +
-                "`buildId:${testProjectDir.findBuildId(variant)}` (site=datadoghq.eu):"
+                "`buildId:$buildIdInOriginFile` (site=datadoghq.eu):"
         )
         assertThat(result.output).contains("API key found in Datadog CI config file, using it.")
         assertThat(result.output)
@@ -715,13 +728,17 @@ internal class DdAndroidGradlePluginFunctionalTest {
             .buildAndFail()
 
         // Then
+        val buildIdInOriginFile = testProjectDir.findBuildIdInOriginFile(variant)
+        val buildIdInApk = testProjectDir.findBuildIdInApk(variant)
+        assertThat(buildIdInApk).isEqualTo(buildIdInOriginFile)
+
         assertThat(result.output).contains(
             "Uploading mapping file with tags " +
                 "`service:com.example.variants.$variantVersionName`, " +
                 "`version:1.0-$variantVersionName`, " +
                 "`versionCode:1`, " +
                 "`variant:$variant`, " +
-                "`buildId:${testProjectDir.findBuildId(variant)}` (site=datadoghq.com):"
+                "`buildId:$buildIdInOriginFile` (site=datadoghq.com):"
         )
         assertThat(result.output).contains(
             "http://github.com:fakeapp/repository.git"
@@ -756,13 +773,17 @@ internal class DdAndroidGradlePluginFunctionalTest {
             .buildAndFail()
 
         // Then
+        val buildIdInOriginFile = testProjectDir.findBuildIdInOriginFile(variant)
+        val buildIdInApk = testProjectDir.findBuildIdInApk(variant)
+        assertThat(buildIdInApk).isEqualTo(buildIdInOriginFile)
+
         assertThat(result.output).contains(
             "Uploading mapping file with tags " +
                 "`service:com.example.variants.$variantVersionName`, " +
                 "`version:1.0-$variantVersionName`, " +
                 "`versionCode:1`, " +
                 "`variant:$variant`, " +
-                "`buildId:${testProjectDir.findBuildId(variant)}` (site=datadoghq.com):"
+                "`buildId:$buildIdInOriginFile` (site=datadoghq.com):"
         )
         val optimizedFile = Path(
             appRootDir.path,
@@ -863,7 +884,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
             }
     }
 
-    private fun File.findBuildId(variantName: String): String {
+    private fun File.findBuildIdInOriginFile(variantName: String): String {
         return walk()
             .filter {
                 it.name == GenerateBuildIdTask.BUILD_ID_FILE_NAME &&
@@ -873,6 +894,24 @@ internal class DdAndroidGradlePluginFunctionalTest {
                 it.readText()
             }
             .first()
+    }
+
+    private fun File.findBuildIdInApk(variantName: String): String {
+        return walk()
+            .filter {
+                it.extension == "apk" && it.path.contains(variantName)
+            }
+            .map {
+                ZipFile(it).readBuildId(BUILD_ID_FILE_PATH_APK)
+            }
+            .first()
+    }
+
+    private fun ZipFile.readBuildId(path: String): String {
+        return getInputStream(getEntry(path))
+            .bufferedReader()
+            .readText()
+            .trim()
     }
 
     // endregion

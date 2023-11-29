@@ -17,18 +17,21 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.process.ExecOperations
 import java.io.File
 import javax.inject.Inject
+import kotlin.io.path.Path
 
 /**
  * Plugin adding tasks for Android projects using Datadog's SDK for Android.
  */
 @Suppress("TooManyFunctions")
 class DdAndroidGradlePlugin @Inject constructor(
-    private val execOps: ExecOperations
+    private val execOps: ExecOperations,
+    private val providerFactory: ProviderFactory
 ) : Plugin<Project> {
 
     // region Plugin
@@ -38,16 +41,29 @@ class DdAndroidGradlePlugin @Inject constructor(
         val extension = target.extensions.create(EXT_NAME, DdExtension::class.java)
         val apiKey = resolveApiKey(target)
 
+        // need to use withPlugin instead of afterEvaluate, because otherwise generated assets
+        // folder with buildId is not picked by AGP by some reason
+        target.pluginManager.withPlugin("com.android.application") {
+            val androidExtension = target.androidApplicationExtension ?: return@withPlugin
+            androidExtension.applicationVariants.all { variant ->
+                if (extension.enabled) {
+                    configureTasksForVariant(
+                        target,
+                        androidExtension,
+                        extension,
+                        variant,
+                        apiKey
+                    )
+                }
+            }
+        }
+
         target.afterEvaluate {
-            val androidExtension = target.extensions.findByType(AppExtension::class.java)
+            val androidExtension = target.androidApplicationExtension
             if (androidExtension == null) {
                 LOGGER.error(ERROR_NOT_ANDROID)
             } else if (!extension.enabled) {
                 LOGGER.info("Datadog extension disabled, no upload task created")
-            } else {
-                androidExtension.applicationVariants.all { variant ->
-                    configureTasksForVariant(target, androidExtension, extension, variant, apiKey)
-                }
             }
         }
     }
@@ -93,17 +109,23 @@ class DdAndroidGradlePlugin @Inject constructor(
         return apiKey ?: ApiKey.NONE
     }
 
+    @Suppress("StringLiteralDuplication")
     internal fun configureBuildIdGenerationTask(
         target: Project,
         appExtension: AppExtension,
         variant: ApplicationVariant
     ): TaskProvider<GenerateBuildIdTask> {
-        val buildIdGenerationTask = GenerateBuildIdTask.register(target, variant)
+        val buildIdDirectory = target.layout.buildDirectory
+            .dir(Path("generated", "datadog", "buildId", variant.name).toString())
+        val buildIdGenerationTask = GenerateBuildIdTask.register(target, variant, buildIdDirectory)
 
-        val buildIdDirectoryProvider = buildIdGenerationTask.flatMap { it.buildIdDirectory }
-        appExtension.sourceSets.getByName(variant.name).assets.srcDir(
-            buildIdDirectoryProvider
-        )
+        // we could generate buildIdDirectory inside GenerateBuildIdTask and read it here as
+        // property using flatMap, but when Gradle sync is done inside Android Studio there is an error
+        // Querying the mapped value of provider (java.util.Set) before task ... has completed is
+        // not supported, which doesn't happen when Android Studio is not used (pure Gradle build)
+        // so applying such workaround
+        // TODO RUM-0000 use new AndroidComponents API to inject generated stuff, it is more friendly
+        appExtension.sourceSets.getByName(variant.name).assets.srcDir(buildIdDirectory)
 
         val variantName = variant.name.capitalize()
         listOf(
@@ -144,9 +166,13 @@ class DdAndroidGradlePlugin @Inject constructor(
 
         configureVariantTask(uploadTask, apiKey, flavorName, extensionConfiguration, variant)
 
+        // upload task shouldn't depend on the build ID generation task, but only read its property,
+        // because upload task may be triggered after assemble task and we don't want to re-generate
+        // build ID, because it will be different then from the one which is already embedded in
+        // the application package
         uploadTask.buildId = buildIdGenerationTask.flatMap {
-            it.buildIdFile.map {
-                it.asFile.readText().trim()
+            it.buildIdFile.flatMap {
+                providerFactory.provider { it.asFile.readText().trim() }
             }
         }
         uploadTask.mappingFilePath = resolveMappingFilePath(extensionConfiguration, target, variant)
@@ -167,7 +193,6 @@ class DdAndroidGradlePlugin @Inject constructor(
             roots.addAll(it.javaDirectories)
         }
         uploadTask.sourceSetRoots = roots
-        uploadTask.dependsOn(buildIdGenerationTask)
 
         return uploadTask
     }
@@ -344,6 +369,9 @@ class DdAndroidGradlePlugin @Inject constructor(
         val isNonDefaultObfuscationEnabled = extensionConfiguration.nonDefaultObfuscation
         return isDefaultObfuscationEnabled || isNonDefaultObfuscationEnabled
     }
+
+    private val Project.androidApplicationExtension: AppExtension?
+        get() = extensions.findByType(AppExtension::class.java)
 
     // endregion
 

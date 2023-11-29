@@ -86,7 +86,7 @@ internal class DdAndroidGradlePluginTest {
         fakeFlavorNames = fakeFlavorNames.take(5) // A D F G A♭ A A♭ G F
         fakeBuildId = forge.getForgery<UUID>().toString()
         fakeProject = ProjectBuilder.builder().build()
-        testedPlugin = DdAndroidGradlePlugin(mock())
+        testedPlugin = DdAndroidGradlePlugin(mock(), mock())
         setEnv(DdAndroidGradlePlugin.DD_API_KEY, "")
         setEnv(DdAndroidGradlePlugin.DATADOG_API_KEY, "")
     }
