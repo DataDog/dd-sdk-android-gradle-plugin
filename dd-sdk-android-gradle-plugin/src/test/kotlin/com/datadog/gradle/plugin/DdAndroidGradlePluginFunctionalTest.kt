@@ -23,6 +23,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.extension.Extensions
 import org.junit.jupiter.api.io.TempDir
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 import java.io.File
 import java.util.Locale
 import java.util.Properties
@@ -33,6 +35,7 @@ import kotlin.io.path.Path
 @Extensions(
     ExtendWith(ForgeExtension::class)
 )
+@Execution(ExecutionMode.SAME_THREAD)
 @ForgeConfiguration(Configurator::class)
 internal class DdAndroidGradlePluginFunctionalTest {
     @TempDir
@@ -588,6 +591,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
 
         // Then
         assertThat(result.output).contains("Creating request with GZIP encoding.")
+        println("variant is $variant, root folder is $testProjectDir")
         assertThat(result.output).contains(
             "Uploading mapping file with tags " +
                 "`service:com.example.variants.$variantVersionName`, " +
@@ -870,6 +874,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
                     it.path.contains(variantName)
             }
             .map {
+                println(it.absolutePath)
                 it.readText()
             }
             .first()

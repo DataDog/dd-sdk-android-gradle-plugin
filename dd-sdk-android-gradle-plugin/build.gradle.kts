@@ -83,4 +83,7 @@ java {
 
 tasks.withType<Test> {
     dependsOn("pluginUnderTestMetadata")
+    testLogging {
+        showStandardStreams = true
+    }
 }
