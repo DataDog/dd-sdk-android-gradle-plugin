@@ -6,6 +6,8 @@
 
 package com.datadog.gradle.plugin
 
+import com.datadog.gradle.plugin.utils.assertj.BuildResultAssert.Companion.assertThat
+import com.datadog.gradle.plugin.utils.headHash
 import com.datadog.gradle.plugin.utils.initializeGit
 import fr.xgouchet.elmyr.Forge
 import fr.xgouchet.elmyr.annotation.StringForgery
@@ -41,6 +43,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
     private lateinit var libModuleRootDir: File
     private lateinit var appMainSrcDir: File
     private lateinit var appKotlinSourcesDir: File
+    private lateinit var appJavaSourcesDir: File
     private lateinit var libModuleMainSrcDir: File
     private lateinit var libModuleKotlinSourcesDir: File
     private lateinit var settingsFile: File
@@ -51,6 +54,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
     private lateinit var libModuleManifestFile: File
     private lateinit var gradlePropertiesFile: File
     private lateinit var sampleApplicationClassFile: File
+    private lateinit var javaPlaceholderClassFile: File
     private lateinit var libModulePlaceholderFile: File
 
     @StringForgery(regex = "http[s]?://github\\.com:[1-9]{2}/[a-z]+/repository\\.git")
@@ -76,6 +80,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         gradlePropertiesFile = File(testProjectDir, "gradle.properties")
         appMainSrcDir = File(appRootDir, "src/main").apply { mkdirs() }
         appKotlinSourcesDir = File(appMainSrcDir, "kotlin").apply { mkdirs() }
+        appJavaSourcesDir = File(appMainSrcDir, "java").apply { mkdirs() }
         libModuleMainSrcDir = File(libModuleRootDir, "src/main").apply { mkdirs() }
         libModuleKotlinSourcesDir = File(libModuleMainSrcDir, "kotlin").apply { mkdirs() }
         appBuildGradleFile = File(appRootDir, "build.gradle")
@@ -83,6 +88,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         appManifestFile = File(appMainSrcDir, "AndroidManifest.xml")
         libModuleManifestFile = File(libModuleMainSrcDir, "AndroidManifest.xml")
         sampleApplicationClassFile = File(appKotlinSourcesDir, "SampleApplication.kt")
+        javaPlaceholderClassFile = File(appJavaSourcesDir, "Placeholder.java")
         libModulePlaceholderFile = File(libModuleKotlinSourcesDir, "Placeholder.kt")
         datadogCiFile = File(testProjectDir.parent, "datadog-ci.json")
 
@@ -92,6 +98,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         stubFile(settingsFile, SETTINGS_FILE_CONTENT.format(Locale.US, agpVersion))
         stubFile(localPropertiesFile, "sdk.dir=${System.getenv("ANDROID_HOME")}")
         stubFile(sampleApplicationClassFile, APPLICATION_CLASS_CONTENT)
+        stubFile(javaPlaceholderClassFile, JAVA_CLASS_CONTENT)
         stubFile(appManifestFile, APP_MANIFEST_FILE_CONTENT)
         stubFile(gradlePropertiesFile, GRADLE_PROPERTIES_FILE_CONTENT)
         stubFile(libModulePlaceholderFile, LIB_MODULE_PLACEHOLDER_CLASS_CONTENT)
@@ -124,8 +131,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
             .build()
 
         // Then
-        assertThat(result.task(":samples:app:assembleRelease")?.outcome)
-            .isEqualTo(TaskOutcome.SUCCESS)
+        assertThat(result).hasSuccessfulTaskOutcome(":samples:app:assembleRelease")
     }
 
     @Test
@@ -140,8 +146,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
             gradleRunner { withArguments("--info", ":samples:app:assembleRelease") }.build()
 
         // Then
-        assertThat(result.task(":samples:app:assembleRelease")?.outcome)
-            .isEqualTo(TaskOutcome.SUCCESS)
+        assertThat(result).hasSuccessfulTaskOutcome(":samples:app:assembleRelease")
     }
 
     @Test
@@ -157,8 +162,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
             gradleRunner { withArguments("--build-cache", ":samples:app:assembleRelease") }.build()
 
         // Then
-        assertThat(result.task(":samples:app:assembleRelease")?.outcome)
-            .isEqualTo(TaskOutcome.SUCCESS)
+        assertThat(result).hasSuccessfulTaskOutcome(":samples:app:assembleRelease")
     }
 
     @Test
@@ -172,8 +176,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         val result = gradleRunner { withArguments("--info", ":samples:app:assembleDebug") }.build()
 
         // Then
-        assertThat(result.task(":samples:app:assembleDebug")?.outcome)
-            .isEqualTo(TaskOutcome.SUCCESS)
+        assertThat(result).hasSuccessfulTaskOutcome(":samples:app:assembleDebug")
     }
 
     @Test
@@ -187,8 +190,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         val result = gradleRunner { withArguments("--info", ":samples:app:assembleDebug") }.build()
 
         // Then
-        assertThat(result.task(":samples:app:assembleDebug")?.outcome)
-            .isEqualTo(TaskOutcome.SUCCESS)
+        assertThat(result).hasSuccessfulTaskOutcome(":samples:app:assembleDebug")
     }
 
     @Test
@@ -202,8 +204,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         val result = gradleRunner { withArguments("--info", ":samples:app:assembleDebug") }.build()
 
         // Then
-        assertThat(result.task(":samples:app:assembleDebug")?.outcome)
-            .isEqualTo(TaskOutcome.SUCCESS)
+        assertThat(result).hasSuccessfulTaskOutcome(":samples:app:assembleDebug")
     }
 
     @Test
@@ -217,12 +218,9 @@ internal class DdAndroidGradlePluginFunctionalTest {
         val result = gradleRunner { withArguments("--info", ":samples:app:assembleDebug") }.build()
 
         // Then
-        assertThat(result.task(":samples:app:assembleDebug")?.outcome)
-            .isEqualTo(TaskOutcome.SUCCESS)
-        assertThat(result.output).contains("Datadog extension disabled, no upload task created")
-        assertThat(result.tasks).noneMatch {
-            it.path.contains(DdAndroidGradlePlugin.UPLOAD_TASK_NAME)
-        }
+        assertThat(result).hasSuccessfulTaskOutcome(":samples:app:assembleDebug")
+        assertThat(result).containsInOutput("Datadog extension disabled, no upload task created")
+        assertThat(result).hasNoUploadTasks()
     }
 
     @Test
@@ -238,8 +236,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
             gradleRunner { withArguments("--build-cache", ":samples:app:assembleDebug") }.build()
 
         // Then
-        assertThat(result.task(":samples:app:assembleDebug")?.outcome)
-            .isEqualTo(TaskOutcome.SUCCESS)
+        assertThat(result).hasSuccessfulTaskOutcome(":samples:app:assembleDebug")
     }
 
     @Disabled(
@@ -268,8 +265,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         }.build()
 
         // Then
-        assertThat(result.task(":samples:app:assembleRelease")?.outcome)
-            .isEqualTo(TaskOutcome.SUCCESS)
+        assertThat(result).hasSuccessfulTaskOutcome(":samples:app:assembleRelease")
     }
 
     @Disabled(
@@ -297,8 +293,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         }.build()
 
         // Then
-        assertThat(result.task(":samples:app:assembleDebug")?.outcome)
-            .isEqualTo(TaskOutcome.SUCCESS)
+        assertThat(result).hasSuccessfulTaskOutcome(":samples:app:assembleDebug")
     }
 
     @Test
@@ -318,8 +313,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         }.build()
 
         // Then
-        assertThat(result.task(":samples:app:assembleDebug")?.outcome)
-            .isEqualTo(TaskOutcome.SUCCESS)
+        assertThat(result).hasSuccessfulTaskOutcome(":samples:app:assembleDebug")
     }
 
     @Disabled(
@@ -348,8 +342,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         }.build()
 
         // Then
-        assertThat(result.task(":samples:app:assembleRelease")?.outcome)
-            .isEqualTo(TaskOutcome.SUCCESS)
+        assertThat(result).hasSuccessfulTaskOutcome(":samples:app:assembleRelease")
     }
 
     @Test
@@ -365,10 +358,9 @@ internal class DdAndroidGradlePluginFunctionalTest {
             gradleRunner { withArguments("--info", ":samples:app:assembleRelease") }.build()
 
         // Then
-        assertThat(result.task(":samples:app:assembleRelease")?.outcome)
-            .isEqualTo(TaskOutcome.SUCCESS)
+        assertThat(result).hasSuccessfulTaskOutcome(":samples:app:assembleRelease")
         for (it in variants) {
-            assertThat(result.output).contains(
+            assertThat(result).containsInOutput(
                 "Following application variant doesn't have " +
                     "Datadog SDK included: ${it}Release"
             )
@@ -387,10 +379,9 @@ internal class DdAndroidGradlePluginFunctionalTest {
         val result = gradleRunner { withArguments("--info", ":samples:app:assembleDebug") }.build()
 
         // Then
-        assertThat(result.task(":samples:app:assembleDebug")?.outcome)
-            .isEqualTo(TaskOutcome.SUCCESS)
+        assertThat(result).hasSuccessfulTaskOutcome(":samples:app:assembleDebug")
         for (it in variants) {
-            assertThat(result.output).contains(
+            assertThat(result).containsInOutput(
                 "Following application variant doesn't have " +
                     "Datadog SDK included: ${it}Debug"
             )
@@ -439,8 +430,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
             .build()
 
         // Then
-        assertThat(result.task(":samples:app:assembleRelease")?.outcome)
-            .isEqualTo(TaskOutcome.SUCCESS)
+        assertThat(result).hasSuccessfulTaskOutcome(":samples:app:assembleRelease")
     }
 
     // TODO remove once RUMM-2344 is done
@@ -457,8 +447,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
             .build()
 
         // Then
-        assertThat(result.task(":samples:app:assembleDebug")?.outcome)
-            .isEqualTo(TaskOutcome.SUCCESS)
+        assertThat(result).hasSuccessfulTaskOutcome(":samples:app:assembleDebug")
     }
 
     // endregion
@@ -586,19 +575,32 @@ internal class DdAndroidGradlePluginFunctionalTest {
             .buildAndFail()
 
         // Then
-        assertThat(result.output).contains("Creating request with GZIP encoding.")
+        assertThat(result).containsInOutput("Creating request with GZIP encoding.")
 
         val buildIdInOriginFile = testProjectDir.findBuildIdInOriginFile(variant)
         val buildIdInApk = testProjectDir.findBuildIdInApk(variant)
         assertThat(buildIdInApk).isEqualTo(buildIdInOriginFile)
 
-        assertThat(result.output).contains(
+        assertThat(result).containsInOutput(
             "Uploading mapping file with tags " +
                 "`service:com.example.variants.$variantVersionName`, " +
                 "`version:1.0-$variantVersionName`, " +
                 "`versionCode:1`, " +
                 "`variant:$variant`, " +
                 "`buildId:$buildIdInOriginFile` (site=datadoghq.com):"
+        )
+        assertThat(result).containsInOutput(
+            """
+                Detected repository:
+                {
+                    "files": [
+                        "src/main/java/Placeholder.java",
+                        "src/main/kotlin/SampleApplication.kt"
+                    ],
+                    "repository_url": "$fakeRemoteUrl",
+                    "hash": "${headHash(appRootDir)}"
+                }
+            """.trimIndent()
         )
     }
 
@@ -634,19 +636,32 @@ internal class DdAndroidGradlePluginFunctionalTest {
             .buildAndFail()
 
         // Then
-        assertThat(result.output).contains("Creating request without GZIP encoding.")
+        assertThat(result).containsInOutput("Creating request without GZIP encoding.")
 
         val buildIdInOriginFile = testProjectDir.findBuildIdInOriginFile(variant)
         val buildIdInApk = testProjectDir.findBuildIdInApk(variant)
         assertThat(buildIdInApk).isEqualTo(buildIdInOriginFile)
 
-        assertThat(result.output).contains(
+        assertThat(result).containsInOutput(
             "Uploading mapping file with tags " +
                 "`service:com.example.variants.$variantVersionName`, " +
                 "`version:1.0-$variantVersionName`, " +
                 "`versionCode:1`, " +
                 "`variant:$variant`, " +
                 "`buildId:$buildIdInOriginFile` (site=datadoghq.com):"
+        )
+        assertThat(result).containsInOutput(
+            """
+                Detected repository:
+                {
+                    "files": [
+                        "src/main/java/Placeholder.java",
+                        "src/main/kotlin/SampleApplication.kt"
+                    ],
+                    "repository_url": "$fakeRemoteUrl",
+                    "hash": "${headHash(appRootDir)}"
+                }
+            """.trimIndent()
         )
     }
 
@@ -687,7 +702,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         val buildIdInApk = testProjectDir.findBuildIdInApk(variant)
         assertThat(buildIdInApk).isEqualTo(buildIdInOriginFile)
 
-        assertThat(result.output).contains(
+        assertThat(result).containsInOutput(
             "Uploading mapping file with tags " +
                 "`service:com.example.variants.$variantVersionName`, " +
                 "`version:1.0-$variantVersionName`, " +
@@ -695,9 +710,22 @@ internal class DdAndroidGradlePluginFunctionalTest {
                 "`variant:$variant`, " +
                 "`buildId:$buildIdInOriginFile` (site=datadoghq.eu):"
         )
-        assertThat(result.output).contains("API key found in Datadog CI config file, using it.")
-        assertThat(result.output)
-            .contains("Site property found in Datadog CI config file, using it.")
+        assertThat(result).containsInOutput("API key found in Datadog CI config file, using it.")
+        assertThat(result)
+            .containsInOutput("Site property found in Datadog CI config file, using it.")
+        assertThat(result).containsInOutput(
+            """
+                Detected repository:
+                {
+                    "files": [
+                        "src/main/java/Placeholder.java",
+                        "src/main/kotlin/SampleApplication.kt"
+                    ],
+                    "repository_url": "$fakeRemoteUrl",
+                    "hash": "${headHash(appRootDir)}"
+                }
+            """.trimIndent()
+        )
     }
 
     @Test
@@ -732,7 +760,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         val buildIdInApk = testProjectDir.findBuildIdInApk(variant)
         assertThat(buildIdInApk).isEqualTo(buildIdInOriginFile)
 
-        assertThat(result.output).contains(
+        assertThat(result).containsInOutput(
             "Uploading mapping file with tags " +
                 "`service:com.example.variants.$variantVersionName`, " +
                 "`version:1.0-$variantVersionName`, " +
@@ -740,8 +768,18 @@ internal class DdAndroidGradlePluginFunctionalTest {
                 "`variant:$variant`, " +
                 "`buildId:$buildIdInOriginFile` (site=datadoghq.com):"
         )
-        assertThat(result.output).contains(
-            "http://github.com:fakeapp/repository.git"
+        assertThat(result).containsInOutput(
+            """
+                Detected repository:
+                {
+                    "files": [
+                        "src/main/java/Placeholder.java",
+                        "src/main/kotlin/SampleApplication.kt"
+                    ],
+                    "repository_url": "http://github.com:fakeapp/repository.git",
+                    "hash": "${headHash(appRootDir)}"
+                }
+            """.trimIndent()
         )
     }
 
@@ -777,13 +815,26 @@ internal class DdAndroidGradlePluginFunctionalTest {
         val buildIdInApk = testProjectDir.findBuildIdInApk(variant)
         assertThat(buildIdInApk).isEqualTo(buildIdInOriginFile)
 
-        assertThat(result.output).contains(
+        assertThat(result).containsInOutput(
             "Uploading mapping file with tags " +
                 "`service:com.example.variants.$variantVersionName`, " +
                 "`version:1.0-$variantVersionName`, " +
                 "`versionCode:1`, " +
                 "`variant:$variant`, " +
                 "`buildId:$buildIdInOriginFile` (site=datadoghq.com):"
+        )
+        assertThat(result).containsInOutput(
+            """
+                Detected repository:
+                {
+                    "files": [
+                        "src/main/java/Placeholder.java",
+                        "src/main/kotlin/SampleApplication.kt"
+                    ],
+                    "repository_url": "$fakeRemoteUrl",
+                    "hash": "${headHash(appRootDir)}"
+                }
+            """.trimIndent()
         )
         val optimizedFile = Path(
             appRootDir.path,
@@ -793,7 +844,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
             "${variant}Release",
             DdMappingFileUploadTask.MAPPING_OPTIMIZED_FILE_NAME
         ).toFile()
-        assertThat(result.output).contains(
+        assertThat(result).containsInOutput(
             "Size of optimized file is ${optimizedFile.length()} bytes"
         )
     }
@@ -824,7 +875,19 @@ internal class DdAndroidGradlePluginFunctionalTest {
             .buildAndFail()
 
         // Then
-        assertThat(result.output).contains("http://github.com:fakeapp-another/repository.git")
+        assertThat(result).containsInOutput(
+            """
+                Detected repository:
+                {
+                    "files": [
+                        "src/main/java/Placeholder.java",
+                        "src/main/kotlin/SampleApplication.kt"
+                    ],
+                    "repository_url": "http://github.com:fakeapp-another/repository.git",
+                    "hash": "${headHash(appRootDir)}"
+                }
+            """.trimIndent()
+        )
     }
 
     @Test
@@ -931,6 +994,11 @@ internal class DdAndroidGradlePluginFunctionalTest {
                 }
             }
         """.trimIndent()
+        val JAVA_CLASS_CONTENT = """
+            package com.datadog.android.sample;
+
+            public class Placeholder {}
+        """.trimIndent()
         val LIB_MODULE_PLACEHOLDER_CLASS_CONTENT = """
             package com.example.lib
             
@@ -989,8 +1057,8 @@ internal class DdAndroidGradlePluginFunctionalTest {
            android.useAndroidX=true
         """.trimIndent()
 
-        const val OLD_AGP_VERSION = "7.1.2"
-        const val LATEST_AGP_VERSION = "8.1.0"
+        const val OLD_AGP_VERSION = "7.0.0"
+        const val LATEST_AGP_VERSION = "8.1.4"
 
         const val BUILD_ID_FILE_PATH_APK = "assets/datadog.buildId"
         const val BUILD_ID_FILE_PATH_AAB = "base/assets/datadog.buildId"

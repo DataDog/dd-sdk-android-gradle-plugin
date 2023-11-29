@@ -11,7 +11,6 @@ import org.gradle.process.ExecOperations
 import org.gradle.process.internal.ExecException
 import java.io.ByteArrayOutputStream
 
-@Suppress("UnstableApiUsage")
 internal fun ExecOperations.execShell(vararg command: String): String {
     val outputStream = ByteArrayOutputStream()
     val errorStream = ByteArrayOutputStream()
