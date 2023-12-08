@@ -8,6 +8,7 @@ package com.datadog.gradle.plugin
 
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.api.ApplicationVariant
+import com.android.builder.model.Version
 import com.datadog.gradle.plugin.internal.ApiKey
 import com.datadog.gradle.plugin.internal.ApiKeySource
 import com.datadog.gradle.plugin.internal.GitRepositoryDetector
@@ -191,8 +192,16 @@ class DdAndroidGradlePlugin @Inject constructor(
         val roots = mutableListOf<File>()
         variant.sourceSets.forEach {
             roots.addAll(it.javaDirectories)
+            if (isAgp7OrAbove()) {
+                roots.addAll(it.kotlinDirectories)
+            }
         }
-        uploadTask.sourceSetRoots = roots
+
+        // it can be an overlap between java and kotlin directories and since File doesn't override
+        // equals for set comparison, we will remove duplicates manually
+        uploadTask.sourceSetRoots = roots.map { it.absolutePath }
+            .distinct()
+            .map { File(it) }
 
         return uploadTask
     }
@@ -368,6 +377,18 @@ class DdAndroidGradlePlugin @Inject constructor(
         val isDefaultObfuscationEnabled = variant.buildType.isMinifyEnabled
         val isNonDefaultObfuscationEnabled = extensionConfiguration.nonDefaultObfuscation
         return isDefaultObfuscationEnabled || isNonDefaultObfuscationEnabled
+    }
+
+    @Suppress("MagicNumber", "ReturnCount")
+    private fun isAgp7OrAbove(): Boolean {
+        val version = Version.ANDROID_GRADLE_PLUGIN_VERSION
+        val groups = version.split(".")
+        if (groups.size < 3) return false
+        val major = groups[0].toIntOrNull()
+        val minor = groups[1].toIntOrNull()
+        val patch = groups[2].substringBefore("-").toIntOrNull()
+        if (major == null || minor == null || patch == null) return false
+        return major >= 7 && minor >= 0 && patch >= 0
     }
 
     private val Project.androidApplicationExtension: AppExtension?

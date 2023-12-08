@@ -19,7 +19,7 @@ import java.io.File
 // TODO RUMM-1096 handle git subtrees
 // TODO RUMM-1093 let customer override `origin` with custom remote name
 internal class GitRepositoryDetector(
-    @Suppress("UnstableApiUsage") private val execOperations: ExecOperations,
+    private val execOperations: ExecOperations,
     private val urlSanitizer: UrlSanitizer = GitRemoteUrlSanitizer()
 ) : RepositoryDetector {
 
