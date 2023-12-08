@@ -171,8 +171,10 @@ internal class OkHttpUploaderTest {
                 "event",
                 "{\"service\":\"${fakeIdentifier.serviceName}\"," +
                     "\"variant\":\"${fakeIdentifier.variant}\"," +
+                    "\"buildId\":\"${fakeIdentifier.buildId}\"," +
                     "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
-                    "\"version\":\"${fakeIdentifier.version}\"}",
+                    "\"version\":\"${fakeIdentifier.version}\"," +
+                    "\"versionCode\":${fakeIdentifier.versionCode}}",
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
@@ -219,8 +221,10 @@ internal class OkHttpUploaderTest {
                 "event",
                 "{\"service\":\"${fakeIdentifier.serviceName}\"," +
                     "\"variant\":\"${fakeIdentifier.variant}\"," +
+                    "\"buildId\":\"${fakeIdentifier.buildId}\"," +
                     "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
-                    "\"version\":\"${fakeIdentifier.version}\"}",
+                    "\"version\":\"${fakeIdentifier.version}\"," +
+                    "\"versionCode\":${fakeIdentifier.versionCode}}",
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
@@ -265,8 +269,10 @@ internal class OkHttpUploaderTest {
                 "event",
                 "{\"service\":\"${fakeIdentifier.serviceName}\"," +
                     "\"variant\":\"${fakeIdentifier.variant}\"," +
+                    "\"buildId\":\"${fakeIdentifier.buildId}\"," +
                     "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
-                    "\"version\":\"${fakeIdentifier.version}\"}",
+                    "\"version\":\"${fakeIdentifier.version}\"," +
+                    "\"versionCode\":${fakeIdentifier.versionCode}}",
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
@@ -312,8 +318,10 @@ internal class OkHttpUploaderTest {
                 "event",
                 "{\"service\":\"${fakeIdentifier.serviceName}\"," +
                     "\"variant\":\"${fakeIdentifier.variant}\"," +
+                    "\"buildId\":\"${fakeIdentifier.buildId}\"," +
                     "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
-                    "\"version\":\"${fakeIdentifier.version}\"}",
+                    "\"version\":\"${fakeIdentifier.version}\"," +
+                    "\"versionCode\":${fakeIdentifier.versionCode}}",
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
@@ -368,8 +376,10 @@ internal class OkHttpUploaderTest {
                 "event",
                 "{\"service\":\"${fakeIdentifier.serviceName}\"," +
                     "\"variant\":\"${fakeIdentifier.variant}\"," +
+                    "\"buildId\":\"${fakeIdentifier.buildId}\"," +
                     "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
-                    "\"version\":\"${fakeIdentifier.version}\"}",
+                    "\"version\":\"${fakeIdentifier.version}\"," +
+                    "\"versionCode\":${fakeIdentifier.versionCode}}",
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
@@ -421,8 +431,10 @@ internal class OkHttpUploaderTest {
                 "event",
                 "{\"service\":\"${fakeIdentifier.serviceName}\"," +
                     "\"variant\":\"${fakeIdentifier.variant}\"," +
+                    "\"buildId\":\"${fakeIdentifier.buildId}\"," +
                     "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
-                    "\"version\":\"${fakeIdentifier.version}\"}",
+                    "\"version\":\"${fakeIdentifier.version}\"," +
+                    "\"versionCode\":${fakeIdentifier.versionCode}}",
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
@@ -490,8 +502,10 @@ internal class OkHttpUploaderTest {
                 "event",
                 "{\"service\":\"${fakeIdentifier.serviceName}\"," +
                     "\"variant\":\"${fakeIdentifier.variant}\"," +
+                    "\"buildId\":\"${fakeIdentifier.buildId}\"," +
                     "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
-                    "\"version\":\"${fakeIdentifier.version}\"}",
+                    "\"version\":\"${fakeIdentifier.version}\"," +
+                    "\"versionCode\":${fakeIdentifier.versionCode}}",
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
@@ -547,8 +561,10 @@ internal class OkHttpUploaderTest {
                 "event",
                 "{\"service\":\"${fakeIdentifier.serviceName}\"," +
                     "\"variant\":\"${fakeIdentifier.variant}\"," +
+                    "\"buildId\":\"${fakeIdentifier.buildId}\"," +
                     "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
-                    "\"version\":\"${fakeIdentifier.version}\"}",
+                    "\"version\":\"${fakeIdentifier.version}\"," +
+                    "\"versionCode\":${fakeIdentifier.versionCode}}",
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
@@ -603,8 +619,10 @@ internal class OkHttpUploaderTest {
                 "event",
                 "{\"service\":\"${fakeIdentifier.serviceName}\"," +
                     "\"variant\":\"${fakeIdentifier.variant}\"," +
+                    "\"buildId\":\"${fakeIdentifier.buildId}\"," +
                     "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
-                    "\"version\":\"${fakeIdentifier.version}\"}",
+                    "\"version\":\"${fakeIdentifier.version}\"," +
+                    "\"versionCode\":${fakeIdentifier.versionCode}}",
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(

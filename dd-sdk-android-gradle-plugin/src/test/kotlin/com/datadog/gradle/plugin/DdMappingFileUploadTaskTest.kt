@@ -12,10 +12,12 @@ import com.datadog.gradle.plugin.internal.DdAppIdentifier
 import com.datadog.gradle.plugin.internal.Uploader
 import fr.xgouchet.elmyr.Forge
 import fr.xgouchet.elmyr.annotation.Forgery
+import fr.xgouchet.elmyr.annotation.IntForgery
 import fr.xgouchet.elmyr.annotation.StringForgery
 import fr.xgouchet.elmyr.junit5.ForgeConfiguration
 import fr.xgouchet.elmyr.junit5.ForgeExtension
 import org.assertj.core.api.Assertions.assertThat
+import org.gradle.api.provider.Provider
 import org.gradle.testfixtures.ProjectBuilder
 import org.json.JSONArray
 import org.json.JSONObject
@@ -34,11 +36,13 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
 import java.io.File
+import java.util.UUID
 
 @Extensions(
     ExtendWith(MockitoExtension::class),
@@ -62,8 +66,13 @@ internal class DdMappingFileUploadTaskTest {
     @StringForgery
     lateinit var fakeVariant: String
 
+    lateinit var fakeBuildId: String
+
     @StringForgery
     lateinit var fakeVersion: String
+
+    @IntForgery(min = 0)
+    var fakeVersionCode: Int = 0
 
     @StringForgery
     lateinit var fakeService: String
@@ -105,12 +114,18 @@ internal class DdMappingFileUploadTaskTest {
             value = forge.anHexadecimalString(),
             source = forge.aValueFrom(ApiKeySource::class.java)
         )
+        fakeBuildId = forge.getForgery<UUID>().toString()
         testedTask.apiKey = fakeApiKey.value
         testedTask.apiKeySource = fakeApiKey.source
         testedTask.variantName = fakeVariant
         testedTask.versionName = fakeVersion
+        testedTask.versionCode = fakeVersionCode
         testedTask.serviceName = fakeService
         testedTask.site = fakeSite.name
+        testedTask.buildId = mock<Provider<String>>().apply {
+            whenever(isPresent) doReturn true
+            whenever(get()) doReturn fakeBuildId
+        }
         setEnv(DdMappingFileUploadTask.DATADOG_SITE, "")
     }
 
@@ -142,7 +157,9 @@ internal class DdMappingFileUploadTaskTest {
             DdAppIdentifier(
                 serviceName = fakeService,
                 version = fakeVersion,
-                variant = fakeVariant
+                versionCode = fakeVersionCode,
+                variant = fakeVariant,
+                buildId = fakeBuildId
             ),
             fakeRepoInfo,
             useGzip = true
@@ -188,7 +205,9 @@ internal class DdMappingFileUploadTaskTest {
                     DdAppIdentifier(
                         serviceName = fakeService,
                         version = fakeVersion,
-                        variant = fakeVariant
+                        versionCode = fakeVersionCode,
+                        variant = fakeVariant,
+                        buildId = fakeBuildId
                     )
                 ),
                 eq(fakeRepoInfo),
@@ -237,7 +256,9 @@ internal class DdMappingFileUploadTaskTest {
                     DdAppIdentifier(
                         serviceName = fakeService,
                         version = fakeVersion,
-                        variant = fakeVariant
+                        versionCode = fakeVersionCode,
+                        variant = fakeVariant,
+                        buildId = fakeBuildId
                     )
                 ),
                 eq(fakeRepoInfo),
@@ -290,7 +311,9 @@ internal class DdMappingFileUploadTaskTest {
                     DdAppIdentifier(
                         serviceName = fakeService,
                         version = fakeVersion,
-                        variant = fakeVariant
+                        versionCode = fakeVersionCode,
+                        variant = fakeVariant,
+                        buildId = fakeBuildId
                     )
                 ),
                 eq(fakeRepoInfo),
@@ -324,7 +347,9 @@ internal class DdMappingFileUploadTaskTest {
             DdAppIdentifier(
                 serviceName = fakeService,
                 version = fakeVersion,
-                variant = fakeVariant
+                versionCode = fakeVersionCode,
+                variant = fakeVariant,
+                buildId = fakeBuildId
             ),
             fakeRepoInfo,
             useGzip = true
@@ -358,7 +383,9 @@ internal class DdMappingFileUploadTaskTest {
             DdAppIdentifier(
                 serviceName = fakeService,
                 version = fakeVersion,
-                variant = fakeVariant
+                versionCode = fakeVersionCode,
+                variant = fakeVariant,
+                buildId = fakeBuildId
             ),
             null,
             useGzip = true
@@ -375,11 +402,12 @@ internal class DdMappingFileUploadTaskTest {
         testedTask.apiKeySource = ApiKeySource.NONE
 
         // When
-        assertThrows<IllegalStateException> {
+        val exception = assertThrows<IllegalStateException> {
             testedTask.applyTask()
         }
 
         // Then
+        assertThat(exception.message).isEqualTo(DdMappingFileUploadTask.API_KEY_MISSING_ERROR)
         verifyNoInteractions(mockUploader)
     }
 
@@ -400,11 +428,50 @@ internal class DdMappingFileUploadTaskTest {
         testedTask.apiKeySource = ApiKeySource.NONE
 
         // When
-        assertThrows<IllegalStateException> {
+        val exception = assertThrows<IllegalStateException> {
             testedTask.applyTask()
         }
 
         // Then
+        assertThat(exception.message)
+            .isEqualTo(DdMappingFileUploadTask.INVALID_API_KEY_FORMAT_ERROR)
+        verifyNoInteractions(mockUploader)
+    }
+
+    @Test
+    fun `𝕄 throw error 𝕎 applyTask() {buildId is missing}`() {
+        // Given
+        val fakeMappingFile = File(tempDir, fakeMappingFileName)
+        fakeMappingFile.writeText(fakeMappingFileContent)
+        testedTask.mappingFilePath = fakeMappingFile.path
+        whenever(testedTask.buildId.isPresent) doReturn false
+
+        // When
+        val exception = assertThrows<IllegalStateException> {
+            testedTask.applyTask()
+        }
+
+        // Then
+        assertThat(exception.message).isEqualTo(DdMappingFileUploadTask.MISSING_BUILD_ID_ERROR)
+        verifyNoInteractions(mockUploader)
+    }
+
+    @Test
+    fun `𝕄 throw error 𝕎 applyTask() {buildId is empty string}`() {
+        // Given
+        val fakeMappingFile = File(tempDir, fakeMappingFileName)
+        fakeMappingFile.writeText(fakeMappingFileContent)
+        testedTask.mappingFilePath = fakeMappingFile.path
+        whenever(testedTask.buildId.isPresent) doReturn true
+        whenever(testedTask.buildId.get()) doReturn ""
+
+        // When
+        val exception = assertThrows<IllegalStateException> {
+            testedTask.applyTask()
+        }
+
+        // Then
+        assertThat(exception.message).isEqualTo(DdMappingFileUploadTask.MISSING_BUILD_ID_ERROR)
         verifyNoInteractions(mockUploader)
     }
 
@@ -453,7 +520,9 @@ internal class DdMappingFileUploadTaskTest {
             DdAppIdentifier(
                 serviceName = fakeService,
                 version = fakeVersion,
-                variant = fakeVariant
+                versionCode = fakeVersionCode,
+                variant = fakeVariant,
+                buildId = fakeBuildId
             ),
             fakeRepoInfo,
             useGzip = true

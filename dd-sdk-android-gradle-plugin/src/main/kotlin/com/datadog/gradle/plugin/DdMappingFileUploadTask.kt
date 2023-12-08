@@ -68,6 +68,12 @@ open class DdMappingFileUploadTask
     var versionName: String = ""
 
     /**
+     * The version code of the application.
+     */
+    @get:Input
+    var versionCode: Int = 0
+
+    /**
      * The service name of the application (by default, it is your app's package name).
      */
     @get:Input
@@ -84,6 +90,12 @@ open class DdMappingFileUploadTask
      */
     @get:Input
     var remoteRepositoryUrl: String = ""
+
+    /**
+     * Build ID which will be used for mapping file matching.
+     */
+    @get:Input
+    var buildId: Provider<String> = providerFactory.provider { "" }
 
     /**
      * The path to the mapping file to upload.
@@ -123,7 +135,7 @@ open class DdMappingFileUploadTask
     var repositoryFile: File = File("")
 
     init {
-        group = "datadog"
+        group = DdAndroidGradlePlugin.DATADOG_TASK_GROUP
         description = "Uploads the Proguard/R8 mapping file to Datadog"
         // it is never up-to-date, because request may fail
         outputs.upToDateWhen { false }
@@ -143,7 +155,11 @@ open class DdMappingFileUploadTask
         validateConfiguration()
 
         check(!(apiKey.contains("\"") || apiKey.contains("'"))) {
-            "DD_API_KEY provided shouldn't contain quotes or apostrophes."
+            INVALID_API_KEY_FORMAT_ERROR
+        }
+
+        check(buildId.isPresent && buildId.get().isNotEmpty()) {
+            MISSING_BUILD_ID_ERROR
         }
 
         var mappingFile = File(mappingFilePath)
@@ -168,7 +184,9 @@ open class DdMappingFileUploadTask
             DdAppIdentifier(
                 serviceName = serviceName,
                 version = versionName,
-                variant = variantName
+                versionCode = versionCode,
+                variant = variantName,
+                buildId = buildId.get()
             ),
             repositories.firstOrNull(),
             !disableGzipOption.isPresent
@@ -247,11 +265,7 @@ open class DdMappingFileUploadTask
 
     @Suppress("CheckInternal")
     private fun validateConfiguration() {
-        check(apiKey.isNotBlank()) {
-            "Make sure you define an API KEY to upload your mapping files to Datadog. " +
-                "Create a DD_API_KEY or DATADOG_API_KEY environment variable, gradle" +
-                " property or define it in datadog-ci.json file."
-        }
+        check(apiKey.isNotBlank()) { API_KEY_MISSING_ERROR }
 
         if (site.isBlank()) {
             site = DatadogSite.US1.name
@@ -375,5 +389,13 @@ open class DdMappingFileUploadTask
         private const val DATADOG_CI_SITE_PROPERTY = "datadogSite"
         const val DATADOG_SITE = "DATADOG_SITE"
         const val DISABLE_GZIP_GRADLE_PROPERTY = "dd-disable-gzip"
+
+        const val API_KEY_MISSING_ERROR = "Make sure you define an API KEY to upload your mapping files to Datadog. " +
+            "Create a DD_API_KEY or DATADOG_API_KEY environment variable, gradle" +
+            " property or define it in datadog-ci.json file."
+        const val INVALID_API_KEY_FORMAT_ERROR =
+            "DD_API_KEY provided shouldn't contain quotes or apostrophes."
+        const val MISSING_BUILD_ID_ERROR =
+            "Build ID is missing, you need to run upload task only after APK/AAB file is generated."
     }
 }

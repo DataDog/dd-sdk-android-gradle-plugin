@@ -103,6 +103,8 @@ internal class OkHttpUploader : Uploader {
         eventJson.put("version", identifier.version)
         eventJson.put("service", identifier.serviceName)
         eventJson.put("variant", identifier.variant)
+        eventJson.put("buildId", identifier.buildId)
+        eventJson.put("versionCode", identifier.versionCode)
         eventJson.put("type", TYPE_JVM_MAPPING_FILE)
 
         val builder = MultipartBody.Builder()
