@@ -132,17 +132,17 @@ class DdAndroidGradlePlugin @Inject constructor(
         listOf(
             "package${variantName}Bundle",
             "build${variantName}PreBundle",
-            "lintVitalAnalyze$variantName"
+            "lintVitalAnalyze$variantName",
+            "lintVitalReport$variantName",
+            "generate${variantName}LintVitalReportModel"
         ).forEach {
             target.tasks.findByName(it)?.dependsOn(buildIdGenerationTask)
         }
 
-        listOf(
-            variant.packageApplicationProvider,
-            variant.mergeAssetsProvider
-        ).forEach {
-            it.configure { it.dependsOn(buildIdGenerationTask) }
-        }
+        // don't merge these 2 into list to call forEach, because common superclass for them
+        // is different between AGP versions, which may cause ClassCastException
+        variant.mergeAssetsProvider.configure { it.dependsOn(buildIdGenerationTask) }
+        variant.packageApplicationProvider.configure { it.dependsOn(buildIdGenerationTask) }
 
         return buildIdGenerationTask
     }

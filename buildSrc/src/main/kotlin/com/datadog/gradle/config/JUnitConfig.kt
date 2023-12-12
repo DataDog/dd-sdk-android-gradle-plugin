@@ -9,12 +9,14 @@ package com.datadog.gradle.config
 import org.gradle.api.Project
 import org.gradle.api.tasks.testing.Test
 
-@Suppress("UnstableApiUsage")
 fun Project.junitConfig() {
     tasks.withType(Test::class.java) {
         jvmArgs(
+            "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
             "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED",
+            "--add-opens=java.base/java.net=ALL-UNNAMED",
             "--add-opens=java.base/java.util.concurrent=ALL-UNNAMED",
+            "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED",
             "--add-opens=java.base/java.util=ALL-UNNAMED"
         )
         useJUnitPlatform {

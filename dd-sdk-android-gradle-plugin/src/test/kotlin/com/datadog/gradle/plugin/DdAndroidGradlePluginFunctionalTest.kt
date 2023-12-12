@@ -14,6 +14,7 @@ import fr.xgouchet.elmyr.annotation.StringForgery
 import fr.xgouchet.elmyr.junit5.ForgeConfiguration
 import fr.xgouchet.elmyr.junit5.ForgeExtension
 import org.assertj.core.api.Assertions.assertThat
+import org.gradle.api.JavaVersion
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.testkit.runner.internal.PluginUnderTestMetadataReading
@@ -27,7 +28,6 @@ import org.junit.jupiter.api.extension.Extensions
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import java.util.Locale
-import java.util.Properties
 import java.util.UUID
 import java.util.zip.ZipFile
 import kotlin.io.path.Path
@@ -47,6 +47,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
     private lateinit var libModuleMainSrcDir: File
     private lateinit var libModuleKotlinSourcesDir: File
     private lateinit var settingsFile: File
+    private lateinit var rootBuildFile: File
     private lateinit var localPropertiesFile: File
     private lateinit var appBuildGradleFile: File
     private lateinit var libModuleBuildGradleFile: File
@@ -70,11 +71,13 @@ internal class DdAndroidGradlePluginFunctionalTest {
     }
 
     private lateinit var datadogCiFile: File
+    private lateinit var buildVersionConfig: BuildVersionConfig
 
     @BeforeEach
     fun `set up`(forge: Forge) {
         appRootDir = File(testProjectDir, "samples/app").apply { mkdirs() }
         libModuleRootDir = File(testProjectDir, "samples/lib-module").apply { mkdirs() }
+        rootBuildFile = File(testProjectDir, "build.gradle")
         settingsFile = File(testProjectDir, "settings.gradle")
         localPropertiesFile = File(testProjectDir, "local.properties")
         gradlePropertiesFile = File(testProjectDir, "gradle.properties")
@@ -94,13 +97,26 @@ internal class DdAndroidGradlePluginFunctionalTest {
 
         // we need to check that our plugin supports different AGP versions (backward and forward
         // compatible)
-        val agpVersion = forge.anElementFrom(OLD_AGP_VERSION, LATEST_AGP_VERSION)
-        stubFile(settingsFile, SETTINGS_FILE_CONTENT.format(Locale.US, agpVersion))
+        buildVersionConfig = forge.anElementFrom(TESTED_CONFIGURATIONS)
+        stubFile(rootBuildFile, ROOT_BUILD_FILE_CONTENT)
+        stubFile(settingsFile, SETTINGS_FILE_CONTENT)
         stubFile(localPropertiesFile, "sdk.dir=${System.getenv("ANDROID_HOME")}")
         stubFile(sampleApplicationClassFile, APPLICATION_CLASS_CONTENT)
         stubFile(javaPlaceholderClassFile, JAVA_CLASS_CONTENT)
         stubFile(appManifestFile, APP_MANIFEST_FILE_CONTENT)
-        stubFile(gradlePropertiesFile, GRADLE_PROPERTIES_FILE_CONTENT)
+        stubFile(
+            gradlePropertiesFile,
+            GRADLE_PROPERTIES_FILE_CONTENT.format(
+                Locale.US,
+                buildVersionConfig.agpVersion,
+                buildVersionConfig.buildToolsVersion,
+                buildVersionConfig.targetSdkVersion,
+                buildVersionConfig.kotlinVersion,
+                PluginUnderTestMetadataReading.readImplementationClasspath()
+                    .joinToString(",") { it.absolutePath },
+                buildVersionConfig.jvmTarget
+            )
+        )
         stubFile(libModulePlaceholderFile, LIB_MODULE_PLACEHOLDER_CLASS_CONTENT)
         stubFile(libModuleManifestFile, LIB_MODULE_MANIFEST_FILE_CONTENT)
         stubGradleBuildFromResourceFile(
@@ -127,7 +143,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
             appBuildGradleFile
         )
         // When
-        val result = gradleRunner { withArguments("--info", ":samples:app:assembleRelease") }
+        val result = gradleRunner { withArguments("--stacktrace", ":samples:app:assembleRelease") }
             .build()
 
         // Then
@@ -143,7 +159,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         )
         // When
         val result =
-            gradleRunner { withArguments("--info", ":samples:app:assembleRelease") }.build()
+            gradleRunner { withArguments("--stacktrace", ":samples:app:assembleRelease") }.build()
 
         // Then
         assertThat(result).hasSuccessfulTaskOutcome(":samples:app:assembleRelease")
@@ -173,7 +189,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
             appBuildGradleFile
         )
         // When
-        val result = gradleRunner { withArguments("--info", ":samples:app:assembleDebug") }.build()
+        val result = gradleRunner { withArguments("--stacktrace", ":samples:app:assembleDebug") }.build()
 
         // Then
         assertThat(result).hasSuccessfulTaskOutcome(":samples:app:assembleDebug")
@@ -187,7 +203,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
             appBuildGradleFile
         )
         // When
-        val result = gradleRunner { withArguments("--info", ":samples:app:assembleDebug") }.build()
+        val result = gradleRunner { withArguments("--stacktrace", ":samples:app:assembleDebug") }.build()
 
         // Then
         assertThat(result).hasSuccessfulTaskOutcome(":samples:app:assembleDebug")
@@ -201,7 +217,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
             appBuildGradleFile
         )
         // When
-        val result = gradleRunner { withArguments("--info", ":samples:app:assembleDebug") }.build()
+        val result = gradleRunner { withArguments("--stacktrace", ":samples:app:assembleDebug") }.build()
 
         // Then
         assertThat(result).hasSuccessfulTaskOutcome(":samples:app:assembleDebug")
@@ -260,6 +276,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         val result = gradleRunner {
             withArguments(
                 "--configuration-cache",
+                "--stacktrace",
                 ":samples:app:assembleRelease"
             )
         }.build()
@@ -288,6 +305,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         val result = gradleRunner {
             withArguments(
                 "--configuration-cache",
+                "--stacktrace",
                 ":samples:app:assembleDebug"
             )
         }.build()
@@ -308,6 +326,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         val result = gradleRunner {
             withArguments(
                 "--configuration-cache",
+                "--stacktrace",
                 ":samples:app:assembleDebug"
             )
         }.build()
@@ -337,6 +356,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         val result = gradleRunner {
             withArguments(
                 "--configuration-cache",
+                "--stacktrace",
                 ":samples:app:assembleRelease"
             )
         }.build()
@@ -426,7 +446,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         )
 
         // When
-        val result = gradleRunner { withArguments("--info", ":samples:app:assembleRelease") }
+        val result = gradleRunner { withArguments("--stacktrace", ":samples:app:assembleRelease") }
             .build()
 
         // Then
@@ -443,7 +463,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         )
 
         // When
-        val result = gradleRunner { withArguments("--info", ":samples:app:assembleDebug") }
+        val result = gradleRunner { withArguments("--stacktrace", ":samples:app:assembleDebug") }
             .build()
 
         // Then
@@ -461,14 +481,18 @@ internal class DdAndroidGradlePluginFunctionalTest {
             "build_with_datadog_dep.gradle",
             appBuildGradleFile
         )
-        // When
-        val result = gradleRunner {
-            withArguments(
-                "--info",
-                "--configuration-cache",
-                ":samples:app:assembleRelease"
-            )
+        val runArguments = mutableListOf(
+            "--stacktrace",
+            ":samples:app:assembleRelease"
+        ).apply {
+            // https://issuetracker.google.com/issues/231997838
+            if (buildVersionConfig.isAgpAboveOrEqual730()) {
+                add("--configuration-cache")
+            }
         }
+
+        // When
+        val result = gradleRunner { withArguments(runArguments) }
             .build()
 
         // Then
@@ -503,14 +527,18 @@ internal class DdAndroidGradlePluginFunctionalTest {
             "build_with_datadog_dep.gradle",
             appBuildGradleFile
         )
-        // When
-        val result = gradleRunner {
-            withArguments(
-                "--info",
-                "--configuration-cache",
-                ":samples:app:bundleRelease"
-            )
+        val runArguments = mutableListOf(
+            "--stacktrace",
+            ":samples:app:bundleRelease"
+        ).apply {
+            // https://issuetracker.google.com/issues/231997838
+            if (buildVersionConfig.isAgpAboveOrEqual730()) {
+                add("--configuration-cache")
+            }
         }
+
+        // When
+        val result = gradleRunner { withArguments(runArguments) }
             .build()
 
         // Then
@@ -927,21 +955,14 @@ internal class DdAndroidGradlePluginFunctionalTest {
         }
     }
 
-    private fun getTestConfigurationClasspath(): List<File> {
-        // we will use this classpath for the GradleRunner to make sure we have all the
-        // required classes (AndroidGradle and KotlinGradle) to build the plugin. GradleRunner
-        // creates its own process and by default the classpath used is the one from the `main`
-        // configuration.
-        val properties = Properties()
-        properties["implementation-classpath"] = System.getProperty("java.class.path")
-        return PluginUnderTestMetadataReading
-            .readImplementationClasspath("gradle-runner-classpath", properties)
-    }
-
     private fun gradleRunner(configure: GradleRunner.() -> Unit): GradleRunner {
         return GradleRunner.create()
+            .withGradleVersion(buildVersionConfig.gradleVersion)
             .withProjectDir(testProjectDir)
-            .withPluginClasspath(getTestConfigurationClasspath())
+            // https://github.com/gradle/gradle/issues/22466
+            // for now the workaround will be to manually inject necessary files into plugin classpath
+            // see ROOT_BUILD_FILE_CONTENT
+            // .withPluginClasspath()
             .apply {
                 configure(this)
             }
@@ -977,9 +998,30 @@ internal class DdAndroidGradlePluginFunctionalTest {
             .trim()
     }
 
+    @Suppress("ReturnCount")
+    private fun BuildVersionConfig.isAgpAboveOrEqual730(): Boolean {
+        val groups = agpVersion.split(".")
+        if (groups.size < 3) return false
+        val major = groups[0].toIntOrNull()
+        val minor = groups[1].toIntOrNull()
+        val patch = groups[2].substringBefore("-").toIntOrNull()
+        if (major == null || minor == null || patch == null) return false
+        return major >= 7 && minor >= 3 && patch >= 0
+    }
+
     // endregion
 
     companion object {
+
+        data class BuildVersionConfig(
+            val agpVersion: String,
+            val gradleVersion: String,
+            val buildToolsVersion: String,
+            val targetSdkVersion: String,
+            val kotlinVersion: String,
+            val jvmTarget: String
+        )
+
         val APPLICATION_CLASS_CONTENT = """
             package com.datadog.android.sample
 
@@ -1031,34 +1073,74 @@ internal class DdAndroidGradlePluginFunctionalTest {
 
             </manifest>
         """.trimIndent()
-        const val SETTINGS_FILE_CONTENT = """
-            pluginManagement {
-                resolutionStrategy {
-                    eachPlugin {
-                        if (requested.id.id == "com.android.application") {
-                            useModule("com.android.tools.build:gradle:%s")
-                        }
-                        if (requested.id.id == "kotlin-android") {
-                            useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.10")
-                        }
-                    }
+        const val ROOT_BUILD_FILE_CONTENT = """
+            buildscript {
+                ext {
+                    targetSdkVersion = targetSdkVersion as Integer
+                    buildToolsVersion = buildToolsVersion
+                    // some AndroidX dependencies in recent SDK versions require compileSdk >= 33, so downgrading
+                    datadogSdkDependency = targetSdkVersion >= 33 ?
+                       "com.datadoghq:dd-sdk-android-rum:2.3.0" : "com.datadoghq:dd-sdk-android:1.15.0"
+                    jvmTarget = jvmTarget
                 }
                 repositories {
                     gradlePluginPortal()
-                    mavenCentral()
+                    google()
+                }
+
+                dependencies {
+                    classpath files(*pluginClasspath.split(","))
+                    classpath dependencies.create("com.android.tools.build:gradle:${"$"}agpVersion")
+                    classpath dependencies.create("org.jetbrains.kotlin:kotlin-gradle-plugin:${"$"}kotlinVersion")
+                }
+            }
+            allprojects {
+                repositories {
+                    gradlePluginPortal()
                     google()
                 }
             }
+        """
+        const val SETTINGS_FILE_CONTENT = """
             include(":samples:app")
             include(":samples:lib-module")
         """
         val GRADLE_PROPERTIES_FILE_CONTENT = """
            org.gradle.jvmargs=-Xmx2560m
            android.useAndroidX=true
+           agpVersion=%s
+           buildToolsVersion=%s
+           targetSdkVersion=%s
+           kotlinVersion=%s
+           pluginClasspath=%s
+           jvmTarget=%s
+           // use less memory, we are not interested in result, just in the build process
+           android.enableR8.fullMode=false
         """.trimIndent()
 
-        const val OLD_AGP_VERSION = "7.0.0"
-        const val LATEST_AGP_VERSION = "8.1.4"
+        const val LATEST_GRADLE_VERSION = "8.5"
+        const val LATEST_AGP_VERSION = "8.2.0"
+
+        // NB: starting from AGP 7.x, Gradle should have the same major version.
+        // While work with Gradle with higher major version is possible, it is not guaranteed.
+        val TESTED_CONFIGURATIONS = listOf(
+            BuildVersionConfig(
+                agpVersion = "7.0.4",
+                gradleVersion = "7.4",
+                buildToolsVersion = "31.0.0",
+                targetSdkVersion = "31",
+                kotlinVersion = "1.6.10",
+                jvmTarget = JavaVersion.VERSION_11.toString()
+            ),
+            BuildVersionConfig(
+                agpVersion = LATEST_AGP_VERSION,
+                gradleVersion = LATEST_GRADLE_VERSION,
+                buildToolsVersion = "34.0.0",
+                targetSdkVersion = "34",
+                kotlinVersion = "1.9.21",
+                jvmTarget = JavaVersion.VERSION_17.toString()
+            )
+        )
 
         const val BUILD_ID_FILE_PATH_APK = "assets/datadog.buildId"
         const val BUILD_ID_FILE_PATH_AAB = "base/assets/datadog.buildId"
