@@ -17,7 +17,7 @@ buildscript {
         classpath(libs.kotlinPluginGradle)
         classpath(libs.dokkaPluginGradle)
         // Uncomment to use the samples
-        // classpath(libs.datadogPluginGradle)
+        classpath(libs.datadogPluginGradle)
     }
 }
 
