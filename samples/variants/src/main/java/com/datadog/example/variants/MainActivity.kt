@@ -1,6 +1,7 @@
 package com.datadog.example.variants
 
 import android.os.Bundle
+import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import com.datadog.example.variants.ext.toast
 
@@ -14,6 +15,9 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        findViewById<Button>(R.id.send_crash).setOnClickListener {
+            throw RuntimeException("Testing buildId logic")
+        }
     }
 
     override fun onResume() {

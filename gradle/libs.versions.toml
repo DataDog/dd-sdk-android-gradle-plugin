@@ -94,6 +94,7 @@ fuzzyWuzzy = { module = "me.xdrop:fuzzywuzzy", version.ref = "fuzzyWuzzy" }
 
 # Datadog
 datadogSdkRum = { module = "com.datadoghq:dd-sdk-android-rum", version.ref = "datadogSdk" }
+datadogSdkLogs = { module = "com.datadoghq:dd-sdk-android-logs", version.ref = "datadogSdk" }
 datadogPluginGradle = { module = "com.datadoghq:dd-sdk-android-gradle-plugin", version.ref = "datadogPluginGradle" }
 
 [bundles]

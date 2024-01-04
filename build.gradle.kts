@@ -26,6 +26,7 @@ allprojects {
         google()
         mavenCentral()
         maven { setUrl(com.datadog.gradle.Dependencies.Repositories.Jitpack) }
+        mavenLocal()
     }
 }
 

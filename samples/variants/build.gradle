@@ -18,10 +18,15 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     buildTypes {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 
@@ -78,23 +83,10 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.constraintlayout)
 
-    // implementation(libs.datadogSdkRum)
+    implementation(libs.datadogSdkRum)
+    implementation(libs.datadogSdkLogs)
 }
 
-//datadog {
-//    site = "US"
-//    checkProjectDependencies = "fail"
-//    mappingFilePath = "path/to/mapping.txt"
-//    variants {
-//        demo {
-//            versionName = "demo"
-//        }
-//        full {
-//            versionName = "full"
-//        }
-//        pro {
-//            site = "GOV"
-//            versionName = "pro"
-//        }
-//    }
-//}
+datadog {
+    site = "STAGING"
+}
