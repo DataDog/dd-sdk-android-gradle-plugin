@@ -176,9 +176,16 @@ open class DdMappingFileUploadTask
         }
 
         val site = DatadogSite.valueOf(site)
+        val fileInfo = Uploader.UploadFileInfo(
+            fileKey = KEY_JVM_MAPPING_FILE,
+            file = mappingFile,
+            encoding = MEDIA_TYPE_TXT,
+            fileType = TYPE_JVM_MAPPING_FILE,
+            fileName = KEY_JVM_MAPPING_FILE_NAME
+        )
         uploader.upload(
             site,
-            mappingFile,
+            fileInfo,
             if (repositories.isEmpty()) null else repositoryFile,
             apiKey,
             DdAppIdentifier(
@@ -380,6 +387,11 @@ open class DdMappingFileUploadTask
 
     internal companion object {
         private const val INDENT = 4
+
+        internal const val TYPE_JVM_MAPPING_FILE = "jvm_mapping_file"
+        internal const val KEY_JVM_MAPPING_FILE = "jvm_mapping_file"
+        internal const val KEY_JVM_MAPPING_FILE_NAME = "jvm_mapping"
+        internal const val MEDIA_TYPE_TXT = "text/plain"
 
         private const val MAPPING_FILE_CHANGE_DELIMITER = "->"
         private const val MAPPING_FILE_COMMENT_CHAR = '#'

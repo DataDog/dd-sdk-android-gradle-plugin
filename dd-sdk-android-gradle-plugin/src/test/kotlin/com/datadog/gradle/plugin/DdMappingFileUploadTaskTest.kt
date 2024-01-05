@@ -151,7 +151,13 @@ internal class DdMappingFileUploadTaskTest {
         // Then
         verify(mockUploader).upload(
             fakeSite,
-            fakeMappingFile,
+            Uploader.UploadFileInfo(
+                fileKey = DdMappingFileUploadTask.KEY_JVM_MAPPING_FILE,
+                file = fakeMappingFile,
+                encoding = DdMappingFileUploadTask.MEDIA_TYPE_TXT,
+                fileType = DdMappingFileUploadTask.TYPE_JVM_MAPPING_FILE,
+                fileName = DdMappingFileUploadTask.KEY_JVM_MAPPING_FILE_NAME
+            ),
             fakeRepositoryFile,
             fakeApiKey.value,
             DdAppIdentifier(
@@ -195,7 +201,7 @@ internal class DdMappingFileUploadTaskTest {
         testedTask.applyTask()
 
         // Then
-        argumentCaptor<File> {
+        argumentCaptor<Uploader.UploadFileInfo> {
             verify(mockUploader).upload(
                 eq(fakeSite),
                 capture(),
@@ -213,7 +219,7 @@ internal class DdMappingFileUploadTaskTest {
                 eq(fakeRepoInfo),
                 useGzip = eq(true)
             )
-            assertThat(lastValue).hasSameTextualContentAs(
+            assertThat(lastValue.file).hasSameTextualContentAs(
                 fileFromResourcesPath("mapping-with-aliases.txt")
             )
         }
@@ -246,7 +252,7 @@ internal class DdMappingFileUploadTaskTest {
         testedTask.applyTask()
 
         // Then
-        argumentCaptor<File> {
+        argumentCaptor<Uploader.UploadFileInfo> {
             verify(mockUploader).upload(
                 eq(fakeSite),
                 capture(),
@@ -264,7 +270,7 @@ internal class DdMappingFileUploadTaskTest {
                 eq(fakeRepoInfo),
                 useGzip = eq(true)
             )
-            assertThat(lastValue.readLines()).isEqualTo(expectedLines)
+            assertThat(lastValue.file.readLines()).isEqualTo(expectedLines)
         }
     }
 
@@ -301,7 +307,7 @@ internal class DdMappingFileUploadTaskTest {
         testedTask.applyTask()
 
         // Then
-        argumentCaptor<File> {
+        argumentCaptor<Uploader.UploadFileInfo> {
             verify(mockUploader).upload(
                 eq(fakeSite),
                 capture(),
@@ -319,7 +325,7 @@ internal class DdMappingFileUploadTaskTest {
                 eq(fakeRepoInfo),
                 useGzip = eq(true)
             )
-            assertThat(lastValue.readLines()).isEqualTo(expectedLines)
+            assertThat(lastValue.file.readLines()).isEqualTo(expectedLines)
         }
     }
 
@@ -341,7 +347,13 @@ internal class DdMappingFileUploadTaskTest {
         // Then
         verify(mockUploader).upload(
             fakeSite,
-            fakeMappingFile,
+            Uploader.UploadFileInfo(
+                fileKey = DdMappingFileUploadTask.KEY_JVM_MAPPING_FILE,
+                file = fakeMappingFile,
+                encoding = DdMappingFileUploadTask.MEDIA_TYPE_TXT,
+                fileType = DdMappingFileUploadTask.TYPE_JVM_MAPPING_FILE,
+                fileName = DdMappingFileUploadTask.KEY_JVM_MAPPING_FILE_NAME
+            ),
             fakeRepositoryFile,
             fakeApiKey.value,
             DdAppIdentifier(
@@ -377,7 +389,13 @@ internal class DdMappingFileUploadTaskTest {
         // Then
         verify(mockUploader).upload(
             fakeSite,
-            fakeMappingFile,
+            Uploader.UploadFileInfo(
+                fileKey = DdMappingFileUploadTask.KEY_JVM_MAPPING_FILE,
+                file = fakeMappingFile,
+                encoding = DdMappingFileUploadTask.MEDIA_TYPE_TXT,
+                fileType = DdMappingFileUploadTask.TYPE_JVM_MAPPING_FILE,
+                fileName = DdMappingFileUploadTask.KEY_JVM_MAPPING_FILE_NAME
+            ),
             null,
             fakeApiKey.value,
             DdAppIdentifier(
@@ -514,7 +532,13 @@ internal class DdMappingFileUploadTaskTest {
         // Then
         verify(mockUploader).upload(
             DatadogSite.US1,
-            fakeMappingFile,
+            Uploader.UploadFileInfo(
+                fileKey = DdMappingFileUploadTask.KEY_JVM_MAPPING_FILE,
+                file = fakeMappingFile,
+                encoding = DdMappingFileUploadTask.MEDIA_TYPE_TXT,
+                fileType = DdMappingFileUploadTask.TYPE_JVM_MAPPING_FILE,
+                fileName = DdMappingFileUploadTask.KEY_JVM_MAPPING_FILE_NAME
+            ),
             fakeRepositoryFile,
             fakeApiKey.value,
             DdAppIdentifier(

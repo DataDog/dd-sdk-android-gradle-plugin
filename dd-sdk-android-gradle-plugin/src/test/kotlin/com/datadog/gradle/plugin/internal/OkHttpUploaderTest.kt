@@ -8,6 +8,7 @@ package com.datadog.gradle.plugin.internal
 
 import com.datadog.gradle.plugin.Configurator
 import com.datadog.gradle.plugin.DatadogSite
+import com.datadog.gradle.plugin.DdMappingFileUploadTask
 import com.datadog.gradle.plugin.RecordedRequestAssert.Companion.assertThat
 import com.datadog.gradle.plugin.RepositoryInfo
 import fr.xgouchet.elmyr.Forge
@@ -56,6 +57,7 @@ internal class OkHttpUploaderTest {
     lateinit var tempDir: File
 
     lateinit var fakeMappingFile: File
+    lateinit var fakeMappingFileInfo: Uploader.UploadFileInfo
     lateinit var fakeRepositoryFile: File
 
     @Forgery
@@ -96,9 +98,16 @@ internal class OkHttpUploaderTest {
     var dispatchedApiKeyValidationRequest: RecordedRequest? = null
 
     @BeforeEach
-    fun `set up`() {
+    fun `set up`(forge: Forge) {
         fakeMappingFile = File(tempDir, fakeMappingFileName)
         fakeMappingFile.writeText(fakeMappingFileContent)
+        fakeMappingFileInfo = Uploader.UploadFileInfo(
+            fileKey = forge.anAlphabeticalString(),
+            file = fakeMappingFile,
+            encoding = "text/plain",
+            fileType = forge.anAlphabeticalString(),
+            fileName = forge.anAlphabeticalString(),
+        )
 
         fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
         fakeRepositoryFile.writeText(fakeRepositoryFileContent)
@@ -151,7 +160,7 @@ internal class OkHttpUploaderTest {
         // When
         testedUploader.upload(
             mockSite,
-            fakeMappingFile,
+            fakeMappingFileInfo,
             fakeRepositoryFile,
             fakeApiKey,
             fakeIdentifier,
@@ -172,14 +181,14 @@ internal class OkHttpUploaderTest {
                 "{\"service\":\"${fakeIdentifier.serviceName}\"," +
                     "\"variant\":\"${fakeIdentifier.variant}\"," +
                     "\"buildId\":\"${fakeIdentifier.buildId}\"," +
-                    "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
+                    "\"type\":\"${fakeMappingFileInfo.fileType}\"," +
                     "\"version\":\"${fakeIdentifier.version}\"," +
                     "\"versionCode\":${fakeIdentifier.versionCode}}",
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
-                "jvm_mapping_file",
-                "jvm_mapping",
+                fakeMappingFileInfo.fileKey,
+                fakeMappingFileInfo.fileName,
                 fakeMappingFileContent,
                 "text/plain"
             )
@@ -201,7 +210,7 @@ internal class OkHttpUploaderTest {
         // When
         testedUploader.upload(
             mockSite,
-            fakeMappingFile,
+            fakeMappingFileInfo,
             fakeRepositoryFile,
             fakeApiKey,
             fakeIdentifier,
@@ -222,14 +231,14 @@ internal class OkHttpUploaderTest {
                 "{\"service\":\"${fakeIdentifier.serviceName}\"," +
                     "\"variant\":\"${fakeIdentifier.variant}\"," +
                     "\"buildId\":\"${fakeIdentifier.buildId}\"," +
-                    "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
+                        "\"type\":\"${fakeMappingFileInfo.fileType}\"," +
                     "\"version\":\"${fakeIdentifier.version}\"," +
                     "\"versionCode\":${fakeIdentifier.versionCode}}",
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
-                "jvm_mapping_file",
-                "jvm_mapping",
+                fakeMappingFileInfo.fileKey,
+                fakeMappingFileInfo.fileName,
                 fakeMappingFileContent,
                 "text/plain"
             )
@@ -251,7 +260,7 @@ internal class OkHttpUploaderTest {
         // When
         testedUploader.upload(
             mockSite,
-            fakeMappingFile,
+            fakeMappingFileInfo,
             null,
             fakeApiKey,
             fakeIdentifier,
@@ -270,14 +279,14 @@ internal class OkHttpUploaderTest {
                 "{\"service\":\"${fakeIdentifier.serviceName}\"," +
                     "\"variant\":\"${fakeIdentifier.variant}\"," +
                     "\"buildId\":\"${fakeIdentifier.buildId}\"," +
-                    "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
+                    "\"type\":\"${fakeMappingFileInfo.fileType}\"," +
                     "\"version\":\"${fakeIdentifier.version}\"," +
                     "\"versionCode\":${fakeIdentifier.versionCode}}",
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
-                "jvm_mapping_file",
-                "jvm_mapping",
+                fakeMappingFileInfo.fileKey,
+                fakeMappingFileInfo.fileName,
                 fakeMappingFileContent,
                 "text/plain"
             )
@@ -297,7 +306,7 @@ internal class OkHttpUploaderTest {
         assertThrows<OkHttpUploader.InvalidApiKeyException> {
             testedUploader.upload(
                 mockSite,
-                fakeMappingFile,
+                fakeMappingFileInfo,
                 fakeRepositoryFile,
                 fakeApiKey,
                 fakeIdentifier,
@@ -319,14 +328,14 @@ internal class OkHttpUploaderTest {
                 "{\"service\":\"${fakeIdentifier.serviceName}\"," +
                     "\"variant\":\"${fakeIdentifier.variant}\"," +
                     "\"buildId\":\"${fakeIdentifier.buildId}\"," +
-                    "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
+                    "\"type\":\"${fakeMappingFileInfo.fileType}\"," +
                     "\"version\":\"${fakeIdentifier.version}\"," +
                     "\"versionCode\":${fakeIdentifier.versionCode}}",
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
-                "jvm_mapping_file",
-                "jvm_mapping",
+                fakeMappingFileInfo.fileKey,
+                fakeMappingFileInfo.fileName,
                 fakeMappingFileContent,
                 "text/plain"
             )
@@ -355,7 +364,7 @@ internal class OkHttpUploaderTest {
         assertThrows<IllegalStateException> {
             testedUploader.upload(
                 mockSite,
-                fakeMappingFile,
+                fakeMappingFileInfo,
                 fakeRepositoryFile,
                 fakeApiKey,
                 fakeIdentifier,
@@ -377,14 +386,14 @@ internal class OkHttpUploaderTest {
                 "{\"service\":\"${fakeIdentifier.serviceName}\"," +
                     "\"variant\":\"${fakeIdentifier.variant}\"," +
                     "\"buildId\":\"${fakeIdentifier.buildId}\"," +
-                    "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
+                    "\"type\":\"${fakeMappingFileInfo.fileType}\"," +
                     "\"version\":\"${fakeIdentifier.version}\"," +
                     "\"versionCode\":${fakeIdentifier.versionCode}}",
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
-                "jvm_mapping_file",
-                "jvm_mapping",
+                fakeMappingFileInfo.fileKey,
+                fakeMappingFileInfo.fileName,
                 fakeMappingFileContent,
                 "text/plain"
             )
@@ -410,7 +419,7 @@ internal class OkHttpUploaderTest {
         assertThrows<IllegalStateException> {
             testedUploader.upload(
                 mockSite,
-                fakeMappingFile,
+                fakeMappingFileInfo,
                 fakeRepositoryFile,
                 fakeApiKey,
                 fakeIdentifier,
@@ -432,14 +441,14 @@ internal class OkHttpUploaderTest {
                 "{\"service\":\"${fakeIdentifier.serviceName}\"," +
                     "\"variant\":\"${fakeIdentifier.variant}\"," +
                     "\"buildId\":\"${fakeIdentifier.buildId}\"," +
-                    "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
+                    "\"type\":\"${fakeMappingFileInfo.fileType}\"," +
                     "\"version\":\"${fakeIdentifier.version}\"," +
                     "\"versionCode\":${fakeIdentifier.versionCode}}",
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
-                "jvm_mapping_file",
-                "jvm_mapping",
+                fakeMappingFileInfo.fileKey,
+                fakeMappingFileInfo.fileName,
                 fakeMappingFileContent,
                 "text/plain"
             )
@@ -481,7 +490,7 @@ internal class OkHttpUploaderTest {
         assertThrows<IllegalStateException> {
             testedUploader.upload(
                 mockSite,
-                fakeMappingFile,
+                fakeMappingFileInfo,
                 fakeRepositoryFile,
                 fakeApiKey,
                 fakeIdentifier,
@@ -503,14 +512,14 @@ internal class OkHttpUploaderTest {
                 "{\"service\":\"${fakeIdentifier.serviceName}\"," +
                     "\"variant\":\"${fakeIdentifier.variant}\"," +
                     "\"buildId\":\"${fakeIdentifier.buildId}\"," +
-                    "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
+                    "\"type\":\"${fakeMappingFileInfo.fileType}\"," +
                     "\"version\":\"${fakeIdentifier.version}\"," +
                     "\"versionCode\":${fakeIdentifier.versionCode}}",
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
-                "jvm_mapping_file",
-                "jvm_mapping",
+                fakeMappingFileInfo.fileKey,
+                fakeMappingFileInfo.fileName,
                 fakeMappingFileContent,
                 "text/plain"
             )
@@ -540,7 +549,7 @@ internal class OkHttpUploaderTest {
         assertThrows<OkHttpUploader.InvalidApiKeyException> {
             testedUploader.upload(
                 mockSite,
-                fakeMappingFile,
+                fakeMappingFileInfo,
                 fakeRepositoryFile,
                 fakeApiKey,
                 fakeIdentifier,
@@ -562,14 +571,14 @@ internal class OkHttpUploaderTest {
                 "{\"service\":\"${fakeIdentifier.serviceName}\"," +
                     "\"variant\":\"${fakeIdentifier.variant}\"," +
                     "\"buildId\":\"${fakeIdentifier.buildId}\"," +
-                    "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
+                    "\"type\":\"${fakeMappingFileInfo.fileType}\"," +
                     "\"version\":\"${fakeIdentifier.version}\"," +
                     "\"versionCode\":${fakeIdentifier.versionCode}}",
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
-                "jvm_mapping_file",
-                "jvm_mapping",
+                fakeMappingFileInfo.fileKey,
+                fakeMappingFileInfo.fileName,
                 fakeMappingFileContent,
                 "text/plain"
             )
@@ -598,7 +607,7 @@ internal class OkHttpUploaderTest {
         assertThrows<OkHttpUploader.InvalidApiKeyException> {
             testedUploader.upload(
                 mockSite,
-                fakeMappingFile,
+                fakeMappingFileInfo,
                 fakeRepositoryFile,
                 fakeApiKey,
                 fakeIdentifier,
@@ -620,14 +629,14 @@ internal class OkHttpUploaderTest {
                 "{\"service\":\"${fakeIdentifier.serviceName}\"," +
                     "\"variant\":\"${fakeIdentifier.variant}\"," +
                     "\"buildId\":\"${fakeIdentifier.buildId}\"," +
-                    "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
+                    "\"type\":\"${fakeMappingFileInfo.fileType}\"," +
                     "\"version\":\"${fakeIdentifier.version}\"," +
                     "\"versionCode\":${fakeIdentifier.versionCode}}",
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
-                "jvm_mapping_file",
-                "jvm_mapping",
+                fakeMappingFileInfo.fileKey,
+                fakeMappingFileInfo.fileName,
                 fakeMappingFileContent,
                 "text/plain"
             )
@@ -653,7 +662,7 @@ internal class OkHttpUploaderTest {
         val exception = assertThrows<MaxSizeExceededException> {
             testedUploader.upload(
                 mockSite,
-                fakeMappingFile,
+                fakeMappingFileInfo,
                 fakeRepositoryFile,
                 fakeApiKey,
                 fakeIdentifier,

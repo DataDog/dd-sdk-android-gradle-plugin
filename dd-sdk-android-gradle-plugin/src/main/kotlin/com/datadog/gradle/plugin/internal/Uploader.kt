@@ -11,11 +11,22 @@ import com.datadog.gradle.plugin.RepositoryInfo
 import java.io.File
 
 internal interface Uploader {
+    // region File Info
+
+    data class UploadFileInfo(
+        val fileKey: String,
+        val file: File,
+        val encoding: String,
+        val fileType: String,
+        val fileName: String,
+    )
+
+    // endregion
 
     @Suppress("LongParameterList")
     fun upload(
         site: DatadogSite,
-        mappingFile: File,
+        fileInfo: UploadFileInfo,
         repositoryFile: File?,
         apiKey: String,
         identifier: DdAppIdentifier,
