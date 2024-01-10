@@ -169,12 +169,7 @@ internal class OkHttpUploaderTest {
             .containsMultipartFile(
                 "event",
                 "event",
-                "{\"service\":\"${fakeIdentifier.serviceName}\"," +
-                    "\"variant\":\"${fakeIdentifier.variant}\"," +
-                    "\"buildId\":\"${fakeIdentifier.buildId}\"," +
-                    "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
-                    "\"version\":\"${fakeIdentifier.version}\"," +
-                    "\"versionCode\":${fakeIdentifier.versionCode}}",
+                fakeIdentifier.toMappingFileEvent(),
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
@@ -219,12 +214,7 @@ internal class OkHttpUploaderTest {
             .containsMultipartFile(
                 "event",
                 "event",
-                "{\"service\":\"${fakeIdentifier.serviceName}\"," +
-                    "\"variant\":\"${fakeIdentifier.variant}\"," +
-                    "\"buildId\":\"${fakeIdentifier.buildId}\"," +
-                    "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
-                    "\"version\":\"${fakeIdentifier.version}\"," +
-                    "\"versionCode\":${fakeIdentifier.versionCode}}",
+                fakeIdentifier.toMappingFileEvent(),
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
@@ -267,12 +257,7 @@ internal class OkHttpUploaderTest {
             .containsMultipartFile(
                 "event",
                 "event",
-                "{\"service\":\"${fakeIdentifier.serviceName}\"," +
-                    "\"variant\":\"${fakeIdentifier.variant}\"," +
-                    "\"buildId\":\"${fakeIdentifier.buildId}\"," +
-                    "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
-                    "\"version\":\"${fakeIdentifier.version}\"," +
-                    "\"versionCode\":${fakeIdentifier.versionCode}}",
+                fakeIdentifier.toMappingFileEvent(),
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
@@ -316,12 +301,7 @@ internal class OkHttpUploaderTest {
             .containsMultipartFile(
                 "event",
                 "event",
-                "{\"service\":\"${fakeIdentifier.serviceName}\"," +
-                    "\"variant\":\"${fakeIdentifier.variant}\"," +
-                    "\"buildId\":\"${fakeIdentifier.buildId}\"," +
-                    "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
-                    "\"version\":\"${fakeIdentifier.version}\"," +
-                    "\"versionCode\":${fakeIdentifier.versionCode}}",
+                fakeIdentifier.toMappingFileEvent(),
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
@@ -374,12 +354,7 @@ internal class OkHttpUploaderTest {
             .containsMultipartFile(
                 "event",
                 "event",
-                "{\"service\":\"${fakeIdentifier.serviceName}\"," +
-                    "\"variant\":\"${fakeIdentifier.variant}\"," +
-                    "\"buildId\":\"${fakeIdentifier.buildId}\"," +
-                    "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
-                    "\"version\":\"${fakeIdentifier.version}\"," +
-                    "\"versionCode\":${fakeIdentifier.versionCode}}",
+                fakeIdentifier.toMappingFileEvent(),
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
@@ -429,12 +404,7 @@ internal class OkHttpUploaderTest {
             .containsMultipartFile(
                 "event",
                 "event",
-                "{\"service\":\"${fakeIdentifier.serviceName}\"," +
-                    "\"variant\":\"${fakeIdentifier.variant}\"," +
-                    "\"buildId\":\"${fakeIdentifier.buildId}\"," +
-                    "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
-                    "\"version\":\"${fakeIdentifier.version}\"," +
-                    "\"versionCode\":${fakeIdentifier.versionCode}}",
+                fakeIdentifier.toMappingFileEvent(),
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
@@ -500,12 +470,7 @@ internal class OkHttpUploaderTest {
             .containsMultipartFile(
                 "event",
                 "event",
-                "{\"service\":\"${fakeIdentifier.serviceName}\"," +
-                    "\"variant\":\"${fakeIdentifier.variant}\"," +
-                    "\"buildId\":\"${fakeIdentifier.buildId}\"," +
-                    "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
-                    "\"version\":\"${fakeIdentifier.version}\"," +
-                    "\"versionCode\":${fakeIdentifier.versionCode}}",
+                fakeIdentifier.toMappingFileEvent(),
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
@@ -559,12 +524,7 @@ internal class OkHttpUploaderTest {
             .containsMultipartFile(
                 "event",
                 "event",
-                "{\"service\":\"${fakeIdentifier.serviceName}\"," +
-                    "\"variant\":\"${fakeIdentifier.variant}\"," +
-                    "\"buildId\":\"${fakeIdentifier.buildId}\"," +
-                    "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
-                    "\"version\":\"${fakeIdentifier.version}\"," +
-                    "\"versionCode\":${fakeIdentifier.versionCode}}",
+                fakeIdentifier.toMappingFileEvent(),
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
@@ -617,12 +577,7 @@ internal class OkHttpUploaderTest {
             .containsMultipartFile(
                 "event",
                 "event",
-                "{\"service\":\"${fakeIdentifier.serviceName}\"," +
-                    "\"variant\":\"${fakeIdentifier.variant}\"," +
-                    "\"buildId\":\"${fakeIdentifier.buildId}\"," +
-                    "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
-                    "\"version\":\"${fakeIdentifier.version}\"," +
-                    "\"versionCode\":${fakeIdentifier.versionCode}}",
+                fakeIdentifier.toMappingFileEvent(),
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
@@ -666,6 +621,17 @@ internal class OkHttpUploaderTest {
         )
     }
 
+    // region Internal
+
+    private fun DdAppIdentifier.toMappingFileEvent(): String {
+        return "{\"build_id\":\"${buildId}\"," +
+            "\"service\":\"${serviceName}\"," +
+            "\"variant\":\"${variant}\"," +
+            "\"version_code\":$versionCode," +
+            "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
+            "\"version\":\"${version}\"}"
+    }
+
     inner class MockDispatcher : Dispatcher() {
         override fun dispatch(request: RecordedRequest): MockResponse {
             return when (request.requestUrl?.encodedPath) {
@@ -681,4 +647,6 @@ internal class OkHttpUploaderTest {
             }
         }
     }
+
+    // endregion
 }
