@@ -80,10 +80,10 @@ class DdAndroidGradlePlugin @Inject constructor(
         variant: ApplicationVariant,
         apiKey: ApiKey
     ) {
-        if (isObfuscationEnabled(variant, datadogExtension)) {
-            val buildIdGenerationTask =
-                configureBuildIdGenerationTask(target, androidExtension, variant)
+        val buildIdGenerationTask =
+            configureBuildIdGenerationTask(target, androidExtension, variant)
 
+        if (isObfuscationEnabled(variant, datadogExtension)) {
             configureVariantForUploadTask(
                 target,
                 variant,
@@ -94,6 +94,12 @@ class DdAndroidGradlePlugin @Inject constructor(
         } else {
             LOGGER.info("Minifying disabled for variant ${variant.name}, no upload task created")
         }
+        configureSymbolUploadTask(
+            target,
+            androidExtension,
+            datadogExtension,
+            variant
+        )
         configureVariantForSdkCheck(target, variant, datadogExtension)
     }
 
@@ -108,6 +114,27 @@ class DdAndroidGradlePlugin @Inject constructor(
         ).firstOrNull { it.value.isNotBlank() }
 
         return apiKey ?: ApiKey.NONE
+    }
+
+    internal fun configureSymbolUploadTask(
+        target: Project,
+        appException: AppExtension,
+        extension: DdExtension,
+        variant: ApplicationVariant
+    ) :TaskProvider<DdSymbolFileUploadTask>? {
+        val apiKey = resolveApiKey(target)
+        val extensionConfiguration = resolveExtensionConfiguration(extension, variant)
+
+        val uploadTask = DdSymbolFileUploadTask.register(
+            target,
+            variant,
+            providerFactory,
+            apiKey,
+            extensionConfiguration,
+            GitRepositoryDetector(execOps),
+        )
+
+        return uploadTask
     }
 
     @Suppress("StringLiteralDuplication")
