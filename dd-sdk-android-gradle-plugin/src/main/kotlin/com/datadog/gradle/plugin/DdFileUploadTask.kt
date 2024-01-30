@@ -13,7 +13,6 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
-import javax.inject.Inject
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
@@ -22,13 +21,14 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
+import javax.inject.Inject
 
 /**
  * A Gradle task to upload symbolication files to Datadog servers (symbol files, proguard files, etc.).
  */
-abstract class DdFilesUploadTask @Inject constructor(
-    providerFactory: ProviderFactory,
-): DefaultTask() {
+abstract class DdFileUploadTask @Inject constructor(
+    providerFactory: ProviderFactory
+) : DefaultTask() {
     @get:Internal
     internal var uploader: Uploader = OkHttpUploader()
 
@@ -38,11 +38,8 @@ abstract class DdFilesUploadTask @Inject constructor(
     @get:Input
     var apiKey: String = ""
 
-    /**
-     * Whether to disable GZIP compression for the upload.
-     */
     private val disableGzipOption: Provider<String> =
-        providerFactory.gradleProperty(DdFilesUploadTask.DISABLE_GZIP_GRADLE_PROPERTY)
+        providerFactory.gradleProperty(DdFileUploadTask.DISABLE_GZIP_GRADLE_PROPERTY)
 
     /**
      * Source of the API key set: environment, gradle property, etc.
@@ -50,6 +47,9 @@ abstract class DdFilesUploadTask @Inject constructor(
     @get:Input
     var apiKeySource: ApiKeySource = ApiKeySource.NONE
 
+    /**
+     * The repository detector to use for detecting the repository information.
+     */
     @get:Internal
     var repositoryDetector: RepositoryDetector? = null
 
@@ -120,10 +120,12 @@ abstract class DdFilesUploadTask @Inject constructor(
         outputs.upToDateWhen { false }
     }
 
-    // TODO: IEnumerable?
     @Internal
     internal abstract fun getFilesList(): List<Uploader.UploadFileInfo>
 
+    /**
+     * Uploads the files retrieved from `getFilesList` to Datadog.
+     */
     @TaskAction
     fun applyTask() {
         datadogCiFile?.let {
@@ -197,7 +199,7 @@ abstract class DdFilesUploadTask @Inject constructor(
             if (this.site.isNotEmpty()) {
                 DdAndroidGradlePlugin.LOGGER.info(
                     "Site property found as DATADOG_SITE env variable, but it will be ignored," +
-                            " because also an explicit one was provided in extension."
+                        " because also an explicit one was provided in extension."
                 )
                 return
             }
@@ -227,7 +229,7 @@ abstract class DdFilesUploadTask @Inject constructor(
             if (this.apiKeySource == ApiKeySource.GRADLE_PROPERTY) {
                 DdAndroidGradlePlugin.LOGGER.info(
                     "API key found in Datadog CI config file, but it will be ignored," +
-                            " because also an explicit one was provided as a gradle property."
+                        " because also an explicit one was provided as a gradle property."
                 )
             } else {
                 DdAndroidGradlePlugin.LOGGER.info("API key found in Datadog CI config file, using it.")
@@ -241,7 +243,7 @@ abstract class DdFilesUploadTask @Inject constructor(
         if (this.site.isNotEmpty()) {
             DdAndroidGradlePlugin.LOGGER.info(
                 "Site property found in Datadog CI config file, but it will be ignored," +
-                        " because also an explicit one was provided in extension."
+                    " because also an explicit one was provided in extension."
             )
             return
         }
@@ -275,9 +277,11 @@ abstract class DdFilesUploadTask @Inject constructor(
         val data = JSONArray()
         repositories.forEach {
             data.put(it.toJson())
-            DdAndroidGradlePlugin.LOGGER.info("Detected repository:\n${it.toJson().toString(
-                INDENT
-            )}")
+            DdAndroidGradlePlugin.LOGGER.info(
+                "Detected repository:\n${it.toJson().toString(
+                    INDENT
+                )}"
+            )
         }
 
         val jsonObject = JSONObject()
@@ -300,8 +304,8 @@ abstract class DdFilesUploadTask @Inject constructor(
         const val DISABLE_GZIP_GRADLE_PROPERTY = "dd-disable-gzip"
 
         const val API_KEY_MISSING_ERROR = "Make sure you define an API KEY to upload your mapping files to Datadog. " +
-                "Create a DD_API_KEY or DATADOG_API_KEY environment variable, gradle" +
-                " property or define it in datadog-ci.json file."
+            "Create a DD_API_KEY or DATADOG_API_KEY environment variable, gradle" +
+            " property or define it in datadog-ci.json file."
         const val INVALID_API_KEY_FORMAT_ERROR =
             "DD_API_KEY provided shouldn't contain quotes or apostrophes."
         const val MISSING_BUILD_ID_ERROR =

@@ -1,6 +1,5 @@
 package com.datadog.gradle.plugin
 
-import com.android.build.gradle.api.BaseVariant
 import com.android.build.gradle.api.ApplicationVariant
 import com.android.build.gradle.tasks.ExternalNativeBuildTask
 import com.datadog.gradle.plugin.internal.ApiKey
@@ -22,8 +21,8 @@ import kotlin.reflect.full.memberProperties
  */
 internal abstract class DdSymbolFileUploadTask @Inject constructor(
     objects: ObjectFactory,
-    providerFactory: ProviderFactory,
-) : DdFilesUploadTask(providerFactory) {
+    providerFactory: ProviderFactory
+) : DdFileUploadTask(providerFactory) {
 
     @get:InputFiles
     val searchDirectories: ConfigurableFileCollection = objects.fileCollection()
@@ -51,7 +50,7 @@ internal abstract class DdSymbolFileUploadTask @Inject constructor(
                         TYPE_NDK_SYMBOL_FILE,
                         file.name,
                         mapOf(
-                            "arch" to arch,
+                            "arch" to arch
                         )
                     )
                 )
@@ -101,13 +100,14 @@ internal abstract class DdSymbolFileUploadTask @Inject constructor(
             return null
         }
 
+        @Suppress("LongParameterList")
         fun register(
             project: Project,
             variant: ApplicationVariant,
             providerFactory: ProviderFactory,
             apiKey: ApiKey,
             extensionConfiguration: DdExtensionConfiguration,
-            repositoryDetector: RepositoryDetector,
+            repositoryDetector: RepositoryDetector
         ): TaskProvider<DdSymbolFileUploadTask>? {
             val nativeBuildProviders = variant.externalNativeBuildProviders
             val buildIdTasks = project.tasks.withType(GenerateBuildIdTask::class.java)
@@ -121,7 +121,8 @@ internal abstract class DdSymbolFileUploadTask @Inject constructor(
             }
 
             return project.tasks.register(
-                TASK_NAME + variant.name.capitalize(), DdSymbolFileUploadTask::class.java
+                TASK_NAME + variant.name.capitalize(),
+                DdSymbolFileUploadTask::class.java
             ) { task ->
 
                 nativeBuildProviders.forEach { buildTask ->

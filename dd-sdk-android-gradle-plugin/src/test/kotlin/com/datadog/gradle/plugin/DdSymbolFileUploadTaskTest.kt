@@ -19,7 +19,6 @@ import org.gradle.testfixtures.ProjectBuilder
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assumptions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -97,7 +96,7 @@ internal class DdSymbolFileUploadTaskTest {
 
         testedTask = fakeProject.tasks.create(
             "DdSymbolFileUploadTask",
-            DdSymbolFileUploadTask::class.java,
+            DdSymbolFileUploadTask::class.java
         )
         testedTask.uploader = mockUploader
         fakeApiKey = ApiKey(
@@ -168,7 +167,7 @@ internal class DdSymbolFileUploadTaskTest {
                 buildId = fakeBuildId
             ),
             fakeRepoInfo,
-            useGzip = true,
+            useGzip = true
         )
     }
 
@@ -211,7 +210,7 @@ internal class DdSymbolFileUploadTaskTest {
                     buildId = fakeBuildId
                 ),
                 fakeRepoInfo,
-                useGzip = true,
+                useGzip = true
             )
         }
     }
@@ -255,7 +254,7 @@ internal class DdSymbolFileUploadTaskTest {
                 buildId = fakeBuildId
             ),
             fakeRepoInfo,
-            useGzip = true,
+            useGzip = true
         )
         Assertions.assertThat(fakeRepositoryFile.readText())
             .isEqualTo(
@@ -298,7 +297,7 @@ internal class DdSymbolFileUploadTaskTest {
                 buildId = fakeBuildId
             ),
             null,
-            useGzip = true,
+            useGzip = true
         )
     }
 
@@ -315,7 +314,7 @@ internal class DdSymbolFileUploadTaskTest {
         }
 
         // Then
-        assertThat(error.message).isEqualTo(DdFilesUploadTask.API_KEY_MISSING_ERROR)
+        assertThat(error.message).isEqualTo(DdFileUploadTask.API_KEY_MISSING_ERROR)
         verifyNoInteractions(mockUploader)
     }
 
@@ -327,8 +326,8 @@ internal class DdSymbolFileUploadTaskTest {
         testedTask.apiKey = forge.anAlphaNumericalString().let {
             val splitIndex = forge.anInt(min = 0, max = it.length) + 1
             it.substring(0, splitIndex) +
-                    forge.anElementFrom("\"", "'") +
-                    it.substring(splitIndex)
+                forge.anElementFrom("\"", "'") +
+                it.substring(splitIndex)
         }
         writeFakeSoFile("arm64-v8a")
 
@@ -339,7 +338,7 @@ internal class DdSymbolFileUploadTaskTest {
 
         // Then
         assertThat(exception.message)
-            .isEqualTo(DdFilesUploadTask.INVALID_API_KEY_FORMAT_ERROR)
+            .isEqualTo(DdFileUploadTask.INVALID_API_KEY_FORMAT_ERROR)
         verifyNoInteractions(mockUploader)
     }
 
@@ -355,7 +354,7 @@ internal class DdSymbolFileUploadTaskTest {
         }
 
         // Then
-        assertThat(exception.message).isEqualTo(DdFilesUploadTask.MISSING_BUILD_ID_ERROR)
+        assertThat(exception.message).isEqualTo(DdFileUploadTask.MISSING_BUILD_ID_ERROR)
         verifyNoInteractions(mockUploader)
     }
 
@@ -372,7 +371,7 @@ internal class DdSymbolFileUploadTaskTest {
         }
 
         // Then
-        assertThat(exception.message).isEqualTo(DdFilesUploadTask.MISSING_BUILD_ID_ERROR)
+        assertThat(exception.message).isEqualTo(DdFileUploadTask.MISSING_BUILD_ID_ERROR)
         verifyNoInteractions(mockUploader)
     }
 
@@ -428,7 +427,7 @@ internal class DdSymbolFileUploadTaskTest {
                 version = fakeVersion,
                 versionCode = fakeVersionCode,
                 variant = fakeVariantName,
-                buildId = fakeBuildId,
+                buildId = fakeBuildId
             ),
             fakeRepoInfo,
             useGzip = true
@@ -656,7 +655,7 @@ internal class DdSymbolFileUploadTaskTest {
     }
 
     private fun writeFakeSoFile(arch: String): File {
-        val soTempDir = File(tempDir, "fakeSos/${arch}")
+        val soTempDir = File(tempDir, "fakeSos/$arch")
         val fakeSoFile = File(soTempDir, "libfake.so")
 
         fakeSoFile.parentFile.mkdirs()

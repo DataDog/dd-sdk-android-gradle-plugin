@@ -121,7 +121,7 @@ class DdAndroidGradlePlugin @Inject constructor(
         appException: AppExtension,
         extension: DdExtension,
         variant: ApplicationVariant
-    ) :TaskProvider<DdSymbolFileUploadTask>? {
+    ): TaskProvider<DdSymbolFileUploadTask>? {
         val apiKey = resolveApiKey(target)
         val extensionConfiguration = resolveExtensionConfiguration(extension, variant)
 
@@ -131,7 +131,7 @@ class DdAndroidGradlePlugin @Inject constructor(
             providerFactory,
             apiKey,
             extensionConfiguration,
-            GitRepositoryDetector(execOps),
+            GitRepositoryDetector(execOps)
         )
 
         return uploadTask

@@ -8,7 +8,6 @@ package com.datadog.gradle.plugin.internal
 
 import com.datadog.gradle.plugin.Configurator
 import com.datadog.gradle.plugin.DatadogSite
-import com.datadog.gradle.plugin.DdMappingFileUploadTask
 import com.datadog.gradle.plugin.RecordedRequestAssert.Companion.assertThat
 import com.datadog.gradle.plugin.RepositoryInfo
 import fr.xgouchet.elmyr.Forge
@@ -106,7 +105,7 @@ internal class OkHttpUploaderTest {
             file = fakeMappingFile,
             encoding = "text/plain",
             fileType = forge.anAlphabeticalString(),
-            fileName = forge.anAlphabeticalString(),
+            fileName = forge.anAlphabeticalString()
         )
 
         fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
@@ -632,7 +631,7 @@ internal class OkHttpUploaderTest {
 
     // region Internal
 
-    private fun DdAppIdentifier.toMappingFileEvent(type:String): String {
+    private fun DdAppIdentifier.toMappingFileEvent(type: String): String {
         return "{\"build_id\":\"${buildId}\"," +
             "\"service\":\"${serviceName}\"," +
             "\"variant\":\"${variant}\"," +

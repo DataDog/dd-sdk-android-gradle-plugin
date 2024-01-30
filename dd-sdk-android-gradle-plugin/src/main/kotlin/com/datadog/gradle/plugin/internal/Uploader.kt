@@ -19,7 +19,7 @@ internal interface Uploader {
         val encoding: String,
         val fileType: String,
         val fileName: String,
-        val extraAttributes: Map<String, String> = emptyMap(),
+        val extraAttributes: Map<String, String> = emptyMap()
     )
 
     // endregion
