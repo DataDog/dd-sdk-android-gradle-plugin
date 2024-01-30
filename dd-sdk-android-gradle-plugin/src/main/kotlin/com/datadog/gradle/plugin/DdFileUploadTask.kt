@@ -42,7 +42,7 @@ abstract class DdFilesUploadTask @Inject constructor(
      * Whether to disable GZIP compression for the upload.
      */
     private val disableGzipOption: Provider<String> =
-        providerFactory.gradleProperty(DdMappingFileUploadTask.DISABLE_GZIP_GRADLE_PROPERTY)
+        providerFactory.gradleProperty(DdFilesUploadTask.DISABLE_GZIP_GRADLE_PROPERTY)
 
     /**
      * Source of the API key set: environment, gradle property, etc.
@@ -133,11 +133,11 @@ abstract class DdFilesUploadTask @Inject constructor(
         validateConfiguration()
 
         check(!(apiKey.contains("\"") || apiKey.contains("'"))) {
-            DdMappingFileUploadTask.INVALID_API_KEY_FORMAT_ERROR
+            INVALID_API_KEY_FORMAT_ERROR
         }
 
         check(buildId.isPresent && buildId.get().isNotEmpty()) {
-            DdMappingFileUploadTask.MISSING_BUILD_ID_ERROR
+            MISSING_BUILD_ID_ERROR
         }
 
         val mappingFiles = getFilesList()
@@ -184,7 +184,7 @@ abstract class DdFilesUploadTask @Inject constructor(
         apiKeySource = apiKey.source
         site = extensionConfiguration.site ?: ""
 
-        versionName = variant.versionName ?: variant.versionName
+        versionName = variant.versionName ?: ""
         versionCode = variant.versionCode
         serviceName = extensionConfiguration.serviceName ?: variant.applicationId
         variantName = variant.flavorName
@@ -259,7 +259,7 @@ abstract class DdFilesUploadTask @Inject constructor(
 
     @Suppress("CheckInternal")
     private fun validateConfiguration() {
-        check(apiKey.isNotBlank()) { DdMappingFileUploadTask.API_KEY_MISSING_ERROR }
+        check(apiKey.isNotBlank()) { API_KEY_MISSING_ERROR }
 
         if (site.isBlank()) {
             site = DatadogSite.US1.name
@@ -296,5 +296,15 @@ abstract class DdFilesUploadTask @Inject constructor(
         const val DATADOG_SITE = "DATADOG_SITE"
 
         internal val LOGGER = Logging.getLogger("DdFileUploadTask")
+
+        const val DISABLE_GZIP_GRADLE_PROPERTY = "dd-disable-gzip"
+
+        const val API_KEY_MISSING_ERROR = "Make sure you define an API KEY to upload your mapping files to Datadog. " +
+                "Create a DD_API_KEY or DATADOG_API_KEY environment variable, gradle" +
+                " property or define it in datadog-ci.json file."
+        const val INVALID_API_KEY_FORMAT_ERROR =
+            "DD_API_KEY provided shouldn't contain quotes or apostrophes."
+        const val MISSING_BUILD_ID_ERROR =
+            "Build ID is missing, you need to run upload task only after APK/AAB file is generated."
     }
 }

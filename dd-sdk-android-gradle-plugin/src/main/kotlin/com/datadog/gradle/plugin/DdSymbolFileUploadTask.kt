@@ -47,7 +47,7 @@ internal abstract class DdSymbolFileUploadTask @Inject constructor(
                     Uploader.UploadFileInfo(
                         KEY_NDK_SYMBOL_FILE,
                         file,
-                        encoding = "application/octet-stream",
+                        encoding = ENCODING,
                         TYPE_NDK_SYMBOL_FILE,
                         file.name,
                         mapOf(
@@ -71,10 +71,11 @@ internal abstract class DdSymbolFileUploadTask @Inject constructor(
     }
 
     companion object {
-        private val TASK_NAME = "ddUploadNdkSymbolFiles"
-        private val KEY_NDK_SYMBOL_FILE = "ndk_symbol_file"
-        private val TYPE_NDK_SYMBOL_FILE = "ndk_symbol_file"
-        private val SUPPORTED_ARCHS = setOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+        internal val TASK_NAME = "ddUploadNdkSymbolFiles"
+        internal val KEY_NDK_SYMBOL_FILE = "ndk_symbol_file"
+        internal val TYPE_NDK_SYMBOL_FILE = "ndk_symbol_file"
+        internal val ENCODING = "application/octet-stream"
+        internal val SUPPORTED_ARCHS = setOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
 
         internal val LOGGER = Logging.getLogger("DdSymbolFileUploadTask")
 
