@@ -613,9 +613,9 @@ internal class DdAndroidGradlePluginFunctionalTest {
             "Uploading mapping file with tags " +
                 "`service:com.example.variants.$variantVersionName`, " +
                 "`version:1.0-$variantVersionName`, " +
-                "`versionCode:1`, " +
+                "`version_code:1`, " +
                 "`variant:$variant`, " +
-                "`buildId:$buildIdInOriginFile` (site=datadoghq.com):"
+                "`build_id:$buildIdInOriginFile` (site=datadoghq.com):"
         )
         assertThat(result).containsInOutput(
             """
@@ -674,9 +674,9 @@ internal class DdAndroidGradlePluginFunctionalTest {
             "Uploading mapping file with tags " +
                 "`service:com.example.variants.$variantVersionName`, " +
                 "`version:1.0-$variantVersionName`, " +
-                "`versionCode:1`, " +
+                "`version_code:1`, " +
                 "`variant:$variant`, " +
-                "`buildId:$buildIdInOriginFile` (site=datadoghq.com):"
+                "`build_id:$buildIdInOriginFile` (site=datadoghq.com):"
         )
         assertThat(result).containsInOutput(
             """
@@ -734,9 +734,9 @@ internal class DdAndroidGradlePluginFunctionalTest {
             "Uploading mapping file with tags " +
                 "`service:com.example.variants.$variantVersionName`, " +
                 "`version:1.0-$variantVersionName`, " +
-                "`versionCode:1`, " +
+                "`version_code:1`, " +
                 "`variant:$variant`, " +
-                "`buildId:$buildIdInOriginFile` (site=datadoghq.eu):"
+                "`build_id:$buildIdInOriginFile` (site=datadoghq.eu):"
         )
         assertThat(result).containsInOutput("API key found in Datadog CI config file, using it.")
         assertThat(result)
@@ -792,9 +792,9 @@ internal class DdAndroidGradlePluginFunctionalTest {
             "Uploading mapping file with tags " +
                 "`service:com.example.variants.$variantVersionName`, " +
                 "`version:1.0-$variantVersionName`, " +
-                "`versionCode:1`, " +
+                "`version_code:1`, " +
                 "`variant:$variant`, " +
-                "`buildId:$buildIdInOriginFile` (site=datadoghq.com):"
+                "`build_id:$buildIdInOriginFile` (site=datadoghq.com):"
         )
         assertThat(result).containsInOutput(
             """
@@ -847,9 +847,9 @@ internal class DdAndroidGradlePluginFunctionalTest {
             "Uploading mapping file with tags " +
                 "`service:com.example.variants.$variantVersionName`, " +
                 "`version:1.0-$variantVersionName`, " +
-                "`versionCode:1`, " +
+                "`version_code:1`, " +
                 "`variant:$variant`, " +
-                "`buildId:$buildIdInOriginFile` (site=datadoghq.com):"
+                "`build_id:$buildIdInOriginFile` (site=datadoghq.com):"
         )
         assertThat(result).containsInOutput(
             """
@@ -1080,7 +1080,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
                     buildToolsVersion = buildToolsVersion
                     // some AndroidX dependencies in recent SDK versions require compileSdk >= 33, so downgrading
                     datadogSdkDependency = targetSdkVersion >= 33 ?
-                       "com.datadoghq:dd-sdk-android-rum:2.4.0" : "com.datadoghq:dd-sdk-android:1.15.0"
+                       "com.datadoghq:dd-sdk-android-rum:2.5.0" : "com.datadoghq:dd-sdk-android:1.15.0"
                     jvmTarget = jvmTarget
                 }
                 repositories {

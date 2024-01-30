@@ -15,7 +15,7 @@ internal data class DdAppIdentifier(
 ) {
 
     override fun toString(): String {
-        return "`service:$serviceName`, `version:$version`, `versionCode:$versionCode`," +
-            " `variant:$variant`, `buildId:$buildId`"
+        return "`service:$serviceName`, `version:$version`, `version_code:$versionCode`," +
+            " `variant:$variant`, `build_id:$buildId`"
     }
 }
