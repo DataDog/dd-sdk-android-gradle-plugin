@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity() {
         toaster.toast(stringFromJNI())
     }
 
-    external fun stringFromJNI(): String
+    private external fun stringFromJNI(): String
 
     companion object {
         init {

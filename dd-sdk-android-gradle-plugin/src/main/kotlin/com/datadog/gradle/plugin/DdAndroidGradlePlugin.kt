@@ -96,7 +96,6 @@ class DdAndroidGradlePlugin @Inject constructor(
         }
         configureSymbolUploadTask(
             target,
-            androidExtension,
             datadogExtension,
             variant
         )
@@ -118,7 +117,6 @@ class DdAndroidGradlePlugin @Inject constructor(
 
     internal fun configureSymbolUploadTask(
         target: Project,
-        appException: AppExtension,
         extension: DdExtension,
         variant: ApplicationVariant
     ): TaskProvider<DdSymbolFileUploadTask>? {

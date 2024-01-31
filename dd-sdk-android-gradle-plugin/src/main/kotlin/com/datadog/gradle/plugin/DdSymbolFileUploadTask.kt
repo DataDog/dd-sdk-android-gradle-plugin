@@ -70,11 +70,12 @@ internal abstract class DdSymbolFileUploadTask @Inject constructor(
     }
 
     companion object {
-        internal val TASK_NAME = "ddUploadNdkSymbolFiles"
-        internal val KEY_NDK_SYMBOL_FILE = "ndk_symbol_file"
-        internal val TYPE_NDK_SYMBOL_FILE = "ndk_symbol_file"
-        internal val ENCODING = "application/octet-stream"
+        internal const val TASK_NAME = "ddUploadNdkSymbolFiles"
+        internal const val KEY_NDK_SYMBOL_FILE = "ndk_symbol_file"
+        internal const val TYPE_NDK_SYMBOL_FILE = "ndk_symbol_file"
+        internal const val ENCODING = "application/octet-stream"
         internal val SUPPORTED_ARCHS = setOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+        internal const val MAX_DATADOG_CI_FILE_LOOKUP_LEVELS = 4
 
         internal val LOGGER = Logging.getLogger("DdSymbolFileUploadTask")
 
@@ -89,7 +90,7 @@ internal abstract class DdSymbolFileUploadTask @Inject constructor(
         internal fun findDatadogCiFile(projectDir: File): File? {
             var currentDir: File? = projectDir
             var levelsUp = 0
-            while (currentDir != null && levelsUp < 4) {
+            while (currentDir != null && levelsUp < MAX_DATADOG_CI_FILE_LOOKUP_LEVELS) {
                 val datadogCiFile = File(currentDir, "datadog-ci.json")
                 if (datadogCiFile.exists()) {
                     return datadogCiFile
@@ -100,7 +101,7 @@ internal abstract class DdSymbolFileUploadTask @Inject constructor(
             return null
         }
 
-        @Suppress("LongParameterList")
+        @Suppress("LongParameterList", "ReturnCount")
         fun register(
             project: Project,
             variant: ApplicationVariant,
