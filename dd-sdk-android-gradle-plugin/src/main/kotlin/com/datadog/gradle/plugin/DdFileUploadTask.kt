@@ -240,21 +240,21 @@ abstract class DdFileUploadTask @Inject constructor(
     }
 
     private fun applySiteFromDatadogCiConfig(config: JSONObject) {
-        if (this.site.isNotEmpty()) {
-            DdAndroidGradlePlugin.LOGGER.info(
-                "Site property found in Datadog CI config file, but it will be ignored," +
-                    " because also an explicit one was provided in extension."
-            )
-            return
-        }
         val siteAsDomain = config.optString(DATADOG_CI_SITE_PROPERTY, null)
         if (!siteAsDomain.isNullOrEmpty()) {
-            val site = DatadogSite.fromDomain(siteAsDomain)
-            if (site == null) {
-                DdAndroidGradlePlugin.LOGGER.warn("Unknown Datadog domain provided: $siteAsDomain, ignoring it.")
+            if (this.site.isNotEmpty()) {
+                DdAndroidGradlePlugin.LOGGER.info(
+                    "Site property found in Datadog CI config file, but it will be ignored," +
+                        " because also an explicit one was provided in extension."
+                )
             } else {
-                DdAndroidGradlePlugin.LOGGER.info("Site property found in Datadog CI config file, using it.")
-                this.site = site.name
+                val site = DatadogSite.fromDomain(siteAsDomain)
+                if (site == null) {
+                    DdAndroidGradlePlugin.LOGGER.warn("Unknown Datadog domain provided: $siteAsDomain, ignoring it.")
+                } else {
+                    DdAndroidGradlePlugin.LOGGER.info("Site property found in Datadog CI config file, using it.")
+                    this.site = site.name
+                }
             }
         }
     }
