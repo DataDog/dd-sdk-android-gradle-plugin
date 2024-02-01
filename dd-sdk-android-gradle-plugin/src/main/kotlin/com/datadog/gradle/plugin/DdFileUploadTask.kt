@@ -285,7 +285,7 @@ abstract class DdFileUploadTask @Inject constructor(
         }
 
         val jsonObject = JSONObject()
-        jsonObject.put("version", 1)
+        jsonObject.put("version", RESPOSITORY_FILE_VERSION)
         jsonObject.put("data", data)
 
         repositoryFile.parentFile.mkdirs()
@@ -293,6 +293,7 @@ abstract class DdFileUploadTask @Inject constructor(
     }
 
     internal companion object {
+        private const val RESPOSITORY_FILE_VERSION = 1
         private const val INDENT = 4
 
         private const val DATADOG_CI_API_KEY_PROPERTY = "apiKey"
