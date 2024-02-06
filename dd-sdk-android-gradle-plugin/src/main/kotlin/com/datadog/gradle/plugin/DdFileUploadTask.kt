@@ -24,7 +24,8 @@ import java.io.File
 import javax.inject.Inject
 
 /**
- * A Gradle task to upload symbolication files to Datadog servers (symbol files, proguard files, etc.).
+ * A Gradle task to upload symbolication files to Datadog servers (NDK symbol files,
+ * Proguard/R8 files, etc.)..
  */
 abstract class DdFileUploadTask @Inject constructor(
     providerFactory: ProviderFactory

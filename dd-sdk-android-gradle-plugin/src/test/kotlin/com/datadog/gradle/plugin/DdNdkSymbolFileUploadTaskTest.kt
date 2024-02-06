@@ -45,8 +45,8 @@ import java.util.UUID
 )
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ForgeConfiguration(Configurator::class)
-internal class DdSymbolFileUploadTaskTest {
-    private lateinit var testedTask: DdSymbolFileUploadTask
+internal class DdNdkSymbolFileUploadTaskTest {
+    private lateinit var testedTask: DdNdkSymbolFileUploadTask
 
     @TempDir
     lateinit var tempDir: File
@@ -96,7 +96,7 @@ internal class DdSymbolFileUploadTaskTest {
 
         testedTask = fakeProject.tasks.create(
             "DdSymbolFileUploadTask",
-            DdSymbolFileUploadTask::class.java
+            DdNdkSymbolFileUploadTask::class.java
         )
         testedTask.uploader = mockUploader
         fakeApiKey = ApiKey(
@@ -148,10 +148,10 @@ internal class DdSymbolFileUploadTaskTest {
         verify(mockUploader).upload(
             fakeSite,
             Uploader.UploadFileInfo(
-                fileKey = DdSymbolFileUploadTask.KEY_NDK_SYMBOL_FILE,
+                fileKey = DdNdkSymbolFileUploadTask.KEY_NDK_SYMBOL_FILE,
                 file = fakeSoFile,
-                encoding = DdSymbolFileUploadTask.ENCODING,
-                fileType = DdSymbolFileUploadTask.TYPE_NDK_SYMBOL_FILE,
+                encoding = DdNdkSymbolFileUploadTask.ENCODING,
+                fileType = DdNdkSymbolFileUploadTask.TYPE_NDK_SYMBOL_FILE,
                 fileName = "libfake.so",
                 extraAttributes = mapOf(
                     "arch" to "arm64-v8a"
@@ -191,10 +191,10 @@ internal class DdSymbolFileUploadTaskTest {
             verify(mockUploader).upload(
                 fakeSite,
                 Uploader.UploadFileInfo(
-                    fileKey = DdSymbolFileUploadTask.KEY_NDK_SYMBOL_FILE,
+                    fileKey = DdNdkSymbolFileUploadTask.KEY_NDK_SYMBOL_FILE,
                     file = it.value,
-                    encoding = DdSymbolFileUploadTask.ENCODING,
-                    fileType = DdSymbolFileUploadTask.TYPE_NDK_SYMBOL_FILE,
+                    encoding = DdNdkSymbolFileUploadTask.ENCODING,
+                    fileType = DdNdkSymbolFileUploadTask.TYPE_NDK_SYMBOL_FILE,
                     fileName = "libfake.so",
                     extraAttributes = mapOf(
                         "arch" to it.key
@@ -235,10 +235,10 @@ internal class DdSymbolFileUploadTaskTest {
         verify(mockUploader).upload(
             fakeSite,
             Uploader.UploadFileInfo(
-                fileKey = DdSymbolFileUploadTask.KEY_NDK_SYMBOL_FILE,
+                fileKey = DdNdkSymbolFileUploadTask.KEY_NDK_SYMBOL_FILE,
                 file = fakeSoFile,
-                encoding = DdSymbolFileUploadTask.ENCODING,
-                fileType = DdSymbolFileUploadTask.TYPE_NDK_SYMBOL_FILE,
+                encoding = DdNdkSymbolFileUploadTask.ENCODING,
+                fileType = DdNdkSymbolFileUploadTask.TYPE_NDK_SYMBOL_FILE,
                 fileName = "libfake.so",
                 extraAttributes = mapOf(
                     "arch" to "arm64-v8a"
@@ -278,10 +278,10 @@ internal class DdSymbolFileUploadTaskTest {
         verify(mockUploader).upload(
             fakeSite,
             Uploader.UploadFileInfo(
-                fileKey = DdSymbolFileUploadTask.KEY_NDK_SYMBOL_FILE,
+                fileKey = DdNdkSymbolFileUploadTask.KEY_NDK_SYMBOL_FILE,
                 file = fakeSoFile,
-                encoding = DdSymbolFileUploadTask.ENCODING,
-                fileType = DdSymbolFileUploadTask.TYPE_NDK_SYMBOL_FILE,
+                encoding = DdNdkSymbolFileUploadTask.ENCODING,
+                fileType = DdNdkSymbolFileUploadTask.TYPE_NDK_SYMBOL_FILE,
                 fileName = "libfake.so",
                 extraAttributes = mapOf(
                     "arch" to "arm64-v8a"
@@ -411,10 +411,10 @@ internal class DdSymbolFileUploadTaskTest {
         verify(mockUploader).upload(
             DatadogSite.US1,
             Uploader.UploadFileInfo(
-                fileKey = DdSymbolFileUploadTask.KEY_NDK_SYMBOL_FILE,
+                fileKey = DdNdkSymbolFileUploadTask.KEY_NDK_SYMBOL_FILE,
                 file = fakeSoFile,
-                encoding = DdSymbolFileUploadTask.ENCODING,
-                fileType = DdSymbolFileUploadTask.TYPE_NDK_SYMBOL_FILE,
+                encoding = DdNdkSymbolFileUploadTask.ENCODING,
+                fileType = DdNdkSymbolFileUploadTask.TYPE_NDK_SYMBOL_FILE,
                 fileName = "libfake.so",
                 extraAttributes = mapOf(
                     "arch" to "arm64-v8a"

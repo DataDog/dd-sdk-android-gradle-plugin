@@ -94,10 +94,11 @@ class DdAndroidGradlePlugin @Inject constructor(
         } else {
             LOGGER.info("Minifying disabled for variant ${variant.name}, no upload task created")
         }
-        configureSymbolUploadTask(
+        configureNdkSymbolUploadTask(
             target,
             datadogExtension,
-            variant
+            variant,
+            buildIdGenerationTask
         )
         configureVariantForSdkCheck(target, variant, datadogExtension)
     }
@@ -115,17 +116,19 @@ class DdAndroidGradlePlugin @Inject constructor(
         return apiKey ?: ApiKey.NONE
     }
 
-    internal fun configureSymbolUploadTask(
+    internal fun configureNdkSymbolUploadTask(
         target: Project,
         extension: DdExtension,
-        variant: ApplicationVariant
-    ): TaskProvider<DdSymbolFileUploadTask>? {
+        variant: ApplicationVariant,
+        buildIdTask: TaskProvider<GenerateBuildIdTask>,
+    ): TaskProvider<DdNdkSymbolFileUploadTask>? {
         val apiKey = resolveApiKey(target)
         val extensionConfiguration = resolveExtensionConfiguration(extension, variant)
 
-        val uploadTask = DdSymbolFileUploadTask.register(
+        val uploadTask = DdNdkSymbolFileUploadTask.register(
             target,
             variant,
+            buildIdTask,
             providerFactory,
             apiKey,
             extensionConfiguration,

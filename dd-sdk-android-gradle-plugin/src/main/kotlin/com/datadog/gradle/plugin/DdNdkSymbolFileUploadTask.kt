@@ -19,7 +19,7 @@ import kotlin.reflect.full.memberProperties
 /**
  * A Gradle task to upload NDK symbol files to Datadog servers.
  */
-internal abstract class DdSymbolFileUploadTask @Inject constructor(
+internal abstract class DdNdkSymbolFileUploadTask @Inject constructor(
     objects: ObjectFactory,
     providerFactory: ProviderFactory
 ) : DdFileUploadTask(providerFactory) {
@@ -105,36 +105,26 @@ internal abstract class DdSymbolFileUploadTask @Inject constructor(
         fun register(
             project: Project,
             variant: ApplicationVariant,
+            buildIdTask: TaskProvider<GenerateBuildIdTask>,
             providerFactory: ProviderFactory,
             apiKey: ApiKey,
             extensionConfiguration: DdExtensionConfiguration,
             repositoryDetector: RepositoryDetector
-        ): TaskProvider<DdSymbolFileUploadTask>? {
+        ): TaskProvider<DdNdkSymbolFileUploadTask>? {
             val nativeBuildProviders = variant.externalNativeBuildProviders
-            val buildIdTasks = project.tasks.withType(GenerateBuildIdTask::class.java)
             if (nativeBuildProviders.isEmpty()) {
-                LOGGER.warn("No native build tasks found for variant ${variant.name}, skipping symbol file upload.")
-                return null
-            }
-            if (buildIdTasks.isEmpty()) {
-                LOGGER.warn("No build ID tasks found for variant ${variant.name}, skipping symbol file upload.")
+                LOGGER.info("No native build tasks found for variant ${variant.name}, skipping symbol file upload.")
                 return null
             }
 
             return project.tasks.register(
                 TASK_NAME + variant.name.capitalize(),
-                DdSymbolFileUploadTask::class.java
+                DdNdkSymbolFileUploadTask::class.java
             ) { task ->
 
                 nativeBuildProviders.forEach { buildTask ->
                     val searchFiles = buildTask.flatMap {
-                        val soFolder =
-                            ExternalNativeBuildTask::class.memberProperties.find { it.name == "soFolder" }
-                                ?.get(it)!!
-                        when (soFolder) {
-                            is DirectoryProperty -> soFolder.asFile
-                            else -> throw IllegalArgumentException("Unknown type of soFolder: $soFolder")
-                        }
+                        it.soFolder
                     }
 
                     task.searchDirectories.from(searchFiles)
@@ -150,8 +140,10 @@ internal abstract class DdSymbolFileUploadTask @Inject constructor(
                     variant
                 )
 
-                task.buildId = buildIdTasks.first().buildIdFile.flatMap {
-                    providerFactory.provider { it.asFile.readText().trim() }
+                task.buildId = buildIdTask.flatMap {
+                    it.buildIdFile.flatMap {
+                        providerFactory.provider { it.asFile.readText().trim() }
+                    }
                 }
             }
         }
