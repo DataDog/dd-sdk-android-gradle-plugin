@@ -1,6 +1,7 @@
 package com.datadog.gradle.plugin.utils.assertj
 
 import com.datadog.gradle.plugin.DdAndroidGradlePlugin
+import com.datadog.gradle.plugin.DdNdkSymbolFileUploadTask
 import org.assertj.core.api.AbstractAssert
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.BuildResult
@@ -36,6 +37,16 @@ internal class BuildResultAssert(actual: BuildResult) :
     fun hasNoUploadTasks(): BuildResultAssert {
         assertThat(actual.tasks).noneMatch {
             it.path.contains(DdAndroidGradlePlugin.UPLOAD_TASK_NAME)
+        }
+        assertThat(actual.tasks).noneMatch {
+            it.path.contains(DdNdkSymbolFileUploadTask.TASK_NAME)
+        }
+        return this
+    }
+
+    fun hasNoNdkSymbolUploadTasks(): BuildResultAssert {
+        assertThat(actual.tasks).noneMatch {
+            it.path.contains(DdNdkSymbolFileUploadTask.TASK_NAME)
         }
         return this
     }

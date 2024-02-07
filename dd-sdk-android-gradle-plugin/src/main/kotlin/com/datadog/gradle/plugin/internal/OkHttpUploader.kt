@@ -54,7 +54,11 @@ internal class OkHttpUploader : Uploader {
         repositoryInfo: RepositoryInfo?,
         useGzip: Boolean
     ) {
-        LOGGER.info("Uploading mapping file with tags $identifier (site=${site.domain}):\n")
+        LOGGER.info("Uploading file ${fileInfo.fileName} with tags $identifier (site=${site.domain}):")
+        if (fileInfo.extraAttributes.isNotEmpty()) {
+            LOGGER.info("  extra attributes: ${fileInfo.extraAttributes}")
+        }
+        LOGGER.info("\n")
         val body = createBody(identifier, fileInfo, repositoryFile, repositoryInfo)
 
         val requestBuilder = Request.Builder()

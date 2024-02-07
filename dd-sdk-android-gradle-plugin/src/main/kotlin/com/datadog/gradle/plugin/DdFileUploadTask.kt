@@ -158,23 +158,33 @@ abstract class DdFileUploadTask @Inject constructor(
         }
 
         val site = DatadogSite.valueOf(site)
+        var lastError: Exception? = null
         for (mappingFile in mappingFiles) {
             LOGGER.info("Uploading ${mappingFile.fileType} file: ${mappingFile.file.absolutePath}")
-            uploader.upload(
-                site,
-                mappingFile,
-                if (repositories.isEmpty()) null else repositoryFile,
-                apiKey,
-                DdAppIdentifier(
-                    serviceName = serviceName,
-                    version = versionName,
-                    versionCode = versionCode,
-                    variant = variantName,
-                    buildId = buildId.get()
-                ),
-                repositories.firstOrNull(),
-                !disableGzipOption.isPresent
-            )
+            try {
+                uploader.upload(
+                    site,
+                    mappingFile,
+                    if (repositories.isEmpty()) null else repositoryFile,
+                    apiKey,
+                    DdAppIdentifier(
+                        serviceName = serviceName,
+                        version = versionName,
+                        versionCode = versionCode,
+                        variant = variantName,
+                        buildId = buildId.get()
+                    ),
+                    repositories.firstOrNull(),
+                    !disableGzipOption.isPresent
+                )
+            } catch (e: Exception) {
+                LOGGER.error("Failed to upload ${mappingFile.fileType} file", e)
+                lastError = e
+            }
+        }
+        // If any of these errored, throw the last error that occured
+        if (lastError != null) {
+            throw lastError
         }
     }
 

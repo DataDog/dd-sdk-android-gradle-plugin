@@ -65,7 +65,9 @@ internal class GitRepositoryDetector(
         sourceSetRoots: List<File>
     ): List<String> {
         val files = mutableListOf<String>()
+        LOGGER.info("Listing ${sourceSetRoots}")
         sourceSetRoots.forEach { sourceSetRoot ->
+            LOGGER.info("Listing ${sourceSetRoot.absolutePath}")
             if (sourceSetRoot.exists() && sourceSetRoot.isDirectory) {
                 listFilePathsInFolder(sourceSetRoot, files)
             }

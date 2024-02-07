@@ -2,6 +2,7 @@ package com.datadog.gradle.plugin
 
 import com.android.build.gradle.api.ApplicationVariant
 import com.android.build.gradle.tasks.ExternalNativeBuildTask
+import com.android.builder.model.Version
 import com.datadog.gradle.plugin.internal.ApiKey
 import com.datadog.gradle.plugin.internal.Uploader
 import org.gradle.api.Project
@@ -9,6 +10,7 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.logging.Logging
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.TaskProvider
@@ -101,6 +103,35 @@ internal abstract class DdNdkSymbolFileUploadTask @Inject constructor(
             return null
         }
 
+        @Suppress("MagicNumber", "ReturnCount")
+        private fun isAgp7OrAbove(): Boolean {
+            val version = Version.ANDROID_GRADLE_PLUGIN_VERSION
+            val groups = version.split(".")
+            if (groups.size < 3) return false
+            val major = groups[0].toIntOrNull()
+            val minor = groups[1].toIntOrNull()
+            val patch = groups[2].substringBefore("-").toIntOrNull()
+            if (major == null || minor == null || patch == null) return false
+            return major >= 7 && minor >= 0 && patch >= 0
+        }
+
+        private fun fixNativeOutputPath(taskFolder: File): File {
+            return taskFolder.parentFile.parentFile.takeIf { it.parentFile.name == "cxx" }
+                ?: taskFolder.parentFile.parentFile.parentFile.takeIf { it.parentFile.name == "cxx" }
+                ?: taskFolder
+        }
+
+        private fun getSearchDir(buildTask: TaskProvider<ExternalNativeBuildTask>, propertyName: String, providerFactory: ProviderFactory): Provider<File> {
+            return buildTask.flatMap { task ->
+                val soFolder = ExternalNativeBuildTask::class.memberProperties.find { it.name == propertyName }?.get(task)
+                when (soFolder) {
+                    is File -> providerFactory.provider { fixNativeOutputPath(soFolder) }
+                    is DirectoryProperty -> soFolder.map { fixNativeOutputPath(it.asFile) }
+                    else -> providerFactory.provider { File("") }
+                }
+            }
+        }
+
         @Suppress("LongParameterList", "ReturnCount")
         fun register(
             project: Project,
@@ -121,11 +152,20 @@ internal abstract class DdNdkSymbolFileUploadTask @Inject constructor(
                 TASK_NAME + variant.name.capitalize(),
                 DdNdkSymbolFileUploadTask::class.java
             ) { task ->
+                val roots = mutableListOf<File>()
+                variant.sourceSets.forEach { it ->
+                    roots.addAll(it.javaDirectories)
+                    if (isAgp7OrAbove()) {
+                        roots.addAll(it.kotlinDirectories)
+                    }
+                }
+                task.sourceSetRoots = roots
 
                 nativeBuildProviders.forEach { buildTask ->
-                    val searchFiles = buildTask.flatMap {
-                        it.soFolder
-                    }
+                    val searchFiles = arrayOf(
+                        getSearchDir(buildTask, "soFolder", providerFactory),
+                        getSearchDir(buildTask, "objFolder", providerFactory)
+                    )
 
                     task.searchDirectories.from(searchFiles)
                     task.dependsOn(buildTask)
