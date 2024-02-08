@@ -495,7 +495,7 @@ internal class DdAndroidGradlePluginTest {
 
         // Then
         val allTasks = fakeProject.tasks.map { it.name }
-        assertThat(allTasks).contains("ddUploadNdkSymbolFiles${variantName.replaceFirstChar { capitalizeChar(it) }}")
+        assertThat(allTasks).contains("uploadNdkSymbolFiles${variantName.replaceFirstChar { capitalizeChar(it) }}")
     }
 
     @Test
@@ -531,7 +531,7 @@ internal class DdAndroidGradlePluginTest {
 
         // Then
         val allTasks = fakeProject.tasks.map { it.name }
-        assertThat(allTasks).allMatch { !it.startsWith("ddUploadNdkSymbolFiles") }
+        assertThat(allTasks).allMatch { !it.startsWith("uploadNdkSymbolFiles") }
     }
 
     @Test

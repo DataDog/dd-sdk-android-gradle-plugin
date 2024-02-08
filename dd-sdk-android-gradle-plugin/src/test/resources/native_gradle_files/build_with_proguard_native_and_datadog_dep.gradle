@@ -22,6 +22,13 @@ android {
         multiDexEnabled = true
     }
 
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile ('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
     namespace = "com.example.variants"
 
     compileOptions {
@@ -32,6 +39,7 @@ android {
     kotlinOptions {
         jvmTarget = rootProject.ext.jvmTarget
     }
+
     externalNativeBuild {
         cmake {
             path file('src/main/cpp/CMakeLists.txt')

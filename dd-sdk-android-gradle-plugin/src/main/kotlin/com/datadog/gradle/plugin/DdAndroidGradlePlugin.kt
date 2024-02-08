@@ -120,7 +120,7 @@ class DdAndroidGradlePlugin @Inject constructor(
         target: Project,
         extension: DdExtension,
         variant: ApplicationVariant,
-        buildIdTask: TaskProvider<GenerateBuildIdTask>,
+        buildIdTask: TaskProvider<GenerateBuildIdTask>
     ): TaskProvider<DdNdkSymbolFileUploadTask>? {
         val apiKey = resolveApiKey(target)
         val extensionConfiguration = resolveExtensionConfiguration(extension, variant)

@@ -39,7 +39,6 @@ internal abstract class DdNdkSymbolFileUploadTask @Inject constructor(
 
         searchDirectories
             .flatMap(this::findSoFiles)
-            .toSortedSet(compareBy { it.absolutePath })
             .toSet()
             .forEach { file ->
                 val arch = file.parentFile.name
@@ -72,7 +71,7 @@ internal abstract class DdNdkSymbolFileUploadTask @Inject constructor(
     }
 
     companion object {
-        internal const val TASK_NAME = "ddUploadNdkSymbolFiles"
+        internal const val TASK_NAME = "uploadNdkSymbolFiles"
         internal const val KEY_NDK_SYMBOL_FILE = "ndk_symbol_file"
         internal const val TYPE_NDK_SYMBOL_FILE = "ndk_symbol_file"
         internal const val ENCODING = "application/octet-stream"
@@ -104,30 +103,29 @@ internal abstract class DdNdkSymbolFileUploadTask @Inject constructor(
         }
 
         @Suppress("MagicNumber", "ReturnCount")
-        private fun isAgp7OrAbove(): Boolean {
+        private fun isAgpAbove(major: Int, minor: Int, patch: Int): Boolean {
             val version = Version.ANDROID_GRADLE_PLUGIN_VERSION
             val groups = version.split(".")
             if (groups.size < 3) return false
-            val major = groups[0].toIntOrNull()
-            val minor = groups[1].toIntOrNull()
-            val patch = groups[2].substringBefore("-").toIntOrNull()
-            if (major == null || minor == null || patch == null) return false
-            return major >= 7 && minor >= 0 && patch >= 0
+            val currentMajor = groups[0].toIntOrNull()
+            val currentMinor = groups[1].toIntOrNull()
+            val currentPatch = groups[2].substringBefore("-").toIntOrNull()
+            if (currentMajor == null || currentMinor == null || currentPatch == null) return false
+            return currentMajor >= major && currentMinor >= minor && currentPatch >= patch
         }
 
-        private fun fixNativeOutputPath(taskFolder: File): File {
-            return taskFolder.parentFile.parentFile.takeIf { it.parentFile.name == "cxx" }
-                ?: taskFolder.parentFile.parentFile.parentFile.takeIf { it.parentFile.name == "cxx" }
-                ?: taskFolder
-        }
-
-        private fun getSearchDir(buildTask: TaskProvider<ExternalNativeBuildTask>, propertyName: String, providerFactory: ProviderFactory): Provider<File> {
+        private fun getSearchDirs(buildTask: TaskProvider<ExternalNativeBuildTask>, providerFactory: ProviderFactory): Provider<File?> {
             return buildTask.flatMap { task ->
-                val soFolder = ExternalNativeBuildTask::class.memberProperties.find { it.name == propertyName }?.get(task)
-                when (soFolder) {
-                    is File -> providerFactory.provider { fixNativeOutputPath(soFolder) }
-                    is DirectoryProperty -> soFolder.map { fixNativeOutputPath(it.asFile) }
-                    else -> providerFactory.provider { File("") }
+                // var soFolder: Provider
+                if (isAgpAbove(8, 0, 0)) {
+                    task.soFolder.map { it.asFile }
+                } else {
+                    val soFolder = ExternalNativeBuildTask::class.memberProperties.find { it.name == "objFolder" }?.get(task)
+                    when (soFolder) {
+                        is File -> providerFactory.provider { soFolder }
+                        is DirectoryProperty -> soFolder.map { it.asFile }
+                        else -> providerFactory.provider { null }
+                    }
                 }
             }
         }
@@ -144,7 +142,7 @@ internal abstract class DdNdkSymbolFileUploadTask @Inject constructor(
         ): TaskProvider<DdNdkSymbolFileUploadTask>? {
             val nativeBuildProviders = variant.externalNativeBuildProviders
             if (nativeBuildProviders.isEmpty()) {
-                LOGGER.info("No native build tasks found for variant ${variant.name}, skipping symbol file upload.")
+                LOGGER.info("No native build tasks found for variant ${variant.name}, skipping NDK symbol file upload.")
                 return null
             }
 
@@ -155,17 +153,14 @@ internal abstract class DdNdkSymbolFileUploadTask @Inject constructor(
                 val roots = mutableListOf<File>()
                 variant.sourceSets.forEach { it ->
                     roots.addAll(it.javaDirectories)
-                    if (isAgp7OrAbove()) {
+                    if (isAgpAbove(7, 0, 0)) {
                         roots.addAll(it.kotlinDirectories)
                     }
                 }
                 task.sourceSetRoots = roots
 
                 nativeBuildProviders.forEach { buildTask ->
-                    val searchFiles = arrayOf(
-                        getSearchDir(buildTask, "soFolder", providerFactory),
-                        getSearchDir(buildTask, "objFolder", providerFactory)
-                    )
+                    val searchFiles = getSearchDirs(buildTask, providerFactory)
 
                     task.searchDirectories.from(searchFiles)
                     task.dependsOn(buildTask)

@@ -35,7 +35,7 @@ import kotlin.io.path.Path
 @Extensions(
     ExtendWith(ForgeExtension::class)
 )
-@ForgeConfiguration(Configurator::class)
+@ForgeConfiguration(value = Configurator::class)
 internal class DdAndroidGradlePluginFunctionalTest {
     @TempDir
     lateinit var testProjectDir: File
@@ -62,7 +62,6 @@ internal class DdAndroidGradlePluginFunctionalTest {
     private var appMainCppSourcesDir: File? = null
     private var cmakeFile: File? = null
     private var cppPlaceholderFile: File? = null
-
 
     @StringForgery(regex = "http[s]?://github\\.com:[1-9]{2}/[a-z]+/repository\\.git")
     lateinit var fakeRemoteUrl: String
@@ -945,7 +944,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
 
     // endregion
 
-    // region Symbol Upload
+    // region NDK Symbol Upload
 
     @Test
     fun `M not try to upload the symbol file W no cmake dependencies { using a fake API_KEY }`(forge: Forge) {
@@ -976,7 +975,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         val version = forge.anElementFrom(versions)
         val variantVersionName = version.lowercase()
         val variant = "${version.lowercase()}$color"
-        val taskName = resolveSymbolUploadTask(variant)
+        val taskName = resolveNdkSymbolUploadTask(variant)
 
         gradleRunner { withArguments("--info", ":samples:app:assembleRelease") }
             .build()
@@ -996,15 +995,15 @@ internal class DdAndroidGradlePluginFunctionalTest {
 
         assertThat(result).containsInOutput("Creating request with GZIP encoding.")
 
-        assertThat(result).containsInOutput("Uploading ndk_symbol_file file: ");
+        assertThat(result).containsInOutput("Uploading ndk_symbol_file file: ")
 
         assertThat(result).containsInOutput(
             "Uploading file libplaceholder.so with tags " +
-                    "`service:com.example.variants.$variantVersionName`, " +
-                    "`version:1.0-$variantVersionName`, " +
-                    "`version_code:1`, " +
-                    "`variant:$variant`, " +
-                    "`build_id:$buildIdInOriginFile` (site=datadoghq.com):"
+                "`service:com.example.variants.$variantVersionName`, " +
+                "`version:1.0-$variantVersionName`, " +
+                "`version_code:1`, " +
+                "`variant:$variant`, " +
+                "`build_id:$buildIdInOriginFile` (site=datadoghq.com):"
         )
 
         for (arch in SUPPORTED_ABIS) {
@@ -1024,7 +1023,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         val version = forge.anElementFrom(versions)
         val variantVersionName = version.lowercase()
         val variant = "${version.lowercase()}$color"
-        val taskName = resolveSymbolUploadTask(variant)
+        val taskName = resolveNdkSymbolUploadTask(variant)
 
         gradleRunner { withArguments("--info", ":samples:app:assembleRelease") }
             .build()
@@ -1044,15 +1043,15 @@ internal class DdAndroidGradlePluginFunctionalTest {
 
         assertThat(result).containsInOutput("Creating request without GZIP encoding.")
 
-        assertThat(result).containsInOutput("Uploading ndk_symbol_file file: ");
+        assertThat(result).containsInOutput("Uploading ndk_symbol_file file: ")
 
         assertThat(result).containsInOutput(
             "Uploading file libplaceholder.so with tags " +
-                    "`service:com.example.variants.$variantVersionName`, " +
-                    "`version:1.0-$variantVersionName`, " +
-                    "`version_code:1`, " +
-                    "`variant:$variant`, " +
-                    "`build_id:$buildIdInOriginFile` (site=datadoghq.com):"
+                "`service:com.example.variants.$variantVersionName`, " +
+                "`version:1.0-$variantVersionName`, " +
+                "`version_code:1`, " +
+                "`variant:$variant`, " +
+                "`build_id:$buildIdInOriginFile` (site=datadoghq.com):"
         )
 
         for (arch in SUPPORTED_ABIS) {
@@ -1062,10 +1061,82 @@ internal class DdAndroidGradlePluginFunctionalTest {
 
     // endregion
 
+    @Test
+    fun `M try to upload the symbol file and mapping file W upload { using a fake API_KEY }`(forge: Forge) {
+        // Given
+        stubGradleBuildFromResourceFile(
+            "native_gradle_files/build_with_proguard_native_and_datadog_dep.gradle",
+            appBuildGradleFile
+        )
+        stubNativeFiles()
+
+        val color = forge.anElementFrom(colors)
+        val version = forge.anElementFrom(versions)
+        val variantVersionName = version.lowercase()
+        val variant = "${version.lowercase()}$color"
+        val ndkSymbolUploadTaskName = resolveNdkSymbolUploadTask(variant)
+        val mappingUploadTaskName = resolveMappingUploadTask(variant)
+
+        // When
+        gradleRunner { withArguments("--info", ":samples:app:assembleRelease") }
+            .build()
+
+        val nativeResult = gradleRunner {
+            withArguments(
+                ndkSymbolUploadTaskName,
+                "--info",
+                "--stacktrace",
+                "-PDD_API_KEY=fakekey"
+            )
+        }
+            .buildAndFail()
+
+        val mappingResult = gradleRunner {
+            withArguments(
+                mappingUploadTaskName,
+                "--info",
+                "--stacktrace",
+                "-PDD_API_KEY=fakekey"
+            )
+        }
+            .buildAndFail()
+
+        // Then
+        val buildIdInOriginFile = testProjectDir.findBuildIdInOriginFile(variant)
+
+        assertThat(nativeResult).containsInOutput("Creating request with GZIP encoding.")
+
+        assertThat(nativeResult).containsInOutput("Uploading ndk_symbol_file file: ")
+
+        assertThat(nativeResult).containsInOutput(
+            "Uploading file libplaceholder.so with tags " +
+                "`service:com.example.variants.$variantVersionName`, " +
+                "`version:1.0-$variantVersionName`, " +
+                "`version_code:1`, " +
+                "`variant:$variant`, " +
+                "`build_id:$buildIdInOriginFile` (site=datadoghq.com):"
+        )
+
+        for (arch in SUPPORTED_ABIS) {
+            assertThat(nativeResult).containsInOutput("extra attributes: {arch=$arch}")
+        }
+
+        assertThat(mappingResult).containsInOutput("Creating request with GZIP encoding.")
+
+        assertThat(mappingResult).containsInOutput(
+            "Uploading file jvm_mapping with tags " +
+                "`service:com.example.variants.$variantVersionName`, " +
+                "`version:1.0-$variantVersionName`, " +
+                "`version_code:1`, " +
+                "`variant:$variant`, " +
+                "`build_id:$buildIdInOriginFile` (site=datadoghq.com):"
+        )
+    }
+
     // region Internal
 
     private fun resolveMappingUploadTask(variantName: String) = "uploadMapping${variantName}Release"
-    private fun resolveSymbolUploadTask(variantName: String) = "ddUploadNdkSymbolFiles${variantName}Release"
+    private fun resolveNdkSymbolUploadTask(variantName: String) = "uploadNdkSymbolFiles${variantName}Release"
 
     private fun stubFile(destination: File, content: String) {
         with(destination.outputStream()) {

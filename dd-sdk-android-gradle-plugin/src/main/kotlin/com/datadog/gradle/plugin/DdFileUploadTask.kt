@@ -146,19 +146,17 @@ abstract class DdFileUploadTask @Inject constructor(
         val mappingFiles = getFilesList()
         if (mappingFiles.isEmpty()) return
 
-        var repositories = emptyList<RepositoryInfo>()
-        repositoryDetector?.let {
-            repositories = it.detectRepositories(
-                sourceSetRoots,
-                remoteRepositoryUrl
-            )
-        }
+        val repositories = repositoryDetector?.detectRepositories(
+            sourceSetRoots,
+            remoteRepositoryUrl
+        ).orEmpty()
+
         if (repositories.isNotEmpty()) {
             generateRepositoryFile(repositories)
         }
 
         val site = DatadogSite.valueOf(site)
-        var lastError: Exception? = null
+        var caughtErrors = mutableListOf<Exception>()
         for (mappingFile in mappingFiles) {
             LOGGER.info("Uploading ${mappingFile.fileType} file: ${mappingFile.file.absolutePath}")
             try {
@@ -178,13 +176,20 @@ abstract class DdFileUploadTask @Inject constructor(
                     !disableGzipOption.isPresent
                 )
             } catch (e: Exception) {
-                LOGGER.error("Failed to upload ${mappingFile.fileType} file", e)
-                lastError = e
+                caughtErrors.add(e)
             }
         }
-        // If any of these errored, throw the last error that occured
-        if (lastError != null) {
-            throw lastError
+        // If any errors occurred, throw them as a single exception
+        if (caughtErrors.isNotEmpty()) {
+            if (caughtErrors.count() == 1) {
+                throw caughtErrors.first()
+            } else {
+                val consolidatedError = Exception("Multiple errors occurred during upload")
+                caughtErrors.forEach {
+                    consolidatedError.addSuppressed(it)
+                }
+                throw consolidatedError
+            }
         }
     }
 
