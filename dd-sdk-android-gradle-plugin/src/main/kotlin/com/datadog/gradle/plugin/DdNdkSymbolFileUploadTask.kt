@@ -22,12 +22,12 @@ import kotlin.reflect.full.memberProperties
  * A Gradle task to upload NDK symbol files to Datadog servers.
  */
 internal abstract class DdNdkSymbolFileUploadTask @Inject constructor(
-    objects: ObjectFactory,
+    objectFactory: ObjectFactory,
     providerFactory: ProviderFactory
 ) : DdFileUploadTask(providerFactory) {
 
     @get:InputFiles
-    val searchDirectories: ConfigurableFileCollection = objects.fileCollection()
+    val searchDirectories: ConfigurableFileCollection = objectFactory.fileCollection()
 
     init {
         description =
@@ -66,7 +66,7 @@ internal abstract class DdNdkSymbolFileUploadTask @Inject constructor(
                 .filter { it.extension == "so" }
                 .toSet()
         } else {
-            return emptySet()
+            emptySet()
         }
     }
 
@@ -114,13 +114,19 @@ internal abstract class DdNdkSymbolFileUploadTask @Inject constructor(
             return currentMajor >= major && currentMinor >= minor && currentPatch >= patch
         }
 
-        private fun getSearchDirs(buildTask: TaskProvider<ExternalNativeBuildTask>, providerFactory: ProviderFactory): Provider<File?> {
+        private fun getSearchDirs(
+            buildTask: TaskProvider<ExternalNativeBuildTask>,
+            providerFactory: ProviderFactory
+        ): Provider<File?> {
             return buildTask.flatMap { task ->
                 // var soFolder: Provider
+                @Suppress("MagicNumber")
                 if (isAgpAbove(8, 0, 0)) {
                     task.soFolder.map { it.asFile }
                 } else {
-                    val soFolder = ExternalNativeBuildTask::class.memberProperties.find { it.name == "objFolder" }?.get(task)
+                    val soFolder = ExternalNativeBuildTask::class.memberProperties.find {
+                        it.name == "objFolder"
+                    }?.get(task)
                     when (soFolder) {
                         is File -> providerFactory.provider { soFolder }
                         is DirectoryProperty -> soFolder.map { it.asFile }
@@ -151,8 +157,9 @@ internal abstract class DdNdkSymbolFileUploadTask @Inject constructor(
                 DdNdkSymbolFileUploadTask::class.java
             ) { task ->
                 val roots = mutableListOf<File>()
-                variant.sourceSets.forEach { it ->
+                variant.sourceSets.forEach {
                     roots.addAll(it.javaDirectories)
+                    @Suppress("MagicNumber")
                     if (isAgpAbove(7, 0, 0)) {
                         roots.addAll(it.kotlinDirectories)
                     }

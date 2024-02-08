@@ -947,7 +947,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
     // region NDK Symbol Upload
 
     @Test
-    fun `M not try to upload the symbol file W no cmake dependencies { using a fake API_KEY }`(forge: Forge) {
+    fun `M not try to upload the symbol file W no cmake dependencies { using a fake API_KEY }`() {
         // Given
         stubGradleBuildFromResourceFile(
             "build_with_datadog_dep.gradle",

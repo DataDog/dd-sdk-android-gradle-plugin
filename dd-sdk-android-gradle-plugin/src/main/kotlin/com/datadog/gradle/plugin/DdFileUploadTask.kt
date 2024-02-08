@@ -128,6 +128,7 @@ abstract class DdFileUploadTask @Inject constructor(
      * Uploads the files retrieved from `getFilesList` to Datadog.
      */
     @TaskAction
+    @Suppress("TooGenericExceptionCaught")
     fun applyTask() {
         datadogCiFile?.let {
             applyDatadogCiConfig(it)
