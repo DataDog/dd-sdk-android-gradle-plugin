@@ -39,7 +39,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.extension.Extensions
-import org.junit.jupiter.api.io.TempDir
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.junit.jupiter.MockitoSettings
@@ -1224,57 +1223,6 @@ internal class DdAndroidGradlePluginTest {
 
     // endregion
 
-    // region findDatadogCiFile
-
-    @Test
-    fun `𝕄 find datadog-ci file 𝕎 findDatadogCiFile()`(
-        @TempDir rootDir: File,
-        forge: Forge
-    ) {
-        // Given
-        val tree = buildDirectoryTree(rootDir, maxDepth = 3, forge = forge)
-
-        File(tree[forge.anInt(0, tree.size)], "datadog-ci.json").createNewFile()
-
-        // When
-        val ciFile = testedPlugin.findDatadogCiFile(tree.last())
-
-        // Then
-        assertThat(ciFile).isNotNull()
-    }
-
-    @Test
-    fun `𝕄 return null 𝕎 findDatadogCiFile() { no ci file found }`(
-        @TempDir rootDir: File,
-        forge: Forge
-    ) {
-        // Given
-        val tree = buildDirectoryTree(rootDir, maxDepth = 3, forge = forge)
-
-        // When
-        val ciFile = testedPlugin.findDatadogCiFile(tree.last())
-
-        // Then
-        assertThat(ciFile).isNull()
-    }
-
-    @Test
-    fun `𝕄 return null 𝕎 findDatadogCiFile() { beyond max levels up }`(
-        @TempDir rootDir: File,
-        forge: Forge
-    ) {
-        // Given
-        val tree = buildDirectoryTree(rootDir, minDepth = 4, maxDepth = 7, forge = forge)
-
-        // When
-        val ciFile = testedPlugin.findDatadogCiFile(tree.last())
-
-        // Then
-        assertThat(ciFile).isNull()
-    }
-
-    // endregion
-
     // region Internal
 
     private fun List<String>.variantName(): String {
@@ -1298,27 +1246,6 @@ internal class DdAndroidGradlePluginTest {
 
         whenever(productFlavors) doReturn mockFlavors
         whenever(buildType) doReturn mockBuildType
-    }
-
-    private fun buildDirectoryTree(
-        rootDir: File,
-        minDepth: Int = 1,
-        maxDepth: Int,
-        forge: Forge
-    ): List<File> {
-        var currentDir = rootDir
-        val tree = mutableListOf(rootDir)
-        val stopAt = forge.anInt(min = minDepth, max = maxDepth + 1)
-        for (level in 1..maxDepth) {
-            if (level == stopAt) break
-
-            currentDir = File(currentDir, forge.anAlphabeticalString())
-            tree.add(currentDir)
-        }
-
-        tree.last().mkdirs()
-
-        return tree
     }
 
     private fun mockBuildIdGenerationTask(buildId: String): TaskProvider<GenerateBuildIdTask> {

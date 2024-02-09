@@ -8,7 +8,6 @@ package com.datadog.gradle.plugin
 
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.api.ApplicationVariant
-import com.android.builder.model.Version
 import com.datadog.gradle.plugin.internal.ApiKey
 import com.datadog.gradle.plugin.internal.ApiKeySource
 import com.datadog.gradle.plugin.internal.GitRepositoryDetector
@@ -212,15 +211,16 @@ class DdAndroidGradlePlugin @Inject constructor(
             )
         uploadTask.mappingFileTrimIndents = extensionConfiguration.mappingFileTrimIndents
         if (!extensionConfiguration.ignoreDatadogCiFileConfig) {
-            uploadTask.datadogCiFile = findDatadogCiFile(target.projectDir)
+            uploadTask.datadogCiFile = DdTaskUtils.findDatadogCiFile(target.projectDir)
         }
 
-        uploadTask.repositoryFile = resolveDatadogRepositoryFile(target)
+        uploadTask.repositoryFile = DdTaskUtils.resolveDatadogRepositoryFile(target)
 
         val roots = mutableListOf<File>()
         variant.sourceSets.forEach {
             roots.addAll(it.javaDirectories)
-            if (isAgp7OrAbove()) {
+            @Suppress("MagicNumber")
+            if (DdTaskUtils.isAgpAbove(7, 0, 0)) {
                 roots.addAll(it.kotlinDirectories)
             }
         }
@@ -314,14 +314,6 @@ class DdAndroidGradlePlugin @Inject constructor(
         }
     }
 
-    @Suppress("StringLiteralDuplication")
-    private fun resolveDatadogRepositoryFile(target: Project): File {
-        val outputsDir = File(target.buildDir, "outputs")
-        val reportsDir = File(outputsDir, "reports")
-        val datadogDir = File(reportsDir, "datadog")
-        return File(datadogDir, "repository.json")
-    }
-
     private fun filterMappingFileReplacements(
         replacements: Map<String, String>,
         applicationId: String
@@ -379,20 +371,6 @@ class DdAndroidGradlePlugin @Inject constructor(
         return configuration
     }
 
-    internal fun findDatadogCiFile(projectDir: File): File? {
-        var currentDir: File? = projectDir
-        var levelsUp = 0
-        while (currentDir != null && levelsUp < MAX_DATADOG_CI_FILE_LOOKUP_LEVELS) {
-            val datadogCiFile = File(currentDir, "datadog-ci.json")
-            if (datadogCiFile.exists()) {
-                return datadogCiFile
-            }
-            currentDir = currentDir.parentFile
-            levelsUp++
-        }
-        return null
-    }
-
     private fun Project.stringProperty(propertyName: String): String? {
         return findProperty(propertyName)?.toString()
     }
@@ -405,18 +383,6 @@ class DdAndroidGradlePlugin @Inject constructor(
         val isDefaultObfuscationEnabled = variant.buildType.isMinifyEnabled
         val isNonDefaultObfuscationEnabled = extensionConfiguration.nonDefaultObfuscation
         return isDefaultObfuscationEnabled || isNonDefaultObfuscationEnabled
-    }
-
-    @Suppress("MagicNumber", "ReturnCount")
-    private fun isAgp7OrAbove(): Boolean {
-        val version = Version.ANDROID_GRADLE_PLUGIN_VERSION
-        val groups = version.split(".")
-        if (groups.size < 3) return false
-        val major = groups[0].toIntOrNull()
-        val minor = groups[1].toIntOrNull()
-        val patch = groups[2].substringBefore("-").toIntOrNull()
-        if (major == null || minor == null || patch == null) return false
-        return major >= 7 && minor >= 0 && patch >= 0
     }
 
     private val Project.androidApplicationExtension: AppExtension?
@@ -440,7 +406,5 @@ class DdAndroidGradlePlugin @Inject constructor(
 
         private const val ERROR_NOT_ANDROID = "The dd-android-gradle-plugin has been applied on " +
             "a non android application project"
-
-        private const val MAX_DATADOG_CI_FILE_LOOKUP_LEVELS = 4
     }
 }
