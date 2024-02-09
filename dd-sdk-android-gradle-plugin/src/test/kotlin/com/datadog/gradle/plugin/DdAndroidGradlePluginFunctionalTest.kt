@@ -1103,6 +1103,8 @@ internal class DdAndroidGradlePluginFunctionalTest {
 
         // Then
         val buildIdInOriginFile = testProjectDir.findBuildIdInOriginFile(variant)
+        val buildIdInApk = testProjectDir.findBuildIdInApk(variant)
+        assertThat(buildIdInApk).isEqualTo(buildIdInOriginFile)
 
         assertThat(nativeResult).containsInOutput("Creating request with GZIP encoding.")
 

@@ -96,7 +96,8 @@ internal class DdNdkSymbolFileUploadTaskTest {
 
         testedTask = fakeProject.tasks.create(
             "DdSymbolFileUploadTask",
-            DdNdkSymbolFileUploadTask::class.java
+            DdNdkSymbolFileUploadTask::class.java,
+            mockRepositoryDetector
         )
         testedTask.uploader = mockUploader
         fakeApiKey = ApiKey(
@@ -110,8 +111,6 @@ internal class DdNdkSymbolFileUploadTaskTest {
             whenever(isPresent) doReturn true
             whenever(get()) doReturn fakeBuildId
         }
-
-        testedTask.repositoryDetector = mockRepositoryDetector
 
         val fakeConfiguration = with(DdExtensionConfiguration()) {
             versionName = fakeVersion

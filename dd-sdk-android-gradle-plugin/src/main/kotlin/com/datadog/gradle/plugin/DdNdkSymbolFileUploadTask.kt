@@ -23,8 +23,9 @@ import kotlin.reflect.full.memberProperties
  */
 internal abstract class DdNdkSymbolFileUploadTask @Inject constructor(
     objectFactory: ObjectFactory,
-    providerFactory: ProviderFactory
-) : DdFileUploadTask(providerFactory) {
+    providerFactory: ProviderFactory,
+    repositoryDetector: RepositoryDetector
+) : DdFileUploadTask(providerFactory, repositoryDetector) {
 
     @get:InputFiles
     val searchDirectories: ConfigurableFileCollection = objectFactory.fileCollection()
@@ -154,37 +155,39 @@ internal abstract class DdNdkSymbolFileUploadTask @Inject constructor(
 
             return project.tasks.register(
                 TASK_NAME + variant.name.capitalize(),
-                DdNdkSymbolFileUploadTask::class.java
-            ) { task ->
-                val roots = mutableListOf<File>()
-                variant.sourceSets.forEach {
-                    roots.addAll(it.javaDirectories)
-                    @Suppress("MagicNumber")
-                    if (isAgpAbove(7, 0, 0)) {
-                        roots.addAll(it.kotlinDirectories)
+                DdNdkSymbolFileUploadTask::class.java,
+                repositoryDetector
+            ).apply {
+                configure { task ->
+                    val roots = mutableListOf<File>()
+                    variant.sourceSets.forEach {
+                        roots.addAll(it.javaDirectories)
+                        @Suppress("MagicNumber")
+                        if (isAgpAbove(7, 0, 0)) {
+                            roots.addAll(it.kotlinDirectories)
+                        }
                     }
-                }
-                task.sourceSetRoots = roots
+                    task.sourceSetRoots = roots
 
-                nativeBuildProviders.forEach { buildTask ->
-                    val searchFiles = getSearchDirs(buildTask, providerFactory)
+                    nativeBuildProviders.forEach { buildTask ->
+                        val searchFiles = getSearchDirs(buildTask, providerFactory)
 
-                    task.searchDirectories.from(searchFiles)
-                    task.dependsOn(buildTask)
-                }
+                        task.searchDirectories.from(searchFiles)
+                        task.dependsOn(buildTask)
+                    }
 
-                task.datadogCiFile = findDatadogCiFile(project.rootDir)
-                task.repositoryDetector = repositoryDetector
-                task.repositoryFile = resolveDatadogRepositoryFile(project)
-                task.configureWith(
-                    apiKey,
-                    extensionConfiguration,
-                    variant
-                )
+                    task.datadogCiFile = findDatadogCiFile(project.rootDir)
+                    task.repositoryFile = resolveDatadogRepositoryFile(project)
+                    task.configureWith(
+                        apiKey,
+                        extensionConfiguration,
+                        variant
+                    )
 
-                task.buildId = buildIdTask.flatMap {
-                    it.buildIdFile.flatMap {
-                        providerFactory.provider { it.asFile.readText().trim() }
+                    task.buildId = buildIdTask.flatMap {
+                        it.buildIdFile.flatMap {
+                            providerFactory.provider { it.asFile.readText().trim() }
+                        }
                     }
                 }
             }

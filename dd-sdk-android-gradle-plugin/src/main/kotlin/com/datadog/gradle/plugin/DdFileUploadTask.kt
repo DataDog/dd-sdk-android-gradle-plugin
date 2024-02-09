@@ -28,7 +28,8 @@ import javax.inject.Inject
  * Proguard/R8 files, etc.)..
  */
 abstract class DdFileUploadTask @Inject constructor(
-    providerFactory: ProviderFactory
+    providerFactory: ProviderFactory,
+    @get:Internal internal val repositoryDetector: RepositoryDetector
 ) : DefaultTask() {
     @get:Internal
     internal var uploader: Uploader = OkHttpUploader()
@@ -47,12 +48,6 @@ abstract class DdFileUploadTask @Inject constructor(
      */
     @get:Input
     var apiKeySource: ApiKeySource = ApiKeySource.NONE
-
-    /**
-     * The repository detector to use for detecting the repository information.
-     */
-    @get:Internal
-    var repositoryDetector: RepositoryDetector? = null
 
     /**
      * The variant name of the application.
@@ -147,17 +142,17 @@ abstract class DdFileUploadTask @Inject constructor(
         val mappingFiles = getFilesList()
         if (mappingFiles.isEmpty()) return
 
-        val repositories = repositoryDetector?.detectRepositories(
+        val repositories = repositoryDetector.detectRepositories(
             sourceSetRoots,
             remoteRepositoryUrl
-        ).orEmpty()
+        )
 
         if (repositories.isNotEmpty()) {
             generateRepositoryFile(repositories)
         }
 
         val site = DatadogSite.valueOf(site)
-        var caughtErrors = mutableListOf<Exception>()
+        val caughtErrors = mutableListOf<Exception>()
         for (mappingFile in mappingFiles) {
             LOGGER.info("Uploading ${mappingFile.fileType} file: ${mappingFile.file.absolutePath}")
             try {
@@ -185,7 +180,7 @@ abstract class DdFileUploadTask @Inject constructor(
             if (caughtErrors.count() == 1) {
                 throw caughtErrors.first()
             } else {
-                val consolidatedError = Exception("Multiple errors occurred during upload")
+                val consolidatedError = RuntimeException("Multiple errors occurred during upload")
                 caughtErrors.forEach {
                     consolidatedError.addSuppressed(it)
                 }
