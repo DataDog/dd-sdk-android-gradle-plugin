@@ -1,10 +1,7 @@
-@file:Suppress("UnusedImports")
-
-package com.datadog.example.basic
+package com.datadog.example.ndk
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.datadog.example.lib.Placeholder // ktlint-disable no-unused-imports unused import is on purpose
 
 /**
  * Main Activity for the sample app.
@@ -22,6 +19,14 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        toaster.toast("Hello world !")
+        toaster.toast(stringFromJNI())
+    }
+
+    private external fun stringFromJNI(): String
+
+    companion object {
+        init {
+            System.loadLibrary("ndk")
+        }
     }
 }

@@ -6,7 +6,11 @@
 
 package com.datadog.gradle.plugin
 
+import com.android.build.gradle.AppExtension
+import com.android.build.gradle.api.AndroidSourceDirectorySet
+import com.android.build.gradle.api.AndroidSourceSet
 import com.android.build.gradle.api.ApplicationVariant
+import com.android.build.gradle.tasks.ExternalNativeBuildTask
 import com.android.builder.model.BuildType
 import com.android.builder.model.ProductFlavor
 import com.datadog.gradle.plugin.internal.ApiKey
@@ -24,6 +28,7 @@ import fr.xgouchet.elmyr.annotation.StringForgeryType
 import fr.xgouchet.elmyr.junit5.ForgeConfiguration
 import fr.xgouchet.elmyr.junit5.ForgeExtension
 import org.assertj.core.api.Assertions.assertThat
+import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.Configuration
@@ -419,13 +424,126 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 not create upload and buildId tasks 𝕎 configureTasksForVariant() { no deobfuscation }`(
+    fun `M create buildId task W configureTasksForVariant() { no deobfuscation }`(
         @StringForgery(case = Case.LOWER) flavorName: String,
         @StringForgery(case = Case.LOWER) buildTypeName: String,
         @StringForgery versionName: String,
         @StringForgery packageName: String
     ) {
         // Given
+        val mockAppExtension = mockAppExtension()
+
+        val variantName = "$flavorName${buildTypeName.replaceFirstChar { capitalizeChar(it) }}"
+        whenever(mockVariant.name) doReturn variantName
+        whenever(mockVariant.flavorName) doReturn flavorName
+        whenever(mockVariant.versionName) doReturn versionName
+        whenever(mockVariant.applicationId) doReturn packageName
+        whenever(mockVariant.buildType) doReturn mockBuildType
+        whenever(mockVariant.mergeAssetsProvider) doReturn mock()
+        whenever(mockVariant.packageApplicationProvider) doReturn mock()
+        whenever(mockBuildType.name) doReturn fakeBuildTypeName
+
+        // When
+        testedPlugin.configureTasksForVariant(
+            fakeProject,
+            mockAppExtension,
+            fakeExtension,
+            mockVariant,
+            fakeApiKey
+        )
+
+        // Then
+        val allTasks = fakeProject.tasks.map { it.name }
+        assertThat(allTasks).contains("generateBuildId${variantName.replaceFirstChar { capitalizeChar(it) }}")
+    }
+
+    @Test
+    fun `M create uploadSymbol task W configureTasksForVariant() { native build providers }`(
+        @StringForgery(case = Case.LOWER) flavorName: String,
+        @StringForgery(case = Case.LOWER) buildTypeName: String,
+        @StringForgery versionName: String,
+        @StringForgery packageName: String
+    ) {
+        // Given
+        val mockAppExtension = mockAppExtension()
+
+        val variantName = "$flavorName${buildTypeName.replaceFirstChar { capitalizeChar(it) }}"
+        whenever(mockVariant.name) doReturn variantName
+        whenever(mockVariant.flavorName) doReturn flavorName
+        whenever(mockVariant.versionName) doReturn versionName
+        whenever(mockVariant.applicationId) doReturn packageName
+        whenever(mockVariant.buildType) doReturn mockBuildType
+        whenever(mockVariant.mergeAssetsProvider) doReturn mock()
+        whenever(mockVariant.packageApplicationProvider) doReturn mock()
+        whenever(mockBuildType.name) doReturn fakeBuildTypeName
+
+        val nativeBuildProviders = listOf(
+            mock<TaskProvider<ExternalNativeBuildTask>>().apply {
+                whenever(flatMap(any<Transformer<Provider<String>, ExternalNativeBuildTask>>())) doReturn mock()
+            }
+        )
+        whenever(mockVariant.externalNativeBuildProviders) doReturn nativeBuildProviders
+
+        // When
+        testedPlugin.configureTasksForVariant(
+            fakeProject,
+            mockAppExtension,
+            fakeExtension,
+            mockVariant,
+            fakeApiKey
+        )
+
+        // Then
+        val allTasks = fakeProject.tasks.map { it.name }
+        assertThat(allTasks).contains("uploadNdkSymbolFiles${variantName.replaceFirstChar { capitalizeChar(it) }}")
+    }
+
+    @Test
+    fun `M not create uploadSymbol task W configureTasksForVariant() { no native build providers }`(
+        @StringForgery(case = Case.LOWER) flavorName: String,
+        @StringForgery(case = Case.LOWER) buildTypeName: String,
+        @StringForgery versionName: String,
+        @StringForgery packageName: String
+    ) {
+        // Given
+        val mockAppExtension = mockAppExtension()
+
+        val variantName = "$flavorName${buildTypeName.replaceFirstChar { capitalizeChar(it) }}"
+        whenever(mockVariant.name) doReturn variantName
+        whenever(mockVariant.flavorName) doReturn flavorName
+        whenever(mockVariant.versionName) doReturn versionName
+        whenever(mockVariant.applicationId) doReturn packageName
+        whenever(mockVariant.buildType) doReturn mockBuildType
+        whenever(mockVariant.mergeAssetsProvider) doReturn mock()
+        whenever(mockVariant.packageApplicationProvider) doReturn mock()
+        whenever(mockBuildType.name) doReturn fakeBuildTypeName
+
+        whenever(mockVariant.externalNativeBuildProviders) doReturn listOf()
+
+        // When
+        testedPlugin.configureTasksForVariant(
+            fakeProject,
+            mockAppExtension,
+            fakeExtension,
+            mockVariant,
+            fakeApiKey
+        )
+
+        // Then
+        val allTasks = fakeProject.tasks.map { it.name }
+        assertThat(allTasks).allMatch { !it.startsWith("uploadNdkSymbolFiles") }
+    }
+
+    @Test
+    fun `𝕄 not create mapping upload task 𝕎 configureTasksForVariant() { no deobfuscation }`(
+        @StringForgery(case = Case.LOWER) flavorName: String,
+        @StringForgery(case = Case.LOWER) buildTypeName: String,
+        @StringForgery versionName: String,
+        @StringForgery packageName: String
+    ) {
+        // Given
+        val mockAppExtension = mockAppExtension()
+
         val variantName = "$flavorName${buildTypeName.replaceFirstChar { capitalizeChar(it) }}"
         whenever(mockVariant.name) doReturn variantName
         whenever(mockVariant.flavorName) doReturn flavorName
@@ -433,11 +551,14 @@ internal class DdAndroidGradlePluginTest {
         whenever(mockVariant.applicationId) doReturn packageName
         whenever(mockVariant.buildType) doReturn mockBuildType
         whenever(mockBuildType.name) doReturn fakeBuildTypeName
+        whenever(mockVariant.mergeAssetsProvider) doReturn mock()
+        whenever(mockVariant.packageApplicationProvider) doReturn mock()
+        whenever(mockBuildType.name) doReturn fakeBuildTypeName
 
         // When
         testedPlugin.configureTasksForVariant(
             fakeProject,
-            mock(),
+            mockAppExtension,
             fakeExtension,
             mockVariant,
             fakeApiKey
@@ -446,7 +567,6 @@ internal class DdAndroidGradlePluginTest {
         // Then
         val allTasks = fakeProject.tasks.map { it.name }
         assertThat(allTasks).allMatch { !it.startsWith(DdAndroidGradlePlugin.UPLOAD_TASK_NAME) }
-        assertThat(allTasks).allMatch { !it.startsWith(GenerateBuildIdTask.TASK_NAME) }
     }
 
     @Test
@@ -1210,6 +1330,17 @@ internal class DdAndroidGradlePluginTest {
                 flatMap(any<Transformer<Provider<String>, GenerateBuildIdTask>>())
             ) doReturn mockBuildIdProvider
         }
+    }
+
+    private fun mockAppExtension(): AppExtension {
+        val mockAppExtension: AppExtension = mock()
+        val mockSoureSetsContainer: NamedDomainObjectContainer<AndroidSourceSet> = mock()
+        val mockSoureSets: AndroidSourceSet = mock()
+        val mockAssets: AndroidSourceDirectorySet = mock()
+        whenever(mockAppExtension.sourceSets).thenReturn(mockSoureSetsContainer)
+        whenever(mockSoureSetsContainer.getByName(any())).thenReturn(mockSoureSets)
+        whenever(mockSoureSets.assets).thenReturn(mockAssets)
+        return mockAppExtension
     }
 
     // endregion

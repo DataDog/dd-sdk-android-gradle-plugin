@@ -7,6 +7,7 @@
 include(":dd-sdk-android-gradle-plugin")
 
 include(":samples:basic")
+include(":samples:ndk")
 include(":samples:variants")
 include(":samples:variants-kotlin")
 include(":samples:lib-module")
