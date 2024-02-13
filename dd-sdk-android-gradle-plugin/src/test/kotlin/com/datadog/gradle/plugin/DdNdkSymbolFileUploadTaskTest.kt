@@ -123,12 +123,12 @@ internal class DdNdkSymbolFileUploadTaskTest {
             fakeConfiguration,
             mockVariant
         )
-        setEnv(DdMappingFileUploadTask.DATADOG_SITE, "")
+        setEnv(DdFileUploadTask.DATADOG_SITE, "")
     }
 
     @AfterEach
     fun `tear down`() {
-        removeEnv(DdMappingFileUploadTask.DATADOG_SITE)
+        removeEnv(DdFileUploadTask.DATADOG_SITE)
     }
 
     @Test
@@ -608,7 +608,7 @@ internal class DdNdkSymbolFileUploadTaskTest {
     fun `𝕄 read site from environment variable 𝕎 applyTask() {site is not set}`(forge: Forge) {
         // Given
         val fakeDatadogEnvDomain = forge.aValueFrom(DatadogSite::class.java).domain
-        setEnv(DdMappingFileUploadTask.DATADOG_SITE, fakeDatadogEnvDomain)
+        setEnv(DdFileUploadTask.DATADOG_SITE, fakeDatadogEnvDomain)
         testedTask.site = ""
 
         // When
