@@ -109,6 +109,10 @@ internal class OkHttpUploader : Uploader {
         eventJson.put("build_id", identifier.buildId)
         eventJson.put("version_code", identifier.versionCode)
         eventJson.put("type", fileInfo.fileType)
+        fileInfo.extraAttributes.forEach { (key, value) ->
+            eventJson.put(key, value)
+        }
+        LOGGER.info("  event: ${eventJson.toString(0)}")
 
         val builder = MultipartBody.Builder()
         builder.setType(MultipartBody.FORM)
