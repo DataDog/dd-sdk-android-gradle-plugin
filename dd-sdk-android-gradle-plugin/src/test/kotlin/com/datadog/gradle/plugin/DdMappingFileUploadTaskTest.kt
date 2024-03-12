@@ -135,7 +135,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 upload file 𝕎 applyTask()`() {
+    fun `M upload file W applyTask()`() {
         // Given
         val fakeMappingFile = File(tempDir, fakeMappingFileName)
         fakeMappingFile.writeText(fakeMappingFileContent)
@@ -177,7 +177,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 upload file 𝕎 applyTask() { short aliases requested }`() {
+    fun `M upload file W applyTask() { short aliases requested }`() {
         // Given
         testedTask.mappingFilePackagesAliases = mapOf(
             "androidx.fragment.app" to "axfraga",
@@ -226,7 +226,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 upload file 𝕎 applyTask() { trim starting indents }`(
+    fun `M upload file W applyTask() { trim starting indents }`(
         forge: Forge
     ) {
         // Given
@@ -275,7 +275,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 upload file 𝕎 applyTask() { delete old shrinked mapping file before writing }`(
+    fun `M upload file W applyTask() { delete old shrinked mapping file before writing }`(
         forge: Forge
     ) {
         // Given
@@ -330,7 +330,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 upload file 𝕎 applyTask { remote url provided }`() {
+    fun `M upload file W applyTask { remote url provided }`() {
         // Given
         val fakeMappingFile = File(tempDir, fakeMappingFileName)
         fakeMappingFile.writeText(fakeMappingFileContent)
@@ -373,7 +373,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 upload file 𝕎 applyTask() {not a git repo}`() {
+    fun `M upload file W applyTask() {not a git repo}`() {
         // Given
         val fakeMappingFile = File(tempDir, fakeMappingFileName)
         fakeMappingFile.writeText(fakeMappingFileContent)
@@ -411,7 +411,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 throw error 𝕎 applyTask() {no api key}`() {
+    fun `M throw error W applyTask() {no api key}`() {
         // Given
         val fakeMappingFile = File(tempDir, fakeMappingFileName)
         fakeMappingFile.writeText(fakeMappingFileContent)
@@ -430,7 +430,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 throw error 𝕎 applyTask() {api key contains quotes or apostrophes}`(
+    fun `M throw error W applyTask() {api key contains quotes or apostrophes}`(
         forge: Forge
     ) {
         // Given
@@ -457,7 +457,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 throw error 𝕎 applyTask() {buildId is missing}`() {
+    fun `M throw error W applyTask() {buildId is missing}`() {
         // Given
         val fakeMappingFile = File(tempDir, fakeMappingFileName)
         fakeMappingFile.writeText(fakeMappingFileContent)
@@ -475,7 +475,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 throw error 𝕎 applyTask() {buildId is empty string}`() {
+    fun `M throw error W applyTask() {buildId is empty string}`() {
         // Given
         val fakeMappingFile = File(tempDir, fakeMappingFileName)
         fakeMappingFile.writeText(fakeMappingFileContent)
@@ -494,7 +494,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 throw error 𝕎 applyTask() {invalid site}`(
+    fun `M throw error W applyTask() {invalid site}`(
         @StringForgery siteName: String
     ) {
         assumeTrue(siteName !in listOf("US", "EU", "GOV"))
@@ -515,7 +515,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 upload to US1 𝕎 applyTask() {missing site}`() {
+    fun `M upload to US1 W applyTask() {missing site}`() {
         // Given
         val fakeMappingFile = File(tempDir, fakeMappingFileName)
         fakeMappingFile.writeText(fakeMappingFileContent)
@@ -558,7 +558,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 do nothing 𝕎 applyTask() {no mapping file}`() {
+    fun `M do nothing W applyTask() {no mapping file}`() {
         // Given
         val fakeMappingFile = File(tempDir, fakeMappingFileName)
         testedTask.mappingFilePath = fakeMappingFile.path
@@ -571,7 +571,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 throw error 𝕎 applyTask() {mapping file is dir}`() {
+    fun `M throw error W applyTask() {mapping file is dir}`() {
         // Given
         val fakeMappingFile = File(tempDir, fakeMappingFileName)
         fakeMappingFile.mkdirs()
@@ -587,7 +587,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 apply datadog CI config if exists 𝕎 applyTask()`(forge: Forge) {
+    fun `M apply datadog CI config if exists W applyTask()`(forge: Forge) {
         // Given
         val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
 
@@ -618,7 +618,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 apply datadog CI config if exists 𝕎 applyTask() {apiKey from gradle}`(forge: Forge) {
+    fun `M apply datadog CI config if exists W applyTask() {apiKey from gradle}`(forge: Forge) {
         // Given
         val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
 
@@ -646,7 +646,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 apply datadog CI config if exists 𝕎 applyTask() { apiKey is missing }`(forge: Forge) {
+    fun `M apply datadog CI config if exists W applyTask() { apiKey is missing }`(forge: Forge) {
         // Given
         val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
 
@@ -670,7 +670,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 apply datadog CI config if exists 𝕎 applyTask() {datadogSite missing}`(forge: Forge) {
+    fun `M apply datadog CI config if exists W applyTask() {datadogSite missing}`(forge: Forge) {
         // Given
         val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
 
@@ -698,7 +698,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 apply datadog CI config if exists 𝕎 applyTask() {datadogSite unknown}`(forge: Forge) {
+    fun `M apply datadog CI config if exists W applyTask() {datadogSite unknown}`(forge: Forge) {
         // Given
         val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
 
@@ -723,7 +723,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 apply datadog CI config if exists 𝕎 applyTask() {site is set already}`(forge: Forge) {
+    fun `M apply datadog CI config if exists W applyTask() {site is set already}`(forge: Forge) {
         // Given
         val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
 
@@ -747,7 +747,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 read site from environment variable 𝕎 applyTask() {site is not set}`(forge: Forge) {
+    fun `M read site from environment variable W applyTask() {site is not set}`(forge: Forge) {
         // Given
         val fakeDatadogEnvDomain = forge.aValueFrom(DatadogSite::class.java).domain
         setEnv(DdFileUploadTask.DATADOG_SITE, fakeDatadogEnvDomain)
@@ -763,7 +763,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 read site from environment variable 𝕎 applyTask() {site is set}`(forge: Forge) {
+    fun `M read site from environment variable W applyTask() {site is set}`(forge: Forge) {
         // Given
         val fakeDatadogEnvDomain = forge.aValueFrom(DatadogSite::class.java).domain
         setEnv(DdAndroidGradlePlugin.DATADOG_API_KEY, fakeDatadogEnvDomain)
@@ -778,7 +778,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 not apply datadog CI config if exists 𝕎 applyTask() { malformed json }`(forge: Forge) {
+    fun `M not apply datadog CI config if exists W applyTask() { malformed json }`(forge: Forge) {
         // Given
         val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
 

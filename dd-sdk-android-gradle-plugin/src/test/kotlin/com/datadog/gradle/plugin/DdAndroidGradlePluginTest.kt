@@ -98,7 +98,7 @@ internal class DdAndroidGradlePluginTest {
     // region configureVariantForUploadTask()
 
     @Test
-    fun `𝕄 configure the upload task with the variant info 𝕎 configureVariantForUploadTask()`(
+    fun `M configure the upload task with the variant info W configureVariantForUploadTask()`(
         @StringForgery(case = Case.LOWER) flavorName: String,
         @StringForgery(case = Case.LOWER) buildTypeName: String,
         @StringForgery versionName: String,
@@ -147,7 +147,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 configure the upload task with the extension info 𝕎 configureVariantForUploadTask()`(
+    fun `M configure the upload task with the extension info W configureVariantForUploadTask()`(
         @StringForgery(case = Case.LOWER) flavorName: String,
         @StringForgery(case = Case.LOWER) buildTypeName: String,
         @StringForgery versionName: String,
@@ -195,7 +195,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 configure the upload task with sanitized mapping aliases 𝕎 configureVariantForUploadTask()`(
+    fun `M configure the upload task with sanitized mapping aliases W configureVariantForUploadTask()`(
         @StringForgery(case = Case.LOWER) flavorName: String,
         @StringForgery(case = Case.LOWER) buildTypeName: String,
         @StringForgery versionName: String,
@@ -253,7 +253,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 use sensible defaults 𝕎 configureVariantForUploadTask() { empty config }`(
+    fun `M use sensible defaults W configureVariantForUploadTask() { empty config }`(
         @StringForgery(case = Case.LOWER) flavorName: String,
         @StringForgery(case = Case.LOWER) buildTypeName: String,
         @StringForgery versionName: String,
@@ -307,7 +307,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 apply datadog CI file 𝕎 configureVariantForUploadTask()`(
+    fun `M apply datadog CI file W configureVariantForUploadTask()`(
         @StringForgery(case = Case.LOWER) flavorName: String,
         @StringForgery(case = Case.LOWER) buildTypeName: String,
         @StringForgery versionName: String,
@@ -365,7 +365,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 not apply datadog CI file 𝕎 configureVariantForUploadTask() { ignoreDatadogCiFileConfig }`(
+    fun `M not apply datadog CI file W configureVariantForUploadTask() { ignoreDatadogCiFileConfig }`(
         @StringForgery(case = Case.LOWER) flavorName: String,
         @StringForgery(case = Case.LOWER) buildTypeName: String,
         @StringForgery versionName: String,
@@ -534,7 +534,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 not create mapping upload task 𝕎 configureTasksForVariant() { no deobfuscation }`(
+    fun `M not create mapping upload task W configureTasksForVariant() { no deobfuscation }`(
         @StringForgery(case = Case.LOWER) flavorName: String,
         @StringForgery(case = Case.LOWER) buildTypeName: String,
         @StringForgery versionName: String,
@@ -569,7 +569,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 configure the upload task 𝕎 configureVariantForUploadTask() { non default obfuscation }`(
+    fun `M configure the upload task W configureVariantForUploadTask() { non default obfuscation }`(
         @StringForgery(case = Case.LOWER) flavorName: String,
         @StringForgery(case = Case.LOWER) buildTypeName: String,
         @StringForgery versionName: String,
@@ -622,7 +622,7 @@ internal class DdAndroidGradlePluginTest {
     // region resolveApiKey
 
     @Test
-    fun `𝕄 resolve API KEY from project properties 𝕎 resolveApiKey() { as DD_API_KEY }`() {
+    fun `M resolve API KEY from project properties W resolveApiKey() { as DD_API_KEY }`() {
         // Given
         fakeProject = mock()
         whenever(fakeProject.findProperty(DdAndroidGradlePlugin.DD_API_KEY)) doReturn
@@ -637,7 +637,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 resolve API KEY from environment variable 𝕎 resolveApiKey() { as DD_API_KEY }`() {
+    fun `M resolve API KEY from environment variable W resolveApiKey() { as DD_API_KEY }`() {
         // Given
         setEnv(DdAndroidGradlePlugin.DD_API_KEY, fakeApiKey.value)
 
@@ -650,7 +650,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 resolve API KEY from project properties 𝕎 resolveApiKey() { as DATADOG_API_KEY }`() {
+    fun `M resolve API KEY from project properties W resolveApiKey() { as DATADOG_API_KEY }`() {
         // Given
         fakeProject = mock()
         whenever(fakeProject.findProperty(DdAndroidGradlePlugin.DATADOG_API_KEY)) doReturn
@@ -665,7 +665,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 resolve API KEY from environment variable 𝕎 resolveApiKey() { as DATADOG_API_KEY }`() {
+    fun `M resolve API KEY from environment variable W resolveApiKey() { as DATADOG_API_KEY }`() {
         // Given
         setEnv(DdAndroidGradlePlugin.DATADOG_API_KEY, fakeApiKey.value)
 
@@ -678,7 +678,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 returns empty String 𝕎 resolveApiKey() {key not defined anywhere}`() {
+    fun `M returns empty String W resolveApiKey() {key not defined anywhere}`() {
         // When
         val apiKey = testedPlugin.resolveApiKey(fakeProject)
 
@@ -691,7 +691,7 @@ internal class DdAndroidGradlePluginTest {
     // region resolveExtensionConfiguration
 
     @Test
-    fun `𝕄 return default config 𝕎 resolveExtensionConfiguration() {no variant config}`() {
+    fun `M return default config W resolveExtensionConfiguration() {no variant config}`() {
         // When
         mockVariant.mockFlavors(fakeFlavorNames, fakeBuildTypeName)
         val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, mockVariant)
@@ -713,7 +713,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 return config 𝕎 resolveExtensionConfiguration() { variant w full config }`(
+    fun `M return config W resolveExtensionConfiguration() { variant w full config }`(
         @Forgery variantConfig: DdExtensionConfiguration
     ) {
         val variantName = fakeFlavorNames.variantName()
@@ -740,7 +740,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { variant w version only }`(
+    fun `M return combined config W resolveExtensionConfiguration() { variant w version only }`(
         @StringForgery versionName: String
     ) {
         val variantName = fakeFlavorNames.variantName()
@@ -767,7 +767,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { variant w service only }`(
+    fun `M return combined config W resolveExtensionConfiguration() { variant w service only }`(
         @StringForgery serviceName: String
     ) {
         val variantName = fakeFlavorNames.variantName()
@@ -794,7 +794,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { variant w mappingPath }`(
+    fun `M return combined config W resolveExtensionConfiguration() { variant w mappingPath }`(
         @StringForgery(regex = "/([a-z]+)/([a-z]+)/([a-z]+)/mapping.txt") mappingFilePath: String
     ) {
         val variantName = fakeFlavorNames.variantName()
@@ -821,7 +821,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 return config 𝕎 resolveExtensionConfiguration() { variant+mappingFilePackageAliases }`(
+    fun `M return config W resolveExtensionConfiguration() { variant+mappingFilePackageAliases }`(
         @MapForgery(
             key = AdvancedForgery(
                 string = [StringForgery(regex = "[a-z]{3}(\\.[a-z]{5,10}){2,4}")]
@@ -854,7 +854,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 return config 𝕎 resolveExtensionConfiguration() { variant+mappingFileTrimIndents }`(
+    fun `M return config W resolveExtensionConfiguration() { variant+mappingFileTrimIndents }`(
         @BoolForgery mappingFileTrimIndents: Boolean
     ) {
         val variantName = fakeFlavorNames.variantName()
@@ -883,7 +883,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { variant w site only }`(
+    fun `M return combined config W resolveExtensionConfiguration() { variant w site only }`(
         @Forgery site: DatadogSite
     ) {
         val variantName = fakeFlavorNames.variantName()
@@ -911,7 +911,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { variant w sdkCheck only }`(
+    fun `M return combined config W resolveExtensionConfiguration() { variant w sdkCheck only }`(
         @Forgery sdkCheckLevel: SdkCheckLevel
     ) {
         val variantName = fakeFlavorNames.variantName()
@@ -937,7 +937,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { variant w remoteUrl only }`(
+    fun `M return combined config W resolveExtensionConfiguration() { variant w remoteUrl only }`(
         @Forgery fakeConfig: DdExtensionConfiguration
     ) {
         val variantName = fakeFlavorNames.variantName()
@@ -965,7 +965,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { variant + ignoreDdConfig }`(
+    fun `M return combined config W resolveExtensionConfiguration() { variant + ignoreDdConfig }`(
         @Forgery fakeConfig: DdExtensionConfiguration
     ) {
         val variantName = fakeFlavorNames.variantName()
@@ -994,7 +994,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { simple variants }`(
+    fun `M return combined config W resolveExtensionConfiguration() { simple variants }`(
         @StringForgery(case = Case.LOWER) flavorA: String,
         @StringForgery(case = Case.LOWER) flavorB: String,
         @StringForgery(case = Case.LOWER) flavorC: String,
@@ -1037,7 +1037,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { complex variants }`(
+    fun `M return combined config W resolveExtensionConfiguration() { complex variants }`(
         @StringForgery(case = Case.LOWER) flavorA: String,
         @StringForgery(case = Case.LOWER) flavorB: String,
         @StringForgery(case = Case.LOWER) flavorC: String,
@@ -1090,7 +1090,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { variant w build type }`(
+    fun `M return combined config W resolveExtensionConfiguration() { variant w build type }`(
         @Forgery configuration: DdExtensionConfiguration
     ) {
         val variantName = fakeFlavorNames.variantName() +
@@ -1123,7 +1123,7 @@ internal class DdAndroidGradlePluginTest {
 
     // TODO RUMM-2344 switch back to FAIL
     @Test
-    fun `𝕄 use NONE when configuring checkDepsTask { checkProjectDependencies not set }`(
+    fun `M use NONE when configuring checkDepsTask { checkProjectDependencies not set }`(
         @StringForgery(case = Case.LOWER) flavorName: String,
         @StringForgery(case = Case.LOWER) buildTypeName: String,
         @StringForgery versionName: String,
@@ -1158,7 +1158,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 do nothing 𝕎 configureVariantForSdkCheck() { none set }`(
+    fun `M do nothing W configureVariantForSdkCheck() { none set }`(
         @StringForgery(case = Case.LOWER) flavorName: String,
         @StringForgery(case = Case.LOWER) buildTypeName: String,
         @StringForgery versionName: String,
@@ -1187,7 +1187,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 do nothing 𝕎 configureVariantForSdkCheck() { extension is disabled }`() {
+    fun `M do nothing W configureVariantForSdkCheck() { extension is disabled }`() {
         // Given
         fakeExtension.enabled = false
 
@@ -1202,7 +1202,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 do nothing 𝕎 configureVariantForSdkCheck() { compilation task not found }`(
+    fun `M do nothing W configureVariantForSdkCheck() { compilation task not found }`(
         @StringForgery(case = Case.LOWER) flavorName: String,
         @StringForgery(case = Case.LOWER) buildTypeName: String
     ) {

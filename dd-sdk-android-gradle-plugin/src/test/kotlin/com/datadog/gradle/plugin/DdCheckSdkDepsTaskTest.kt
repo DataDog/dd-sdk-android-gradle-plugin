@@ -111,7 +111,7 @@ internal class DdCheckSdkDepsTaskTest {
     // region taskAction
 
     @Test
-    fun `𝕄 log info + exception 𝕎 configuration cannot be found`() {
+    fun `M log info + exception W configuration cannot be found`() {
         // GIVEN
         fakeProject.configurations.remove(mockConfiguration)
 
@@ -126,7 +126,7 @@ internal class DdCheckSdkDepsTaskTest {
     }
 
     @Test
-    fun `𝕄 log info + exception 𝕎 configuration cannot be resolved`(
+    fun `M log info + exception W configuration cannot be resolved`(
         forge: Forge
     ) {
         // GIVEN
@@ -142,7 +142,7 @@ internal class DdCheckSdkDepsTaskTest {
     }
 
     @Test
-    fun `𝕄 throw exception 𝕎 resolved configuration throws non-ResolveException`(
+    fun `M throw exception W resolved configuration throws non-ResolveException`(
         forge: Forge
     ) {
         // GIVEN
@@ -156,7 +156,7 @@ internal class DdCheckSdkDepsTaskTest {
     }
 
     @Test
-    fun `𝕄 throw exception 𝕎 rethrowFailure doesn't throw`() {
+    fun `M throw exception W rethrowFailure doesn't throw`() {
         // GIVEN
         whenever(mockResolvedConfiguration.hasError()).thenReturn(true)
 
@@ -166,7 +166,7 @@ internal class DdCheckSdkDepsTaskTest {
     }
 
     @Test
-    fun `𝕄 throw exception 𝕎 sdk dependency could not be found { sdkCheckLevel = FAIL }`(
+    fun `M throw exception W sdk dependency could not be found { sdkCheckLevel = FAIL }`(
         forge: Forge
     ) {
         // GIVEN
@@ -187,7 +187,7 @@ internal class DdCheckSdkDepsTaskTest {
     }
 
     @Test
-    fun `𝕄 log a warning 𝕎 sdk dependency could not be found { sdkCheckLevel = WARN }`(
+    fun `M log a warning W sdk dependency could not be found { sdkCheckLevel = WARN }`(
         forge: Forge
     ) {
         // GIVEN
@@ -211,7 +211,7 @@ internal class DdCheckSdkDepsTaskTest {
     }
 
     @Test
-    fun `𝕄 do nothing 𝕎 sdk dependency was found { v1 }`(forge: Forge) {
+    fun `M do nothing W sdk dependency was found { v1 }`(forge: Forge) {
         // GIVEN
         val dependencies = forge.aList {
             val dependency = mock<ResolvedDependency>()
@@ -238,7 +238,7 @@ internal class DdCheckSdkDepsTaskTest {
     }
 
     @Test
-    fun `𝕄 do nothing 𝕎 sdk dependency was found { v2 }`(forge: Forge) {
+    fun `M do nothing W sdk dependency was found { v2 }`(forge: Forge) {
         // GIVEN
         val dependencies = forge.aList {
             val dependency = mock<ResolvedDependency>()
@@ -269,7 +269,7 @@ internal class DdCheckSdkDepsTaskTest {
     // region isDatadogDependencyPresent
 
     @Test
-    fun `𝕄 return true 𝕎 isDatadogDependencyPresent() { sdk is at the top level }`(
+    fun `M return true W isDatadogDependencyPresent() { sdk is at the top level }`(
         forge: Forge
     ) {
         // GIVEN
@@ -296,7 +296,7 @@ internal class DdCheckSdkDepsTaskTest {
     }
 
     @Test
-    fun `𝕄 return true 𝕎 isDatadogDependencyPresent() { sdk is at the child level }`(
+    fun `M return true W isDatadogDependencyPresent() { sdk is at the child level }`(
         forge: Forge
     ) {
         // GIVEN
@@ -326,7 +326,7 @@ internal class DdCheckSdkDepsTaskTest {
     }
 
     @Test
-    fun `𝕄 return false 𝕎 isDatadogDependencyPresent() { sdk is not there }`(
+    fun `M return false W isDatadogDependencyPresent() { sdk is not there }`(
         forge: Forge
     ) {
         // GIVEN

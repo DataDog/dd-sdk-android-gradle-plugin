@@ -150,7 +150,7 @@ internal class OkHttpUploaderTest {
     }
 
     @Test
-    fun `𝕄 upload proper request 𝕎 upload()`() {
+    fun `M upload proper request W upload()`() {
         // Given
         mockUploadResponse = MockResponse()
             .setResponseCode(HttpURLConnection.HTTP_OK)
@@ -195,7 +195,7 @@ internal class OkHttpUploaderTest {
     }
 
     @Test
-    fun `𝕄 upload proper request 𝕎 upload() { without gzip }`() {
+    fun `M upload proper request W upload() { without gzip }`() {
         // Given
         mockUploadResponse = MockResponse()
             .setResponseCode(HttpURLConnection.HTTP_OK)
@@ -240,7 +240,7 @@ internal class OkHttpUploaderTest {
     }
 
     @Test
-    fun `𝕄 upload proper request 𝕎 upload() {repository=null}`() {
+    fun `M upload proper request W upload() {repository=null}`() {
         // Given
         mockUploadResponse = MockResponse()
             .setResponseCode(HttpURLConnection.HTTP_OK)
@@ -280,7 +280,7 @@ internal class OkHttpUploaderTest {
     }
 
     @Test
-    fun `𝕄 throw exception 𝕎 upload() {response 403}`() {
+    fun `M throw exception W upload() {response 403}`() {
         // Given
         mockUploadResponse = MockResponse()
             .setResponseCode(403)
@@ -327,7 +327,7 @@ internal class OkHttpUploaderTest {
     }
 
     @Test
-    fun `𝕄 throw exception 𝕎 upload() {response 401-599}`(
+    fun `M throw exception W upload() {response 401-599}`(
         @IntForgery(401, 600) statusCode: Int
     ) {
         // 407 will actually throw a protocol exception
@@ -380,7 +380,7 @@ internal class OkHttpUploaderTest {
     }
 
     @Test
-    fun `𝕄 throw generic exception 𝕎 upload() {response 400, API key validation returned true}`() {
+    fun `M throw generic exception W upload() {response 400, API key validation returned true}`() {
         // Given
         mockUploadResponse = MockResponse()
             .setResponseCode(HttpURLConnection.HTTP_BAD_REQUEST)
@@ -433,7 +433,7 @@ internal class OkHttpUploaderTest {
     }
 
     @RepeatedTest(8)
-    fun `𝕄 throw generic exception 𝕎 upload() {response 400, API key validation failed}`(
+    fun `M throw generic exception W upload() {response 400, API key validation failed}`(
         forge: Forge
     ) {
         // Given
@@ -499,7 +499,7 @@ internal class OkHttpUploaderTest {
     }
 
     @Test
-    fun `𝕄 throw API key validation exception 𝕎 upload() {response 400, API key validation returned false}`() {
+    fun `M throw API key validation exception W upload() {response 400, API key validation returned false}`() {
         // Given
         mockUploadResponse = MockResponse()
             .setResponseCode(HttpURLConnection.HTTP_BAD_REQUEST)
@@ -553,7 +553,7 @@ internal class OkHttpUploaderTest {
     }
 
     @Test
-    fun `𝕄 throw API key validation exception 𝕎 upload() {response 400, API key validation returned 403}`() {
+    fun `M throw API key validation exception W upload() {response 400, API key validation returned 403}`() {
         // Given
         mockUploadResponse = MockResponse()
             .setResponseCode(HttpURLConnection.HTTP_BAD_REQUEST)
