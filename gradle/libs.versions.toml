@@ -1,11 +1,11 @@
 [versions]
 # Commons
-kotlin = "1.8.10"
+kotlin = "1.9.23"
 json = "20180813"
-okHttp = "4.11.0"
+okHttp = "4.12.0"
 
 # Android
-androidToolsPlugin = "8.1.4"
+androidToolsPlugin = "8.3.0"
 
 # AndroidX
 androidx-core ="1.3.2"
@@ -28,7 +28,7 @@ mockitoKotlin = "5.0.0"
 
 # Tools
 detekt = "1.17.0"
-dokka = "1.7.20"
+dokka = "1.9.20"
 unmock = "0.7.5"
 
 fuzzyWuzzy = "1.2.0"
