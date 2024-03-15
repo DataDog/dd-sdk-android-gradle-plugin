@@ -26,7 +26,7 @@ import org.mockito.quality.Strictness
 internal class RepositoryInfoTest {
 
     @Test
-    fun `𝕄 serialize item to Json 𝕎 toJson()`(
+    fun `M serialize item to Json W toJson()`(
         @Forgery repositoryInfo: RepositoryInfo
     ) {
         // When

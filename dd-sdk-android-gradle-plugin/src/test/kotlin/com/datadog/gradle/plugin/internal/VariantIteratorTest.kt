@@ -29,7 +29,7 @@ import org.mockito.quality.Strictness
 internal class VariantIteratorTest {
 
     @Test
-    fun `𝕄 iterate 𝕎 forEach() { 1 dimension }`(
+    fun `M iterate W forEach() { 1 dimension }`(
         @StringForgery(case = Case.LOWER) a: String
     ) {
         // Given
@@ -45,7 +45,7 @@ internal class VariantIteratorTest {
     }
 
     @Test
-    fun `𝕄 iterate 𝕎 forEach() { 2 dimensions }`(
+    fun `M iterate W forEach() { 2 dimensions }`(
         @StringForgery(case = Case.LOWER) a: String,
         @StringForgery(case = Case.LOWER) b: String
     ) {
@@ -63,7 +63,7 @@ internal class VariantIteratorTest {
     }
 
     @Test
-    fun `𝕄 iterate 𝕎 forEach() { 3 dimensions }`(
+    fun `M iterate W forEach() { 3 dimensions }`(
         @StringForgery(case = Case.LOWER) a: String,
         @StringForgery(case = Case.LOWER) b: String,
         @StringForgery(case = Case.LOWER) c: String
@@ -83,7 +83,7 @@ internal class VariantIteratorTest {
     }
 
     @Test
-    fun `𝕄 iterate 𝕎 forEach() { 4 dimensions }`(
+    fun `M iterate W forEach() { 4 dimensions }`(
         @StringForgery(case = Case.LOWER) a: String,
         @StringForgery(case = Case.LOWER) b: String,
         @StringForgery(case = Case.LOWER) c: String,
@@ -111,7 +111,7 @@ internal class VariantIteratorTest {
     }
 
     @Test
-    fun `𝕄 iterate 𝕎 forEach() { anySize }`(
+    fun `M iterate W forEach() { anySize }`(
         @StringForgery(case = Case.LOWER) names: List<String>
     ) {
         // Given

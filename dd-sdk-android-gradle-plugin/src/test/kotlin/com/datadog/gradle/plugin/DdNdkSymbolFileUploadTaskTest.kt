@@ -318,7 +318,7 @@ internal class DdNdkSymbolFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 throw error 𝕎 applyTask() {api key contains quotes or apostrophes}`(
+    fun `M throw error W applyTask() {api key contains quotes or apostrophes}`(
         forge: Forge
     ) {
         // Given
@@ -342,7 +342,7 @@ internal class DdNdkSymbolFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 throw error 𝕎 applyTask() {buildId is missing}`() {
+    fun `M throw error W applyTask() {buildId is missing}`() {
         // Given
         whenever(testedTask.buildId.isPresent) doReturn false
         writeFakeSoFile("arm64-v8a")
@@ -358,7 +358,7 @@ internal class DdNdkSymbolFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 throw error 𝕎 applyTask() {buildId is empty string}`() {
+    fun `M throw error W applyTask() {buildId is empty string}`() {
         // Given
         whenever(testedTask.buildId.isPresent) doReturn true
         whenever(testedTask.buildId.get()) doReturn ""
@@ -375,7 +375,7 @@ internal class DdNdkSymbolFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 throw error 𝕎 applyTask() {invalid site}`(
+    fun `M throw error W applyTask() {invalid site}`(
         @StringForgery siteName: String
     ) {
         assumeTrue(siteName !in listOf("US", "EU", "GOV"))
@@ -394,7 +394,7 @@ internal class DdNdkSymbolFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 upload to US1 𝕎 applyTask() {missing site}`() {
+    fun `M upload to US1 W applyTask() {missing site}`() {
         // Given
         val fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
         testedTask.repositoryFile = fakeRepositoryFile
@@ -434,7 +434,7 @@ internal class DdNdkSymbolFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 do nothing 𝕎 applyTask() {no mapping file}`() {
+    fun `M do nothing W applyTask() {no mapping file}`() {
         // Given
 
         // When
@@ -445,7 +445,7 @@ internal class DdNdkSymbolFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 apply datadog CI config if exists 𝕎 applyTask()`(forge: Forge) {
+    fun `M apply datadog CI config if exists W applyTask()`(forge: Forge) {
         // Given
         val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
 
@@ -476,7 +476,7 @@ internal class DdNdkSymbolFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 apply datadog CI config if exists 𝕎 applyTask() {apiKey from gradle}`(forge: Forge) {
+    fun `M apply datadog CI config if exists W applyTask() {apiKey from gradle}`(forge: Forge) {
         // Given
         val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
 
@@ -504,7 +504,7 @@ internal class DdNdkSymbolFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 apply datadog CI config if exists 𝕎 applyTask() { apiKey is missing }`(forge: Forge) {
+    fun `M apply datadog CI config if exists W applyTask() { apiKey is missing }`(forge: Forge) {
         // Given
         val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
 
@@ -528,7 +528,7 @@ internal class DdNdkSymbolFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 apply datadog CI config if exists 𝕎 applyTask() {datadogSite missing}`(forge: Forge) {
+    fun `M apply datadog CI config if exists W applyTask() {datadogSite missing}`(forge: Forge) {
         // Given
         val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
 
@@ -556,7 +556,7 @@ internal class DdNdkSymbolFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 apply datadog CI config if exists 𝕎 applyTask() {datadogSite unknown}`(forge: Forge) {
+    fun `M apply datadog CI config if exists W applyTask() {datadogSite unknown}`(forge: Forge) {
         // Given
         val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
 
@@ -581,7 +581,7 @@ internal class DdNdkSymbolFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 apply datadog CI config if exists 𝕎 applyTask() {site is set already}`(forge: Forge) {
+    fun `M apply datadog CI config if exists W applyTask() {site is set already}`(forge: Forge) {
         // Given
         val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
 
@@ -605,7 +605,7 @@ internal class DdNdkSymbolFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 read site from environment variable 𝕎 applyTask() {site is not set}`(forge: Forge) {
+    fun `M read site from environment variable W applyTask() {site is not set}`(forge: Forge) {
         // Given
         val fakeDatadogEnvDomain = forge.aValueFrom(DatadogSite::class.java).domain
         setEnv(DdFileUploadTask.DATADOG_SITE, fakeDatadogEnvDomain)
@@ -621,7 +621,7 @@ internal class DdNdkSymbolFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 read site from environment variable 𝕎 applyTask() {site is set}`(forge: Forge) {
+    fun `M read site from environment variable W applyTask() {site is set}`(forge: Forge) {
         // Given
         val fakeDatadogEnvDomain = forge.aValueFrom(DatadogSite::class.java).domain
         setEnv(DdAndroidGradlePlugin.DATADOG_API_KEY, fakeDatadogEnvDomain)
@@ -636,7 +636,7 @@ internal class DdNdkSymbolFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 not apply datadog CI config if exists 𝕎 applyTask() { malformed json }`(forge: Forge) {
+    fun `M not apply datadog CI config if exists W applyTask() { malformed json }`(forge: Forge) {
         // Given
         val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
 

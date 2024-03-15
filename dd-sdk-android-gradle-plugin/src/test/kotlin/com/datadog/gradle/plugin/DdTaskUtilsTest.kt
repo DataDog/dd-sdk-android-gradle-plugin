@@ -16,7 +16,7 @@ import java.io.File
 @ForgeConfiguration(Configurator::class)
 class DdTaskUtilsTest {
     @Test
-    fun `𝕄 find datadog-ci file 𝕎 findDatadogCiFile()`(
+    fun `M find datadog-ci file W findDatadogCiFile()`(
         @TempDir rootDir: File,
         forge: Forge
     ) {
@@ -33,7 +33,7 @@ class DdTaskUtilsTest {
     }
 
     @Test
-    fun `𝕄 return null 𝕎 findDatadogCiFile() { no ci file found }`(
+    fun `M return null W findDatadogCiFile() { no ci file found }`(
         @TempDir rootDir: File,
         forge: Forge
     ) {
@@ -48,7 +48,7 @@ class DdTaskUtilsTest {
     }
 
     @Test
-    fun `𝕄 return null 𝕎 findDatadogCiFile() { beyond max levels up }`(
+    fun `M return null W findDatadogCiFile() { beyond max levels up }`(
         @TempDir rootDir: File,
         forge: Forge
     ) {
