@@ -1346,8 +1346,8 @@ internal class DdAndroidGradlePluginFunctionalTest {
             }
         """.trimIndent()
 
-        const val LATEST_GRADLE_VERSION = "8.5"
-        const val LATEST_AGP_VERSION = "8.2.0"
+        const val LATEST_GRADLE_VERSION = "8.6"
+        const val LATEST_AGP_VERSION = "8.3.0"
 
         // NB: starting from AGP 7.x, Gradle should have the same major version.
         // While work with Gradle with higher major version is possible, it is not guaranteed.
@@ -1365,7 +1365,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
                 gradleVersion = LATEST_GRADLE_VERSION,
                 buildToolsVersion = "34.0.0",
                 targetSdkVersion = "34",
-                kotlinVersion = "1.9.21",
+                kotlinVersion = "1.9.23",
                 jvmTarget = JavaVersion.VERSION_17.toString()
             )
         )
