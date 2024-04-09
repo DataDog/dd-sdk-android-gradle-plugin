@@ -56,6 +56,7 @@ internal class OkHttpUploaderTest {
     lateinit var tempDir: File
 
     lateinit var fakeMappingFile: File
+    lateinit var fakeMappingFileInfo: Uploader.UploadFileInfo
     lateinit var fakeRepositoryFile: File
 
     @Forgery
@@ -96,9 +97,16 @@ internal class OkHttpUploaderTest {
     var dispatchedApiKeyValidationRequest: RecordedRequest? = null
 
     @BeforeEach
-    fun `set up`() {
+    fun `set up`(forge: Forge) {
         fakeMappingFile = File(tempDir, fakeMappingFileName)
         fakeMappingFile.writeText(fakeMappingFileContent)
+        fakeMappingFileInfo = Uploader.UploadFileInfo(
+            fileKey = forge.anAlphabeticalString(),
+            file = fakeMappingFile,
+            encoding = "text/plain",
+            fileType = forge.anAlphabeticalString(),
+            fileName = forge.anAlphabeticalString()
+        )
 
         fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
         fakeRepositoryFile.writeText(fakeRepositoryFileContent)
@@ -142,7 +150,7 @@ internal class OkHttpUploaderTest {
     }
 
     @Test
-    fun `𝕄 upload proper request 𝕎 upload()`() {
+    fun `M upload proper request W upload()`() {
         // Given
         mockUploadResponse = MockResponse()
             .setResponseCode(HttpURLConnection.HTTP_OK)
@@ -151,7 +159,7 @@ internal class OkHttpUploaderTest {
         // When
         testedUploader.upload(
             mockSite,
-            fakeMappingFile,
+            fakeMappingFileInfo,
             fakeRepositoryFile,
             fakeApiKey,
             fakeIdentifier,
@@ -169,15 +177,12 @@ internal class OkHttpUploaderTest {
             .containsMultipartFile(
                 "event",
                 "event",
-                "{\"service\":\"${fakeIdentifier.serviceName}\"," +
-                    "\"variant\":\"${fakeIdentifier.variant}\"," +
-                    "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
-                    "\"version\":\"${fakeIdentifier.version}\"}",
+                fakeIdentifier.toMappingFileEvent(fakeMappingFileInfo.fileType),
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
-                "jvm_mapping_file",
-                "jvm_mapping",
+                fakeMappingFileInfo.fileKey,
+                fakeMappingFileInfo.fileName,
                 fakeMappingFileContent,
                 "text/plain"
             )
@@ -190,7 +195,7 @@ internal class OkHttpUploaderTest {
     }
 
     @Test
-    fun `𝕄 upload proper request 𝕎 upload() { without gzip }`() {
+    fun `M upload proper request W upload() { without gzip }`() {
         // Given
         mockUploadResponse = MockResponse()
             .setResponseCode(HttpURLConnection.HTTP_OK)
@@ -199,7 +204,7 @@ internal class OkHttpUploaderTest {
         // When
         testedUploader.upload(
             mockSite,
-            fakeMappingFile,
+            fakeMappingFileInfo,
             fakeRepositoryFile,
             fakeApiKey,
             fakeIdentifier,
@@ -217,15 +222,12 @@ internal class OkHttpUploaderTest {
             .containsMultipartFile(
                 "event",
                 "event",
-                "{\"service\":\"${fakeIdentifier.serviceName}\"," +
-                    "\"variant\":\"${fakeIdentifier.variant}\"," +
-                    "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
-                    "\"version\":\"${fakeIdentifier.version}\"}",
+                fakeIdentifier.toMappingFileEvent(fakeMappingFileInfo.fileType),
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
-                "jvm_mapping_file",
-                "jvm_mapping",
+                fakeMappingFileInfo.fileKey,
+                fakeMappingFileInfo.fileName,
                 fakeMappingFileContent,
                 "text/plain"
             )
@@ -238,7 +240,7 @@ internal class OkHttpUploaderTest {
     }
 
     @Test
-    fun `𝕄 upload proper request 𝕎 upload() {repository=null}`() {
+    fun `M upload proper request W upload() {repository=null}`() {
         // Given
         mockUploadResponse = MockResponse()
             .setResponseCode(HttpURLConnection.HTTP_OK)
@@ -247,7 +249,7 @@ internal class OkHttpUploaderTest {
         // When
         testedUploader.upload(
             mockSite,
-            fakeMappingFile,
+            fakeMappingFileInfo,
             null,
             fakeApiKey,
             fakeIdentifier,
@@ -263,15 +265,12 @@ internal class OkHttpUploaderTest {
             .containsMultipartFile(
                 "event",
                 "event",
-                "{\"service\":\"${fakeIdentifier.serviceName}\"," +
-                    "\"variant\":\"${fakeIdentifier.variant}\"," +
-                    "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
-                    "\"version\":\"${fakeIdentifier.version}\"}",
+                fakeIdentifier.toMappingFileEvent(fakeMappingFileInfo.fileType),
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
-                "jvm_mapping_file",
-                "jvm_mapping",
+                fakeMappingFileInfo.fileKey,
+                fakeMappingFileInfo.fileName,
                 fakeMappingFileContent,
                 "text/plain"
             )
@@ -281,7 +280,7 @@ internal class OkHttpUploaderTest {
     }
 
     @Test
-    fun `𝕄 throw exception 𝕎 upload() {response 403}`() {
+    fun `M throw exception W upload() {response 403}`() {
         // Given
         mockUploadResponse = MockResponse()
             .setResponseCode(403)
@@ -291,7 +290,7 @@ internal class OkHttpUploaderTest {
         assertThrows<OkHttpUploader.InvalidApiKeyException> {
             testedUploader.upload(
                 mockSite,
-                fakeMappingFile,
+                fakeMappingFileInfo,
                 fakeRepositoryFile,
                 fakeApiKey,
                 fakeIdentifier,
@@ -310,15 +309,12 @@ internal class OkHttpUploaderTest {
             .containsMultipartFile(
                 "event",
                 "event",
-                "{\"service\":\"${fakeIdentifier.serviceName}\"," +
-                    "\"variant\":\"${fakeIdentifier.variant}\"," +
-                    "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
-                    "\"version\":\"${fakeIdentifier.version}\"}",
+                fakeIdentifier.toMappingFileEvent(fakeMappingFileInfo.fileType),
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
-                "jvm_mapping_file",
-                "jvm_mapping",
+                fakeMappingFileInfo.fileKey,
+                fakeMappingFileInfo.fileName,
                 fakeMappingFileContent,
                 "text/plain"
             )
@@ -331,7 +327,7 @@ internal class OkHttpUploaderTest {
     }
 
     @Test
-    fun `𝕄 throw exception 𝕎 upload() {response 401-599}`(
+    fun `M throw exception W upload() {response 401-599}`(
         @IntForgery(401, 600) statusCode: Int
     ) {
         // 407 will actually throw a protocol exception
@@ -347,7 +343,7 @@ internal class OkHttpUploaderTest {
         assertThrows<IllegalStateException> {
             testedUploader.upload(
                 mockSite,
-                fakeMappingFile,
+                fakeMappingFileInfo,
                 fakeRepositoryFile,
                 fakeApiKey,
                 fakeIdentifier,
@@ -366,15 +362,12 @@ internal class OkHttpUploaderTest {
             .containsMultipartFile(
                 "event",
                 "event",
-                "{\"service\":\"${fakeIdentifier.serviceName}\"," +
-                    "\"variant\":\"${fakeIdentifier.variant}\"," +
-                    "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
-                    "\"version\":\"${fakeIdentifier.version}\"}",
+                fakeIdentifier.toMappingFileEvent(fakeMappingFileInfo.fileType),
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
-                "jvm_mapping_file",
-                "jvm_mapping",
+                fakeMappingFileInfo.fileKey,
+                fakeMappingFileInfo.fileName,
                 fakeMappingFileContent,
                 "text/plain"
             )
@@ -387,7 +380,7 @@ internal class OkHttpUploaderTest {
     }
 
     @Test
-    fun `𝕄 throw generic exception 𝕎 upload() {response 400, API key validation returned true}`() {
+    fun `M throw generic exception W upload() {response 400, API key validation returned true}`() {
         // Given
         mockUploadResponse = MockResponse()
             .setResponseCode(HttpURLConnection.HTTP_BAD_REQUEST)
@@ -400,7 +393,7 @@ internal class OkHttpUploaderTest {
         assertThrows<IllegalStateException> {
             testedUploader.upload(
                 mockSite,
-                fakeMappingFile,
+                fakeMappingFileInfo,
                 fakeRepositoryFile,
                 fakeApiKey,
                 fakeIdentifier,
@@ -419,15 +412,12 @@ internal class OkHttpUploaderTest {
             .containsMultipartFile(
                 "event",
                 "event",
-                "{\"service\":\"${fakeIdentifier.serviceName}\"," +
-                    "\"variant\":\"${fakeIdentifier.variant}\"," +
-                    "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
-                    "\"version\":\"${fakeIdentifier.version}\"}",
+                fakeIdentifier.toMappingFileEvent(fakeMappingFileInfo.fileType),
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
-                "jvm_mapping_file",
-                "jvm_mapping",
+                fakeMappingFileInfo.fileKey,
+                fakeMappingFileInfo.fileName,
                 fakeMappingFileContent,
                 "text/plain"
             )
@@ -443,7 +433,7 @@ internal class OkHttpUploaderTest {
     }
 
     @RepeatedTest(8)
-    fun `𝕄 throw generic exception 𝕎 upload() {response 400, API key validation failed}`(
+    fun `M throw generic exception W upload() {response 400, API key validation failed}`(
         forge: Forge
     ) {
         // Given
@@ -469,7 +459,7 @@ internal class OkHttpUploaderTest {
         assertThrows<IllegalStateException> {
             testedUploader.upload(
                 mockSite,
-                fakeMappingFile,
+                fakeMappingFileInfo,
                 fakeRepositoryFile,
                 fakeApiKey,
                 fakeIdentifier,
@@ -488,15 +478,12 @@ internal class OkHttpUploaderTest {
             .containsMultipartFile(
                 "event",
                 "event",
-                "{\"service\":\"${fakeIdentifier.serviceName}\"," +
-                    "\"variant\":\"${fakeIdentifier.variant}\"," +
-                    "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
-                    "\"version\":\"${fakeIdentifier.version}\"}",
+                fakeIdentifier.toMappingFileEvent(fakeMappingFileInfo.fileType),
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
-                "jvm_mapping_file",
-                "jvm_mapping",
+                fakeMappingFileInfo.fileKey,
+                fakeMappingFileInfo.fileName,
                 fakeMappingFileContent,
                 "text/plain"
             )
@@ -512,7 +499,7 @@ internal class OkHttpUploaderTest {
     }
 
     @Test
-    fun `𝕄 throw API key validation exception 𝕎 upload() {response 400, API key validation returned false}`() {
+    fun `M throw API key validation exception W upload() {response 400, API key validation returned false}`() {
         // Given
         mockUploadResponse = MockResponse()
             .setResponseCode(HttpURLConnection.HTTP_BAD_REQUEST)
@@ -526,7 +513,7 @@ internal class OkHttpUploaderTest {
         assertThrows<OkHttpUploader.InvalidApiKeyException> {
             testedUploader.upload(
                 mockSite,
-                fakeMappingFile,
+                fakeMappingFileInfo,
                 fakeRepositoryFile,
                 fakeApiKey,
                 fakeIdentifier,
@@ -545,15 +532,12 @@ internal class OkHttpUploaderTest {
             .containsMultipartFile(
                 "event",
                 "event",
-                "{\"service\":\"${fakeIdentifier.serviceName}\"," +
-                    "\"variant\":\"${fakeIdentifier.variant}\"," +
-                    "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
-                    "\"version\":\"${fakeIdentifier.version}\"}",
+                fakeIdentifier.toMappingFileEvent(fakeMappingFileInfo.fileType),
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
-                "jvm_mapping_file",
-                "jvm_mapping",
+                fakeMappingFileInfo.fileKey,
+                fakeMappingFileInfo.fileName,
                 fakeMappingFileContent,
                 "text/plain"
             )
@@ -569,7 +553,7 @@ internal class OkHttpUploaderTest {
     }
 
     @Test
-    fun `𝕄 throw API key validation exception 𝕎 upload() {response 400, API key validation returned 403}`() {
+    fun `M throw API key validation exception W upload() {response 400, API key validation returned 403}`() {
         // Given
         mockUploadResponse = MockResponse()
             .setResponseCode(HttpURLConnection.HTTP_BAD_REQUEST)
@@ -582,7 +566,7 @@ internal class OkHttpUploaderTest {
         assertThrows<OkHttpUploader.InvalidApiKeyException> {
             testedUploader.upload(
                 mockSite,
-                fakeMappingFile,
+                fakeMappingFileInfo,
                 fakeRepositoryFile,
                 fakeApiKey,
                 fakeIdentifier,
@@ -601,15 +585,12 @@ internal class OkHttpUploaderTest {
             .containsMultipartFile(
                 "event",
                 "event",
-                "{\"service\":\"${fakeIdentifier.serviceName}\"," +
-                    "\"variant\":\"${fakeIdentifier.variant}\"," +
-                    "\"type\":\"${OkHttpUploader.TYPE_JVM_MAPPING_FILE}\"," +
-                    "\"version\":\"${fakeIdentifier.version}\"}",
+                fakeIdentifier.toMappingFileEvent(fakeMappingFileInfo.fileType),
                 "application/json; charset=utf-8"
             )
             .containsMultipartFile(
-                "jvm_mapping_file",
-                "jvm_mapping",
+                fakeMappingFileInfo.fileKey,
+                fakeMappingFileInfo.fileName,
                 fakeMappingFileContent,
                 "text/plain"
             )
@@ -635,7 +616,7 @@ internal class OkHttpUploaderTest {
         val exception = assertThrows<MaxSizeExceededException> {
             testedUploader.upload(
                 mockSite,
-                fakeMappingFile,
+                fakeMappingFileInfo,
                 fakeRepositoryFile,
                 fakeApiKey,
                 fakeIdentifier,
@@ -646,6 +627,17 @@ internal class OkHttpUploaderTest {
         assertThat(exception.message).isEqualTo(
             OkHttpUploader.MAX_MAP_SIZE_EXCEEDED_ERROR.format(Locale.US, fakeIdentifier)
         )
+    }
+
+    // region Internal
+
+    private fun DdAppIdentifier.toMappingFileEvent(type: String): String {
+        return "{\"build_id\":\"${buildId}\"," +
+            "\"service\":\"${serviceName}\"," +
+            "\"variant\":\"${variant}\"," +
+            "\"version_code\":$versionCode," +
+            "\"type\":\"${type}\"," +
+            "\"version\":\"${version}\"}"
     }
 
     inner class MockDispatcher : Dispatcher() {
@@ -663,4 +655,6 @@ internal class OkHttpUploaderTest {
             }
         }
     }
+
+    // endregion
 }

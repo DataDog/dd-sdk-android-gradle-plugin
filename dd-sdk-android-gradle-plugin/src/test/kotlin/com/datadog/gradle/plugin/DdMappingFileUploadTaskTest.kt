@@ -12,10 +12,12 @@ import com.datadog.gradle.plugin.internal.DdAppIdentifier
 import com.datadog.gradle.plugin.internal.Uploader
 import fr.xgouchet.elmyr.Forge
 import fr.xgouchet.elmyr.annotation.Forgery
+import fr.xgouchet.elmyr.annotation.IntForgery
 import fr.xgouchet.elmyr.annotation.StringForgery
 import fr.xgouchet.elmyr.junit5.ForgeConfiguration
 import fr.xgouchet.elmyr.junit5.ForgeExtension
 import org.assertj.core.api.Assertions.assertThat
+import org.gradle.api.provider.Provider
 import org.gradle.testfixtures.ProjectBuilder
 import org.json.JSONArray
 import org.json.JSONObject
@@ -34,11 +36,13 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
 import java.io.File
+import java.util.UUID
 
 @Extensions(
     ExtendWith(MockitoExtension::class),
@@ -62,8 +66,13 @@ internal class DdMappingFileUploadTaskTest {
     @StringForgery
     lateinit var fakeVariant: String
 
+    lateinit var fakeBuildId: String
+
     @StringForgery
     lateinit var fakeVersion: String
+
+    @IntForgery(min = 0)
+    var fakeVersionCode: Int = 0
 
     @StringForgery
     lateinit var fakeService: String
@@ -105,22 +114,28 @@ internal class DdMappingFileUploadTaskTest {
             value = forge.anHexadecimalString(),
             source = forge.aValueFrom(ApiKeySource::class.java)
         )
+        fakeBuildId = forge.getForgery<UUID>().toString()
         testedTask.apiKey = fakeApiKey.value
         testedTask.apiKeySource = fakeApiKey.source
         testedTask.variantName = fakeVariant
         testedTask.versionName = fakeVersion
+        testedTask.versionCode = fakeVersionCode
         testedTask.serviceName = fakeService
         testedTask.site = fakeSite.name
-        setEnv(DdMappingFileUploadTask.DATADOG_SITE, "")
+        testedTask.buildId = mock<Provider<String>>().apply {
+            whenever(isPresent) doReturn true
+            whenever(get()) doReturn fakeBuildId
+        }
+        setEnv(DdFileUploadTask.DATADOG_SITE, "")
     }
 
     @AfterEach
     fun `tear down`() {
-        removeEnv(DdMappingFileUploadTask.DATADOG_SITE)
+        removeEnv(DdFileUploadTask.DATADOG_SITE)
     }
 
     @Test
-    fun `𝕄 upload file 𝕎 applyTask()`() {
+    fun `M upload file W applyTask()`() {
         // Given
         val fakeMappingFile = File(tempDir, fakeMappingFileName)
         fakeMappingFile.writeText(fakeMappingFileContent)
@@ -136,13 +151,21 @@ internal class DdMappingFileUploadTaskTest {
         // Then
         verify(mockUploader).upload(
             fakeSite,
-            fakeMappingFile,
+            Uploader.UploadFileInfo(
+                fileKey = DdMappingFileUploadTask.KEY_JVM_MAPPING_FILE,
+                file = fakeMappingFile,
+                encoding = DdMappingFileUploadTask.MEDIA_TYPE_TXT,
+                fileType = DdMappingFileUploadTask.TYPE_JVM_MAPPING_FILE,
+                fileName = DdMappingFileUploadTask.KEY_JVM_MAPPING_FILE_NAME
+            ),
             fakeRepositoryFile,
             fakeApiKey.value,
             DdAppIdentifier(
                 serviceName = fakeService,
                 version = fakeVersion,
-                variant = fakeVariant
+                versionCode = fakeVersionCode,
+                variant = fakeVariant,
+                buildId = fakeBuildId
             ),
             fakeRepoInfo,
             useGzip = true
@@ -154,7 +177,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 upload file 𝕎 applyTask() { short aliases requested }`() {
+    fun `M upload file W applyTask() { short aliases requested }`() {
         // Given
         testedTask.mappingFilePackagesAliases = mapOf(
             "androidx.fragment.app" to "axfraga",
@@ -178,7 +201,7 @@ internal class DdMappingFileUploadTaskTest {
         testedTask.applyTask()
 
         // Then
-        argumentCaptor<File> {
+        argumentCaptor<Uploader.UploadFileInfo> {
             verify(mockUploader).upload(
                 eq(fakeSite),
                 capture(),
@@ -188,20 +211,22 @@ internal class DdMappingFileUploadTaskTest {
                     DdAppIdentifier(
                         serviceName = fakeService,
                         version = fakeVersion,
-                        variant = fakeVariant
+                        versionCode = fakeVersionCode,
+                        variant = fakeVariant,
+                        buildId = fakeBuildId
                     )
                 ),
                 eq(fakeRepoInfo),
                 useGzip = eq(true)
             )
-            assertThat(lastValue).hasSameTextualContentAs(
+            assertThat(lastValue.file).hasSameTextualContentAs(
                 fileFromResourcesPath("mapping-with-aliases.txt")
             )
         }
     }
 
     @Test
-    fun `𝕄 upload file 𝕎 applyTask() { trim starting indents }`(
+    fun `M upload file W applyTask() { trim starting indents }`(
         forge: Forge
     ) {
         // Given
@@ -227,7 +252,7 @@ internal class DdMappingFileUploadTaskTest {
         testedTask.applyTask()
 
         // Then
-        argumentCaptor<File> {
+        argumentCaptor<Uploader.UploadFileInfo> {
             verify(mockUploader).upload(
                 eq(fakeSite),
                 capture(),
@@ -237,18 +262,20 @@ internal class DdMappingFileUploadTaskTest {
                     DdAppIdentifier(
                         serviceName = fakeService,
                         version = fakeVersion,
-                        variant = fakeVariant
+                        versionCode = fakeVersionCode,
+                        variant = fakeVariant,
+                        buildId = fakeBuildId
                     )
                 ),
                 eq(fakeRepoInfo),
                 useGzip = eq(true)
             )
-            assertThat(lastValue.readLines()).isEqualTo(expectedLines)
+            assertThat(lastValue.file.readLines()).isEqualTo(expectedLines)
         }
     }
 
     @Test
-    fun `𝕄 upload file 𝕎 applyTask() { delete old shrinked mapping file before writing }`(
+    fun `M upload file W applyTask() { delete old shrinked mapping file before writing }`(
         forge: Forge
     ) {
         // Given
@@ -280,7 +307,7 @@ internal class DdMappingFileUploadTaskTest {
         testedTask.applyTask()
 
         // Then
-        argumentCaptor<File> {
+        argumentCaptor<Uploader.UploadFileInfo> {
             verify(mockUploader).upload(
                 eq(fakeSite),
                 capture(),
@@ -290,18 +317,20 @@ internal class DdMappingFileUploadTaskTest {
                     DdAppIdentifier(
                         serviceName = fakeService,
                         version = fakeVersion,
-                        variant = fakeVariant
+                        versionCode = fakeVersionCode,
+                        variant = fakeVariant,
+                        buildId = fakeBuildId
                     )
                 ),
                 eq(fakeRepoInfo),
                 useGzip = eq(true)
             )
-            assertThat(lastValue.readLines()).isEqualTo(expectedLines)
+            assertThat(lastValue.file.readLines()).isEqualTo(expectedLines)
         }
     }
 
     @Test
-    fun `𝕄 upload file 𝕎 applyTask { remote url provided }`() {
+    fun `M upload file W applyTask { remote url provided }`() {
         // Given
         val fakeMappingFile = File(tempDir, fakeMappingFileName)
         fakeMappingFile.writeText(fakeMappingFileContent)
@@ -318,13 +347,21 @@ internal class DdMappingFileUploadTaskTest {
         // Then
         verify(mockUploader).upload(
             fakeSite,
-            fakeMappingFile,
+            Uploader.UploadFileInfo(
+                fileKey = DdMappingFileUploadTask.KEY_JVM_MAPPING_FILE,
+                file = fakeMappingFile,
+                encoding = DdMappingFileUploadTask.MEDIA_TYPE_TXT,
+                fileType = DdMappingFileUploadTask.TYPE_JVM_MAPPING_FILE,
+                fileName = DdMappingFileUploadTask.KEY_JVM_MAPPING_FILE_NAME
+            ),
             fakeRepositoryFile,
             fakeApiKey.value,
             DdAppIdentifier(
                 serviceName = fakeService,
                 version = fakeVersion,
-                variant = fakeVariant
+                versionCode = fakeVersionCode,
+                variant = fakeVariant,
+                buildId = fakeBuildId
             ),
             fakeRepoInfo,
             useGzip = true
@@ -336,7 +373,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 upload file 𝕎 applyTask() {not a git repo}`() {
+    fun `M upload file W applyTask() {not a git repo}`() {
         // Given
         val fakeMappingFile = File(tempDir, fakeMappingFileName)
         fakeMappingFile.writeText(fakeMappingFileContent)
@@ -352,13 +389,21 @@ internal class DdMappingFileUploadTaskTest {
         // Then
         verify(mockUploader).upload(
             fakeSite,
-            fakeMappingFile,
+            Uploader.UploadFileInfo(
+                fileKey = DdMappingFileUploadTask.KEY_JVM_MAPPING_FILE,
+                file = fakeMappingFile,
+                encoding = DdMappingFileUploadTask.MEDIA_TYPE_TXT,
+                fileType = DdMappingFileUploadTask.TYPE_JVM_MAPPING_FILE,
+                fileName = DdMappingFileUploadTask.KEY_JVM_MAPPING_FILE_NAME
+            ),
             null,
             fakeApiKey.value,
             DdAppIdentifier(
                 serviceName = fakeService,
                 version = fakeVersion,
-                variant = fakeVariant
+                versionCode = fakeVersionCode,
+                variant = fakeVariant,
+                buildId = fakeBuildId
             ),
             null,
             useGzip = true
@@ -366,7 +411,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 throw error 𝕎 applyTask() {no api key}`() {
+    fun `M throw error W applyTask() {no api key}`() {
         // Given
         val fakeMappingFile = File(tempDir, fakeMappingFileName)
         fakeMappingFile.writeText(fakeMappingFileContent)
@@ -375,16 +420,17 @@ internal class DdMappingFileUploadTaskTest {
         testedTask.apiKeySource = ApiKeySource.NONE
 
         // When
-        assertThrows<IllegalStateException> {
+        val exception = assertThrows<IllegalStateException> {
             testedTask.applyTask()
         }
 
         // Then
+        assertThat(exception.message).isEqualTo(DdMappingFileUploadTask.API_KEY_MISSING_ERROR)
         verifyNoInteractions(mockUploader)
     }
 
     @Test
-    fun `𝕄 throw error 𝕎 applyTask() {api key contains quotes or apostrophes}`(
+    fun `M throw error W applyTask() {api key contains quotes or apostrophes}`(
         forge: Forge
     ) {
         // Given
@@ -400,16 +446,55 @@ internal class DdMappingFileUploadTaskTest {
         testedTask.apiKeySource = ApiKeySource.NONE
 
         // When
-        assertThrows<IllegalStateException> {
+        val exception = assertThrows<IllegalStateException> {
             testedTask.applyTask()
         }
 
         // Then
+        assertThat(exception.message)
+            .isEqualTo(DdMappingFileUploadTask.INVALID_API_KEY_FORMAT_ERROR)
         verifyNoInteractions(mockUploader)
     }
 
     @Test
-    fun `𝕄 throw error 𝕎 applyTask() {invalid site}`(
+    fun `M throw error W applyTask() {buildId is missing}`() {
+        // Given
+        val fakeMappingFile = File(tempDir, fakeMappingFileName)
+        fakeMappingFile.writeText(fakeMappingFileContent)
+        testedTask.mappingFilePath = fakeMappingFile.path
+        whenever(testedTask.buildId.isPresent) doReturn false
+
+        // When
+        val exception = assertThrows<IllegalStateException> {
+            testedTask.applyTask()
+        }
+
+        // Then
+        assertThat(exception.message).isEqualTo(DdMappingFileUploadTask.MISSING_BUILD_ID_ERROR)
+        verifyNoInteractions(mockUploader)
+    }
+
+    @Test
+    fun `M throw error W applyTask() {buildId is empty string}`() {
+        // Given
+        val fakeMappingFile = File(tempDir, fakeMappingFileName)
+        fakeMappingFile.writeText(fakeMappingFileContent)
+        testedTask.mappingFilePath = fakeMappingFile.path
+        whenever(testedTask.buildId.isPresent) doReturn true
+        whenever(testedTask.buildId.get()) doReturn ""
+
+        // When
+        val exception = assertThrows<IllegalStateException> {
+            testedTask.applyTask()
+        }
+
+        // Then
+        assertThat(exception.message).isEqualTo(DdMappingFileUploadTask.MISSING_BUILD_ID_ERROR)
+        verifyNoInteractions(mockUploader)
+    }
+
+    @Test
+    fun `M throw error W applyTask() {invalid site}`(
         @StringForgery siteName: String
     ) {
         assumeTrue(siteName !in listOf("US", "EU", "GOV"))
@@ -430,7 +515,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 upload to US1 𝕎 applyTask() {missing site}`() {
+    fun `M upload to US1 W applyTask() {missing site}`() {
         // Given
         val fakeMappingFile = File(tempDir, fakeMappingFileName)
         fakeMappingFile.writeText(fakeMappingFileContent)
@@ -447,13 +532,21 @@ internal class DdMappingFileUploadTaskTest {
         // Then
         verify(mockUploader).upload(
             DatadogSite.US1,
-            fakeMappingFile,
+            Uploader.UploadFileInfo(
+                fileKey = DdMappingFileUploadTask.KEY_JVM_MAPPING_FILE,
+                file = fakeMappingFile,
+                encoding = DdMappingFileUploadTask.MEDIA_TYPE_TXT,
+                fileType = DdMappingFileUploadTask.TYPE_JVM_MAPPING_FILE,
+                fileName = DdMappingFileUploadTask.KEY_JVM_MAPPING_FILE_NAME
+            ),
             fakeRepositoryFile,
             fakeApiKey.value,
             DdAppIdentifier(
                 serviceName = fakeService,
                 version = fakeVersion,
-                variant = fakeVariant
+                versionCode = fakeVersionCode,
+                variant = fakeVariant,
+                buildId = fakeBuildId
             ),
             fakeRepoInfo,
             useGzip = true
@@ -465,7 +558,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 do nothing 𝕎 applyTask() {no mapping file}`() {
+    fun `M do nothing W applyTask() {no mapping file}`() {
         // Given
         val fakeMappingFile = File(tempDir, fakeMappingFileName)
         testedTask.mappingFilePath = fakeMappingFile.path
@@ -478,7 +571,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 throw error 𝕎 applyTask() {mapping file is dir}`() {
+    fun `M throw error W applyTask() {mapping file is dir}`() {
         // Given
         val fakeMappingFile = File(tempDir, fakeMappingFileName)
         fakeMappingFile.mkdirs()
@@ -494,7 +587,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 apply datadog CI config if exists 𝕎 applyTask()`(forge: Forge) {
+    fun `M apply datadog CI config if exists W applyTask()`(forge: Forge) {
         // Given
         val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
 
@@ -525,7 +618,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 apply datadog CI config if exists 𝕎 applyTask() {apiKey from gradle}`(forge: Forge) {
+    fun `M apply datadog CI config if exists W applyTask() {apiKey from gradle}`(forge: Forge) {
         // Given
         val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
 
@@ -553,7 +646,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 apply datadog CI config if exists 𝕎 applyTask() { apiKey is missing }`(forge: Forge) {
+    fun `M apply datadog CI config if exists W applyTask() { apiKey is missing }`(forge: Forge) {
         // Given
         val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
 
@@ -577,7 +670,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 apply datadog CI config if exists 𝕎 applyTask() {datadogSite missing}`(forge: Forge) {
+    fun `M apply datadog CI config if exists W applyTask() {datadogSite missing}`(forge: Forge) {
         // Given
         val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
 
@@ -605,7 +698,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 apply datadog CI config if exists 𝕎 applyTask() {datadogSite unknown}`(forge: Forge) {
+    fun `M apply datadog CI config if exists W applyTask() {datadogSite unknown}`(forge: Forge) {
         // Given
         val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
 
@@ -630,7 +723,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 apply datadog CI config if exists 𝕎 applyTask() {site is set already}`(forge: Forge) {
+    fun `M apply datadog CI config if exists W applyTask() {site is set already}`(forge: Forge) {
         // Given
         val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
 
@@ -654,10 +747,10 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 read site from environment variable 𝕎 applyTask() {site is not set}`(forge: Forge) {
+    fun `M read site from environment variable W applyTask() {site is not set}`(forge: Forge) {
         // Given
         val fakeDatadogEnvDomain = forge.aValueFrom(DatadogSite::class.java).domain
-        setEnv(DdMappingFileUploadTask.DATADOG_SITE, fakeDatadogEnvDomain)
+        setEnv(DdFileUploadTask.DATADOG_SITE, fakeDatadogEnvDomain)
         testedTask.site = ""
 
         // When
@@ -670,7 +763,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 read site from environment variable 𝕎 applyTask() {site is set}`(forge: Forge) {
+    fun `M read site from environment variable W applyTask() {site is set}`(forge: Forge) {
         // Given
         val fakeDatadogEnvDomain = forge.aValueFrom(DatadogSite::class.java).domain
         setEnv(DdAndroidGradlePlugin.DATADOG_API_KEY, fakeDatadogEnvDomain)
@@ -685,7 +778,7 @@ internal class DdMappingFileUploadTaskTest {
     }
 
     @Test
-    fun `𝕄 not apply datadog CI config if exists 𝕎 applyTask() { malformed json }`(forge: Forge) {
+    fun `M not apply datadog CI config if exists W applyTask() { malformed json }`(forge: Forge) {
         // Given
         val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
 

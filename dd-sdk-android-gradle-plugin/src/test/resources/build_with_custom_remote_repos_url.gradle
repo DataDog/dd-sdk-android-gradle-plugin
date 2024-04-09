@@ -10,13 +10,13 @@ repositories {
 }
 
 android {
-    compileSdkVersion = 33
-    buildToolsVersion = "33.0.1"
+    compileSdkVersion = rootProject.ext.targetSdkVersion
+    buildToolsVersion = rootProject.ext.buildToolsVersion
 
     defaultConfig {
         applicationId "com.example.variants"
         minSdkVersion 21
-        targetSdkVersion 33
+        targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
         multiDexEnabled = true
@@ -32,8 +32,12 @@ android {
     namespace = "com.example.variants"
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = rootProject.ext.jvmTarget
+        targetCompatibility = rootProject.ext.jvmTarget
+    }
+
+    kotlinOptions {
+        jvmTarget = rootProject.ext.jvmTarget
     }
 
     flavorDimensions("version", "colour")
@@ -59,7 +63,7 @@ android {
 }
 
 dependencies {
-    implementation("com.datadoghq:dd-sdk-android-rum:2.2.0")
+    implementation(rootProject.ext.datadogSdkDependency)
 }
 
 datadog {

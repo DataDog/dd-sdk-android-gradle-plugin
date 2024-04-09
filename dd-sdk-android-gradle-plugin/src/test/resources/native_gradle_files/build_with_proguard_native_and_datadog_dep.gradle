@@ -1,0 +1,74 @@
+plugins {
+    id("com.android.application")
+    id("kotlin-android")
+    id("com.datadoghq.dd-sdk-android-gradle-plugin")
+}
+
+repositories {
+    google()
+    mavenCentral()
+}
+
+android {
+    compileSdkVersion = rootProject.ext.targetSdkVersion
+    buildToolsVersion = rootProject.ext.buildToolsVersion
+
+    defaultConfig {
+        applicationId "com.example.variants"
+        minSdkVersion 21
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 1
+        versionName "1.0"
+        multiDexEnabled = true
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile ('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    namespace = "com.example.variants"
+
+    compileOptions {
+        sourceCompatibility = rootProject.ext.jvmTarget
+        targetCompatibility = rootProject.ext.jvmTarget
+    }
+
+    kotlinOptions {
+        jvmTarget = rootProject.ext.jvmTarget
+    }
+
+    externalNativeBuild {
+        cmake {
+            path file('src/main/cpp/CMakeLists.txt')
+            version '3.22.1'
+        }
+    }
+
+    flavorDimensions("version", "colour")
+    productFlavors {
+        demo {
+            dimension "version"
+            applicationIdSuffix ".demo"
+            versionNameSuffix "-demo"
+        }
+        full {
+            dimension "version"
+            applicationIdSuffix ".full"
+            versionNameSuffix "-full"
+        }
+
+        green {
+            dimension "colour"
+        }
+        blue {
+            dimension "colour"
+        }
+    }
+}
+
+dependencies {
+    implementation(rootProject.ext.datadogSdkDependency)
+}

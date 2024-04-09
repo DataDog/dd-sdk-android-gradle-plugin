@@ -32,7 +32,6 @@ import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 internal class OkHttpUploader : Uploader {
-
     // region Uploader
 
     // we cannot make it a property with a backing field, because serialization of this field is not
@@ -48,15 +47,19 @@ internal class OkHttpUploader : Uploader {
     @Suppress("TooGenericExceptionCaught")
     override fun upload(
         site: DatadogSite,
-        mappingFile: File,
+        fileInfo: Uploader.UploadFileInfo,
         repositoryFile: File?,
         apiKey: String,
         identifier: DdAppIdentifier,
         repositoryInfo: RepositoryInfo?,
         useGzip: Boolean
     ) {
-        LOGGER.info("Uploading mapping file with tags $identifier (site=${site.domain}):\n")
-        val body = createBody(identifier, mappingFile, repositoryFile, repositoryInfo)
+        LOGGER.info("Uploading file ${fileInfo.fileName} with tags $identifier (site=${site.domain}):")
+        if (fileInfo.extraAttributes.isNotEmpty()) {
+            LOGGER.info("  extra attributes: ${fileInfo.extraAttributes}")
+        }
+        LOGGER.info("\n")
+        val body = createBody(identifier, fileInfo, repositoryFile, repositoryInfo)
 
         val requestBuilder = Request.Builder()
             .url(site.uploadEndpoint())
@@ -93,17 +96,23 @@ internal class OkHttpUploader : Uploader {
 
     private fun createBody(
         identifier: DdAppIdentifier,
-        mappingFile: File,
+        fileInfo: Uploader.UploadFileInfo,
         repositoryFile: File?,
         repositoryInfo: RepositoryInfo?
     ): MultipartBody {
-        val mappingFileBody = mappingFile.asRequestBody(MEDIA_TYPE_TXT)
+        val mappingFileBody = fileInfo.file.asRequestBody(fileInfo.encoding.toMediaTypeOrNull())
 
         val eventJson = JSONObject()
         eventJson.put("version", identifier.version)
         eventJson.put("service", identifier.serviceName)
         eventJson.put("variant", identifier.variant)
-        eventJson.put("type", TYPE_JVM_MAPPING_FILE)
+        eventJson.put("build_id", identifier.buildId)
+        eventJson.put("version_code", identifier.versionCode)
+        eventJson.put("type", fileInfo.fileType)
+        fileInfo.extraAttributes.forEach { (key, value) ->
+            eventJson.put(key, value)
+        }
+        LOGGER.info("  event: ${eventJson.toString(0)}")
 
         val builder = MultipartBody.Builder()
         builder.setType(MultipartBody.FORM)
@@ -113,8 +122,8 @@ internal class OkHttpUploader : Uploader {
                 eventJson.toString(0).toRequestBody(MEDIA_TYPE_JSON)
             )
             .addFormDataPart(
-                KEY_JVM_MAPPING_FILE,
-                KEY_JVM_MAPPING,
+                fileInfo.fileKey,
+                fileInfo.fileName,
                 mappingFileBody
             )
 
@@ -251,7 +260,7 @@ internal class OkHttpUploader : Uploader {
     companion object {
 
         // TODO add a plugin to automatically sync this with the `MavenConfig` value
-        internal const val VERSION = "1.12.0"
+        internal const val VERSION = "1.13.0"
 
         internal const val HEADER_API_KEY = "DD-API-KEY"
         internal const val HEADER_EVP_ORIGIN = "DD-EVP-ORIGIN"
@@ -261,12 +270,9 @@ internal class OkHttpUploader : Uploader {
         internal const val ENCODING_GZIP = "gzip"
 
         internal const val KEY_EVENT = "event"
-        internal const val KEY_JVM_MAPPING_FILE = "jvm_mapping_file"
-        internal const val KEY_JVM_MAPPING = "jvm_mapping"
         internal const val KEY_REPOSITORY = "repository"
 
         internal val NETWORK_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(60)
-        internal val MEDIA_TYPE_TXT = "text/plain".toMediaTypeOrNull()
         internal val MEDIA_TYPE_JSON = "application/json".toMediaTypeOrNull()
 
         internal const val MAX_MAP_SIZE_EXCEEDED_ERROR =
@@ -278,7 +284,5 @@ internal class OkHttpUploader : Uploader {
             HttpURLConnection.HTTP_CREATED,
             HttpURLConnection.HTTP_ACCEPTED
         )
-
-        internal const val TYPE_JVM_MAPPING_FILE = "jvm_mapping_file"
     }
 }

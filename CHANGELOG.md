@@ -1,3 +1,30 @@
+# 1.13.0 / 2024-04-09
+
+* [FEATURE] Inject build ID into mapping file upload and SDK host application as well. See [#211](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/211)
+* [BUGFIX] Add files under kotlin source set to the repository information. See [#212](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/212)
+* [MAINTENANCE] Remove use of deprecated env variables. See [#188](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/188)
+* [MAINTENANCE] Next dev version. See [#201](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/201)
+* [MAINTENANCE] Merge `release/1.12.0` branch into `develop` branch. See [#202](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/202)
+* [MAINTENANCE] Use version 1.12.0 of plugin for sample apps. See [#204](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/204)
+* [MAINTENANCE] Update Datadog SDK to version 2.3.0. See [#207](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/207)
+* [MAINTENANCE] Update build tooling to target API 34. See [#208](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/208)
+* [MAINTENANCE] Fix CI visibility integration. See [#209](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/209)
+* [MAINTENANCE] Run functional tests against different AGP versions. See [#214](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/214)
+* [MAINTENANCE] Update `CODEOWNERS` to include `rum-mobile-android`. See [#213](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/213)
+* [MAINTENANCE] Update Datadog SDK to version 2.4.0. See [#215](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/215)
+* [MAINTENANCE] Use snake case for properties in mapping file event. See [#217](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/217)
+* [MAINTENANCE] Update Datadog SDK to version 2.5.0. See [#218](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/218)
+* [MAINTENANCE] Update Datadog SDK to version 2.5.1. See [#219](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/219)
+* [MAINTENANCE] Update CMAKE to 3.22.1 for gitlab builds.. See [#221](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/221)
+* [MAINTENANCE] Update Datadog SDK to version 2.6.0. See [#223](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/223)
+* [MAINTENANCE] Update Datadog SDK to version 2.6.1. See [#224](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/224)
+* [MAINTENANCE] Update Datadog SDK to version 2.6.2. See [#225](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/225)
+* [MAINTENANCE] Remove non-ASCII characters from test names. See [#226](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/226)
+* [MAINTENANCE] Tooling update. See [#227](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/227)
+* [MAINTENANCE] Update AGP to 8.3.1. See [#229](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/229)
+* [MAINTENANCE] Update Datadog SDK to version 2.7.0. See [#230](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/230)
+* [MAINTENANCE] Update Datadog SDK to version 2.7.1. See [#231](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/231)
+
 # 1.12.0 / 2023-10-30
 
 * [IMPROVEMENT] Make plugin compatible with Kotlin Script. See [#197](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/197)

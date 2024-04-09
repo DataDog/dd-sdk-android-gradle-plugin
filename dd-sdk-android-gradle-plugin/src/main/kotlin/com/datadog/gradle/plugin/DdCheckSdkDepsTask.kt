@@ -45,7 +45,7 @@ abstract class DdCheckSdkDepsTask : DefaultTask() {
     internal var isLastRunSuccessful: Boolean = true
 
     init {
-        group = "datadog"
+        group = DdAndroidGradlePlugin.DATADOG_TASK_GROUP
         description = "Checks for the Datadog SDK into your variant dependencies."
         outputs.upToDateWhen { it is DdCheckSdkDepsTask && it.isLastRunSuccessful }
     }
