@@ -6,6 +6,9 @@
 
 package com.datadog.gradle.plugin
 
+import com.android.build.gradle.AppExtension
+import com.android.build.gradle.api.AndroidSourceDirectorySet
+import com.android.build.gradle.api.AndroidSourceSet
 import com.android.build.gradle.api.ApplicationVariant
 import com.android.builder.model.BuildType
 import com.android.builder.model.ProductFlavor
@@ -24,22 +27,27 @@ import fr.xgouchet.elmyr.annotation.StringForgeryType
 import fr.xgouchet.elmyr.junit5.ForgeConfiguration
 import fr.xgouchet.elmyr.junit5.ForgeExtension
 import org.assertj.core.api.Assertions.assertThat
+import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
+import org.gradle.api.Transformer
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.extension.Extensions
-import org.junit.jupiter.api.io.TempDir
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.junit.jupiter.MockitoSettings
+import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
 import java.io.File
+import java.util.UUID
 
 @Extensions(
     ExtendWith(MockitoExtension::class),
@@ -59,6 +67,8 @@ internal class DdAndroidGradlePluginTest {
     @Mock
     lateinit var mockBuildType: BuildType
 
+    lateinit var fakeBuildId: String
+
     @Forgery
     lateinit var fakeExtension: DdExtension
 
@@ -77,16 +87,17 @@ internal class DdAndroidGradlePluginTest {
             source = forge.aValueFrom(ApiKeySource::class.java)
         )
         fakeFlavorNames = fakeFlavorNames.take(5) // A D F G A♭ A A♭ G F
+        fakeBuildId = forge.getForgery<UUID>().toString()
         fakeProject = ProjectBuilder.builder().build()
-        testedPlugin = DdAndroidGradlePlugin(mock())
+        testedPlugin = DdAndroidGradlePlugin(mock(), mock())
         setEnv(DdAndroidGradlePlugin.DD_API_KEY, "")
         setEnv(DdAndroidGradlePlugin.DATADOG_API_KEY, "")
     }
 
-    // region configureVariant()
+    // region configureVariantForUploadTask()
 
     @Test
-    fun `𝕄 configure the upload task with the variant info 𝕎 configureVariant()`(
+    fun `M configure the upload task with the variant info W configureVariantForUploadTask()`(
         @StringForgery(case = Case.LOWER) flavorName: String,
         @StringForgery(case = Case.LOWER) buildTypeName: String,
         @StringForgery versionName: String,
@@ -109,6 +120,7 @@ internal class DdAndroidGradlePluginTest {
         val task = testedPlugin.configureVariantForUploadTask(
             fakeProject,
             mockVariant,
+            mockBuildIdGenerationTask(fakeBuildId),
             fakeApiKey,
             fakeExtension
         )
@@ -130,10 +142,11 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.mappingFilePackagesAliases)
             .isEqualTo(fakeExtension.mappingFilePackageAliases)
         assertThat(task.datadogCiFile).isNull()
+        assertThat(task.buildId.get()).isEqualTo(fakeBuildId)
     }
 
     @Test
-    fun `𝕄 configure the upload task with the extension info 𝕎 configureVariant()`(
+    fun `M configure the upload task with the extension info W configureVariantForUploadTask()`(
         @StringForgery(case = Case.LOWER) flavorName: String,
         @StringForgery(case = Case.LOWER) buildTypeName: String,
         @StringForgery versionName: String,
@@ -153,6 +166,7 @@ internal class DdAndroidGradlePluginTest {
         val task = testedPlugin.configureVariantForUploadTask(
             fakeProject,
             mockVariant,
+            mockBuildIdGenerationTask(fakeBuildId),
             fakeApiKey,
             fakeExtension
         )
@@ -176,10 +190,11 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.mappingFileTrimIndents)
             .isEqualTo(fakeExtension.mappingFileTrimIndents)
         assertThat(task.datadogCiFile).isNull()
+        assertThat(task.buildId.get()).isEqualTo(fakeBuildId)
     }
 
     @Test
-    fun `𝕄 configure the upload task with sanitized mapping aliases 𝕎 configureVariant()`(
+    fun `M configure the upload task with sanitized mapping aliases W configureVariantForUploadTask()`(
         @StringForgery(case = Case.LOWER) flavorName: String,
         @StringForgery(case = Case.LOWER) buildTypeName: String,
         @StringForgery versionName: String,
@@ -209,6 +224,7 @@ internal class DdAndroidGradlePluginTest {
         val task = testedPlugin.configureVariantForUploadTask(
             fakeProject,
             mockVariant,
+            mockBuildIdGenerationTask(fakeBuildId),
             fakeApiKey,
             fakeExtension
         )
@@ -232,10 +248,11 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.mappingFileTrimIndents)
             .isEqualTo(fakeExtension.mappingFileTrimIndents)
         assertThat(task.datadogCiFile).isNull()
+        assertThat(task.buildId.get()).isEqualTo(fakeBuildId)
     }
 
     @Test
-    fun `𝕄 use sensible defaults 𝕎 configureVariant() { empty config }`(
+    fun `M use sensible defaults W configureVariantForUploadTask() { empty config }`(
         @StringForgery(case = Case.LOWER) flavorName: String,
         @StringForgery(case = Case.LOWER) buildTypeName: String,
         @StringForgery versionName: String,
@@ -263,6 +280,7 @@ internal class DdAndroidGradlePluginTest {
         val task = testedPlugin.configureVariantForUploadTask(
             fakeProject,
             mockVariant,
+            mockBuildIdGenerationTask(fakeBuildId),
             fakeApiKey,
             fakeExtension
         )
@@ -284,10 +302,11 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.mappingFilePackagesAliases).isEmpty()
         assertThat(task.mappingFileTrimIndents).isFalse
         assertThat(task.datadogCiFile).isNull()
+        assertThat(task.buildId.get()).isEqualTo(fakeBuildId)
     }
 
     @Test
-    fun `𝕄 apply datadog CI file 𝕎 configureVariant()`(
+    fun `M apply datadog CI file W configureVariantForUploadTask()`(
         @StringForgery(case = Case.LOWER) flavorName: String,
         @StringForgery(case = Case.LOWER) buildTypeName: String,
         @StringForgery versionName: String,
@@ -319,6 +338,7 @@ internal class DdAndroidGradlePluginTest {
         val task = testedPlugin.configureVariantForUploadTask(
             fakeProject,
             mockVariant,
+            mockBuildIdGenerationTask(fakeBuildId),
             fakeApiKey,
             fakeExtension
         )
@@ -340,10 +360,11 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.mappingFilePackagesAliases).isEmpty()
         assertThat(task.mappingFileTrimIndents).isFalse
         assertThat(task.datadogCiFile).isEqualTo(fakeDatadogCiFile)
+        assertThat(task.buildId.get()).isEqualTo(fakeBuildId)
     }
 
     @Test
-    fun `𝕄 not apply datadog CI file 𝕎 configureVariant() { ignoreDatadogCiFileConfig }`(
+    fun `M not apply datadog CI file W configureVariantForUploadTask() { ignoreDatadogCiFileConfig }`(
         @StringForgery(case = Case.LOWER) flavorName: String,
         @StringForgery(case = Case.LOWER) buildTypeName: String,
         @StringForgery versionName: String,
@@ -375,6 +396,7 @@ internal class DdAndroidGradlePluginTest {
         val task = testedPlugin.configureVariantForUploadTask(
             fakeProject,
             mockVariant,
+            mockBuildIdGenerationTask(fakeBuildId),
             fakeApiKey,
             fakeExtension
         )
@@ -396,16 +418,53 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.mappingFilePackagesAliases).isEmpty()
         assertThat(task.mappingFileTrimIndents).isFalse
         assertThat(task.datadogCiFile).isNull()
+        assertThat(task.buildId.get()).isEqualTo(fakeBuildId)
     }
 
     @Test
-    fun `𝕄 do nothing 𝕎 configureVariant() { no deobfuscation }`(
+    fun `M create buildId task W configureTasksForVariant() { no deobfuscation }`(
         @StringForgery(case = Case.LOWER) flavorName: String,
         @StringForgery(case = Case.LOWER) buildTypeName: String,
         @StringForgery versionName: String,
         @StringForgery packageName: String
     ) {
         // Given
+        val mockAppExtension = mockAppExtension()
+
+        val variantName = "$flavorName${buildTypeName.replaceFirstChar { capitalizeChar(it) }}"
+        whenever(mockVariant.name) doReturn variantName
+        whenever(mockVariant.flavorName) doReturn flavorName
+        whenever(mockVariant.versionName) doReturn versionName
+        whenever(mockVariant.applicationId) doReturn packageName
+        whenever(mockVariant.buildType) doReturn mockBuildType
+        whenever(mockVariant.mergeAssetsProvider) doReturn mock()
+        whenever(mockVariant.packageApplicationProvider) doReturn mock()
+        whenever(mockBuildType.name) doReturn fakeBuildTypeName
+
+        // When
+        testedPlugin.configureTasksForVariant(
+            fakeProject,
+            mockAppExtension,
+            fakeExtension,
+            mockVariant,
+            fakeApiKey
+        )
+
+        // Then
+        val allTasks = fakeProject.tasks.map { it.name }
+        assertThat(allTasks).contains("generateBuildId${variantName.replaceFirstChar { capitalizeChar(it) }}")
+    }
+
+    @Test
+    fun `M not create mapping upload task W configureTasksForVariant() { no deobfuscation }`(
+        @StringForgery(case = Case.LOWER) flavorName: String,
+        @StringForgery(case = Case.LOWER) buildTypeName: String,
+        @StringForgery versionName: String,
+        @StringForgery packageName: String
+    ) {
+        // Given
+        val mockAppExtension = mockAppExtension()
+
         val variantName = "$flavorName${buildTypeName.replaceFirstChar { capitalizeChar(it) }}"
         whenever(mockVariant.name) doReturn variantName
         whenever(mockVariant.flavorName) doReturn flavorName
@@ -413,21 +472,26 @@ internal class DdAndroidGradlePluginTest {
         whenever(mockVariant.applicationId) doReturn packageName
         whenever(mockVariant.buildType) doReturn mockBuildType
         whenever(mockBuildType.name) doReturn fakeBuildTypeName
+        whenever(mockVariant.mergeAssetsProvider) doReturn mock()
+        whenever(mockVariant.packageApplicationProvider) doReturn mock()
+        whenever(mockBuildType.name) doReturn fakeBuildTypeName
 
         // When
-        val task = testedPlugin.configureVariantForUploadTask(
+        testedPlugin.configureTasksForVariant(
             fakeProject,
+            mockAppExtension,
+            fakeExtension,
             mockVariant,
-            fakeApiKey,
-            fakeExtension
+            fakeApiKey
         )
 
         // Then
-        assertThat(task).isNull()
+        val allTasks = fakeProject.tasks.map { it.name }
+        assertThat(allTasks).allMatch { !it.startsWith(DdAndroidGradlePlugin.UPLOAD_TASK_NAME) }
     }
 
     @Test
-    fun `𝕄 configure the upload task 𝕎 configureVariant() { non default obfuscation }`(
+    fun `M configure the upload task W configureVariantForUploadTask() { non default obfuscation }`(
         @StringForgery(case = Case.LOWER) flavorName: String,
         @StringForgery(case = Case.LOWER) buildTypeName: String,
         @StringForgery versionName: String,
@@ -448,6 +512,7 @@ internal class DdAndroidGradlePluginTest {
         val task = testedPlugin.configureVariantForUploadTask(
             fakeProject,
             mockVariant,
+            mockBuildIdGenerationTask(fakeBuildId),
             fakeApiKey,
             fakeExtension
         )
@@ -471,6 +536,7 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.mappingFileTrimIndents)
             .isEqualTo(fakeExtension.mappingFileTrimIndents)
         assertThat(task.datadogCiFile).isNull()
+        assertThat(task.buildId.get()).isEqualTo(fakeBuildId)
     }
 
     // endregion
@@ -478,7 +544,7 @@ internal class DdAndroidGradlePluginTest {
     // region resolveApiKey
 
     @Test
-    fun `𝕄 resolve API KEY from project properties 𝕎 resolveApiKey() { as DD_API_KEY }`() {
+    fun `M resolve API KEY from project properties W resolveApiKey() { as DD_API_KEY }`() {
         // Given
         fakeProject = mock()
         whenever(fakeProject.findProperty(DdAndroidGradlePlugin.DD_API_KEY)) doReturn
@@ -493,7 +559,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 resolve API KEY from environment variable 𝕎 resolveApiKey() { as DD_API_KEY }`() {
+    fun `M resolve API KEY from environment variable W resolveApiKey() { as DD_API_KEY }`() {
         // Given
         setEnv(DdAndroidGradlePlugin.DD_API_KEY, fakeApiKey.value)
 
@@ -506,7 +572,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 resolve API KEY from project properties 𝕎 resolveApiKey() { as DATADOG_API_KEY }`() {
+    fun `M resolve API KEY from project properties W resolveApiKey() { as DATADOG_API_KEY }`() {
         // Given
         fakeProject = mock()
         whenever(fakeProject.findProperty(DdAndroidGradlePlugin.DATADOG_API_KEY)) doReturn
@@ -521,7 +587,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 resolve API KEY from environment variable 𝕎 resolveApiKey() { as DATADOG_API_KEY }`() {
+    fun `M resolve API KEY from environment variable W resolveApiKey() { as DATADOG_API_KEY }`() {
         // Given
         setEnv(DdAndroidGradlePlugin.DATADOG_API_KEY, fakeApiKey.value)
 
@@ -534,7 +600,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 returns empty String 𝕎 resolveApiKey() {key not defined anywhere}`() {
+    fun `M returns empty String W resolveApiKey() {key not defined anywhere}`() {
         // When
         val apiKey = testedPlugin.resolveApiKey(fakeProject)
 
@@ -547,7 +613,7 @@ internal class DdAndroidGradlePluginTest {
     // region resolveExtensionConfiguration
 
     @Test
-    fun `𝕄 return default config 𝕎 resolveExtensionConfiguration() {no variant config}`() {
+    fun `M return default config W resolveExtensionConfiguration() {no variant config}`() {
         // When
         mockVariant.mockFlavors(fakeFlavorNames, fakeBuildTypeName)
         val config = testedPlugin.resolveExtensionConfiguration(fakeExtension, mockVariant)
@@ -569,7 +635,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 return config 𝕎 resolveExtensionConfiguration() { variant w full config }`(
+    fun `M return config W resolveExtensionConfiguration() { variant w full config }`(
         @Forgery variantConfig: DdExtensionConfiguration
     ) {
         val variantName = fakeFlavorNames.variantName()
@@ -596,7 +662,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { variant w version only }`(
+    fun `M return combined config W resolveExtensionConfiguration() { variant w version only }`(
         @StringForgery versionName: String
     ) {
         val variantName = fakeFlavorNames.variantName()
@@ -623,7 +689,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { variant w service only }`(
+    fun `M return combined config W resolveExtensionConfiguration() { variant w service only }`(
         @StringForgery serviceName: String
     ) {
         val variantName = fakeFlavorNames.variantName()
@@ -650,7 +716,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { variant w mappingPath }`(
+    fun `M return combined config W resolveExtensionConfiguration() { variant w mappingPath }`(
         @StringForgery(regex = "/([a-z]+)/([a-z]+)/([a-z]+)/mapping.txt") mappingFilePath: String
     ) {
         val variantName = fakeFlavorNames.variantName()
@@ -677,7 +743,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 return config 𝕎 resolveExtensionConfiguration() { variant+mappingFilePackageAliases }`(
+    fun `M return config W resolveExtensionConfiguration() { variant+mappingFilePackageAliases }`(
         @MapForgery(
             key = AdvancedForgery(
                 string = [StringForgery(regex = "[a-z]{3}(\\.[a-z]{5,10}){2,4}")]
@@ -710,7 +776,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 return config 𝕎 resolveExtensionConfiguration() { variant+mappingFileTrimIndents }`(
+    fun `M return config W resolveExtensionConfiguration() { variant+mappingFileTrimIndents }`(
         @BoolForgery mappingFileTrimIndents: Boolean
     ) {
         val variantName = fakeFlavorNames.variantName()
@@ -739,7 +805,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { variant w site only }`(
+    fun `M return combined config W resolveExtensionConfiguration() { variant w site only }`(
         @Forgery site: DatadogSite
     ) {
         val variantName = fakeFlavorNames.variantName()
@@ -767,7 +833,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { variant w sdkCheck only }`(
+    fun `M return combined config W resolveExtensionConfiguration() { variant w sdkCheck only }`(
         @Forgery sdkCheckLevel: SdkCheckLevel
     ) {
         val variantName = fakeFlavorNames.variantName()
@@ -793,7 +859,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { variant w remoteUrl only }`(
+    fun `M return combined config W resolveExtensionConfiguration() { variant w remoteUrl only }`(
         @Forgery fakeConfig: DdExtensionConfiguration
     ) {
         val variantName = fakeFlavorNames.variantName()
@@ -821,7 +887,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { variant + ignoreDdConfig }`(
+    fun `M return combined config W resolveExtensionConfiguration() { variant + ignoreDdConfig }`(
         @Forgery fakeConfig: DdExtensionConfiguration
     ) {
         val variantName = fakeFlavorNames.variantName()
@@ -850,7 +916,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { simple variants }`(
+    fun `M return combined config W resolveExtensionConfiguration() { simple variants }`(
         @StringForgery(case = Case.LOWER) flavorA: String,
         @StringForgery(case = Case.LOWER) flavorB: String,
         @StringForgery(case = Case.LOWER) flavorC: String,
@@ -893,7 +959,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { complex variants }`(
+    fun `M return combined config W resolveExtensionConfiguration() { complex variants }`(
         @StringForgery(case = Case.LOWER) flavorA: String,
         @StringForgery(case = Case.LOWER) flavorB: String,
         @StringForgery(case = Case.LOWER) flavorC: String,
@@ -946,7 +1012,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 return combined config 𝕎 resolveExtensionConfiguration() { variant w build type }`(
+    fun `M return combined config W resolveExtensionConfiguration() { variant w build type }`(
         @Forgery configuration: DdExtensionConfiguration
     ) {
         val variantName = fakeFlavorNames.variantName() +
@@ -979,7 +1045,7 @@ internal class DdAndroidGradlePluginTest {
 
     // TODO RUMM-2344 switch back to FAIL
     @Test
-    fun `𝕄 use NONE when configuring checkDepsTask { checkProjectDependencies not set }`(
+    fun `M use NONE when configuring checkDepsTask { checkProjectDependencies not set }`(
         @StringForgery(case = Case.LOWER) flavorName: String,
         @StringForgery(case = Case.LOWER) buildTypeName: String,
         @StringForgery versionName: String,
@@ -1014,7 +1080,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 do nothing 𝕎 configureVariantForSdkCheck() { none set }`(
+    fun `M do nothing W configureVariantForSdkCheck() { none set }`(
         @StringForgery(case = Case.LOWER) flavorName: String,
         @StringForgery(case = Case.LOWER) buildTypeName: String,
         @StringForgery versionName: String,
@@ -1043,7 +1109,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 do nothing 𝕎 configureVariantForSdkCheck() { extension is disabled }`() {
+    fun `M do nothing W configureVariantForSdkCheck() { extension is disabled }`() {
         // Given
         fakeExtension.enabled = false
 
@@ -1058,7 +1124,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `𝕄 do nothing 𝕎 configureVariantForSdkCheck() { compilation task not found }`(
+    fun `M do nothing W configureVariantForSdkCheck() { compilation task not found }`(
         @StringForgery(case = Case.LOWER) flavorName: String,
         @StringForgery(case = Case.LOWER) buildTypeName: String
     ) {
@@ -1075,57 +1141,6 @@ internal class DdAndroidGradlePluginTest {
                 fakeExtension
             )
         ).isNull()
-    }
-
-    // endregion
-
-    // region findDatadogCiFile
-
-    @Test
-    fun `𝕄 find datadog-ci file 𝕎 findDatadogCiFile()`(
-        @TempDir rootDir: File,
-        forge: Forge
-    ) {
-        // Given
-        val tree = buildDirectoryTree(rootDir, maxDepth = 3, forge = forge)
-
-        File(tree[forge.anInt(0, tree.size)], "datadog-ci.json").createNewFile()
-
-        // When
-        val ciFile = testedPlugin.findDatadogCiFile(tree.last())
-
-        // Then
-        assertThat(ciFile).isNotNull()
-    }
-
-    @Test
-    fun `𝕄 return null 𝕎 findDatadogCiFile() { no ci file found }`(
-        @TempDir rootDir: File,
-        forge: Forge
-    ) {
-        // Given
-        val tree = buildDirectoryTree(rootDir, maxDepth = 3, forge = forge)
-
-        // When
-        val ciFile = testedPlugin.findDatadogCiFile(tree.last())
-
-        // Then
-        assertThat(ciFile).isNull()
-    }
-
-    @Test
-    fun `𝕄 return null 𝕎 findDatadogCiFile() { beyond max levels up }`(
-        @TempDir rootDir: File,
-        forge: Forge
-    ) {
-        // Given
-        val tree = buildDirectoryTree(rootDir, minDepth = 4, maxDepth = 7, forge = forge)
-
-        // When
-        val ciFile = testedPlugin.findDatadogCiFile(tree.last())
-
-        // Then
-        assertThat(ciFile).isNull()
     }
 
     // endregion
@@ -1155,25 +1170,26 @@ internal class DdAndroidGradlePluginTest {
         whenever(buildType) doReturn mockBuildType
     }
 
-    private fun buildDirectoryTree(
-        rootDir: File,
-        minDepth: Int = 1,
-        maxDepth: Int,
-        forge: Forge
-    ): List<File> {
-        var currentDir = rootDir
-        val tree = mutableListOf(rootDir)
-        val stopAt = forge.anInt(min = minDepth, max = maxDepth + 1)
-        for (level in 1..maxDepth) {
-            if (level == stopAt) break
-
-            currentDir = File(currentDir, forge.anAlphabeticalString())
-            tree.add(currentDir)
+    private fun mockBuildIdGenerationTask(buildId: String): TaskProvider<GenerateBuildIdTask> {
+        return mock<TaskProvider<GenerateBuildIdTask>>().apply {
+            val mockBuildIdProvider = mock<Provider<String>>().apply {
+                whenever(get()) doReturn buildId
+            }
+            whenever(
+                flatMap(any<Transformer<Provider<String>, GenerateBuildIdTask>>())
+            ) doReturn mockBuildIdProvider
         }
+    }
 
-        tree.last().mkdirs()
-
-        return tree
+    private fun mockAppExtension(): AppExtension {
+        val mockAppExtension: AppExtension = mock()
+        val mockSoureSetsContainer: NamedDomainObjectContainer<AndroidSourceSet> = mock()
+        val mockSoureSets: AndroidSourceSet = mock()
+        val mockAssets: AndroidSourceDirectorySet = mock()
+        whenever(mockAppExtension.sourceSets).thenReturn(mockSoureSetsContainer)
+        whenever(mockSoureSetsContainer.getByName(any())).thenReturn(mockSoureSets)
+        whenever(mockSoureSets.assets).thenReturn(mockAssets)
+        return mockAppExtension
     }
 
     // endregion

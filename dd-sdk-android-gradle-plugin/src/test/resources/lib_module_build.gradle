@@ -9,12 +9,12 @@ repositories {
 }
 
 android {
-    compileSdkVersion = 33
-    buildToolsVersion = "33.0.1"
+    compileSdkVersion = rootProject.ext.targetSdkVersion
+    buildToolsVersion = rootProject.ext.buildToolsVersion
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 33
+        targetSdkVersion rootProject.ext.targetSdkVersion
         versionName "1.0"
         versionCode 1
         multiDexEnabled = true
@@ -23,11 +23,11 @@ android {
     namespace = "com.example.lib"
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = rootProject.ext.jvmTarget
+        targetCompatibility = rootProject.ext.jvmTarget
     }
 
     kotlinOptions {
-        jvmTarget = '17'
+        jvmTarget = rootProject.ext.jvmTarget
     }
 }

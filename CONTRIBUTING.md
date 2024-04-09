@@ -215,7 +215,7 @@ Test methods must follow the Given-When-Then principle, that is they must all co
 
 If present, these steps will always be intruded by one line comments, e.g.: `// Given`.
 
-Based on this principle, the test name should reflect the intent, and use the following pattern: `MUST expected behavior WHEN method() withContext`. To avoid being too verbose, `MUST` will be written `𝕄`, and `WHEN` will be written `𝕎`. The `withContext` part should be concise, and can have a trailing curly braces context section to avoid duplicate names (e.g.: `𝕄 create a span with info 𝕎 intercept() for failing request {5xx}`)
+Based on this principle, the test name should reflect the intent, and use the following pattern: `MUST expected behavior WHEN method() withContext`. To avoid being too verbose, `MUST` will be written `M`, and `WHEN` will be written `W`. The `withContext` part should be concise, and can have a trailing curly braces context section to avoid duplicate names (e.g.: `M create a span with info W intercept() for failing request {5xx}`)
 
 Parameters shall have simple local names reflecting their intent, whether they use an `@Forgery` or `@Mock` annotation (or none).
 
@@ -223,7 +223,7 @@ Here's a test method following those conventions:
 
 ```kotlin
     @Test
-    fun `𝕄 forward boolean attribute to handler 𝕎 addAttribute()`(
+    fun `M forward boolean attribute to handler W addAttribute()`(
         @StringForgery(StringForgeryType.ALPHABETICAL) key : String,
         @BoolForgery value : Boolean
     ) {

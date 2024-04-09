@@ -57,6 +57,16 @@ internal fun initializeGit(remoteUrl: String, rootDirectory: File) {
     )
 }
 
+fun headHash(rootDirectory: File): String {
+    val process = ProcessBuilder("git", "rev-parse", "HEAD")
+        .directory(rootDirectory)
+        .start()
+
+    check(process.waitForSuccess(5, TimeUnit.SECONDS))
+
+    return process.inputReader().readText().trim()
+}
+
 private fun Process.waitForSuccess(timeout: Long, unit: TimeUnit): Boolean {
     val haveNoTimeout = waitFor(timeout, unit)
     return haveNoTimeout && exitValue() == 0

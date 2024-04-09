@@ -26,7 +26,7 @@ datadog {
     serviceName = "my-service" // Optional, by default it is read from your Android plugin configuration's package name
     site = "US1" // Optional, can be "US1", "EU1" or "US1_FED", etc. (check `DatadogSite` documentation for the full list). Default is "US1"
     checkProjectDependencies = "warn" // Optional, can be "warn", "fail" or "none". Default is "fail". Will check if Datadog SDK is in the project dependencies.
-    mappingFilePath = "path/to/mapping.txt" // Optional, provides a custom mapping file path. Default is "buils/outputs/mapping/{variant}/mapping.txt".
+    mappingFilePath = "path/to/mapping.txt" // Optional, provides a custom mapping file path. Default is "build/outputs/mapping/{variant}/mapping.txt".
 }
 ```
 

@@ -75,7 +75,7 @@ internal class GitRepositoryDetectorTest {
     }
 
     @Test
-    fun `𝕄 return repository info 𝕎 detectRepository()`() {
+    fun `M return repository info W detectRepository()`() {
         // Given
         initializeGit(fakeRemoteUrl, tempDir)
 
@@ -92,7 +92,7 @@ internal class GitRepositoryDetectorTest {
     }
 
     @Test
-    fun `𝕄 use the sanitized config remote URL 𝕎 detectRepository() { remote URL provided }`(
+    fun `M use the sanitized config remote URL W detectRepository() { remote URL provided }`(
         @StringForgery(regex = "https://[a-z]{4,10}\\.[com|org]/[a-z]{4,10}/[a-z]{4,10}\\.git")
         fakeConfigRemoteUrl: String,
         @StringForgery(regex = "https://[a-z]{4,10}\\.[com|org]/[a-z]{4,10}/[a-z]{4,10}\\.git")
@@ -120,7 +120,7 @@ internal class GitRepositoryDetectorTest {
     }
 
     @Test
-    fun `𝕄 return empty list 𝕎 detectRepository() { not inside a git repository }`() {
+    fun `M return empty list W detectRepository() { not inside a git repository }`() {
         // When
         val result = testedDetector.detectRepositories(fakeSourceSetFolders)
 

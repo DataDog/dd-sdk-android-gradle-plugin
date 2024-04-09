@@ -1,3 +1,5 @@
+@file:Suppress("UnusedImports")
+
 package com.datadog.example.basic
 
 import android.os.Bundle
