@@ -93,12 +93,12 @@ class DdAndroidGradlePlugin @Inject constructor(
         } else {
             LOGGER.info("Minifying disabled for variant ${variant.name}, no upload task created")
         }
-//        configureNdkSymbolUploadTask(
-//            target,
-//            datadogExtension,
-//            variant,
-//            buildIdGenerationTask
-//        )
+        configureNdkSymbolUploadTask(
+            target,
+            datadogExtension,
+            variant,
+            buildIdGenerationTask
+        )
         configureVariantForSdkCheck(target, variant, datadogExtension)
     }
 
