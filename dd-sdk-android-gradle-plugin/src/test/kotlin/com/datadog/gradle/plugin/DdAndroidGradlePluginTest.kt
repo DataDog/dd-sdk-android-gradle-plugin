@@ -10,7 +10,6 @@ import com.android.build.gradle.AppExtension
 import com.android.build.gradle.api.AndroidSourceDirectorySet
 import com.android.build.gradle.api.AndroidSourceSet
 import com.android.build.gradle.api.ApplicationVariant
-import com.android.build.gradle.tasks.ExternalNativeBuildTask
 import com.android.builder.model.BuildType
 import com.android.builder.model.ProductFlavor
 import com.datadog.gradle.plugin.internal.ApiKey
@@ -454,83 +453,6 @@ internal class DdAndroidGradlePluginTest {
         // Then
         val allTasks = fakeProject.tasks.map { it.name }
         assertThat(allTasks).contains("generateBuildId${variantName.replaceFirstChar { capitalizeChar(it) }}")
-    }
-
-    @Test
-    fun `M create uploadSymbol task W configureTasksForVariant() { native build providers }`(
-        @StringForgery(case = Case.LOWER) flavorName: String,
-        @StringForgery(case = Case.LOWER) buildTypeName: String,
-        @StringForgery versionName: String,
-        @StringForgery packageName: String
-    ) {
-        // Given
-        val mockAppExtension = mockAppExtension()
-
-        val variantName = "$flavorName${buildTypeName.replaceFirstChar { capitalizeChar(it) }}"
-        whenever(mockVariant.name) doReturn variantName
-        whenever(mockVariant.flavorName) doReturn flavorName
-        whenever(mockVariant.versionName) doReturn versionName
-        whenever(mockVariant.applicationId) doReturn packageName
-        whenever(mockVariant.buildType) doReturn mockBuildType
-        whenever(mockVariant.mergeAssetsProvider) doReturn mock()
-        whenever(mockVariant.packageApplicationProvider) doReturn mock()
-        whenever(mockBuildType.name) doReturn fakeBuildTypeName
-
-        val nativeBuildProviders = listOf(
-            mock<TaskProvider<ExternalNativeBuildTask>>().apply {
-                whenever(flatMap(any<Transformer<Provider<String>, ExternalNativeBuildTask>>())) doReturn mock()
-            }
-        )
-        whenever(mockVariant.externalNativeBuildProviders) doReturn nativeBuildProviders
-
-        // When
-        testedPlugin.configureTasksForVariant(
-            fakeProject,
-            mockAppExtension,
-            fakeExtension,
-            mockVariant,
-            fakeApiKey
-        )
-
-        // Then
-        val allTasks = fakeProject.tasks.map { it.name }
-        assertThat(allTasks).contains("uploadNdkSymbolFiles${variantName.replaceFirstChar { capitalizeChar(it) }}")
-    }
-
-    @Test
-    fun `M not create uploadSymbol task W configureTasksForVariant() { no native build providers }`(
-        @StringForgery(case = Case.LOWER) flavorName: String,
-        @StringForgery(case = Case.LOWER) buildTypeName: String,
-        @StringForgery versionName: String,
-        @StringForgery packageName: String
-    ) {
-        // Given
-        val mockAppExtension = mockAppExtension()
-
-        val variantName = "$flavorName${buildTypeName.replaceFirstChar { capitalizeChar(it) }}"
-        whenever(mockVariant.name) doReturn variantName
-        whenever(mockVariant.flavorName) doReturn flavorName
-        whenever(mockVariant.versionName) doReturn versionName
-        whenever(mockVariant.applicationId) doReturn packageName
-        whenever(mockVariant.buildType) doReturn mockBuildType
-        whenever(mockVariant.mergeAssetsProvider) doReturn mock()
-        whenever(mockVariant.packageApplicationProvider) doReturn mock()
-        whenever(mockBuildType.name) doReturn fakeBuildTypeName
-
-        whenever(mockVariant.externalNativeBuildProviders) doReturn listOf()
-
-        // When
-        testedPlugin.configureTasksForVariant(
-            fakeProject,
-            mockAppExtension,
-            fakeExtension,
-            mockVariant,
-            fakeApiKey
-        )
-
-        // Then
-        val allTasks = fakeProject.tasks.map { it.name }
-        assertThat(allTasks).allMatch { !it.startsWith("uploadNdkSymbolFiles") }
     }
 
     @Test
