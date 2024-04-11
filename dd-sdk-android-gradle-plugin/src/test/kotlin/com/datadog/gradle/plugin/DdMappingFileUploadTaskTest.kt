@@ -119,7 +119,9 @@ internal class DdMappingFileUploadTaskTest {
         testedTask.apiKeySource = fakeApiKey.source
         testedTask.variantName = fakeVariant
         testedTask.versionName = fakeVersion
-        testedTask.versionCode = fakeVersionCode
+        testedTask.versionCode = mock<Provider<Int>>().apply {
+            whenever(get()) doReturn fakeVersionCode
+        }
         testedTask.serviceName = fakeService
         testedTask.site = fakeSite.name
         testedTask.buildId = mock<Provider<String>>().apply {
