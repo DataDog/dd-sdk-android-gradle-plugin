@@ -32,6 +32,7 @@ import org.gradle.api.Project
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.BeforeEach
@@ -42,12 +43,14 @@ import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.junit.jupiter.MockitoSettings
 import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
 import java.io.File
 import java.util.UUID
+import java.util.concurrent.Callable
 
 @Extensions(
     ExtendWith(MockitoExtension::class),
@@ -89,7 +92,16 @@ internal class DdAndroidGradlePluginTest {
         fakeFlavorNames = fakeFlavorNames.take(5) // A D F G A♭ A A♭ G F
         fakeBuildId = forge.getForgery<UUID>().toString()
         fakeProject = ProjectBuilder.builder().build()
-        testedPlugin = DdAndroidGradlePlugin(mock(), mock())
+        val mockProviderFactory = mock<ProviderFactory>()
+        whenever(mockProviderFactory.provider(any<Callable<*>>())) doAnswer {
+            val argument = it.getArgument<Callable<*>>(0)
+            fakeProject.provider(argument)
+        }
+        testedPlugin = DdAndroidGradlePlugin(
+            execOps = mock(),
+            providerFactory = mockProviderFactory
+        )
+
         setEnv(DdAndroidGradlePlugin.DD_API_KEY, "")
         setEnv(DdAndroidGradlePlugin.DATADOG_API_KEY, "")
     }
@@ -123,7 +135,7 @@ internal class DdAndroidGradlePluginTest {
             mockBuildIdGenerationTask(fakeBuildId),
             fakeApiKey,
             fakeExtension
-        )
+        ).get()
 
         // Then
         check(task is DdMappingFileUploadTask)
@@ -169,7 +181,7 @@ internal class DdAndroidGradlePluginTest {
             mockBuildIdGenerationTask(fakeBuildId),
             fakeApiKey,
             fakeExtension
-        )
+        ).get()
 
         // Then
         check(task is DdMappingFileUploadTask)
@@ -227,7 +239,7 @@ internal class DdAndroidGradlePluginTest {
             mockBuildIdGenerationTask(fakeBuildId),
             fakeApiKey,
             fakeExtension
-        )
+        ).get()
 
         // Then
         check(task is DdMappingFileUploadTask)
@@ -283,7 +295,7 @@ internal class DdAndroidGradlePluginTest {
             mockBuildIdGenerationTask(fakeBuildId),
             fakeApiKey,
             fakeExtension
-        )
+        ).get()
 
         // Then
         check(task is DdMappingFileUploadTask)
@@ -341,7 +353,7 @@ internal class DdAndroidGradlePluginTest {
             mockBuildIdGenerationTask(fakeBuildId),
             fakeApiKey,
             fakeExtension
-        )
+        ).get()
 
         // Then
         check(task is DdMappingFileUploadTask)
@@ -399,7 +411,7 @@ internal class DdAndroidGradlePluginTest {
             mockBuildIdGenerationTask(fakeBuildId),
             fakeApiKey,
             fakeExtension
-        )
+        ).get()
 
         // Then
         check(task is DdMappingFileUploadTask)
@@ -515,7 +527,7 @@ internal class DdAndroidGradlePluginTest {
             mockBuildIdGenerationTask(fakeBuildId),
             fakeApiKey,
             fakeExtension
-        )
+        ).get()
 
         // Then
         check(task is DdMappingFileUploadTask)
