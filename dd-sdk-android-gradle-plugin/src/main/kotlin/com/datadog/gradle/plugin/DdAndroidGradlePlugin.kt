@@ -16,7 +16,6 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.logging.Logging
-import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
@@ -181,65 +180,65 @@ class DdAndroidGradlePlugin @Inject constructor(
         buildIdGenerationTask: TaskProvider<GenerateBuildIdTask>,
         apiKey: ApiKey,
         extension: DdExtension
-    ): Task {
-        val extensionConfiguration = resolveExtensionConfiguration(extension, variant)
-        val flavorName = variant.flavorName
+    ): TaskProvider<DdMappingFileUploadTask> {
         val uploadTaskName = UPLOAD_TASK_NAME + variant.name.capitalize()
-        // TODO RUMM-2382 use tasks.register
-        val uploadTask = target.tasks.create(
+        val uploadTask = target.tasks.register(
             uploadTaskName,
             DdMappingFileUploadTask::class.java,
             GitRepositoryDetector(execOps)
-        )
+        ).apply {
+            configure { uploadTask ->
+                val extensionConfiguration = resolveExtensionConfiguration(extension, variant)
+                configureVariantTask(uploadTask, apiKey, variant.flavorName, extensionConfiguration, variant)
 
-        configureVariantTask(uploadTask, apiKey, flavorName, extensionConfiguration, variant)
+                // upload task shouldn't depend on the build ID generation task, but only read its property,
+                // because upload task may be triggered after assemble task and we don't want to re-generate
+                // build ID, because it will be different then from the one which is already embedded in
+                // the application package
+                uploadTask.buildId = buildIdGenerationTask.flatMap {
+                    it.buildIdFile.flatMap {
+                        providerFactory.provider { it.asFile.readText().trim() }
+                    }
+                }
+                uploadTask.mappingFilePath = resolveMappingFilePath(extensionConfiguration, target, variant)
+                uploadTask.mappingFilePackagesAliases =
+                    filterMappingFileReplacements(
+                        extensionConfiguration.mappingFilePackageAliases,
+                        variant.applicationId
+                    )
+                uploadTask.mappingFileTrimIndents = extensionConfiguration.mappingFileTrimIndents
+                if (!extensionConfiguration.ignoreDatadogCiFileConfig) {
+                    uploadTask.datadogCiFile = DdTaskUtils.findDatadogCiFile(target.projectDir)
+                }
 
-        // upload task shouldn't depend on the build ID generation task, but only read its property,
-        // because upload task may be triggered after assemble task and we don't want to re-generate
-        // build ID, because it will be different then from the one which is already embedded in
-        // the application package
-        uploadTask.buildId = buildIdGenerationTask.flatMap {
-            it.buildIdFile.flatMap {
-                providerFactory.provider { it.asFile.readText().trim() }
+                uploadTask.repositoryFile = DdTaskUtils.resolveDatadogRepositoryFile(target)
+
+                val roots = mutableListOf<File>()
+                variant.sourceSets.forEach {
+                    roots.addAll(it.javaDirectories)
+                    @Suppress("MagicNumber")
+                    if (DdTaskUtils.isAgpAbove(7, 0, 0)) {
+                        roots.addAll(it.kotlinDirectories)
+                    }
+                }
+
+                // it can be an overlap between java and kotlin directories and since File doesn't override
+                // equals for set comparison, we will remove duplicates manually
+                uploadTask.sourceSetRoots = roots.map { it.absolutePath }
+                    .distinct()
+                    .map { File(it) }
             }
         }
-        uploadTask.mappingFilePath = resolveMappingFilePath(extensionConfiguration, target, variant)
-        uploadTask.mappingFilePackagesAliases =
-            filterMappingFileReplacements(
-                extensionConfiguration.mappingFilePackageAliases,
-                variant.applicationId
-            )
-        uploadTask.mappingFileTrimIndents = extensionConfiguration.mappingFileTrimIndents
-        if (!extensionConfiguration.ignoreDatadogCiFileConfig) {
-            uploadTask.datadogCiFile = DdTaskUtils.findDatadogCiFile(target.projectDir)
-        }
-
-        uploadTask.repositoryFile = DdTaskUtils.resolveDatadogRepositoryFile(target)
-
-        val roots = mutableListOf<File>()
-        variant.sourceSets.forEach {
-            roots.addAll(it.javaDirectories)
-            @Suppress("MagicNumber")
-            if (DdTaskUtils.isAgpAbove(7, 0, 0)) {
-                roots.addAll(it.kotlinDirectories)
-            }
-        }
-
-        // it can be an overlap between java and kotlin directories and since File doesn't override
-        // equals for set comparison, we will remove duplicates manually
-        uploadTask.sourceSetRoots = roots.map { it.absolutePath }
-            .distinct()
-            .map { File(it) }
 
         return uploadTask
     }
 
-    @Suppress("DefaultLocale", "ReturnCount")
+    @Suppress("ReturnCount")
     internal fun configureVariantForSdkCheck(
         target: Project,
         variant: ApplicationVariant,
         extension: DdExtension
-    ): Provider<DdCheckSdkDepsTask>? {
+    ): TaskProvider<DdCheckSdkDepsTask>? {
         if (!extension.enabled) {
             LOGGER.info("Extension disabled for variant ${variant.name}, no sdk check task created")
             return null
@@ -347,7 +346,7 @@ class DdAndroidGradlePlugin @Inject constructor(
 
         uploadTask.site = extensionConfiguration.site ?: ""
         uploadTask.versionName = extensionConfiguration.versionName ?: variant.versionName
-        uploadTask.versionCode = variant.versionCode
+        uploadTask.versionCode = providerFactory.provider { variant.versionCode }
         uploadTask.serviceName = extensionConfiguration.serviceName ?: variant.applicationId
         uploadTask.remoteRepositoryUrl = extensionConfiguration.remoteRepositoryUrl ?: ""
     }

@@ -28,7 +28,7 @@ import javax.inject.Inject
  * Proguard/R8 files, etc.)..
  */
 abstract class DdFileUploadTask @Inject constructor(
-    providerFactory: ProviderFactory,
+    private val providerFactory: ProviderFactory,
     @get:Internal internal val repositoryDetector: RepositoryDetector
 ) : DefaultTask() {
     @get:Internal
@@ -62,10 +62,11 @@ abstract class DdFileUploadTask @Inject constructor(
     var versionName: String = ""
 
     /**
-     * The version code of the application.
+     * The version code of the application. Need to be a provider, because resolution during
+     * configuration phase may cause incompatibility with other plugins if legacy Variant API is used.
      */
     @get:Input
-    var versionCode: Int = 0
+    var versionCode: Provider<Int> = providerFactory.provider { 0 }
 
     /**
      * The service name of the application (by default, it is your app's package name).
@@ -164,7 +165,7 @@ abstract class DdFileUploadTask @Inject constructor(
                     DdAppIdentifier(
                         serviceName = serviceName,
                         version = versionName,
-                        versionCode = versionCode,
+                        versionCode = versionCode.get(),
                         variant = variantName,
                         buildId = buildId.get()
                     ),
@@ -199,7 +200,7 @@ abstract class DdFileUploadTask @Inject constructor(
         site = extensionConfiguration.site ?: ""
 
         versionName = variant.versionName ?: ""
-        versionCode = variant.versionCode
+        versionCode = providerFactory.provider { variant.versionCode }
         serviceName = extensionConfiguration.serviceName ?: variant.applicationId
         variantName = variant.flavorName
         remoteRepositoryUrl = extensionConfiguration.remoteRepositoryUrl ?: ""
