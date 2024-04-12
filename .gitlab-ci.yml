@@ -152,3 +152,44 @@ notify:failure:
     - BUILD_URL="$CI_PROJECT_URL/pipelines/$CI_PIPELINE_ID"
     - 'MESSAGE_TEXT=":status_alert: $CI_PROJECT_NAME $CI_COMMIT_TAG publish pipeline <$BUILD_URL|$COMMIT_MESSAGE> failed."'
     - postmessage "#mobile-rum" "$MESSAGE_TEXT"
+
+# DOGFOOD
+
+notify:dogfood-app:
+  tags: [ "arch:amd64" ]
+  only:
+    - tags
+  image: $CI_IMAGE_DOCKER
+  stage: notify
+  when: on_success
+  script:
+    - pip3 install GitPython requests
+    # reuse service account
+    - aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android.gh_token --with-decryption --query "Parameter.Value" --out text >> ./gh_token
+    - python3 dogfood.py -v $CI_COMMIT_TAG -t app
+
+notify:dogfood-demo:
+  tags: [ "arch:amd64" ]
+  only:
+    - tags
+  image: $CI_IMAGE_DOCKER
+  stage: notify
+  when: on_success
+  script:
+    - pip3 install GitPython requests
+    # reuse service account
+    - aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android.gh_token --with-decryption --query "Parameter.Value" --out text >> ./gh_token
+    - python3 dogfood.py -v $CI_COMMIT_TAG -t demo
+
+notify:dogfood-gradle-plugin:
+  tags: [ "arch:amd64" ]
+  only:
+    - tags
+  image: $CI_IMAGE_DOCKER
+  stage: notify
+  when: on_success
+  script:
+    - pip3 install GitPython requests
+    # reuse service account
+    - aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android.gh_token --with-decryption --query "Parameter.Value" --out text >> ./gh_token
+    - python3 dogfood.py -v $CI_COMMIT_TAG -t gradle-plugin
