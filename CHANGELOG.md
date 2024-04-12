@@ -1,3 +1,7 @@
+# 1.13.1 / 2024-04-11
+
+* [BUGFIX] Avoid eager fetching of Variant values. See [#240](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/240)
+
 # 1.13.0 / 2024-04-09
 
 * [FEATURE] Inject build ID into mapping file upload and SDK host application as well. See [#211](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/211)
