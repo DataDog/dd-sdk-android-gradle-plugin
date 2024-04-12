@@ -8,12 +8,15 @@ variables:
   CI_IMAGE_DOCKER: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/dd-sdk-android-gradle-plugin:$CURRENT_CI_IMAGE
   GIT_DEPTH: 5
 
-  DD_AGENT_HOST: "$BUILDENV_HOST_IP"
   DD_SERVICE: "dd-sdk-android-gradle-plugin"
   DD_ENV_TESTS: "ci"
   DD_INTEGRATION_JUNIT_5_ENABLED: "true"
   DD_CIVISIBILITY_ENABLED: "true"
   DD_INSIDE_CI: "true"
+  DD_COMMON_AGENT_CONFIG: "dd.env=ci,dd.trace.enabled=false,dd.jmx.fetch.enabled=false"
+
+  KUBERNETES_MEMORY_REQUEST: "8Gi"
+  KUBERNETES_MEMORY_LIMIT: "16Gi"
 
 stages:
   - ci-image
@@ -29,7 +32,7 @@ ci-image:
   stage: ci-image
   when: manual
   except: [ tags, schedules ]
-  tags: [ "runner:docker" ]
+  tags: [ "arch:amd64" ]
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/docker:24.0.4-gbi-focal
   script:
     - docker build --tag $CI_IMAGE_DOCKER -f Dockerfile.gitlab .
@@ -40,7 +43,7 @@ ci-image:
 create_key:
   stage: security
   when: manual
-  tags: [ "runner:docker" ]
+  tags: [ "arch:amd64" ]
   variables:
     PROJECT_NAME: "dd-sdk-android-gradle-plugin"
     EXPORT_TO_KEYSERVER: "true"
@@ -63,7 +66,7 @@ static-analysis:
     strategy: depend
 
 analysis:licenses:
-  tags: [ "runner:main" ]
+  tags: [ "arch:amd64" ]
   image: $CI_IMAGE_DOCKER
   stage: analysis
   timeout: 30m
@@ -72,7 +75,7 @@ analysis:licenses:
     - GRADLE_OPTS="-Xmx2560m" ./gradlew :dd-sdk-android-gradle-plugin:checkThirdPartyLicences --stacktrace --no-daemon
 
 analysis:woke:
-  tags: [ "runner:main" ]
+  tags: [ "arch:amd64" ]
   image: $CI_IMAGE_DOCKER
   stage: analysis
   timeout: 30m
@@ -83,7 +86,7 @@ analysis:woke:
 # TESTS
 
 test:plugin:
-  tags: [ "runner:main" ]
+  tags: [ "arch:amd64" ]
   image: $CI_IMAGE_DOCKER
   stage: test
   timeout: 1h
@@ -91,7 +94,8 @@ test:plugin:
     - git fetch --depth=1 origin main
     - rm -rf ~/.gradle/daemon/
     - CODECOV_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android-gradle-plugin.codecov-token --with-decryption --query "Parameter.Value" --out text)
-    - GRADLE_OPTS="-Xmx2560m" ./gradlew :dd-sdk-android-gradle-plugin:test --stacktrace --no-daemon
+    - export DD_AGENT_HOST="$BUILDENV_HOST_IP"
+    - GRADLE_OPTS="-Xmx2560m" DD_TAGS="test.module:dd-sdk-android-gradle-plugin" ./gradlew :dd-sdk-android-gradle-plugin:test --stacktrace --no-daemon -Dorg.gradle.jvmargs=-javaagent:$(pwd)/libs/dd-java-agent-1.26.1.jar=$DD_COMMON_AGENT_CONFIG
     - bash <(cat ./codecov.sh) -t $CODECOV_TOKEN
   artifacts:
     reports:
@@ -100,7 +104,7 @@ test:plugin:
 # PUBLISH ARTIFACTS
 
 publish:publish-sonatype:
-  tags: [ "runner:main" ]
+  tags: [ "arch:amd64" ]
   only:
     - tags
   image: $CI_IMAGE_DOCKER
@@ -116,7 +120,7 @@ publish:publish-sonatype:
     - ./gradlew :dd-sdk-android-gradle-plugin:publishPluginMavenPublicationToMavenRepository --stacktrace --no-daemon
 
 publish:publish-gradle-portal:
-  tags: [ "runner:main" ]
+  tags: [ "arch:amd64" ]
   only:
     - tags
   image: $CI_IMAGE_DOCKER
@@ -152,3 +156,44 @@ notify:failure:
     - BUILD_URL="$CI_PROJECT_URL/pipelines/$CI_PIPELINE_ID"
     - 'MESSAGE_TEXT=":status_alert: $CI_PROJECT_NAME $CI_COMMIT_TAG publish pipeline <$BUILD_URL|$COMMIT_MESSAGE> failed."'
     - postmessage "#mobile-rum" "$MESSAGE_TEXT"
+
+# DOGFOOD
+
+notify:dogfood-app:
+  tags: [ "arch:amd64" ]
+  only:
+    - tags
+  image: $CI_IMAGE_DOCKER
+  stage: notify
+  when: on_success
+  script:
+    - pip3 install GitPython requests
+    # reuse service account
+    - aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android.gh_token --with-decryption --query "Parameter.Value" --out text >> ./gh_token
+    - python3 dogfood.py -v $CI_COMMIT_TAG -t app
+
+notify:dogfood-demo:
+  tags: [ "arch:amd64" ]
+  only:
+    - tags
+  image: $CI_IMAGE_DOCKER
+  stage: notify
+  when: on_success
+  script:
+    - pip3 install GitPython requests
+    # reuse service account
+    - aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android.gh_token --with-decryption --query "Parameter.Value" --out text >> ./gh_token
+    - python3 dogfood.py -v $CI_COMMIT_TAG -t demo
+
+notify:dogfood-gradle-plugin:
+  tags: [ "arch:amd64" ]
+  only:
+    - tags
+  image: $CI_IMAGE_DOCKER
+  stage: notify
+  when: on_success
+  script:
+    - pip3 install GitPython requests
+    # reuse service account
+    - aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android.gh_token --with-decryption --query "Parameter.Value" --out text >> ./gh_token
+    - python3 dogfood.py -v $CI_COMMIT_TAG -t gradle-plugin
