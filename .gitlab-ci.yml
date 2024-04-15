@@ -35,8 +35,7 @@ ci-image:
   tags: [ "arch:amd64" ]
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/docker:24.0.4-gbi-focal
   script:
-    - docker build --tag $CI_IMAGE_DOCKER -f Dockerfile.gitlab .
-    - docker push $CI_IMAGE_DOCKER
+    - docker buildx build --tag $CI_IMAGE_DOCKER -f Dockerfile.gitlab --push .
 
 # SECURITY
 
