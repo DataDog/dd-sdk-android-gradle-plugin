@@ -1006,7 +1006,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
                 "`build_id:$buildIdInOriginFile` (site=datadoghq.com):"
         )
 
-        for (arch in SUPPORTED_ABIS) {
+        for (arch in SUPPORTED_ABIS.values) {
             assertThat(result).containsInOutput("extra attributes: {arch=$arch}")
         }
     }
@@ -1054,7 +1054,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
                 "`build_id:$buildIdInOriginFile` (site=datadoghq.com):"
         )
 
-        for (arch in SUPPORTED_ABIS) {
+        for (arch in SUPPORTED_ABIS.values) {
             assertThat(result).containsInOutput("extra attributes: {arch=$arch}")
         }
     }
@@ -1119,7 +1119,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
                 "`build_id:$buildIdInOriginFile` (site=datadoghq.com):"
         )
 
-        for (arch in SUPPORTED_ABIS) {
+        for (arch in SUPPORTED_ABIS.values) {
             assertThat(nativeResult).containsInOutput("extra attributes: {arch=$arch}")
         }
 
@@ -1228,7 +1228,12 @@ internal class DdAndroidGradlePluginFunctionalTest {
             val jvmTarget: String
         )
 
-        val SUPPORTED_ABIS = setOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+        val SUPPORTED_ABIS = mapOf(
+            "armeabi-v7a" to "arm",
+            "arm64-v8a" to "arm64",
+            "x86" to "x86",
+            "x86_64" to "x64"
+        )
 
         val APPLICATION_CLASS_CONTENT = """
             package com.datadog.android.sample

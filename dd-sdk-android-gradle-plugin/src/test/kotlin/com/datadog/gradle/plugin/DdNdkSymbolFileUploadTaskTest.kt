@@ -153,7 +153,7 @@ internal class DdNdkSymbolFileUploadTaskTest {
                 fileType = DdNdkSymbolFileUploadTask.TYPE_NDK_SYMBOL_FILE,
                 fileName = "libfake.so",
                 extraAttributes = mapOf(
-                    "arch" to "arm64-v8a"
+                    "arch" to "arm64"
                 )
             ),
             fakeRepositoryFile,
@@ -178,7 +178,7 @@ internal class DdNdkSymbolFileUploadTaskTest {
         whenever(mockRepositoryDetector.detectRepositories(any(), eq("")))
             .doReturn(listOf(fakeRepoInfo))
         val fakeSoFiles = mapOf(
-            "arm64-v8a" to writeFakeSoFile("arm64-v8a"),
+            "arm64" to writeFakeSoFile("arm64-v8a"),
             "x86" to writeFakeSoFile("x86")
         )
 
@@ -240,7 +240,7 @@ internal class DdNdkSymbolFileUploadTaskTest {
                 fileType = DdNdkSymbolFileUploadTask.TYPE_NDK_SYMBOL_FILE,
                 fileName = "libfake.so",
                 extraAttributes = mapOf(
-                    "arch" to "arm64-v8a"
+                    "arch" to "arm64"
                 )
             ),
             fakeRepositoryFile,
@@ -283,7 +283,7 @@ internal class DdNdkSymbolFileUploadTaskTest {
                 fileType = DdNdkSymbolFileUploadTask.TYPE_NDK_SYMBOL_FILE,
                 fileName = "libfake.so",
                 extraAttributes = mapOf(
-                    "arch" to "arm64-v8a"
+                    "arch" to "arm64"
                 )
             ),
             null,
@@ -328,7 +328,7 @@ internal class DdNdkSymbolFileUploadTaskTest {
                 forge.anElementFrom("\"", "'") +
                 it.substring(splitIndex)
         }
-        writeFakeSoFile("arm64-v8a")
+        writeFakeSoFile("arm64")
 
         // When
         val exception = assertThrows<IllegalStateException> {
@@ -416,7 +416,7 @@ internal class DdNdkSymbolFileUploadTaskTest {
                 fileType = DdNdkSymbolFileUploadTask.TYPE_NDK_SYMBOL_FILE,
                 fileName = "libfake.so",
                 extraAttributes = mapOf(
-                    "arch" to "arm64-v8a"
+                    "arch" to "arm64"
                 )
             ),
             fakeRepositoryFile,
