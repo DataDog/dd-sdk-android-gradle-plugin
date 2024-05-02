@@ -42,7 +42,8 @@ internal abstract class DdNdkSymbolFileUploadTask @Inject constructor(
             .toSet()
             .forEach { file ->
                 val arch = file.parentFile.name
-                require(SUPPORTED_ARCHS.contains(arch))
+                val archMapping = SUPPORTED_ARCHS.firstOrNull { it.arch == arch }
+                require(archMapping != null)
                 files.add(
                     Uploader.UploadFileInfo(
                         KEY_NDK_SYMBOL_FILE,
@@ -51,7 +52,7 @@ internal abstract class DdNdkSymbolFileUploadTask @Inject constructor(
                         TYPE_NDK_SYMBOL_FILE,
                         file.name,
                         mapOf(
-                            "arch" to arch
+                            "arch" to archMapping.uploadArch
                         )
                     )
                 )
@@ -70,12 +71,23 @@ internal abstract class DdNdkSymbolFileUploadTask @Inject constructor(
         }
     }
 
+    // Map of Android architecture names to the architecture names recognized by the symbolication service
+    data class SupportedArchitectureMapping(
+        val arch: String,
+        val uploadArch: String
+    )
+
     companion object {
         internal const val TASK_NAME = "uploadNdkSymbolFiles"
         internal const val KEY_NDK_SYMBOL_FILE = "ndk_symbol_file"
         internal const val TYPE_NDK_SYMBOL_FILE = "ndk_symbol_file"
         internal const val ENCODING = "application/octet-stream"
-        internal val SUPPORTED_ARCHS = setOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+        internal val SUPPORTED_ARCHS = setOf(
+            SupportedArchitectureMapping("armeabi-v7a", "arm"),
+            SupportedArchitectureMapping("arm64-v8a", "arm64"),
+            SupportedArchitectureMapping("x86", "x86"),
+            SupportedArchitectureMapping("x86_64", "x64")
+        )
 
         internal val LOGGER = Logging.getLogger("DdSymbolFileUploadTask")
 
