@@ -27,9 +27,6 @@ The whole project is covered by a set of static analysis tools, linters and test
 # launches the unit tests
 ./gradlew :dd-sdk-android-gradle-plugin:test
 
-# launches the detekt static analysis
-./gradlew :dd-sdk-android-gradle-plugin:detekt
-
 # launches the ktlint check and formatter for all Kotlin files (the ktlint client needs to be installed on your machine)
 ktlint -F "**/*.kt" "**/*.kts" '!**/build/generated/**' '!**/build/kspCaches/**'
 
