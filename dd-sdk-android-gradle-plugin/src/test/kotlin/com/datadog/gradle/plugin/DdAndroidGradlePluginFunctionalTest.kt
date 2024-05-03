@@ -109,19 +109,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         stubFile(sampleApplicationClassFile, APPLICATION_CLASS_CONTENT)
         stubFile(javaPlaceholderClassFile, JAVA_CLASS_CONTENT)
         stubFile(appManifestFile, APP_MANIFEST_FILE_CONTENT)
-        stubFile(
-            gradlePropertiesFile,
-            GRADLE_PROPERTIES_FILE_CONTENT.format(
-                Locale.US,
-                buildVersionConfig.agpVersion,
-                buildVersionConfig.buildToolsVersion,
-                buildVersionConfig.targetSdkVersion,
-                buildVersionConfig.kotlinVersion,
-                PluginUnderTestMetadataReading.readImplementationClasspath()
-                    .joinToString(",") { it.absolutePath },
-                buildVersionConfig.jvmTarget
-            )
-        )
+        stubGradlePropertiesFile(buildVersionConfig)
         stubFile(libModulePlaceholderFile, LIB_MODULE_PLACEHOLDER_CLASS_CONTENT)
         stubFile(libModuleManifestFile, LIB_MODULE_MANIFEST_FILE_CONTENT)
         stubGradleBuildFromResourceFile(
@@ -260,25 +248,18 @@ internal class DdAndroidGradlePluginFunctionalTest {
         assertThat(result).hasSuccessfulTaskOutcome(":samples:app:assembleDebug")
     }
 
-    @Disabled(
-        "This test is ignored for now because of these tasks: " +
-            "collect[Flavour1][Flavour2]ReleaseDependencies. This is caused under the hood" +
-            "by this task: PerModuleReportDependenciesTask which accesses the project object" +
-            "inside the action method. " +
-            "There is already an opened issue here: https://github.com/gradle/gradle/issues/12871"
-    )
     @Test
     fun `M success W assembleRelease { configuration cache, checkProjectDependencies enabled }`() {
-        // TODO: https://datadoghq.atlassian.net/browse/RUMM-1894
-
         // Given
+        // depends on https://github.com/gradle/gradle/issues/12871, which was released only with Gradle 7.5
+        stubGradlePropertiesFile(LATEST_VERSIONS_TEST_CONFIGURATION)
         stubGradleBuildFromResourceFile(
             "build_with_datadog_dep.gradle",
             appBuildGradleFile
         )
 
         // When
-        val result = gradleRunner {
+        val result = gradleRunner(gradleVersion = LATEST_VERSIONS_TEST_CONFIGURATION.gradleVersion) {
             withArguments(
                 "--configuration-cache",
                 "--stacktrace",
@@ -340,25 +321,18 @@ internal class DdAndroidGradlePluginFunctionalTest {
         assertThat(result).hasSuccessfulTaskOutcome(":samples:app:assembleDebug")
     }
 
-    @Disabled(
-        "This test is ignored for now because of these tasks: " +
-            "collect[Flavour1][Flavour2]ReleaseDependencies. This is caused under the hood" +
-            "by this task: PerModuleReportDependenciesTask which accesses the project object" +
-            "inside the action method. " +
-            "There is already an opened issue here: https://github.com/gradle/gradle/issues/12871"
-    )
     @Test
     fun `M success W assembleRelease { configuration cache, checkDependencies disabled  }`() {
-        // TODO: https://datadoghq.atlassian.net/browse/RUMM-1894
-
         // Given
+        // depends on https://github.com/gradle/gradle/issues/12871, which was released only with Gradle 7.5
+        stubGradlePropertiesFile(LATEST_VERSIONS_TEST_CONFIGURATION)
         stubGradleBuildFromResourceFile(
             "build_with_check_deps_disabled.gradle",
             appBuildGradleFile
         )
 
         // When
-        val result = gradleRunner {
+        val result = gradleRunner(gradleVersion = LATEST_VERSIONS_TEST_CONFIGURATION.gradleVersion) {
             withArguments(
                 "--configuration-cache",
                 "--stacktrace",
@@ -929,6 +903,73 @@ internal class DdAndroidGradlePluginFunctionalTest {
     }
 
     @Test
+    fun `M be compatible with configuration cache W assemble finalized by upload`(forge: Forge) {
+        // Given
+        // this test is using Task.notCompatibleWithConfigurationCache, which appeared only in Gradle 7.5,
+        // and moreover configuration cache support in Gradle is still ongoing work
+        stubGradlePropertiesFile(LATEST_VERSIONS_TEST_CONFIGURATION)
+        stubGradleBuildFromResourceFile(
+            "build_with_datadog_dep.gradle",
+            appBuildGradleFile
+        )
+        val color = forge.anElementFrom(colors)
+        val version = forge.anElementFrom(versions)
+        val variantVersionName = version.lowercase()
+        val variant = "${version.lowercase()}$color"
+
+        appBuildGradleFile.appendText(
+            """
+                tasks.configureEach {
+                    if (name == "minify${variant.capitalize()}ReleaseWithR8") {
+                        finalizedBy(tasks.getByName("uploadMapping${variant.capitalize()}Release"))
+                    }
+                }
+            """.trimIndent()
+        )
+
+        val result = gradleRunner(gradleVersion = LATEST_VERSIONS_TEST_CONFIGURATION.gradleVersion) {
+            withArguments(
+                "--info",
+                ":samples:app:assemble${variant.capitalize()}Release",
+                "--stacktrace",
+                "-PDD_API_KEY=fakekey",
+                "-Pdd-emulate-upload-call",
+                "--configuration-cache"
+            )
+        }
+            .build()
+
+        // Then
+        assertThat(result).containsInOutput("Creating request with GZIP encoding.")
+
+        val buildIdInOriginFile = testProjectDir.findBuildIdInOriginFile(variant)
+        val buildIdInApk = testProjectDir.findBuildIdInApk(variant)
+        assertThat(buildIdInApk).isEqualTo(buildIdInOriginFile)
+
+        assertThat(result).containsInOutput(
+            "Uploading file jvm_mapping with tags " +
+                "`service:com.example.variants.$variantVersionName`, " +
+                "`version:1.0-$variantVersionName`, " +
+                "`version_code:1`, " +
+                "`variant:$variant`, " +
+                "`build_id:$buildIdInOriginFile` (site=datadoghq.com):"
+        )
+        assertThat(result).containsInOutput(
+            """
+                Detected repository:
+                {
+                    "files": [
+                        "src/main/java/Placeholder.java",
+                        "src/main/kotlin/SampleApplication.kt"
+                    ],
+                    "repository_url": "$fakeRemoteUrl",
+                    "hash": "${headHash(appRootDir)}"
+                }
+            """.trimIndent()
+        )
+    }
+
+    @Test
     fun `M not contain any uploadTasks W minifyNotEnabled`() {
         // Given
         stubGradleBuildFromResourceFile(
@@ -1146,8 +1187,10 @@ internal class DdAndroidGradlePluginFunctionalTest {
 
     // region Internal
 
-    private fun resolveMappingUploadTask(variantName: String) = "uploadMapping${variantName}Release"
-    private fun resolveNdkSymbolUploadTask(variantName: String) = "uploadNdkSymbolFiles${variantName}Release"
+    private fun resolveMappingUploadTask(variantName: String) = "uploadMapping${variantName.capitalize()}Release"
+    private fun resolveNdkSymbolUploadTask(
+        variantName: String
+    ) = "uploadNdkSymbolFiles${variantName.capitalize()}Release"
 
     private fun stubFile(destination: File, content: String) {
         with(destination.outputStream()) {
@@ -1170,9 +1213,28 @@ internal class DdAndroidGradlePluginFunctionalTest {
         stubFile(cppPlaceholderFile!!, CPP_FILE_CONTENT)
     }
 
-    private fun gradleRunner(configure: GradleRunner.() -> Unit): GradleRunner {
+    private fun stubGradlePropertiesFile(buildVersionConfig: BuildVersionConfig) {
+        stubFile(
+            gradlePropertiesFile,
+            GRADLE_PROPERTIES_FILE_CONTENT.format(
+                Locale.US,
+                buildVersionConfig.agpVersion,
+                buildVersionConfig.buildToolsVersion,
+                buildVersionConfig.targetSdkVersion,
+                buildVersionConfig.kotlinVersion,
+                PluginUnderTestMetadataReading.readImplementationClasspath()
+                    .joinToString(",") { it.absolutePath },
+                buildVersionConfig.jvmTarget
+            )
+        )
+    }
+
+    private fun gradleRunner(
+        gradleVersion: String? = null,
+        configure: GradleRunner.() -> Unit
+    ): GradleRunner {
         return GradleRunner.create()
-            .withGradleVersion(buildVersionConfig.gradleVersion)
+            .withGradleVersion(gradleVersion ?: buildVersionConfig.gradleVersion)
             .withProjectDir(testProjectDir)
             // https://github.com/gradle/gradle/issues/22466
             // for now the workaround will be to manually inject necessary files into plugin classpath
@@ -1363,6 +1425,15 @@ internal class DdAndroidGradlePluginFunctionalTest {
         const val LATEST_GRADLE_VERSION = "8.7"
         const val LATEST_AGP_VERSION = "8.4.0"
 
+        val LATEST_VERSIONS_TEST_CONFIGURATION = BuildVersionConfig(
+            agpVersion = LATEST_AGP_VERSION,
+            gradleVersion = LATEST_GRADLE_VERSION,
+            buildToolsVersion = "34.0.0",
+            targetSdkVersion = "34",
+            kotlinVersion = "1.9.23",
+            jvmTarget = JavaVersion.VERSION_17.toString()
+        )
+
         // NB: starting from AGP 7.x, Gradle should have the same major version.
         // While work with Gradle with higher major version is possible, it is not guaranteed.
         val TESTED_CONFIGURATIONS = listOf(
@@ -1374,14 +1445,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
                 kotlinVersion = "1.6.10",
                 jvmTarget = JavaVersion.VERSION_11.toString()
             ),
-            BuildVersionConfig(
-                agpVersion = LATEST_AGP_VERSION,
-                gradleVersion = LATEST_GRADLE_VERSION,
-                buildToolsVersion = "34.0.0",
-                targetSdkVersion = "34",
-                kotlinVersion = "1.9.23",
-                jvmTarget = JavaVersion.VERSION_17.toString()
-            )
+            LATEST_VERSIONS_TEST_CONFIGURATION
         )
 
         const val BUILD_ID_FILE_PATH_APK = "assets/datadog.buildId"
