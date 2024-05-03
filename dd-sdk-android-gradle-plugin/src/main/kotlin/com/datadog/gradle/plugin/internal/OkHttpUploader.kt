@@ -13,6 +13,7 @@ import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
+import okhttp3.Protocol
 import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -52,7 +53,8 @@ internal class OkHttpUploader : Uploader {
         apiKey: String,
         identifier: DdAppIdentifier,
         repositoryInfo: RepositoryInfo?,
-        useGzip: Boolean
+        useGzip: Boolean,
+        emulateNetworkCall: Boolean
     ) {
         LOGGER.info("Uploading file ${fileInfo.fileName} with tags $identifier (site=${site.domain}):")
         if (fileInfo.extraAttributes.isNotEmpty()) {
@@ -81,7 +83,16 @@ internal class OkHttpUploader : Uploader {
 
         val call = client.newCall(request)
         val response = try {
-            call.execute()
+            if (emulateNetworkCall) {
+                Response.Builder()
+                    .request(request)
+                    .protocol(Protocol.HTTP_2)
+                    .message("fake-response")
+                    .code(HttpURLConnection.HTTP_ACCEPTED)
+                    .build()
+            } else {
+                call.execute()
+            }
         } catch (e: Throwable) {
             LOGGER.error("Error uploading the mapping file for $identifier", e)
             null

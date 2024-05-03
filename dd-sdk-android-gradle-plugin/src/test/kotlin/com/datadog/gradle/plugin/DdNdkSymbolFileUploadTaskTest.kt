@@ -166,7 +166,8 @@ internal class DdNdkSymbolFileUploadTaskTest {
                 buildId = fakeBuildId
             ),
             fakeRepoInfo,
-            useGzip = true
+            useGzip = true,
+            emulateNetworkCall = false
         )
     }
 
@@ -209,7 +210,8 @@ internal class DdNdkSymbolFileUploadTaskTest {
                     buildId = fakeBuildId
                 ),
                 fakeRepoInfo,
-                useGzip = true
+                useGzip = true,
+                emulateNetworkCall = false
             )
         }
     }
@@ -253,7 +255,8 @@ internal class DdNdkSymbolFileUploadTaskTest {
                 buildId = fakeBuildId
             ),
             fakeRepoInfo,
-            useGzip = true
+            useGzip = true,
+            emulateNetworkCall = false
         )
         Assertions.assertThat(fakeRepositoryFile.readText())
             .isEqualTo(
@@ -296,7 +299,8 @@ internal class DdNdkSymbolFileUploadTaskTest {
                 buildId = fakeBuildId
             ),
             null,
-            useGzip = true
+            useGzip = true,
+            emulateNetworkCall = false
         )
     }
 
@@ -382,7 +386,6 @@ internal class DdNdkSymbolFileUploadTaskTest {
 
         // Given
         testedTask.site = siteName
-        val fakeSoFile = writeFakeSoFile("arm64-v8a")
 
         // When
         assertThrows<IllegalStateException> {
@@ -429,7 +432,8 @@ internal class DdNdkSymbolFileUploadTaskTest {
                 buildId = fakeBuildId
             ),
             fakeRepoInfo,
-            useGzip = true
+            useGzip = true,
+            emulateNetworkCall = false
         )
     }
 

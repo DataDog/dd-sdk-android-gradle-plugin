@@ -41,7 +41,11 @@ abstract class DdFileUploadTask @Inject constructor(
     var apiKey: String = ""
 
     private val disableGzipOption: Provider<String> =
-        providerFactory.gradleProperty(DdFileUploadTask.DISABLE_GZIP_GRADLE_PROPERTY)
+        providerFactory.gradleProperty(DISABLE_GZIP_GRADLE_PROPERTY)
+
+    // needed for functional tests, because we don't have real API key
+    private val emulateNetworkCall: Provider<String> =
+        providerFactory.gradleProperty(EMULATE_UPLOAD_NETWORK_CALL)
 
     /**
      * Source of the API key set: environment, gradle property, etc.
@@ -170,7 +174,8 @@ abstract class DdFileUploadTask @Inject constructor(
                         buildId = buildId.get()
                     ),
                     repositories.firstOrNull(),
-                    !disableGzipOption.isPresent
+                    !disableGzipOption.isPresent,
+                    emulateNetworkCall.isPresent
                 )
             } catch (e: Exception) {
                 caughtErrors.add(e)
@@ -298,7 +303,7 @@ abstract class DdFileUploadTask @Inject constructor(
         }
 
         val jsonObject = JSONObject()
-        jsonObject.put("version", RESPOSITORY_FILE_VERSION)
+        jsonObject.put("version", REPOSITORY_FILE_VERSION)
         jsonObject.put("data", data)
 
         repositoryFile.parentFile.mkdirs()
@@ -306,7 +311,7 @@ abstract class DdFileUploadTask @Inject constructor(
     }
 
     internal companion object {
-        private const val RESPOSITORY_FILE_VERSION = 1
+        private const val REPOSITORY_FILE_VERSION = 1
         private const val INDENT = 4
 
         private const val DATADOG_CI_API_KEY_PROPERTY = "apiKey"
@@ -316,6 +321,7 @@ abstract class DdFileUploadTask @Inject constructor(
         internal val LOGGER = Logging.getLogger("DdFileUploadTask")
 
         const val DISABLE_GZIP_GRADLE_PROPERTY = "dd-disable-gzip"
+        const val EMULATE_UPLOAD_NETWORK_CALL = "dd-emulate-upload-call"
 
         const val API_KEY_MISSING_ERROR = "Make sure you define an API KEY to upload your mapping files to Datadog. " +
             "Create a DD_API_KEY or DATADOG_API_KEY environment variable, gradle" +

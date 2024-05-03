@@ -602,10 +602,11 @@ internal class DdAndroidGradlePluginFunctionalTest {
                 taskName,
                 "--info",
                 "--stacktrace",
-                "-PDD_API_KEY=fakekey"
+                "-PDD_API_KEY=fakekey",
+                "-Pdd-emulate-upload-call"
             )
         }
-            .buildAndFail()
+            .build()
 
         // Then
         assertThat(result).containsInOutput("Creating request with GZIP encoding.")
@@ -663,10 +664,11 @@ internal class DdAndroidGradlePluginFunctionalTest {
                 "--info",
                 "--stacktrace",
                 "-PDD_API_KEY=fakekey",
-                "-Pdd-disable-gzip"
+                "-Pdd-disable-gzip",
+                "-Pdd-emulate-upload-call"
             )
         }
-            .buildAndFail()
+            .build()
 
         // Then
         assertThat(result).containsInOutput("Creating request without GZIP encoding.")
@@ -727,8 +729,8 @@ internal class DdAndroidGradlePluginFunctionalTest {
         gradleRunner { withArguments("--info", ":samples:app:assembleRelease") }
             .build()
 
-        val result = gradleRunner { withArguments(taskName, "--info") }
-            .buildAndFail()
+        val result = gradleRunner { withArguments(taskName, "--info", "-Pdd-emulate-upload-call") }
+            .build()
 
         // Then
         val buildIdInOriginFile = testProjectDir.findBuildIdInOriginFile(variant)
@@ -783,10 +785,11 @@ internal class DdAndroidGradlePluginFunctionalTest {
                 taskName,
                 "--info",
                 "--stacktrace",
-                "-PDD_API_KEY=fakekey"
+                "-PDD_API_KEY=fakekey",
+                "-Pdd-emulate-upload-call"
             )
         }
-            .buildAndFail()
+            .build()
 
         // Then
         val buildIdInOriginFile = testProjectDir.findBuildIdInOriginFile(variant)
@@ -838,10 +841,11 @@ internal class DdAndroidGradlePluginFunctionalTest {
                 taskName,
                 "--info",
                 "--stacktrace",
-                "-PDD_API_KEY=fakekey"
+                "-PDD_API_KEY=fakekey",
+                "-Pdd-emulate-upload-call"
             )
         }
-            .buildAndFail()
+            .build()
 
         // Then
         val buildIdInOriginFile = testProjectDir.findBuildIdInOriginFile(variant)
@@ -902,10 +906,11 @@ internal class DdAndroidGradlePluginFunctionalTest {
                 taskName,
                 "--info",
                 "--stacktrace",
-                "-PDD_API_KEY=fakekey"
+                "-PDD_API_KEY=fakekey",
+                "-Pdd-emulate-upload-call"
             )
         }
-            .buildAndFail()
+            .build()
 
         // Then
         assertThat(result).containsInOutput(
@@ -985,10 +990,11 @@ internal class DdAndroidGradlePluginFunctionalTest {
                 taskName,
                 "--info",
                 "--stacktrace",
-                "-PDD_API_KEY=fakekey"
+                "-PDD_API_KEY=fakekey",
+                "-Pdd-emulate-upload-call"
             )
         }
-            .buildAndFail()
+            .build()
 
         // Then
         val buildIdInOriginFile = testProjectDir.findBuildIdInOriginFile(variant)
@@ -1033,10 +1039,11 @@ internal class DdAndroidGradlePluginFunctionalTest {
                 taskName,
                 "--info",
                 "--stacktrace",
-                "-PDD_API_KEY=fakekey"
+                "-PDD_API_KEY=fakekey",
+                "-Pdd-emulate-upload-call"
             )
         }
-            .buildAndFail()
+            .build()
 
         // Then
         val buildIdInOriginFile = testProjectDir.findBuildIdInOriginFile(variant)
@@ -1086,20 +1093,22 @@ internal class DdAndroidGradlePluginFunctionalTest {
                 ndkSymbolUploadTaskName,
                 "--info",
                 "--stacktrace",
-                "-PDD_API_KEY=fakekey"
+                "-PDD_API_KEY=fakekey",
+                "-Pdd-emulate-upload-call"
             )
         }
-            .buildAndFail()
+            .build()
 
         val mappingResult = gradleRunner {
             withArguments(
                 mappingUploadTaskName,
                 "--info",
                 "--stacktrace",
-                "-PDD_API_KEY=fakekey"
+                "-PDD_API_KEY=fakekey",
+                "-Pdd-emulate-upload-call"
             )
         }
-            .buildAndFail()
+            .build()
 
         // Then
         val buildIdInOriginFile = testProjectDir.findBuildIdInOriginFile(variant)
