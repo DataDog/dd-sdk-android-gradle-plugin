@@ -170,7 +170,8 @@ internal class DdMappingFileUploadTaskTest {
                 buildId = fakeBuildId
             ),
             fakeRepoInfo,
-            useGzip = true
+            useGzip = true,
+            emulateNetworkCall = false
         )
         assertThat(fakeRepositoryFile.readText())
             .isEqualTo(
@@ -219,7 +220,8 @@ internal class DdMappingFileUploadTaskTest {
                     )
                 ),
                 eq(fakeRepoInfo),
-                useGzip = eq(true)
+                useGzip = eq(true),
+                emulateNetworkCall = eq(false)
             )
             assertThat(lastValue.file).hasSameTextualContentAs(
                 fileFromResourcesPath("mapping-with-aliases.txt")
@@ -270,7 +272,8 @@ internal class DdMappingFileUploadTaskTest {
                     )
                 ),
                 eq(fakeRepoInfo),
-                useGzip = eq(true)
+                useGzip = eq(true),
+                emulateNetworkCall = eq(false)
             )
             assertThat(lastValue.file.readLines()).isEqualTo(expectedLines)
         }
@@ -325,7 +328,8 @@ internal class DdMappingFileUploadTaskTest {
                     )
                 ),
                 eq(fakeRepoInfo),
-                useGzip = eq(true)
+                useGzip = eq(true),
+                emulateNetworkCall = eq(false)
             )
             assertThat(lastValue.file.readLines()).isEqualTo(expectedLines)
         }
@@ -366,7 +370,8 @@ internal class DdMappingFileUploadTaskTest {
                 buildId = fakeBuildId
             ),
             fakeRepoInfo,
-            useGzip = true
+            useGzip = true,
+            emulateNetworkCall = false
         )
         assertThat(fakeRepositoryFile.readText())
             .isEqualTo(
@@ -408,7 +413,8 @@ internal class DdMappingFileUploadTaskTest {
                 buildId = fakeBuildId
             ),
             null,
-            useGzip = true
+            useGzip = true,
+            emulateNetworkCall = false
         )
     }
 
@@ -551,7 +557,8 @@ internal class DdMappingFileUploadTaskTest {
                 buildId = fakeBuildId
             ),
             fakeRepoInfo,
-            useGzip = true
+            useGzip = true,
+            emulateNetworkCall = false
         )
         assertThat(fakeRepositoryFile.readText())
             .isEqualTo(

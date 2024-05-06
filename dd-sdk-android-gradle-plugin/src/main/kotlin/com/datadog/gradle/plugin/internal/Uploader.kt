@@ -56,6 +56,7 @@ internal interface Uploader {
         apiKey: String,
         identifier: DdAppIdentifier,
         repositoryInfo: RepositoryInfo?,
-        useGzip: Boolean
+        useGzip: Boolean = true,
+        emulateNetworkCall: Boolean = false
     )
 }

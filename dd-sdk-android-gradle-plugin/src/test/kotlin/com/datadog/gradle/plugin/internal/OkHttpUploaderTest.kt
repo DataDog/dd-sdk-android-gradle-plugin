@@ -164,7 +164,8 @@ internal class OkHttpUploaderTest {
             fakeApiKey,
             fakeIdentifier,
             fakeRepositoryInfo,
-            useGzip = true
+            useGzip = true,
+            emulateNetworkCall = false
         )
 
         // Then
@@ -209,7 +210,8 @@ internal class OkHttpUploaderTest {
             fakeApiKey,
             fakeIdentifier,
             fakeRepositoryInfo,
-            useGzip = false
+            useGzip = false,
+            emulateNetworkCall = false
         )
 
         // Then
@@ -254,7 +256,8 @@ internal class OkHttpUploaderTest {
             fakeApiKey,
             fakeIdentifier,
             null,
-            useGzip = true
+            useGzip = true,
+            emulateNetworkCall = false
         )
 
         // Then
@@ -295,7 +298,8 @@ internal class OkHttpUploaderTest {
                 fakeApiKey,
                 fakeIdentifier,
                 fakeRepositoryInfo,
-                useGzip = true
+                useGzip = true,
+                emulateNetworkCall = false
             )
         }
 
@@ -348,7 +352,8 @@ internal class OkHttpUploaderTest {
                 fakeApiKey,
                 fakeIdentifier,
                 fakeRepositoryInfo,
-                useGzip = true
+                useGzip = true,
+                emulateNetworkCall = false
             )
         }
 
@@ -398,7 +403,8 @@ internal class OkHttpUploaderTest {
                 fakeApiKey,
                 fakeIdentifier,
                 fakeRepositoryInfo,
-                useGzip = true
+                useGzip = true,
+                emulateNetworkCall = false
             )
         }
 
@@ -464,7 +470,8 @@ internal class OkHttpUploaderTest {
                 fakeApiKey,
                 fakeIdentifier,
                 fakeRepositoryInfo,
-                useGzip = true
+                useGzip = true,
+                emulateNetworkCall = false
             )
         }
 
@@ -518,7 +525,8 @@ internal class OkHttpUploaderTest {
                 fakeApiKey,
                 fakeIdentifier,
                 fakeRepositoryInfo,
-                useGzip = true
+                useGzip = true,
+                emulateNetworkCall = false
             )
         }
 
@@ -571,7 +579,8 @@ internal class OkHttpUploaderTest {
                 fakeApiKey,
                 fakeIdentifier,
                 fakeRepositoryInfo,
-                useGzip = true
+                useGzip = true,
+                emulateNetworkCall = false
             )
         }
 
@@ -621,7 +630,8 @@ internal class OkHttpUploaderTest {
                 fakeApiKey,
                 fakeIdentifier,
                 fakeRepositoryInfo,
-                useGzip = true
+                useGzip = true,
+                emulateNetworkCall = false
             )
         }
         assertThat(exception.message).isEqualTo(
