@@ -188,6 +188,13 @@ class DdAndroidGradlePlugin @Inject constructor(
             GitRepositoryDetector(execOps)
         ).apply {
             configure { uploadTask ->
+                @Suppress("MagicNumber")
+                if (DdTaskUtils.isGradleAbove(target, 7, 5)) {
+                    uploadTask.notCompatibleWithConfigurationCache(
+                        "Datadog Upload Mapping task is not" +
+                            " compatible with configuration cache yet."
+                    )
+                }
                 val extensionConfiguration = resolveExtensionConfiguration(extension, variant)
                 configureVariantTask(uploadTask, apiKey, variant.flavorName, extensionConfiguration, variant)
 

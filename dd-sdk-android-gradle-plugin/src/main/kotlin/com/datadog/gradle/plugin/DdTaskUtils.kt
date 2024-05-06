@@ -29,15 +29,23 @@ internal object DdTaskUtils {
         return null
     }
 
-    @Suppress("MagicNumber", "ReturnCount")
     fun isAgpAbove(major: Int, minor: Int, patch: Int): Boolean {
-        val version = Version.ANDROID_GRADLE_PLUGIN_VERSION
-        val groups = version.split(".")
-        if (groups.size < 3) return false
-        val currentMajor = groups[0].toIntOrNull()
-        val currentMinor = groups[1].toIntOrNull()
-        val currentPatch = groups[2].substringBefore("-").toIntOrNull()
-        if (currentMajor == null || currentMinor == null || currentPatch == null) return false
+        return isVersionAbove(Version.ANDROID_GRADLE_PLUGIN_VERSION, major, minor, patch)
+    }
+
+    // Gradle version may not have patch version
+    fun isGradleAbove(project: Project, major: Int, minor: Int, patch: Int = 0): Boolean {
+        return isVersionAbove(project.gradle.gradleVersion, major, minor, patch)
+    }
+
+    @Suppress("MagicNumber", "ReturnCount")
+    private fun isVersionAbove(refVersion: String, major: Int, minor: Int, patch: Int): Boolean {
+        val groups = refVersion.split(".")
+        // should be at least major and minor versions
+        if (groups.size < 2) return false
+        val currentMajor = groups[0].toIntOrNull() ?: 0
+        val currentMinor = groups[1].toIntOrNull() ?: 0
+        val currentPatch = groups.getOrNull(2)?.substringBefore("-")?.toIntOrNull() ?: 0
         return currentMajor >= major && currentMinor >= minor && currentPatch >= patch
     }
 }
