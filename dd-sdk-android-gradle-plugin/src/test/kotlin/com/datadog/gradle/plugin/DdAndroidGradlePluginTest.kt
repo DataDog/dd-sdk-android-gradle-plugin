@@ -435,7 +435,7 @@ internal class DdAndroidGradlePluginTest {
     }
 
     @Test
-    fun `M create buildId task W configureTasksForVariant() { no deobfuscation }`(
+    fun `M not create buildId task W configureTasksForVariant() { no deobfuscation, no native build providers }`(
         @StringForgery(case = Case.LOWER) flavorName: String,
         @StringForgery(case = Case.LOWER) buildTypeName: String,
         @StringForgery versionName: String,
@@ -465,7 +465,7 @@ internal class DdAndroidGradlePluginTest {
 
         // Then
         val allTasks = fakeProject.tasks.map { it.name }
-        assertThat(allTasks).contains("generateBuildId${variantName.replaceFirstChar { capitalizeChar(it) }}")
+        assertThat(allTasks).doesNotContain("generateBuildId${variantName.replaceFirstChar { capitalizeChar(it) }}")
     }
 
     @Test

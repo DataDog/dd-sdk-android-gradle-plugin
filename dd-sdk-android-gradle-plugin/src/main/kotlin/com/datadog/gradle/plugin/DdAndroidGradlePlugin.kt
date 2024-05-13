@@ -78,26 +78,40 @@ class DdAndroidGradlePlugin @Inject constructor(
         variant: ApplicationVariant,
         apiKey: ApiKey
     ) {
-        val buildIdGenerationTask =
-            configureBuildIdGenerationTask(target, androidExtension, variant)
+        val isObfuscationEnabled = isObfuscationEnabled(variant, datadogExtension)
+        val isNativeBuildRequired = variant.externalNativeBuildProviders.isNotEmpty()
 
-        if (isObfuscationEnabled(variant, datadogExtension)) {
-            configureVariantForUploadTask(
-                target,
-                variant,
-                buildIdGenerationTask,
-                apiKey,
-                datadogExtension
-            )
-        } else {
-            LOGGER.info("Minifying disabled for variant ${variant.name}, no upload task created")
+        if (isObfuscationEnabled || isNativeBuildRequired) {
+            val buildIdGenerationTask =
+                configureBuildIdGenerationTask(target, androidExtension, variant)
+
+            if (isObfuscationEnabled) {
+                configureVariantForUploadTask(
+                    target,
+                    variant,
+                    buildIdGenerationTask,
+                    apiKey,
+                    datadogExtension
+                )
+            } else {
+                LOGGER.info("Minifying disabled for variant ${variant.name}, no mapping file upload task created")
+            }
+
+            if (isNativeBuildRequired) {
+                configureNdkSymbolUploadTask(
+                    target,
+                    datadogExtension,
+                    variant,
+                    buildIdGenerationTask,
+                    apiKey
+                )
+            } else {
+                LOGGER.info(
+                    "No native build tasks found for variant ${variant.name}," +
+                        " no NDK symbol file upload task created."
+                )
+            }
         }
-        configureNdkSymbolUploadTask(
-            target,
-            datadogExtension,
-            variant,
-            buildIdGenerationTask
-        )
         configureVariantForSdkCheck(target, variant, datadogExtension)
     }
 
@@ -118,9 +132,9 @@ class DdAndroidGradlePlugin @Inject constructor(
         target: Project,
         extension: DdExtension,
         variant: ApplicationVariant,
-        buildIdTask: TaskProvider<GenerateBuildIdTask>
-    ): TaskProvider<DdNdkSymbolFileUploadTask>? {
-        val apiKey = resolveApiKey(target)
+        buildIdTask: TaskProvider<GenerateBuildIdTask>,
+        apiKey: ApiKey
+    ): TaskProvider<DdNdkSymbolFileUploadTask> {
         val extensionConfiguration = resolveExtensionConfiguration(extension, variant)
 
         val uploadTask = DdNdkSymbolFileUploadTask.register(
