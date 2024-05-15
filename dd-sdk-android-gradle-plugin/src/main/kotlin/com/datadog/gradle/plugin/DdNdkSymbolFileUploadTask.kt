@@ -7,7 +7,6 @@ import com.datadog.gradle.plugin.internal.Uploader
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.logging.Logging
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
@@ -89,8 +88,6 @@ internal abstract class DdNdkSymbolFileUploadTask @Inject constructor(
             SupportedArchitectureMapping("x86_64", "x64")
         )
 
-        internal val LOGGER = Logging.getLogger("DdSymbolFileUploadTask")
-
         private fun getSearchDirs(
             buildTask: TaskProvider<ExternalNativeBuildTask>,
             providerFactory: ProviderFactory
@@ -122,13 +119,7 @@ internal abstract class DdNdkSymbolFileUploadTask @Inject constructor(
             apiKey: ApiKey,
             extensionConfiguration: DdExtensionConfiguration,
             repositoryDetector: RepositoryDetector
-        ): TaskProvider<DdNdkSymbolFileUploadTask>? {
-            val nativeBuildProviders = variant.externalNativeBuildProviders
-            if (nativeBuildProviders.isEmpty()) {
-                LOGGER.info("No native build tasks found for variant ${variant.name}, skipping NDK symbol file upload.")
-                return null
-            }
-
+        ): TaskProvider<DdNdkSymbolFileUploadTask> {
             return project.tasks.register(
                 TASK_NAME + variant.name.capitalize(),
                 DdNdkSymbolFileUploadTask::class.java,
@@ -145,6 +136,7 @@ internal abstract class DdNdkSymbolFileUploadTask @Inject constructor(
                     }
                     task.sourceSetRoots = roots
 
+                    val nativeBuildProviders = variant.externalNativeBuildProviders
                     nativeBuildProviders.forEach { buildTask ->
                         val searchFiles = getSearchDirs(buildTask, providerFactory)
 
