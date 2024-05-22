@@ -283,7 +283,7 @@ internal class OkHttpUploader : Uploader {
         internal const val KEY_EVENT = "event"
         internal const val KEY_REPOSITORY = "repository"
 
-        internal val NETWORK_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(60)
+        internal val NETWORK_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(120)
         internal val MEDIA_TYPE_JSON = "application/json".toMediaTypeOrNull()
 
         internal const val MAX_MAP_SIZE_EXCEEDED_ERROR =
