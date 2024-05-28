@@ -4,7 +4,7 @@
  * Copyright 2020-Present Datadog, Inc.
  */
 
-package com.datadog.gradle.plugin
+package com.datadog.gradle.plugin.utils.forge
 
 import com.datadog.gradle.plugin.internal.DdAppIdentifier
 import fr.xgouchet.elmyr.Forge

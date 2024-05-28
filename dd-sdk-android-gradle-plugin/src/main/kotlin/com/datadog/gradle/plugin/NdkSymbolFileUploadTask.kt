@@ -1,29 +1,32 @@
+/*
+ * Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+ * This product includes software developed at Datadog (https://www.datadoghq.com/).
+ * Copyright 2020-Present Datadog, Inc.
+ */
+
 package com.datadog.gradle.plugin
 
-import com.android.build.gradle.api.ApplicationVariant
-import com.android.build.gradle.tasks.ExternalNativeBuildTask
 import com.datadog.gradle.plugin.internal.ApiKey
 import com.datadog.gradle.plugin.internal.Uploader
+import com.datadog.gradle.plugin.internal.lazyBuildIdProvider
+import com.datadog.gradle.plugin.internal.variant.AppVariant
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.TaskProvider
 import java.io.File
 import javax.inject.Inject
-import kotlin.reflect.full.memberProperties
 
 /**
  * A Gradle task to upload NDK symbol files to Datadog servers.
  */
-internal abstract class DdNdkSymbolFileUploadTask @Inject constructor(
+internal abstract class NdkSymbolFileUploadTask @Inject constructor(
     objectFactory: ObjectFactory,
     providerFactory: ProviderFactory,
     repositoryDetector: RepositoryDetector
-) : DdFileUploadTask(providerFactory, repositoryDetector) {
+) : FileUploadTask(providerFactory, repositoryDetector) {
 
     @get:InputFiles
     val searchDirectories: ConfigurableFileCollection = objectFactory.fileCollection()
@@ -88,75 +91,35 @@ internal abstract class DdNdkSymbolFileUploadTask @Inject constructor(
             SupportedArchitectureMapping("x86_64", "x64")
         )
 
-        private fun getSearchDirs(
-            buildTask: TaskProvider<ExternalNativeBuildTask>,
-            providerFactory: ProviderFactory
-        ): Provider<File?> {
-            return buildTask.flatMap { task ->
-                // var soFolder: `Provider
-                @Suppress("MagicNumber")
-                if (DdTaskUtils.isAgpAbove(8, 0, 0)) {
-                    task.soFolder.map { it.asFile }
-                } else {
-                    val soFolder = ExternalNativeBuildTask::class.memberProperties.find {
-                        it.name == "objFolder"
-                    }?.get(task)
-                    when (soFolder) {
-                        is File -> providerFactory.provider { soFolder }
-                        is DirectoryProperty -> soFolder.map { it.asFile }
-                        else -> providerFactory.provider { null }
-                    }
-                }
-            }
-        }
-
         @Suppress("LongParameterList", "ReturnCount")
         fun register(
             project: Project,
-            variant: ApplicationVariant,
+            variant: AppVariant,
             buildIdTask: TaskProvider<GenerateBuildIdTask>,
             providerFactory: ProviderFactory,
             apiKey: ApiKey,
             extensionConfiguration: DdExtensionConfiguration,
             repositoryDetector: RepositoryDetector
-        ): TaskProvider<DdNdkSymbolFileUploadTask> {
+        ): TaskProvider<NdkSymbolFileUploadTask> {
             return project.tasks.register(
                 TASK_NAME + variant.name.capitalize(),
-                DdNdkSymbolFileUploadTask::class.java,
+                NdkSymbolFileUploadTask::class.java,
                 repositoryDetector
             ).apply {
                 configure { task ->
-                    val roots = mutableListOf<File>()
-                    variant.sourceSets.forEach {
-                        roots.addAll(it.javaDirectories)
-                        @Suppress("MagicNumber")
-                        if (DdTaskUtils.isAgpAbove(7, 0, 0)) {
-                            roots.addAll(it.kotlinDirectories)
-                        }
-                    }
-                    task.sourceSetRoots = roots
+                    task.sourceSetRoots.set(variant.collectJavaAndKotlinSourceDirectories())
 
-                    val nativeBuildProviders = variant.externalNativeBuildProviders
-                    nativeBuildProviders.forEach { buildTask ->
-                        val searchFiles = getSearchDirs(buildTask, providerFactory)
+                    variant.bindWith(task)
 
-                        task.searchDirectories.from(searchFiles)
-                        task.dependsOn(buildTask)
-                    }
-
-                    task.datadogCiFile = DdTaskUtils.findDatadogCiFile(project.rootDir)
-                    task.repositoryFile = DdTaskUtils.resolveDatadogRepositoryFile(project)
+                    task.datadogCiFile = TaskUtils.findDatadogCiFile(project.rootDir)
+                    task.repositoryFile = TaskUtils.resolveDatadogRepositoryFile(project)
                     task.configureWith(
                         apiKey,
                         extensionConfiguration,
                         variant
                     )
 
-                    task.buildId = buildIdTask.flatMap {
-                        it.buildIdFile.flatMap {
-                            providerFactory.provider { it.asFile.readText().trim() }
-                        }
-                    }
+                    task.buildId.set(buildIdTask.lazyBuildIdProvider(providerFactory))
                 }
             }
         }

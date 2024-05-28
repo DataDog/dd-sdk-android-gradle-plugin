@@ -4,7 +4,7 @@
  * Copyright 2020-Present Datadog, Inc.
  */
 
-package com.datadog.gradle.plugin
+package com.datadog.gradle.plugin.utils.assertj
 
 import okhttp3.mockwebserver.RecordedRequest
 import okio.GzipSource

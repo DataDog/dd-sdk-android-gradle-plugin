@@ -7,6 +7,7 @@
 package com.datadog.gradle.plugin
 
 import com.datadog.gradle.plugin.internal.MissingSdkException
+import com.datadog.gradle.plugin.utils.forge.Configurator
 import com.datadog.gradle.plugin.utils.setStaticValue
 import fr.xgouchet.elmyr.Forge
 import fr.xgouchet.elmyr.ForgeryException
@@ -51,8 +52,8 @@ import java.io.UncheckedIOException
 )
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ForgeConfiguration(Configurator::class)
-internal class DdCheckSdkDepsTaskTest {
-    lateinit var testedTask: DdCheckSdkDepsTask
+internal class CheckSdkDepsTaskTest {
+    lateinit var testedTask: CheckSdkDepsTask
 
     lateinit var fakeSdkCheckLevel: SdkCheckLevel
 
@@ -80,8 +81,8 @@ internal class DdCheckSdkDepsTaskTest {
 
     @BeforeEach
     fun `set up`(forge: Forge) {
-        originalLogger = DdCheckSdkDepsTask.LOGGER
-        DdCheckSdkDepsTask::class.java.setStaticValue("LOGGER", mockLogger)
+        originalLogger = CheckSdkDepsTask.LOGGER
+        CheckSdkDepsTask::class.java.setStaticValue("LOGGER", mockLogger)
 
         whenever(mockConfiguration.name).thenReturn(fakeConfigurationName)
         whenever(mockConfiguration.resolvedConfiguration).thenReturn(mockResolvedConfiguration)
@@ -94,8 +95,8 @@ internal class DdCheckSdkDepsTaskTest {
         fakeProject.configurations.add(mockConfiguration)
 
         testedTask = fakeProject.tasks.create(
-            "DdCheckDepsTask",
-            DdCheckSdkDepsTask::class.java
+            "CheckDepsTask",
+            CheckSdkDepsTask::class.java
         ) {
             it.configurationName.set(fakeConfigurationName)
             it.sdkCheckLevel.set(fakeSdkCheckLevel)
@@ -105,7 +106,7 @@ internal class DdCheckSdkDepsTaskTest {
 
     @AfterEach
     fun `tear down`() {
-        DdCheckSdkDepsTask::class.java.setStaticValue("LOGGER", originalLogger)
+        CheckSdkDepsTask::class.java.setStaticValue("LOGGER", originalLogger)
     }
 
     // region taskAction
@@ -120,7 +121,7 @@ internal class DdCheckSdkDepsTaskTest {
 
         // THEN
         verify(mockLogger).info(
-            DdCheckSdkDepsTask.CANNOT_FIND_CONFIGURATION_MESSAGE
+            CheckSdkDepsTask.CANNOT_FIND_CONFIGURATION_MESSAGE
                 .format(fakeConfigurationName, fakeVariantName)
         )
     }
@@ -206,7 +207,7 @@ internal class DdCheckSdkDepsTaskTest {
         testedTask.applyTask()
 
         // THEN
-        verify(mockLogger).warn(DdCheckSdkDepsTask.MISSING_DD_SDK_MESSAGE.format(fakeVariantName))
+        verify(mockLogger).warn(CheckSdkDepsTask.MISSING_DD_SDK_MESSAGE.format(fakeVariantName))
         assertThat(testedTask.isLastRunSuccessful).isFalse()
     }
 

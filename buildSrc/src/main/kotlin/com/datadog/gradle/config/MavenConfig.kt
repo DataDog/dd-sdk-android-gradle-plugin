@@ -25,7 +25,6 @@ object MavenConfig {
     const val PUBLICATION = "pluginMaven"
 }
 
-@Suppress("UnstableApiUsage")
 fun Project.publishingConfig(projectDescription: String) {
     val projectName = name
     val signingExtension = extensions.findByType(SigningExtension::class)

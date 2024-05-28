@@ -6,9 +6,9 @@
 
 package com.datadog.gradle.plugin.internal
 
-import com.datadog.gradle.plugin.Configurator
 import com.datadog.gradle.plugin.RepositoryDetector
 import com.datadog.gradle.plugin.internal.sanitizer.UrlSanitizer
+import com.datadog.gradle.plugin.utils.forge.Configurator
 import com.datadog.gradle.plugin.utils.initializeGit
 import fr.xgouchet.elmyr.Forge
 import fr.xgouchet.elmyr.annotation.StringForgery

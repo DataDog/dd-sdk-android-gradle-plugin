@@ -1,10 +1,17 @@
+/*
+ * Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+ * This product includes software developed at Datadog (https://www.datadoghq.com/).
+ * Copyright 2020-Present Datadog, Inc.
+ */
+
 package com.datadog.gradle.plugin
 
 import com.android.builder.model.Version
 import org.gradle.api.Project
 import java.io.File
 
-internal object DdTaskUtils {
+internal object TaskUtils {
+
     private const val MAX_DATADOG_CI_FILE_LOOKUP_LEVELS = 4
 
     @Suppress("StringLiteralDuplication")
@@ -49,3 +56,23 @@ internal object DdTaskUtils {
         return currentMajor >= major && currentMinor >= minor && currentPatch >= patch
     }
 }
+
+@Deprecated(
+    message = "Renamed to MappingFileUploadTask",
+    replaceWith = ReplaceWith(
+        expression = "MappingFileUploadTask",
+        imports = arrayOf("com.datadog.gradle.plugin.MappingFileUploadTask")
+    )
+)
+@Suppress("unused")
+typealias DdMappingFileUploadTask = MappingFileUploadTask
+
+@Deprecated(
+    message = "Renamed to CheckSdkDepsTask",
+    replaceWith = ReplaceWith(
+        expression = "CheckSdkDepsTask",
+        imports = arrayOf("com.datadog.gradle.plugin.CheckSdkDepsTask")
+    )
+)
+@Suppress("unused")
+typealias DdCheckSdkDepsTask = CheckSdkDepsTask

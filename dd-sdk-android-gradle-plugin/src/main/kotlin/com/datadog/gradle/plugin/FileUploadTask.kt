@@ -1,13 +1,21 @@
+/*
+ * Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+ * This product includes software developed at Datadog (https://www.datadoghq.com/).
+ * Copyright 2020-Present Datadog, Inc.
+ */
+
 package com.datadog.gradle.plugin
 
-import com.android.build.gradle.api.ApplicationVariant
 import com.datadog.gradle.plugin.internal.ApiKey
 import com.datadog.gradle.plugin.internal.ApiKeySource
 import com.datadog.gradle.plugin.internal.DdAppIdentifier
 import com.datadog.gradle.plugin.internal.OkHttpUploader
 import com.datadog.gradle.plugin.internal.Uploader
+import com.datadog.gradle.plugin.internal.variant.AppVariant
 import org.gradle.api.DefaultTask
 import org.gradle.api.logging.Logging
+import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.Input
@@ -27,10 +35,11 @@ import javax.inject.Inject
  * A Gradle task to upload symbolication files to Datadog servers (NDK symbol files,
  * Proguard/R8 files, etc.)..
  */
-abstract class DdFileUploadTask @Inject constructor(
-    private val providerFactory: ProviderFactory,
+abstract class FileUploadTask @Inject constructor(
+    providerFactory: ProviderFactory,
     @get:Internal internal val repositoryDetector: RepositoryDetector
 ) : DefaultTask() {
+
     @get:Internal
     internal var uploader: Uploader = OkHttpUploader()
 
@@ -63,20 +72,20 @@ abstract class DdFileUploadTask @Inject constructor(
      * The version name of the application.
      */
     @get:Input
-    var versionName: String = ""
+    abstract val versionName: Property<String>
 
     /**
      * The version code of the application. Need to be a provider, because resolution during
      * configuration phase may cause incompatibility with other plugins if legacy Variant API is used.
      */
     @get:Input
-    var versionCode: Provider<Int> = providerFactory.provider { 0 }
+    abstract val versionCode: Property<Int>
 
     /**
      * The service name of the application (by default, it is your app's package name).
      */
     @get:Input
-    var serviceName: String = ""
+    abstract val serviceName: Property<String>
 
     /**
      * The Datadog site to upload to (one of "US1", "EU1", "US1_FED").
@@ -94,7 +103,7 @@ abstract class DdFileUploadTask @Inject constructor(
      * Build ID which will be used for mapping file matching.
      */
     @get:Input
-    var buildId: Provider<String> = providerFactory.provider { "" }
+    abstract val buildId: Property<String>
 
     /**
      * datadog-ci.json file, if found or applicable for the particular task.
@@ -107,7 +116,7 @@ abstract class DdFileUploadTask @Inject constructor(
      * The sourceSet root folders.
      */
     @get:InputFiles
-    var sourceSetRoots: List<File> = emptyList()
+    abstract val sourceSetRoots: ListProperty<File>
 
     /**
      * The file containing the repository description.
@@ -121,14 +130,11 @@ abstract class DdFileUploadTask @Inject constructor(
         outputs.upToDateWhen { false }
     }
 
-    @Internal
-    internal abstract fun getFilesList(): List<Uploader.UploadFileInfo>
-
     /**
      * Uploads the files retrieved from `getFilesList` to Datadog.
      */
     @TaskAction
-    @Suppress("TooGenericExceptionCaught")
+    @Suppress("TooGenericExceptionCaught", "LongMethod")
     fun applyTask() {
         datadogCiFile?.let {
             applyDatadogCiConfig(it)
@@ -147,8 +153,15 @@ abstract class DdFileUploadTask @Inject constructor(
         val mappingFiles = getFilesList()
         if (mappingFiles.isEmpty()) return
 
+        // it can be an overlap between java and kotlin directories and since File doesn't override
+        // equals for set comparison, we will remove duplicates manually
+        val uniqueSourceSetRoots = sourceSetRoots.get()
+            .map { it.absolutePath }
+            .distinct()
+            .map { File(it) }
+
         val repositories = repositoryDetector.detectRepositories(
-            sourceSetRoots,
+            uniqueSourceSetRoots,
             remoteRepositoryUrl
         )
 
@@ -167,8 +180,8 @@ abstract class DdFileUploadTask @Inject constructor(
                     if (repositories.isEmpty()) null else repositoryFile,
                     apiKey,
                     DdAppIdentifier(
-                        serviceName = serviceName,
-                        version = versionName,
+                        serviceName = serviceName.get(),
+                        version = versionName.get(),
                         versionCode = versionCode.get(),
                         variant = variantName,
                         buildId = buildId.get()
@@ -195,21 +208,36 @@ abstract class DdFileUploadTask @Inject constructor(
         }
     }
 
+    // region Internal
+
+    @Internal
+    internal abstract fun getFilesList(): List<Uploader.UploadFileInfo>
+
     internal fun configureWith(
         apiKey: ApiKey,
         extensionConfiguration: DdExtensionConfiguration,
-        variant: ApplicationVariant
+        variant: AppVariant
     ) {
         this.apiKey = apiKey.value
         apiKeySource = apiKey.source
         site = extensionConfiguration.site ?: ""
 
-        versionName = variant.versionName ?: ""
-        versionCode = providerFactory.provider { variant.versionCode }
-        serviceName = extensionConfiguration.serviceName ?: variant.applicationId
+        versionName.set(variant.versionName)
+        versionCode.set(variant.versionCode)
+
+        if (extensionConfiguration.serviceName != null) {
+            serviceName.set(extensionConfiguration.serviceName)
+        } else {
+            serviceName.set(variant.applicationId)
+        }
+
         variantName = variant.flavorName
         remoteRepositoryUrl = extensionConfiguration.remoteRepositoryUrl ?: ""
     }
+
+    // endregion
+
+    // region Private
 
     private fun applySiteFromEnvironment() {
         val environmentSite = System.getenv(DATADOG_SITE)
@@ -309,6 +337,8 @@ abstract class DdFileUploadTask @Inject constructor(
         repositoryFile.parentFile.mkdirs()
         repositoryFile.writeText(jsonObject.toString(0))
     }
+
+    // endregion
 
     internal companion object {
         private const val REPOSITORY_FILE_VERSION = 1

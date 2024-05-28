@@ -6,27 +6,31 @@
 
 package com.datadog.gradle.plugin
 
-import com.datadog.gradle.plugin.DdAndroidGradlePlugin.Companion.LOGGER
 import com.datadog.gradle.plugin.internal.Uploader
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFiles
 import java.io.File
 import javax.inject.Inject
 
 /**
  * A Gradle task to upload a Proguard/R8 mapping file to Datadog servers.
  */
-open class DdMappingFileUploadTask
+abstract class MappingFileUploadTask
 @Inject constructor(
     providerFactory: ProviderFactory,
     repositoryDetector: RepositoryDetector
-) : DdFileUploadTask(providerFactory, repositoryDetector) {
+) : FileUploadTask(providerFactory, repositoryDetector) {
 
     /**
      * The path to the mapping file to upload.
      */
-    @get:Input
-    var mappingFilePath: String = ""
+    // don't use InputFile here, because it will check if file exists before executing task,
+    // we want to do it manually and show our own error
+    @get:InputFiles
+    abstract val mappingFile: RegularFileProperty
 
     /**
      * Replacements for the source prefixes in the mapping file.
@@ -40,6 +44,12 @@ open class DdMappingFileUploadTask
     @get:Input
     var mappingFileTrimIndents: Boolean = false
 
+    /**
+     * Application ID (usually a package prefix).
+     */
+    @get:Input
+    abstract val applicationId: Property<String>
+
     init {
         group = DdAndroidGradlePlugin.DATADOG_TASK_GROUP
         description = "Uploads the Proguard/R8 mapping file to Datadog"
@@ -48,7 +58,10 @@ open class DdMappingFileUploadTask
     }
 
     override fun getFilesList(): List<Uploader.UploadFileInfo> {
-        var mappingFile = File(mappingFilePath)
+        check(mappingFile.isPresent) {
+            "No mapping file value in the input property."
+        }
+        var mappingFile = mappingFile.get().asFile
         if (!validateMappingFile(mappingFile)) return emptyList()
 
         mappingFile = shrinkMappingFile(mappingFile)
@@ -67,13 +80,13 @@ open class DdMappingFileUploadTask
     @Suppress("CheckInternal")
     private fun validateMappingFile(mappingFile: File): Boolean {
         if (!mappingFile.exists()) {
-            println("There's no mapping file $mappingFilePath, nothing to upload")
+            println("There's no mapping file ${mappingFile.absolutePath}, nothing to upload")
             return false
         }
 
-        check(mappingFile.isFile) { "Expected $mappingFilePath to be a file" }
+        check(mappingFile.isFile) { "Expected ${mappingFile.absolutePath} to be a file" }
 
-        check(mappingFile.canRead()) { "Cannot read file $mappingFilePath" }
+        check(mappingFile.canRead()) { "Cannot read file ${mappingFile.absolutePath}" }
 
         return true
     }
@@ -92,12 +105,28 @@ open class DdMappingFileUploadTask
         if (shrinkedFile.exists()) {
             shrinkedFile.delete()
         }
-        // sort is needed to have predictable replacement in the following case:
-        // imagine there are 2 keys - "androidx.work" and "androidx.work.Job", and the latter
-        // occurs much more often than the rest under "androidx.work.*". So for the more efficient
-        // compression we need first to process the replacement of "androidx.work.Job" and only
-        // after that any possible prefix (which has a smaller length).
-        val replacements = mappingFilePackagesAliases.entries
+
+        val replacements = mappingFilePackagesAliases
+            .filter {
+                // not necessarily applicationId == package attribute from the Manifest, but it is
+                // best and cheapest effort to avoid wrong renaming (otherwise we may loose Git
+                // integration feature).
+                if (applicationId.get().startsWith(it.key)) {
+                    DdAndroidGradlePlugin.LOGGER.warn(
+                        "Renaming of package prefix=${it.key} will be skipped, because" +
+                            " it belongs to the application package."
+                    )
+                    false
+                } else {
+                    true
+                }
+            }
+            .entries
+            // sort is needed to have predictable replacement in the following case:
+            // imagine there are 2 keys - "androidx.work" and "androidx.work.Job", and the latter
+            // occurs much more often than the rest under "androidx.work.*". So for the more efficient
+            // compression we need first to process the replacement of "androidx.work.Job" and only
+            // after that any possible prefix (which has a smaller length).
             .sortedByDescending { it.key.length }
             .map {
                 Regex("(?<=^|\\W)${it.key}(?=\\W)") to it.value

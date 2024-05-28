@@ -1,5 +1,12 @@
+/*
+ * Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+ * This product includes software developed at Datadog (https://www.datadoghq.com/).
+ * Copyright 2020-Present Datadog, Inc.
+ */
+
 package com.datadog.gradle.plugin
 
+import com.datadog.gradle.plugin.utils.forge.Configurator
 import fr.xgouchet.elmyr.Forge
 import fr.xgouchet.elmyr.junit5.ForgeConfiguration
 import fr.xgouchet.elmyr.junit5.ForgeExtension
@@ -14,7 +21,8 @@ import java.io.File
     ExtendWith(ForgeExtension::class)
 )
 @ForgeConfiguration(Configurator::class)
-class DdTaskUtilsTest {
+class TaskUtilsTest {
+
     @Test
     fun `M find datadog-ci file W findDatadogCiFile()`(
         @TempDir rootDir: File,
@@ -26,7 +34,7 @@ class DdTaskUtilsTest {
         File(tree[forge.anInt(0, tree.size)], "datadog-ci.json").createNewFile()
 
         // When
-        val ciFile = DdTaskUtils.findDatadogCiFile(tree.last())
+        val ciFile = TaskUtils.findDatadogCiFile(tree.last())
 
         // Then
         Assertions.assertThat(ciFile).isNotNull()
@@ -41,7 +49,7 @@ class DdTaskUtilsTest {
         val tree = buildDirectoryTree(rootDir, maxDepth = 3, forge = forge)
 
         // When
-        val ciFile = DdTaskUtils.findDatadogCiFile(tree.last())
+        val ciFile = TaskUtils.findDatadogCiFile(tree.last())
 
         // Then
         Assertions.assertThat(ciFile).isNull()
@@ -56,7 +64,7 @@ class DdTaskUtilsTest {
         val tree = buildDirectoryTree(rootDir, minDepth = 4, maxDepth = 7, forge = forge)
 
         // When
-        val ciFile = DdTaskUtils.findDatadogCiFile(tree.last())
+        val ciFile = TaskUtils.findDatadogCiFile(tree.last())
 
         // Then
         Assertions.assertThat(ciFile).isNull()
