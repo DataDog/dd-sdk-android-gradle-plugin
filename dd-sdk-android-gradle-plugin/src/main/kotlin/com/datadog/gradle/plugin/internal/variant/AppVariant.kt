@@ -8,6 +8,7 @@ package com.datadog.gradle.plugin.internal.variant
 
 import com.android.build.gradle.AppExtension
 import com.datadog.gradle.plugin.GenerateBuildIdTask
+import com.datadog.gradle.plugin.MappingFileUploadTask
 import com.datadog.gradle.plugin.NdkSymbolFileUploadTask
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -46,6 +47,8 @@ internal interface AppVariant {
     fun collectJavaAndKotlinSourceDirectories(): Provider<List<File>>
 
     fun bindWith(ndkUploadTask: NdkSymbolFileUploadTask)
+
+    fun bindWith(mappingFileUploadTask: MappingFileUploadTask)
 
     // new variant API doesn't allow to run addGeneratedSourceDirectory from inside Task#configure, thus this
     fun bindWith(generateBuildIdTask: TaskProvider<GenerateBuildIdTask>, buildIdDirectory: Provider<Directory>)
