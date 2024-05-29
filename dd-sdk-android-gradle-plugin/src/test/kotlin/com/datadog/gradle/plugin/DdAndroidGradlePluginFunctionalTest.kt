@@ -146,6 +146,21 @@ internal class DdAndroidGradlePluginFunctionalTest {
     }
 
     @Test
+    fun `M success W assembleRelease { new Variant API is used in buildscript }`() {
+        // Given
+        stubGradleBuildFromResourceFile(
+            "build_with_android_components.gradle",
+            appBuildGradleFile
+        )
+        // When
+        val result = gradleRunner { withArguments("--stacktrace", ":samples:app:assembleRelease") }
+            .build()
+
+        // Then
+        assertThat(result).hasSuccessfulTaskOutcome(":samples:app:assembleRelease")
+    }
+
+    @Test
     fun `M success W assembleRelease { project with library module }`() {
         // Given
         stubGradleBuildFromResourceFile(
