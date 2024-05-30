@@ -1,6 +1,12 @@
+/*
+ * Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+ * This product includes software developed at Datadog (https://www.datadoghq.com/).
+ * Copyright 2020-Present Datadog, Inc.
+ */
+
 package com.datadog.gradle.plugin
 
-import com.android.build.gradle.api.ApplicationVariant
+import com.datadog.gradle.plugin.internal.variant.AppVariant
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
@@ -57,8 +63,8 @@ abstract class GenerateBuildIdTask : DefaultTask() {
             .writeText(buildId)
     }
 
-    companion object {
-        internal const val TASK_NAME = "generateBuildId"
+    internal companion object {
+        private const val TASK_NAME = "generateBuildId"
 
         /**
          * Name of the file containing build ID information.
@@ -66,11 +72,11 @@ abstract class GenerateBuildIdTask : DefaultTask() {
         const val BUILD_ID_FILE_NAME = "datadog.buildId"
 
         /**
-         * Registers a new instance of [GenerateBuildIdTask] specific for the given [ApplicationVariant].
+         * Registers a new instance of [GenerateBuildIdTask] specific for the given [AppVariant].
          */
         fun register(
             target: Project,
-            variant: ApplicationVariant,
+            variant: AppVariant,
             buildIdDirectory: Provider<Directory>
         ): TaskProvider<GenerateBuildIdTask> {
             val generateBuildIdTask = target.tasks.register(
@@ -80,6 +86,7 @@ abstract class GenerateBuildIdTask : DefaultTask() {
                 it.buildIdDirectory.set(buildIdDirectory)
                 it.variantName.set(variant.name)
             }
+            variant.bindWith(generateBuildIdTask, buildIdDirectory)
 
             return generateBuildIdTask
         }

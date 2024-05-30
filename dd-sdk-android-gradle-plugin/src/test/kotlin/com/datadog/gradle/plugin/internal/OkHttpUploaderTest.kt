@@ -6,10 +6,10 @@
 
 package com.datadog.gradle.plugin.internal
 
-import com.datadog.gradle.plugin.Configurator
 import com.datadog.gradle.plugin.DatadogSite
-import com.datadog.gradle.plugin.RecordedRequestAssert.Companion.assertThat
 import com.datadog.gradle.plugin.RepositoryInfo
+import com.datadog.gradle.plugin.utils.assertj.RecordedRequestAssert.Companion.assertThat
+import com.datadog.gradle.plugin.utils.forge.Configurator
 import fr.xgouchet.elmyr.Forge
 import fr.xgouchet.elmyr.annotation.Forgery
 import fr.xgouchet.elmyr.annotation.IntForgery

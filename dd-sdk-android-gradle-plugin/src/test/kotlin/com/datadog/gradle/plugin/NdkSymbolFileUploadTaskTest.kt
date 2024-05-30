@@ -1,10 +1,17 @@
+/*
+ * Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+ * This product includes software developed at Datadog (https://www.datadoghq.com/).
+ * Copyright 2020-Present Datadog, Inc.
+ */
+
 package com.datadog.gradle.plugin
 
-import com.android.build.gradle.api.ApplicationVariant
 import com.datadog.gradle.plugin.internal.ApiKey
 import com.datadog.gradle.plugin.internal.ApiKeySource
 import com.datadog.gradle.plugin.internal.DdAppIdentifier
 import com.datadog.gradle.plugin.internal.Uploader
+import com.datadog.gradle.plugin.internal.variant.AppVariant
+import com.datadog.gradle.plugin.utils.forge.Configurator
 import fr.xgouchet.elmyr.Forge
 import fr.xgouchet.elmyr.annotation.Forgery
 import fr.xgouchet.elmyr.annotation.IntForgery
@@ -13,7 +20,6 @@ import fr.xgouchet.elmyr.junit5.ForgeConfiguration
 import fr.xgouchet.elmyr.junit5.ForgeExtension
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
-import org.gradle.api.provider.Provider
 import org.gradle.internal.impldep.org.junit.Assume.assumeTrue
 import org.gradle.testfixtures.ProjectBuilder
 import org.json.JSONArray
@@ -31,7 +37,6 @@ import org.mockito.junit.jupiter.MockitoSettings
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
-import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
@@ -45,8 +50,9 @@ import java.util.UUID
 )
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ForgeConfiguration(Configurator::class)
-internal class DdNdkSymbolFileUploadTaskTest {
-    private lateinit var testedTask: DdNdkSymbolFileUploadTask
+internal class NdkSymbolFileUploadTaskTest {
+
+    private lateinit var testedTask: NdkSymbolFileUploadTask
 
     @TempDir
     lateinit var tempDir: File
@@ -55,7 +61,7 @@ internal class DdNdkSymbolFileUploadTaskTest {
     lateinit var mockUploader: Uploader
 
     @Mock
-    lateinit var mockVariant: ApplicationVariant
+    lateinit var mockVariant: AppVariant
 
     @Mock
     lateinit var mockRepositoryDetector: RepositoryDetector
@@ -91,12 +97,12 @@ internal class DdNdkSymbolFileUploadTaskTest {
             .withProjectDir(tempDir)
             .build()
         whenever(mockVariant.flavorName).thenReturn(fakeVariantName)
-        whenever(mockVariant.versionName).thenReturn(fakeVersion)
-        whenever(mockVariant.versionCode).thenReturn(fakeVersionCode)
+        whenever(mockVariant.versionName).thenReturn(fakeProject.provider { fakeVersion })
+        whenever(mockVariant.versionCode).thenReturn(fakeProject.provider { fakeVersionCode })
 
         testedTask = fakeProject.tasks.create(
-            "DdSymbolFileUploadTask",
-            DdNdkSymbolFileUploadTask::class.java,
+            "SymbolFileUploadTask",
+            NdkSymbolFileUploadTask::class.java,
             mockRepositoryDetector
         )
         testedTask.uploader = mockUploader
@@ -107,10 +113,7 @@ internal class DdNdkSymbolFileUploadTaskTest {
         fakeBuildId = forge.getForgery<UUID>().toString()
 
         testedTask.searchDirectories.from(tempDir)
-        testedTask.buildId = mock<Provider<String>>().apply {
-            whenever(isPresent) doReturn true
-            whenever(get()) doReturn fakeBuildId
-        }
+        testedTask.buildId.set(fakeBuildId)
 
         val fakeConfiguration = with(DdExtensionConfiguration()) {
             versionName = fakeVersion
@@ -123,12 +126,12 @@ internal class DdNdkSymbolFileUploadTaskTest {
             fakeConfiguration,
             mockVariant
         )
-        setEnv(DdFileUploadTask.DATADOG_SITE, "")
+        setEnv(FileUploadTask.DATADOG_SITE, "")
     }
 
     @AfterEach
     fun `tear down`() {
-        removeEnv(DdFileUploadTask.DATADOG_SITE)
+        removeEnv(FileUploadTask.DATADOG_SITE)
     }
 
     @Test
@@ -147,10 +150,10 @@ internal class DdNdkSymbolFileUploadTaskTest {
         verify(mockUploader).upload(
             fakeSite,
             Uploader.UploadFileInfo(
-                fileKey = DdNdkSymbolFileUploadTask.KEY_NDK_SYMBOL_FILE,
+                fileKey = NdkSymbolFileUploadTask.KEY_NDK_SYMBOL_FILE,
                 file = fakeSoFile,
-                encoding = DdNdkSymbolFileUploadTask.ENCODING,
-                fileType = DdNdkSymbolFileUploadTask.TYPE_NDK_SYMBOL_FILE,
+                encoding = NdkSymbolFileUploadTask.ENCODING,
+                fileType = NdkSymbolFileUploadTask.TYPE_NDK_SYMBOL_FILE,
                 fileName = "libfake.so",
                 extraAttributes = mapOf(
                     "arch" to "arm64"
@@ -191,10 +194,10 @@ internal class DdNdkSymbolFileUploadTaskTest {
             verify(mockUploader).upload(
                 fakeSite,
                 Uploader.UploadFileInfo(
-                    fileKey = DdNdkSymbolFileUploadTask.KEY_NDK_SYMBOL_FILE,
+                    fileKey = NdkSymbolFileUploadTask.KEY_NDK_SYMBOL_FILE,
                     file = it.value,
-                    encoding = DdNdkSymbolFileUploadTask.ENCODING,
-                    fileType = DdNdkSymbolFileUploadTask.TYPE_NDK_SYMBOL_FILE,
+                    encoding = NdkSymbolFileUploadTask.ENCODING,
+                    fileType = NdkSymbolFileUploadTask.TYPE_NDK_SYMBOL_FILE,
                     fileName = "libfake.so",
                     extraAttributes = mapOf(
                         "arch" to it.key
@@ -236,10 +239,10 @@ internal class DdNdkSymbolFileUploadTaskTest {
         verify(mockUploader).upload(
             fakeSite,
             Uploader.UploadFileInfo(
-                fileKey = DdNdkSymbolFileUploadTask.KEY_NDK_SYMBOL_FILE,
+                fileKey = NdkSymbolFileUploadTask.KEY_NDK_SYMBOL_FILE,
                 file = fakeSoFile,
-                encoding = DdNdkSymbolFileUploadTask.ENCODING,
-                fileType = DdNdkSymbolFileUploadTask.TYPE_NDK_SYMBOL_FILE,
+                encoding = NdkSymbolFileUploadTask.ENCODING,
+                fileType = NdkSymbolFileUploadTask.TYPE_NDK_SYMBOL_FILE,
                 fileName = "libfake.so",
                 extraAttributes = mapOf(
                     "arch" to "arm64"
@@ -280,10 +283,10 @@ internal class DdNdkSymbolFileUploadTaskTest {
         verify(mockUploader).upload(
             fakeSite,
             Uploader.UploadFileInfo(
-                fileKey = DdNdkSymbolFileUploadTask.KEY_NDK_SYMBOL_FILE,
+                fileKey = NdkSymbolFileUploadTask.KEY_NDK_SYMBOL_FILE,
                 file = fakeSoFile,
-                encoding = DdNdkSymbolFileUploadTask.ENCODING,
-                fileType = DdNdkSymbolFileUploadTask.TYPE_NDK_SYMBOL_FILE,
+                encoding = NdkSymbolFileUploadTask.ENCODING,
+                fileType = NdkSymbolFileUploadTask.TYPE_NDK_SYMBOL_FILE,
                 fileName = "libfake.so",
                 extraAttributes = mapOf(
                     "arch" to "arm64"
@@ -317,7 +320,7 @@ internal class DdNdkSymbolFileUploadTaskTest {
         }
 
         // Then
-        assertThat(error.message).isEqualTo(DdFileUploadTask.API_KEY_MISSING_ERROR)
+        assertThat(error.message).isEqualTo(FileUploadTask.API_KEY_MISSING_ERROR)
         verifyNoInteractions(mockUploader)
     }
 
@@ -341,14 +344,14 @@ internal class DdNdkSymbolFileUploadTaskTest {
 
         // Then
         assertThat(exception.message)
-            .isEqualTo(DdFileUploadTask.INVALID_API_KEY_FORMAT_ERROR)
+            .isEqualTo(FileUploadTask.INVALID_API_KEY_FORMAT_ERROR)
         verifyNoInteractions(mockUploader)
     }
 
     @Test
     fun `M throw error W applyTask() {buildId is missing}`() {
         // Given
-        whenever(testedTask.buildId.isPresent) doReturn false
+        testedTask.buildId.set(null as String?)
         writeFakeSoFile("arm64-v8a")
 
         // When
@@ -357,15 +360,14 @@ internal class DdNdkSymbolFileUploadTaskTest {
         }
 
         // Then
-        assertThat(exception.message).isEqualTo(DdFileUploadTask.MISSING_BUILD_ID_ERROR)
+        assertThat(exception.message).isEqualTo(FileUploadTask.MISSING_BUILD_ID_ERROR)
         verifyNoInteractions(mockUploader)
     }
 
     @Test
     fun `M throw error W applyTask() {buildId is empty string}`() {
         // Given
-        whenever(testedTask.buildId.isPresent) doReturn true
-        whenever(testedTask.buildId.get()) doReturn ""
+        testedTask.buildId.set("")
         writeFakeSoFile("arm64-v8a")
 
         // When
@@ -374,7 +376,7 @@ internal class DdNdkSymbolFileUploadTaskTest {
         }
 
         // Then
-        assertThat(exception.message).isEqualTo(DdFileUploadTask.MISSING_BUILD_ID_ERROR)
+        assertThat(exception.message).isEqualTo(FileUploadTask.MISSING_BUILD_ID_ERROR)
         verifyNoInteractions(mockUploader)
     }
 
@@ -413,10 +415,10 @@ internal class DdNdkSymbolFileUploadTaskTest {
         verify(mockUploader).upload(
             DatadogSite.US1,
             Uploader.UploadFileInfo(
-                fileKey = DdNdkSymbolFileUploadTask.KEY_NDK_SYMBOL_FILE,
+                fileKey = NdkSymbolFileUploadTask.KEY_NDK_SYMBOL_FILE,
                 file = fakeSoFile,
-                encoding = DdNdkSymbolFileUploadTask.ENCODING,
-                fileType = DdNdkSymbolFileUploadTask.TYPE_NDK_SYMBOL_FILE,
+                encoding = NdkSymbolFileUploadTask.ENCODING,
+                fileType = NdkSymbolFileUploadTask.TYPE_NDK_SYMBOL_FILE,
                 fileName = "libfake.so",
                 extraAttributes = mapOf(
                     "arch" to "arm64"
@@ -612,7 +614,7 @@ internal class DdNdkSymbolFileUploadTaskTest {
     fun `M read site from environment variable W applyTask() {site is not set}`(forge: Forge) {
         // Given
         val fakeDatadogEnvDomain = forge.aValueFrom(DatadogSite::class.java).domain
-        setEnv(DdFileUploadTask.DATADOG_SITE, fakeDatadogEnvDomain)
+        setEnv(FileUploadTask.DATADOG_SITE, fakeDatadogEnvDomain)
         testedTask.site = ""
 
         // When

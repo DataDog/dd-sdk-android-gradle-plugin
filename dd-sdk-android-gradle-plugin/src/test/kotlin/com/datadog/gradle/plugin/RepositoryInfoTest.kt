@@ -6,6 +6,7 @@
 
 package com.datadog.gradle.plugin
 
+import com.datadog.gradle.plugin.utils.forge.Configurator
 import fr.xgouchet.elmyr.annotation.Forgery
 import fr.xgouchet.elmyr.junit5.ForgeConfiguration
 import fr.xgouchet.elmyr.junit5.ForgeExtension

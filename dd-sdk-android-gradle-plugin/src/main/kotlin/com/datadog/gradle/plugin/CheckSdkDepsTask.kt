@@ -21,7 +21,7 @@ import java.util.Queue
 /**
  * A Gradle task to check the Datadog SDK throughout the variant dependencies.
  */
-abstract class DdCheckSdkDepsTask : DefaultTask() {
+abstract class CheckSdkDepsTask : DefaultTask() {
 
     /**
      * The sdkCheckLevel: NONE, WARN, FAIL.
@@ -47,7 +47,7 @@ abstract class DdCheckSdkDepsTask : DefaultTask() {
     init {
         group = DdAndroidGradlePlugin.DATADOG_TASK_GROUP
         description = "Checks for the Datadog SDK into your variant dependencies."
-        outputs.upToDateWhen { it is DdCheckSdkDepsTask && it.isLastRunSuccessful }
+        outputs.upToDateWhen { it is CheckSdkDepsTask && it.isLastRunSuccessful }
     }
 
     /**

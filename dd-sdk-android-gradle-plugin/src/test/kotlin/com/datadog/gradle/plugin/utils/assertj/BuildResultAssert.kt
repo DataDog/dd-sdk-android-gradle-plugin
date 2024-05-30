@@ -1,7 +1,13 @@
+/*
+ * Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+ * This product includes software developed at Datadog (https://www.datadoghq.com/).
+ * Copyright 2020-Present Datadog, Inc.
+ */
+
 package com.datadog.gradle.plugin.utils.assertj
 
 import com.datadog.gradle.plugin.DdAndroidGradlePlugin
-import com.datadog.gradle.plugin.DdNdkSymbolFileUploadTask
+import com.datadog.gradle.plugin.NdkSymbolFileUploadTask
 import org.assertj.core.api.AbstractAssert
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.BuildResult
@@ -39,14 +45,14 @@ internal class BuildResultAssert(actual: BuildResult) :
             it.path.contains(DdAndroidGradlePlugin.UPLOAD_TASK_NAME)
         }
         assertThat(actual.tasks).noneMatch {
-            it.path.contains(DdNdkSymbolFileUploadTask.TASK_NAME)
+            it.path.contains(NdkSymbolFileUploadTask.TASK_NAME)
         }
         return this
     }
 
     fun hasNoNdkSymbolUploadTasks(): BuildResultAssert {
         assertThat(actual.tasks).noneMatch {
-            it.path.contains(DdNdkSymbolFileUploadTask.TASK_NAME)
+            it.path.contains(NdkSymbolFileUploadTask.TASK_NAME)
         }
         return this
     }

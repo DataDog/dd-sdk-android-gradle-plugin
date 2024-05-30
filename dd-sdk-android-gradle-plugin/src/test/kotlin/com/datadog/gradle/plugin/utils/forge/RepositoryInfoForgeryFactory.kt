@@ -4,8 +4,9 @@
  * Copyright 2020-Present Datadog, Inc.
  */
 
-package com.datadog.gradle.plugin
+package com.datadog.gradle.plugin.utils.forge
 
+import com.datadog.gradle.plugin.RepositoryInfo
 import fr.xgouchet.elmyr.Case
 import fr.xgouchet.elmyr.Forge
 import fr.xgouchet.elmyr.ForgeryFactory

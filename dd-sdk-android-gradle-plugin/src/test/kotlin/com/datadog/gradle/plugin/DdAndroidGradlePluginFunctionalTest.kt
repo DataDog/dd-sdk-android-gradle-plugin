@@ -7,6 +7,7 @@
 package com.datadog.gradle.plugin
 
 import com.datadog.gradle.plugin.utils.assertj.BuildResultAssert.Companion.assertThat
+import com.datadog.gradle.plugin.utils.forge.Configurator
 import com.datadog.gradle.plugin.utils.headHash
 import com.datadog.gradle.plugin.utils.initializeGit
 import fr.xgouchet.elmyr.Forge
@@ -37,6 +38,7 @@ import kotlin.io.path.Path
 )
 @ForgeConfiguration(value = Configurator::class)
 internal class DdAndroidGradlePluginFunctionalTest {
+
     @TempDir
     lateinit var testProjectDir: File
     private lateinit var appRootDir: File
@@ -853,7 +855,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
             "outputs",
             "mapping",
             "${variant}Release",
-            DdMappingFileUploadTask.MAPPING_OPTIMIZED_FILE_NAME
+            MappingFileUploadTask.MAPPING_OPTIMIZED_FILE_NAME
         ).toFile()
         assertThat(result).containsInOutput(
             "Size of optimized file is ${optimizedFile.length()} bytes"
