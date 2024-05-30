@@ -13,14 +13,12 @@ import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.jvm.tasks.Jar
 import org.gradle.kotlin.dsl.findByType
-import org.gradle.kotlin.dsl.get
-import org.gradle.kotlin.dsl.named
 import org.gradle.plugins.signing.SigningExtension
 import java.net.URI
 
 object MavenConfig {
 
-    val VERSION = Version(1, 14, 0, Version.Type.Dev)
+    val VERSION = Version(1, 15, 0, Version.Type.Dev)
     const val GROUP_ID = "com.datadoghq"
     const val PUBLICATION = "pluginMaven"
 }
