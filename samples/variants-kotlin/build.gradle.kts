@@ -12,7 +12,7 @@ android {
     compileSdk = AndroidConfig.TARGET_SDK
     buildToolsVersion = AndroidConfig.BUILD_TOOLS_VERSION
 
-    namespace = "com.datadog.example.variants.kotlin"
+    namespace = "com.datadog.example.variants"
     defaultConfig {
         applicationId = "com.datadog.example.variants.kotlin"
 

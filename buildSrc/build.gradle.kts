@@ -31,7 +31,6 @@ dependencies {
 
     // Dependencies used to configure the gradle plugins
     implementation(embeddedKotlin("gradle-plugin"))
-    implementation(libs.detektPluginGradle)
     implementation(libs.androidToolsPluginGradle)
     implementation(libs.versionsPluginGradle)
     implementation(libs.fuzzyWuzzy)

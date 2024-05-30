@@ -13,19 +13,16 @@ import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.jvm.tasks.Jar
 import org.gradle.kotlin.dsl.findByType
-import org.gradle.kotlin.dsl.get
-import org.gradle.kotlin.dsl.named
 import org.gradle.plugins.signing.SigningExtension
 import java.net.URI
 
 object MavenConfig {
 
-    val VERSION = Version(1, 13, 1, Version.Type.Release)
+    val VERSION = Version(1, 14, 0, Version.Type.Release)
     const val GROUP_ID = "com.datadoghq"
     const val PUBLICATION = "pluginMaven"
 }
 
-@Suppress("UnstableApiUsage")
 fun Project.publishingConfig(projectDescription: String) {
     val projectName = name
     val signingExtension = extensions.findByType(SigningExtension::class)
