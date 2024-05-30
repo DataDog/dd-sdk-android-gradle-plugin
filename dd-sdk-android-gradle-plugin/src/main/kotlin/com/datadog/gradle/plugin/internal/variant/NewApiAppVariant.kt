@@ -11,6 +11,7 @@ import com.android.build.api.variant.ApplicationVariant
 import com.android.build.api.variant.VariantOutput
 import com.android.build.gradle.tasks.ExternalNativeBuildTask
 import com.datadog.gradle.plugin.GenerateBuildIdTask
+import com.datadog.gradle.plugin.MappingFileUploadTask
 import com.datadog.gradle.plugin.NdkSymbolFileUploadTask
 import com.datadog.gradle.plugin.internal.getSearchObjDirs
 import org.gradle.api.Project
@@ -76,6 +77,10 @@ internal class NewApiAppVariant(
             ndkUploadTask.searchDirectories.from(searchFiles)
             ndkUploadTask.dependsOn(it)
         }
+    }
+
+    override fun bindWith(mappingFileUploadTask: MappingFileUploadTask) {
+        // nothing is needed, dependency on minification task is created by mapping file provider
     }
 
     override fun bindWith(

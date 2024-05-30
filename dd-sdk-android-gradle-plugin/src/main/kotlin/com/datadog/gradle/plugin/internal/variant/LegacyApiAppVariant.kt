@@ -8,7 +8,9 @@ package com.datadog.gradle.plugin.internal.variant
 
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.api.ApplicationVariant
+import com.datadog.gradle.plugin.DdAndroidGradlePlugin
 import com.datadog.gradle.plugin.GenerateBuildIdTask
+import com.datadog.gradle.plugin.MappingFileUploadTask
 import com.datadog.gradle.plugin.NdkSymbolFileUploadTask
 import com.datadog.gradle.plugin.internal.CurrentAgpVersion
 import com.datadog.gradle.plugin.internal.getSearchObjDirs
@@ -19,6 +21,7 @@ import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskProvider
 import java.io.File
+import java.nio.file.Path
 import java.nio.file.Paths
 
 internal class LegacyApiAppVariant(
@@ -28,6 +31,7 @@ internal class LegacyApiAppVariant(
 ) : AppVariant {
 
     private val providerFactory = target.providers
+    private val projectLayout = target.layout
 
     override val name: String
         get() = variant.name
@@ -50,9 +54,30 @@ internal class LegacyApiAppVariant(
     override val flavors: List<String>
         get() = variant.productFlavors.map { it.name }
     override val mappingFile: Provider<RegularFile>
-        get() = target.layout.buildDirectory.file(
-            Paths.get("outputs", "mapping", variant.name, "mapping.txt").toString()
-        )
+        get() = if (CurrentAgpVersion.CAN_QUERY_MAPPING_FILE_PROVIDER) {
+            variant.mappingFileProvider
+                .flatMap {
+                    providerFactory.provider {
+                        try {
+                            projectLayout.projectDirectory.file(it.singleFile.absolutePath)
+                        } catch (e: IllegalStateException) {
+                            DdAndroidGradlePlugin.LOGGER.info(
+                                "Mapping FileCollection is empty or contains multiple files",
+                                e
+                            )
+                            null
+                        }
+                    }.orElse(legacyMappingFileProvider)
+                }
+        } else {
+            legacyMappingFileProvider
+        }
+
+    private val legacyMappingFileProvider: Provider<RegularFile>
+        get() = projectLayout.buildDirectory.file(legacyMappingFilePath.toString())
+
+    private val legacyMappingFilePath: Path
+        get() = Paths.get("outputs", "mapping", variant.name, "mapping.txt")
 
     override fun collectJavaAndKotlinSourceDirectories(): Provider<List<File>> {
         val roots = mutableListOf<File>()
@@ -73,6 +98,11 @@ internal class LegacyApiAppVariant(
             ndkUploadTask.searchDirectories.from(searchFiles)
             ndkUploadTask.dependsOn(buildTask)
         }
+    }
+
+    override fun bindWith(mappingFileUploadTask: MappingFileUploadTask) {
+        val minifyTask = target.tasks.findByName("minify${variant.name.capitalize()}WithR8") ?: return
+        mappingFileUploadTask.dependsOn(minifyTask)
     }
 
     override fun bindWith(

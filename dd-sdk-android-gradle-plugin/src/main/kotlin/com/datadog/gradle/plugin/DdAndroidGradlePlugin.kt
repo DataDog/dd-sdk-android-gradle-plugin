@@ -21,6 +21,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.RegularFile
 import org.gradle.api.logging.Logging
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.TaskContainer
@@ -210,12 +211,15 @@ class DdAndroidGradlePlugin @Inject constructor(
                     )
                 }
                 val extensionConfiguration = resolveExtensionConfiguration(extension, variant)
-                configureVariantTask(uploadTask, apiKey, variant.flavorName, extensionConfiguration, variant)
+                configureVariantTask(
+                    target.objects,
+                    uploadTask,
+                    apiKey,
+                    extensionConfiguration,
+                    variant
+                )
 
                 uploadTask.buildId.set(buildIdGenerationTask.lazyBuildIdProvider(providerFactory))
-
-                uploadTask.applicationId.set(variant.applicationId)
-                uploadTask.mappingFile.set(resolveMappingFile(extensionConfiguration, target, variant))
                 uploadTask.mappingFilePackagesAliases = extensionConfiguration.mappingFilePackageAliases
                 uploadTask.mappingFileTrimIndents = extensionConfiguration.mappingFileTrimIndents
                 if (!extensionConfiguration.ignoreDatadogCiFileConfig) {
@@ -223,7 +227,6 @@ class DdAndroidGradlePlugin @Inject constructor(
                 }
 
                 uploadTask.repositoryFile = TaskUtils.resolveDatadogRepositoryFile(target)
-                uploadTask.sourceSetRoots.set(variant.collectJavaAndKotlinSourceDirectories())
             }
         }
 
@@ -296,27 +299,32 @@ class DdAndroidGradlePlugin @Inject constructor(
 
     private fun resolveMappingFile(
         extensionConfiguration: DdExtensionConfiguration,
-        target: Project,
+        objectFactory: ObjectFactory,
         variant: AppVariant
     ): Provider<RegularFile> {
         val customPath = extensionConfiguration.mappingFilePath
         return if (customPath != null) {
-            target.objects.fileProperty().fileValue(File(customPath))
+            objectFactory.fileProperty().fileValue(File(customPath))
         } else {
             variant.mappingFile
         }
     }
 
     private fun configureVariantTask(
+        objectFactory: ObjectFactory,
         uploadTask: MappingFileUploadTask,
         apiKey: ApiKey,
-        flavorName: String,
         extensionConfiguration: DdExtensionConfiguration,
         variant: AppVariant
     ) {
         uploadTask.apiKey = apiKey.value
         uploadTask.apiKeySource = apiKey.source
-        uploadTask.variantName = flavorName
+        uploadTask.variantName = variant.flavorName
+
+        uploadTask.applicationId.set(variant.applicationId)
+
+        uploadTask.mappingFile.set(resolveMappingFile(extensionConfiguration, objectFactory, variant))
+        uploadTask.sourceSetRoots.set(variant.collectJavaAndKotlinSourceDirectories())
 
         uploadTask.site = extensionConfiguration.site ?: ""
         if (extensionConfiguration.versionName != null) {
@@ -331,6 +339,8 @@ class DdAndroidGradlePlugin @Inject constructor(
             uploadTask.serviceName.set(variant.applicationId)
         }
         uploadTask.remoteRepositoryUrl = extensionConfiguration.remoteRepositoryUrl ?: ""
+
+        variant.bindWith(uploadTask)
     }
 
     internal fun resolveExtensionConfiguration(

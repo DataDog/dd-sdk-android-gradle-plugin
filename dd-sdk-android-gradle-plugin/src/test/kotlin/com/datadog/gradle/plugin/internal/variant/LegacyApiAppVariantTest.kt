@@ -240,9 +240,56 @@ internal class LegacyApiAppVariantTest {
 
     @Test
     fun `M return mapping file W mappingFile`(
+        @TempDir fakeMappingDirectory: File,
+        @StringForgery fakeVariantName: String,
+        @StringForgery fakeMappingFileName: String
+    ) {
+        // Given
+        val fakeMappingFile = File(fakeMappingDirectory, fakeMappingFileName)
+        whenever(
+            mockAndroidVariant.mappingFileProvider
+        ) doReturn fakeProject.provider { fakeProject.files(fakeMappingFile) }
+        whenever(mockAndroidVariant.name) doReturn fakeVariantName
+
+        // When
+        val mappingFile = testedAppVariant.mappingFile
+
+        // Then
+        assertThat(mappingFile.get().asFile).isEqualTo(fakeMappingFile)
+    }
+
+    @Test
+    fun `M return mapping file W mappingFile { fallback to legacy, no mapping files in provider }`(
         @StringForgery fakeVariantName: String
     ) {
         // Given
+        whenever(
+            mockAndroidVariant.mappingFileProvider
+        ) doReturn fakeProject.provider { fakeProject.files() }
+        whenever(mockAndroidVariant.name) doReturn fakeVariantName
+
+        // When
+        val mappingFile = testedAppVariant.mappingFile
+
+        // Then
+        assertThat(mappingFile.get().asFile.path).endsWith(
+            Paths.get("outputs", "mapping", fakeVariantName, "mapping.txt").toString()
+        )
+    }
+
+    @Test
+    fun `M return mapping file W mappingFile { fallback to legacy, multiple files in provider }`(
+        @TempDir fakeMappingDirectory: File,
+        @StringForgery fakeVariantName: String,
+        @StringForgery fakeMappingFileNameA: String,
+        @StringForgery fakeMappingFileNameB: String
+    ) {
+        // Given
+        val fileA = File(fakeMappingDirectory, fakeMappingFileNameA)
+        val fileB = File(fakeMappingDirectory, fakeMappingFileNameB)
+        whenever(
+            mockAndroidVariant.mappingFileProvider
+        ) doReturn fakeProject.provider { fakeProject.files(fileA, fileB) }
         whenever(mockAndroidVariant.name) doReturn fakeVariantName
 
         // When
