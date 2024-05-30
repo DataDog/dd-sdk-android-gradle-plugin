@@ -1,0 +1,58 @@
+plugins {
+    id("com.android.application")
+    id("kotlin-android")
+    id("com.datadoghq.dd-sdk-android-gradle-plugin")
+}
+
+repositories {
+    google()
+    mavenCentral()
+}
+
+extensions.configure("androidComponents") { extension ->
+    extension.onVariants(extension.selector().all()) { variant ->
+        // just request assets, this will be enough to reproduce
+        // https://issuetracker.google.com/issues/342428022 when using new Variant API + legacy one
+        // with AGP 8.4.0
+        if (variant.metaClass.respondsTo(variant, "getSources")) {
+            // available only since AGP 7.2.0
+            variant.getSources().getAssets()
+        }
+    }
+}
+
+android {
+    compileSdkVersion = rootProject.ext.targetSdkVersion
+    buildToolsVersion = rootProject.ext.buildToolsVersion
+
+    defaultConfig {
+        applicationId "com.example.variants"
+        minSdkVersion 21
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 1
+        versionName "1.0"
+        multiDexEnabled = true
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile ('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    namespace = "com.example.variants"
+
+    compileOptions {
+        sourceCompatibility = rootProject.ext.jvmTarget
+        targetCompatibility = rootProject.ext.jvmTarget
+    }
+
+    kotlinOptions {
+        jvmTarget = rootProject.ext.jvmTarget
+    }
+}
+
+dependencies {
+    implementation(rootProject.ext.datadogSdkDependency)
+}
