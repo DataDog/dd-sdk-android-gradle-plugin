@@ -1,3 +1,31 @@
+# 1.14.0 / 2024-05-30
+
+* [FEATURE] Add tasks for upload NDK symbol files to Datadog. See [#220](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/220)
+* [FEATURE] Support new Variant API. See [#263](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/263)
+* [IMPROVEMENT] Standardize architectures. See [#249](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/249)
+* [IMPROVEMENT] Emulate upload network call for functional tests. See [#255](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/255)
+* [IMPROVEMENT] Mark upload task as not compatible with configuration cache. See [#256](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/256)
+* [IMPROVEMENT] Avoid BuildId task creation if there is no obfuscation or native build providers registered. See [#259](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/259)
+* [IMPROVEMENT] Increase upload timeout to 120s to match EvP limits. See [#261](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/261)
+* [IMPROVEMENT] Add test for the duplicate resources issue with AGP 8.4.x. See [#264](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/264)
+* [IMPROVEMENT] Use mapping file provider in case of legacy Variant API. See [#265](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/265)
+* [MAINTENANCE] Next dev iteration. See [#233](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/233)
+* [MAINTENANCE] Update version of static analysis pipeline used. See [#234](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/234)
+* [MAINTENANCE] Update Datadog SDK to version 2.8.0. See [#235](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/235)
+* [MAINTENANCE] Merge `release/1.13.0` branch into `develop` branch. See [#236](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/236)
+* [MAINTENANCE] Use Datadog Gradle Plugin 1.13.0 in samples. See [#238](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/238)
+* [MAINTENANCE] Update AGP to 8.3.2. See [#239](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/239)
+* [MAINTENANCE] Merge release `1.13.1` into `develop` branch. See [#244](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/244)
+* [MAINTENANCE] Use Datadog Gradle Plugin 1.13.1 for samples. See [#245](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/245)
+* [MAINTENANCE] Migrate to GBI images. See [#246](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/246)
+* [MAINTENANCE] Add dogfood script. See [#247](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/247)
+* [MAINTENANCE] Install NDK 25.1.8937393 in the Docker image. See [#248](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/248)
+* [MAINTENANCE] Redirect slack notifications to `mobile-sdk-ops` channel. See [#250](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/250)
+* [MAINTENANCE] Update Gradle to 8.7, AGP to 8.4.0. See [#253](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/253)
+* [MAINTENANCE] Update Datadog SDK to version 2.9.0. See [#254](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/254)
+* [MAINTENANCE] Update AGP version to 8.4.1. See [#260](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/260)
+* [MAINTENANCE] Update Datadog SDK to version 2.10.0. See [#262](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/262)
+
 # 1.13.1 / 2024-04-11
 
 * [BUGFIX] Avoid eager fetching of Variant values. See [#240](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/240)
