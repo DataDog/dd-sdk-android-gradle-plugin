@@ -1,4 +1,4 @@
-FROM registry.ddbuild.io/images/mirror/ubuntu:20.04
+FROM registry.ddbuild.io/images/docker:24.0.4-gbi-focal
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -24,11 +24,11 @@ RUN set -x \
  && apt-get -y clean \
  && rm -rf /var/lib/apt/lists/*
 
-ENV GRADLE_VERSION 8.6
+ENV GRADLE_VERSION 8.7
 ENV ANDROID_COMPILE_SDK 34
 ENV ANDROID_BUILD_TOOLS 34.0.0
 ENV ANDROID_SDK_TOOLS 11076708
-ENV NDK_VERSION 21.3.6528147
+ENV NDK_VERSION 26.1.10909125
 ENV CMAKE_VERSION 3.22.1
 
 
@@ -70,7 +70,7 @@ RUN \
     echo y | android-sdk-linux/cmdline-tools/latest/bin/sdkmanager "build-tools;${ANDROID_BUILD_TOOLS}" >/dev/null && \
     echo y | android-sdk-linux/cmdline-tools/latest/bin/sdkmanager --install "ndk;${NDK_VERSION}" >/dev/null && \
     echo y | android-sdk-linux/cmdline-tools/latest/bin/sdkmanager --install "cmake;${CMAKE_VERSION}" >/dev/null && \
-    yes | android-sdk-linux/cmdline-tools/latest/bin/sdkmanager --licenses
+    (yes || true) | android-sdk-linux/cmdline-tools/latest/bin/sdkmanager --licenses
 
 RUN set -x \
  && curl -OL https://s3.amazonaws.com/dd-package-public/dd-package.deb && dpkg -i dd-package.deb && rm dd-package.deb \

@@ -6,7 +6,6 @@
 
 import com.datadog.gradle.config.MavenConfig
 import com.datadog.gradle.config.dependencyUpdateConfig
-import com.datadog.gradle.config.detektConfig
 import com.datadog.gradle.config.jacocoConfig
 import com.datadog.gradle.config.javadocConfig
 import com.datadog.gradle.config.junitConfig
@@ -26,7 +25,6 @@ plugins {
 
     // Analysis tools
     id("com.github.ben-manes.versions")
-    id("io.gitlab.arturbosch.detekt")
 
     // Tests
     jacoco
@@ -48,11 +46,9 @@ dependencies {
     testImplementation(libs.okHttpMock)
     testImplementation(libs.androidToolsPluginGradle)
     testImplementation(libs.kotlinPluginGradle)
-    detekt(libs.detektCli)
 }
 
 kotlinConfig()
-detektConfig()
 junitConfig()
 jacocoConfig()
 javadocConfig()

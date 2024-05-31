@@ -6,7 +6,7 @@
 
 package com.datadog.gradle.plugin.internal.sanitizer
 
-import com.datadog.gradle.plugin.Configurator
+import com.datadog.gradle.plugin.utils.forge.Configurator
 import fr.xgouchet.elmyr.annotation.IntForgery
 import fr.xgouchet.elmyr.annotation.StringForgery
 import fr.xgouchet.elmyr.junit5.ForgeConfiguration
