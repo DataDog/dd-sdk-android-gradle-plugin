@@ -72,8 +72,6 @@ datadog {
 }
 ```
 
-**Note**: Only stacktraces in errors/crashes reported through RUM will be deobfuscated; errors in Datadog Logs won't be deobfuscated. 
-
 For more information, see [Android Crash Reporting and Error Tracking](https://docs.datadoghq.com/real_user_monitoring/error_tracking/android/).
 
 ## Troubleshooting
