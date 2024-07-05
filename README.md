@@ -2,7 +2,7 @@
 
 > This plugin is used to upload your Proguard/Dexguard/R8 mapping files and NDK symbol files to Datadog to get a complete RUM Error Tracking experience.
 
-Once your mapping file are uploaded, any error/crash reported through RUM will have a deobfuscated and symbolicated stacktrace, enabling an easy diagnosis of the root cause of the error.
+Once your mapping file are uploaded, any error/crash reported through RUM will have a deobfuscated/symbolicated stacktrace, enabling an easy diagnosis of the root cause of the error.
 
 ## Getting Started
 
@@ -18,13 +18,13 @@ plugins {
 
 ### Uploading
 
-To upload your mapping files to Datadog, run the `uploadMapping[Variant]` task in your Android project as part of your build or after your build, for example:
+To upload your mapping files to Datadog, run the `uploadMapping[Variant]` task in your Android application project as part of your build or after your build, for example:
 
 ```bash
-./gradlew  uploadMappingRelease
+./gradlew uploadMappingRelease
 ```
 
-Similarly, to upload NDK symbols, run the `uploadNdkSymbolFiles[Variant]` task in your Android project. For example:
+Similarly, to upload NDK symbols, run the `uploadNdkSymbolFiles[Variant]` task in your Android application project. For example:
 
 ```bash
 ./gradlew uploadNdkSymbolFilesRelease
