@@ -128,7 +128,7 @@ internal class NewApiAppVariantTest {
                 whenever(nonValidOutput.versionCode) doReturn fakeVersionCode.asProperty()
             } else {
                 whenever(nonValidOutput.enabled) doReturn true.asProperty()
-                whenever(nonValidOutput.versionCode) doReturn null.asProperty()
+                whenever(nonValidOutput.versionCode) doReturn 1.asProperty().unset()
             }
             nonValidOutput
         }
@@ -151,7 +151,7 @@ internal class NewApiAppVariantTest {
         val validOutput = mock<VariantOutput>()
         whenever(validOutput.enabled) doReturn true.asProperty()
         whenever(validOutput.versionCode) doReturn fakeVersionCode.asProperty()
-        whenever(validOutput.versionName) doReturn null.asProperty()
+        whenever(validOutput.versionName) doReturn "".asProperty().unset()
         val fakeNonValidOutputs = forge.aList {
             val nonValidOutput = mock<VariantOutput>()
             if (forge.aBool()) {
@@ -159,7 +159,7 @@ internal class NewApiAppVariantTest {
                 whenever(nonValidOutput.versionCode) doReturn fakeVersionCode.asProperty()
             } else {
                 whenever(nonValidOutput.enabled) doReturn true.asProperty()
-                whenever(nonValidOutput.versionCode) doReturn null.asProperty()
+                whenever(nonValidOutput.versionCode) doReturn 1.asProperty().unset()
             }
             nonValidOutput
         }
@@ -188,7 +188,7 @@ internal class NewApiAppVariantTest {
                 whenever(nonValidOutput.versionCode) doReturn fakeVersionCode.asProperty()
             } else {
                 whenever(nonValidOutput.enabled) doReturn true.asProperty()
-                whenever(nonValidOutput.versionCode) doReturn null.asProperty()
+                whenever(nonValidOutput.versionCode) doReturn 1.asProperty().unset()
             }
             nonValidOutput
         }
@@ -214,7 +214,7 @@ internal class NewApiAppVariantTest {
                 whenever(nonValidOutput.versionCode) doReturn fakeVersionCode.asProperty()
             } else {
                 whenever(nonValidOutput.enabled) doReturn true.asProperty()
-                whenever(nonValidOutput.versionCode) doReturn null.asProperty()
+                whenever(nonValidOutput.versionCode) doReturn 1.asProperty().unset()
             }
             nonValidOutput
         }
