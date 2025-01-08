@@ -98,8 +98,10 @@ class DdAndroidGradlePlugin @Inject constructor(
     ) {
         val isObfuscationEnabled = isObfuscationEnabled(variant, datadogExtension)
         val isNativeBuildRequired = variant.isNativeBuildEnabled
+        val isNativeSymbolsTaskRequired =
+            isNativeBuildRequired || datadogExtension.additionalSymbolFilesLocations?.isNotEmpty() == true
 
-        if (isObfuscationEnabled || isNativeBuildRequired) {
+        if (isObfuscationEnabled || isNativeBuildRequired || isNativeSymbolsTaskRequired) {
             val buildIdGenerationTask =
                 configureBuildIdGenerationTask(target, variant)
 
@@ -115,7 +117,7 @@ class DdAndroidGradlePlugin @Inject constructor(
                 LOGGER.info("Minifying disabled for variant ${variant.name}, no mapping file upload task created")
             }
 
-            if (isNativeBuildRequired) {
+            if (isNativeSymbolsTaskRequired) {
                 configureNdkSymbolUploadTask(
                     target,
                     datadogExtension,
@@ -126,6 +128,7 @@ class DdAndroidGradlePlugin @Inject constructor(
             } else {
                 LOGGER.info(
                     "No native build tasks found for variant ${variant.name}," +
+                        " no additionalSymbolFilesLocations provided, " +
                         " no NDK symbol file upload task created."
                 )
             }
