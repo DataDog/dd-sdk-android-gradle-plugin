@@ -95,6 +95,22 @@ open class DdExtensionConfiguration(
      */
     var ignoreDatadogCiFileConfig: Boolean = false
 
+    /**
+     * Additional locations that Gradle plugin will check for `.so` files during `uploadNdkSymbolFiles` task.
+     * Directory structure should follow pattern: `/path/to/location/obj/{arch}/libname.so`.
+     *
+     * In case of above `additionalSymbolFilesLocations` should be equal to:
+     *
+     * ```
+     * datadog {
+     *      additionalSymbolFilesLocations = listOf("/path/to/location/obj")
+     * }
+     * ```
+     *
+     * Note that each `.so` file should be placed inside the directory with architecture name (e.g. x86).
+     */
+    var additionalSymbolFilesLocations: List<String>? = null
+
     internal fun updateWith(config: DdExtensionConfiguration) {
         config.versionName?.let { versionName = it }
         config.serviceName?.let { serviceName = it }
@@ -102,6 +118,7 @@ open class DdExtensionConfiguration(
         config.remoteRepositoryUrl?.let { remoteRepositoryUrl = it }
         config.checkProjectDependencies?.let { checkProjectDependencies = it }
         config.mappingFilePath?.let { mappingFilePath = it }
+        config.additionalSymbolFilesLocations?.let { additionalSymbolFilesLocations = it }
         mappingFilePackageAliases = config.mappingFilePackageAliases
         mappingFileTrimIndents = config.mappingFileTrimIndents
         ignoreDatadogCiFileConfig = config.ignoreDatadogCiFileConfig
