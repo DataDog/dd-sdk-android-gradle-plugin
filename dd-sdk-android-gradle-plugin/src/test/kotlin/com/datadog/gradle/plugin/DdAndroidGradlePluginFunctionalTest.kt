@@ -1026,6 +1026,118 @@ internal class DdAndroidGradlePluginFunctionalTest {
     }
 
     @Test
+    fun `M try to upload with additional symbol files W custom filepath provided`(forge: Forge) {
+        // Given
+        stubGradleBuildFromResourceFile(
+            "native_gradle_files/build_with_custom_ndk.gradle",
+            appBuildGradleFile
+        )
+
+        stubNativeFiles()
+        gradleRunner { withArguments("--info", ":samples:app:assembleRelease") }
+            .build()
+
+        val arch = forge.anElementFrom(NdkSymbolFileUploadTask.SUPPORTED_ARCHS).arch
+        val customNdkDir = File(appRootDir, "custom/$arch").apply { mkdirs() }
+        val customSoFile = File(customNdkDir, "libexpected.so")
+        // Stubbing custom .so file that not present inside default build directories
+        stubFile(customSoFile, "some_content")
+
+        val color = forge.anElementFrom(colors)
+        val version = forge.anElementFrom(versions)
+        val variant = "${version.lowercase()}$color"
+        val variantVersionName = version.lowercase()
+        val taskName = resolveNdkSymbolUploadTask(variant)
+
+        val result = gradleRunner {
+            withArguments(
+                taskName,
+                "--info",
+                "--stacktrace",
+                "-PDD_API_KEY=fakekey",
+                "-Pdd-emulate-upload-call"
+            )
+        }
+            .build()
+
+        // Then
+        val buildIdInOriginFile = testProjectDir.findBuildIdInOriginFile(variant)
+
+        // verifying that .so files from default build directories are uploaded
+        assertThat(result).containsInOutput(
+            "Uploading file libplaceholder.so with tags " +
+                "`service:com.example.variants.$variantVersionName`, " +
+                "`version:1.0-$variantVersionName`, " +
+                "`version_code:1`, " +
+                "`variant:$variant`, " +
+                "`build_id:$buildIdInOriginFile` (site=datadoghq.com):"
+        )
+
+        // verifying that .so files from custom (provided via additionalSymbolFilesLocations)
+        // build directories are uploaded
+        assertThat(result).containsInOutput(
+            "Uploading file libexpected.so with tags " +
+                "`service:com.example.variants.$variantVersionName`, " +
+                "`version:1.0-$variantVersionName`, " +
+                "`version_code:1`, " +
+                "`variant:$variant`, " +
+                "`build_id:$buildIdInOriginFile` (site=datadoghq.com):"
+        )
+    }
+
+    @Test
+    fun `M try to upload with additional symbol files W custom filepath provided { no externalNativeBuild enabled }`(
+        forge: Forge
+    ) {
+        // Given
+        stubGradleBuildFromResourceFile(
+            "native_gradle_files/build_with_custom_ndk_no_externalNativeBuild.gradle",
+            appBuildGradleFile
+        )
+
+        stubNativeFiles()
+        gradleRunner { withArguments("--info", ":samples:app:assembleRelease") }
+            .build()
+
+        val arch = forge.anElementFrom(NdkSymbolFileUploadTask.SUPPORTED_ARCHS).arch
+        val customNdkDir = File(appRootDir, "custom/$arch").apply { mkdirs() }
+        val customSoFile = File(customNdkDir, "libexpected.so")
+        // Stubbing custom .so file that not present inside default build directories
+        stubFile(customSoFile, "some_content")
+
+        val color = forge.anElementFrom(colors)
+        val version = forge.anElementFrom(versions)
+        val variant = "${version.lowercase()}$color"
+        val variantVersionName = version.lowercase()
+        val taskName = resolveNdkSymbolUploadTask(variant)
+
+        val result = gradleRunner {
+            withArguments(
+                taskName,
+                "--info",
+                "--stacktrace",
+                "-PDD_API_KEY=fakekey",
+                "-Pdd-emulate-upload-call"
+            )
+        }
+            .build()
+
+        // Then
+        val buildIdInOriginFile = testProjectDir.findBuildIdInOriginFile(variant)
+
+        // verifying that .so files from custom (provided via additionalSymbolFilesLocations)
+        // build directories are uploaded even if there is no externalNativeBuild instruction in build.gradle file
+        assertThat(result).containsInOutput(
+            "Uploading file libexpected.so with tags " +
+                "`service:com.example.variants.$variantVersionName`, " +
+                "`version:1.0-$variantVersionName`, " +
+                "`version_code:1`, " +
+                "`variant:$variant`, " +
+                "`build_id:$buildIdInOriginFile` (site=datadoghq.com):"
+        )
+    }
+
+    @Test
     fun `M try to upload the symbol file W upload { using a fake API_KEY }`(forge: Forge) {
         // Given
         stubGradleBuildFromResourceFile(
@@ -1205,6 +1317,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
     // region Internal
 
     private fun resolveMappingUploadTask(variantName: String) = "uploadMapping${variantName.capitalize()}Release"
+
     private fun resolveNdkSymbolUploadTask(
         variantName: String
     ) = "uploadNdkSymbolFiles${variantName.capitalize()}Release"
@@ -1381,7 +1494,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
                     buildToolsVersion = buildToolsVersion
                     // some AndroidX dependencies in recent SDK versions require compileSdk >= 33, so downgrading
                     datadogSdkDependency = targetSdkVersion >= 33 ?
-                       "com.datadoghq:dd-sdk-android-rum:2.10.0" : "com.datadoghq:dd-sdk-android:1.15.0"
+                       "com.datadoghq:dd-sdk-android-rum:2.17.0" : "com.datadoghq:dd-sdk-android:1.15.0"
                     jvmTarget = jvmTarget
                 }
                 repositories {
@@ -1439,15 +1552,15 @@ internal class DdAndroidGradlePluginFunctionalTest {
             }
         """.trimIndent()
 
-        const val LATEST_GRADLE_VERSION = "8.7"
-        const val LATEST_AGP_VERSION = "8.4.1"
+        private const val LATEST_GRADLE_VERSION = "8.11.1"
+        private const val LATEST_AGP_VERSION = "8.8.0"
 
         val LATEST_VERSIONS_TEST_CONFIGURATION = BuildVersionConfig(
             agpVersion = LATEST_AGP_VERSION,
             gradleVersion = LATEST_GRADLE_VERSION,
-            buildToolsVersion = "34.0.0",
-            targetSdkVersion = "34",
-            kotlinVersion = "1.9.23",
+            buildToolsVersion = "35.0.0",
+            targetSdkVersion = "35",
+            kotlinVersion = "2.1.0",
             jvmTarget = JavaVersion.VERSION_17.toString()
         )
 

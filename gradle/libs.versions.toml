@@ -5,7 +5,7 @@ json = "20180813"
 okHttp = "4.12.0"
 
 # Android
-androidToolsPlugin = "8.4.1"
+androidToolsPlugin = "8.7.2"
 
 # AndroidX
 androidx-core ="1.3.2"
@@ -37,8 +37,8 @@ versionsPluginGradle = "0.33.0"
 kotlinGrammarParser = "c35b50fa44"
 
 # Datadog
-datadogSdk = "2.10.0"
-datadogPluginGradle = "1.13.1"
+datadogSdk = "2.17.0"
+datadogPluginGradle = "1.14.0"
 
 [libraries]
 
