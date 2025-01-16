@@ -1,3 +1,31 @@
+# 1.15.0 / 2025-01-16
+
+* [FEATURE] Support custom native symbols path. See [#302](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/302)
+* [DOCS] Remove the statement from `README` that logs are not deobfuscated. See [#275](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/275)
+* [DOCS] Add uploading section to README. See [#281](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/281)
+* [MAINTENANCE] Next dev iteration. See [#267](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/267)
+* [MAINTENANCE] Update Datadog SDK to version 2.10.1. See [#268](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/268)
+* [MAINTENANCE] Use Datadog Gradle Plugin 1.14.0. See [#271](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/271)
+* [MAINTENANCE] Merge `release/1.14.0` branch into `develop` branch. See [#270](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/270)
+* [MAINTENANCE] Update AGP version to 8.5.0. See [#276](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/276)
+* [MAINTENANCE] Update Gradle version to 8.8. See [#277](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/277)
+* [MAINTENANCE] Update Datadog SDK to version 2.11.0. See [#278](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/278)
+* [MAINTENANCE] Update Github token reference. See [#282](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/282)
+* [MAINTENANCE] Update Datadog SDK to version 2.12.0. See [#284](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/284)
+* [MAINTENANCE] Update Datadog SDK to version 2.12.1. See [#285](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/285)
+* [MAINTENANCE] Update Datadog SDK to version 2.13.0. See [#286](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/286)
+* [MAINTENANCE] Update Datadog SDK to version 2.13.1. See [#289](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/289)
+* [MAINTENANCE] Update Datadog SDK to version 2.14.0. See [#290](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/290)
+* [MAINTENANCE] Update Gradle to 8.10.2, AGP to 8.6.1 and also update latest test configuration for the functional test. See [#292](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/292)
+* [MAINTENANCE] Update Datadog SDK to version 2.15.0. See [#291](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/291)
+* [MAINTENANCE] Update Datadog SDK to version 2.15.1. See [#293](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/293)
+* [MAINTENANCE] Update Datadog SDK to version 2.16.0. See [#295](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/295)
+* [MAINTENANCE] Update Gradle to 8.11.1, AGP to 8.7.2, Kotlin to 2.1.0 for the latest versions configuration for the functional tests. See [#298](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/298)
+* [MAINTENANCE] Update Gradle to 8.11.1, AGP to 8.7.2. See [#299](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/299)
+* [MAINTENANCE] Update Datadog SDK to version 2.16.1. See [#300](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/300)
+* [MAINTENANCE] Update Datadog SDK to version 2.17.0. See [#301](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/301)
+* [MAINTENANCE] AGP 8.8.0 for the latest configuration in the functional tests. See [#303](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/303)
+
 # 1.14.0 / 2024-05-30
 
 * [FEATURE] Add tasks for upload NDK symbol files to Datadog. See [#220](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/220)
