@@ -16,6 +16,7 @@ plugins {
     // Build
     id("java-gradle-plugin")
     kotlin("jvm")
+    kotlin("kapt")
 
     // Publish
     `maven-publish`
@@ -46,6 +47,10 @@ dependencies {
     testImplementation(libs.okHttpMock)
     testImplementation(libs.androidToolsPluginGradle)
     testImplementation(libs.kotlinPluginGradle)
+
+    compileOnly(libs.kotlinCompilerEmbeddable)
+    compileOnly(libs.autoServiceAnnotation)
+    kapt(libs.autoService)
 }
 
 kotlinConfig()
