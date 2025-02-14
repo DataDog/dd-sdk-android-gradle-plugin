@@ -9,6 +9,7 @@ import,com.android.tools.build,Apache-2.0,Copyright (C) 2013 The Android Open So
 import,com.squareup.okhttp3,Apache-2.0,"Copyright 2019 Square, Inc"
 import,org.jetbrains,Apache-2.0,Copyright 2010-2019 JetBrains s.r.o. and Kotlin Programming Language contributors
 import,org.jetbrains.kotlin,Apache-2.0,Copyright 2010-2019 JetBrains s.r.o. and Kotlin Programming Language contributors
+import,com.google.auto.service,Apache-2.0,Copyright 2013 Google LLC
 import,org.json,JSON,Copyright (c) 2002 JSON.org
 import(test),com.github.xgouchet.Elmyr,MIT,Copyright 2017-2019 Xavier F. Gouchet
 import(test),net.wuerl.kotlin,Apache-2.0,Copyright 2016 Andreas Würl
