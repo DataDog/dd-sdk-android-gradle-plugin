@@ -1,14 +1,17 @@
 [versions]
+
 # Commons
 kotlin = "1.9.23"
+kotlinComposePlugin = "2.0.20"
 json = "20180813"
 okHttp = "4.12.0"
+composeBom = "2024.04.01"
+activityCompose = "1.9.3"
 
 # Android
 androidToolsPlugin = "8.7.2"
-
 # AndroidX
-androidx-core ="1.3.2"
+androidx-core = "1.3.2"
 androidx-appcompat = "1.2.0"
 androidx-constraintlayout = "2.0.4"
 
@@ -43,6 +46,9 @@ datadogPluginGradle = "1.15.0"
 # Kotlin Compiler Plugin
 kotlinCompilerEmbeddable = "1.8.20"
 autoService = "1.0.1"
+junitVersion = "1.2.1"
+espressoCoreVersion = "3.6.1"
+lifecycleRuntimeKtx = "2.8.7"
 
 [libraries]
 
@@ -62,9 +68,9 @@ json = { module = "org.json:json", version.ref = "json" }
 
 # AndroidX
 
-androidx-core = { module = "androidx.core:core-ktx", version.ref="androidx-core" }
-androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref="androidx-appcompat" }
-androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref="androidx-constraintlayout" }
+androidx-core = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
+androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "androidx-constraintlayout" }
 
 assertJ = { module = "org.assertj:assertj-core", version.ref = "assertJ" }
 
@@ -98,9 +104,23 @@ datadogSdkRum = { module = "com.datadoghq:dd-sdk-android-rum", version.ref = "da
 datadogPluginGradle = { module = "com.datadoghq:dd-sdk-android-gradle-plugin", version.ref = "datadogPluginGradle" }
 
 # Kotlin Compiler Plugin
-kotlinCompilerEmbeddable =  { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlinCompilerEmbeddable" }
-autoService =  { module = "com.google.auto.service:auto-service", version.ref = "autoService" }
-autoServiceAnnotation =  { module = "com.google.auto.service:auto-service-annotations", version.ref = "autoService" }
+kotlinCompilerEmbeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlinCompilerEmbeddable" }
+autoService = { module = "com.google.auto.service:auto-service", version.ref = "autoService" }
+autoServiceAnnotation = { module = "com.google.auto.service:auto-service-annotations", version.ref = "autoService" }
+
+# Compose
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+androidx-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCoreVersion" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 
 [bundles]
 
@@ -125,3 +145,4 @@ testTools = [
 
 [plugins]
 versionsPluginGradle = { id = "com.github.ben-manes.versions", version.ref = "versionsPluginGradle" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlinComposePlugin" }
