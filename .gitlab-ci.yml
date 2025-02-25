@@ -90,6 +90,7 @@ test:plugin:
   stage: test
   timeout: 1h
   script:
+    - aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android-gradle-plugin.gradle-properties --with-decryption --query "Parameter.Value" --out text >> ./gradle.properties
     - git fetch --depth=1 origin main
     - rm -rf ~/.gradle/daemon/
     - CODECOV_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android-gradle-plugin.codecov-token --with-decryption --query "Parameter.Value" --out text)
