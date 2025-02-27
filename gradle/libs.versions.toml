@@ -5,7 +5,7 @@ json = "20180813"
 okHttp = "4.12.0"
 
 # Android
-androidToolsPlugin = "8.7.2"
+androidToolsPlugin = "8.8.2"
 
 # AndroidX
 androidx-core ="1.3.2"
