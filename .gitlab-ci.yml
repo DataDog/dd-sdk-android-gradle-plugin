@@ -70,7 +70,6 @@ analysis:licenses:
   stage: analysis
   timeout: 30m
   script:
-    - git fetch --depth=1 origin main
     - GRADLE_OPTS="-Xmx2560m" ./gradlew :dd-sdk-android-gradle-plugin:checkThirdPartyLicences --stacktrace --no-daemon
 
 analysis:woke:
@@ -79,7 +78,6 @@ analysis:woke:
   stage: analysis
   timeout: 30m
   script:
-    - git fetch --depth=1 origin master
     - /usr/bin/woke --exit-1-on-failure
 
 # TESTS
@@ -90,7 +88,6 @@ test:plugin:
   stage: test
   timeout: 1h
   script:
-    - git fetch --depth=1 origin main
     - rm -rf ~/.gradle/daemon/
     - CODECOV_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android-gradle-plugin.codecov-token --with-decryption --query "Parameter.Value" --out text)
     - export DD_AGENT_HOST="$BUILDENV_HOST_IP"
@@ -115,7 +112,6 @@ publish:publish-sonatype:
     - export GPG_PASSWORD=$(aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android-gradle-plugin.signing.gpg_passphrase --with-decryption --query "Parameter.Value" --out text)
     - export OSSRH_USERNAME=$(aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android-gradle-plugin.signing.ossrh_username --with-decryption --query "Parameter.Value" --out text)
     - export OSSRH_PASSWORD=$(aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android-gradle-plugin.signing.ossrh_password --with-decryption --query "Parameter.Value" --out text)
-    - git fetch --depth=1 origin main
     - ./gradlew :dd-sdk-android-gradle-plugin:publishPluginMavenPublicationToMavenRepository --stacktrace --no-daemon
 
 publish:publish-gradle-portal:
@@ -129,7 +125,6 @@ publish:publish-gradle-portal:
     - aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android-gradle-plugin.gradle-properties --with-decryption --query "Parameter.Value" --out text >> ./gradle.properties
     - export GPG_PRIVATE_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android-gradle-plugin.signing.gpg_private_key --with-decryption --query "Parameter.Value" --out text)
     - export GPG_PASSWORD=$(aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android-gradle-plugin.signing.gpg_passphrase --with-decryption --query "Parameter.Value" --out text)
-    - git fetch --depth=1 origin main
     - ./gradlew :dd-sdk-android-gradle-plugin:publishPlugins --stacktrace --no-daemon
 
 # SLACK NOTIFICATIONS
