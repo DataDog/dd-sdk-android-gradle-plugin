@@ -49,6 +49,7 @@ dependencies {
     testImplementation(libs.kotlinPluginGradle)
     testImplementation(libs.kotlinCompilerEmbeddable)
 
+    compileOnly(libs.kotlinPluginGradle)
     compileOnly(libs.kotlinCompilerEmbeddable)
     compileOnly(libs.autoServiceAnnotation)
     kapt(libs.autoService)

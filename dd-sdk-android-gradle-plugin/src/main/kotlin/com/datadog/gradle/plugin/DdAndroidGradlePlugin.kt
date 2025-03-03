@@ -27,7 +27,9 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.process.ExecOperations
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
+import java.net.URISyntaxException
 import javax.inject.Inject
 import kotlin.io.path.Path
 
@@ -46,6 +48,10 @@ class DdAndroidGradlePlugin @Inject constructor(
     override fun apply(target: Project) {
         val extension = target.extensions.create(EXT_NAME, DdExtension::class.java)
         val apiKey = resolveApiKey(target)
+
+        target.pluginManager.withPlugin("org.jetbrains.kotlin.android") {
+            configureKotlinCompilerPlugin(target)
+        }
 
         // need to use withPlugin instead of afterEvaluate, because otherwise generated assets
         // folder with buildId is not picked by AGP by some reason
@@ -365,6 +371,40 @@ class DdAndroidGradlePlugin @Inject constructor(
         return configuration
     }
 
+    @Suppress("ReturnCount")
+    private fun configureKotlinCompilerPlugin(project: Project) {
+        val pluginJarPath = try {
+            val codeSource = this::class.java.protectionDomain?.codeSource
+            codeSource?.location?.toURI()?.path
+        } catch (e: URISyntaxException) {
+            LOGGER.error(
+                "Can not parse Datadog Gradle Plugin path because the URI is not correctly formatted.",
+                e
+            )
+            return
+        } catch (e: SecurityException) {
+            LOGGER.error(
+                "Failed to access Datadog Gradle Plugin protection domain due to insufficient permissions.",
+                e
+            )
+            return
+        }
+
+        if (pluginJarPath == null) {
+            LOGGER.warn(
+                "$DD_PLUGIN_MAVEN_COORDINATES not found in classpath, " +
+                    "Skipping Kotlin Compiler Plugin configuration."
+            )
+            return
+        }
+
+        project.tasks.withType(KotlinCompile::class.java).configureEach { task ->
+            task.kotlinOptions.freeCompilerArgs += listOf(
+                "-Xplugin=$pluginJarPath"
+            )
+        }
+    }
+
     private fun Project.stringProperty(propertyName: String): String? {
         return findProperty(propertyName)?.toString()
     }
@@ -390,6 +430,8 @@ class DdAndroidGradlePlugin @Inject constructor(
     companion object {
 
         private const val DD_FORCE_LEGACY_VARIANT_API = "dd-force-legacy-variant-api"
+
+        private const val DD_PLUGIN_MAVEN_COORDINATES = "com.datadoghq:dd-sdk-android-gradle-plugin"
 
         internal const val DD_API_KEY = "DD_API_KEY"
 
