@@ -53,6 +53,7 @@ android {
 dependencies {
 
     kotlinCompilerPluginClasspath(project(":dd-sdk-android-gradle-plugin"))
+    implementation(project(":samples:lib-module"))
     implementation(libs.androidx.core)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

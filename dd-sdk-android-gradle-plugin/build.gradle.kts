@@ -47,6 +47,7 @@ dependencies {
     testImplementation(libs.okHttpMock)
     testImplementation(libs.androidToolsPluginGradle)
     testImplementation(libs.kotlinPluginGradle)
+    testImplementation(libs.kotlinCompilerEmbeddable)
 
     compileOnly(libs.kotlinCompilerEmbeddable)
     compileOnly(libs.autoServiceAnnotation)

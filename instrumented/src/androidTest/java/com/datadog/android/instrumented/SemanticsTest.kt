@@ -1,8 +1,10 @@
 package com.datadog.android.instrumented
 
 import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import fr.xgouchet.elmyr.junit5.ForgeExtension
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -21,13 +23,32 @@ class SemanticsTest {
     @get:Rule
     val composeTestRule = createComposeRule()
 
+    @Ignore("RUM-8813: Fix the compose tag injection when Modifier is absent")
     @Test
-    fun `M have no datadog semantics tag W compose kotlin compiler plugin is not registered`() {
+    fun `M have datadog semantics tag W modifier is absent`() {
         composeTestRule.setContent {
-            TestScreen()
+            ScreenWithoutModifier()
         }
         val semanticsMatcher = hasSemanticsValue(DD_SEMANTICS_KEY_NAME, DD_SEMANTICS_VALUE_DEFAULT)
-        composeTestRule.onNode(semanticsMatcher).assertDoesNotExist()
+        composeTestRule.onAllNodes(semanticsMatcher).assertCountEquals(2)
+    }
+
+    @Test
+    fun `M have datadog semantics tag W modifier is default`() {
+        composeTestRule.setContent {
+            ScreenWithDefaultModifier()
+        }
+        val semanticsMatcher = hasSemanticsValue(DD_SEMANTICS_KEY_NAME, DD_SEMANTICS_VALUE_DEFAULT)
+        composeTestRule.onAllNodes(semanticsMatcher).assertCountEquals(2)
+    }
+
+    @Test
+    fun `M have datadog semantics tag W modifier is custom`() {
+        composeTestRule.setContent {
+            ScreenWithCustomModifier()
+        }
+        val semanticsMatcher = hasSemanticsValue(DD_SEMANTICS_KEY_NAME, DD_SEMANTICS_VALUE_DEFAULT)
+        composeTestRule.onAllNodes(semanticsMatcher).assertCountEquals(2)
     }
 
     private fun <T> hasSemanticsValue(

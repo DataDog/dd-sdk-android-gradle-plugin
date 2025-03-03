@@ -14,7 +14,7 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
  */
 @OptIn(ExperimentalCompilerApi::class)
 @AutoService(CompilerPluginRegistrar::class)
-class DatadogPluginRegistrar : CompilerPluginRegistrar() {
+internal class DatadogPluginRegistrar : CompilerPluginRegistrar() {
 
     // Supports Kotlin 2.x compiler
     override val supportsK2 = true
