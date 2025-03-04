@@ -48,6 +48,9 @@ dependencies {
     testImplementation(libs.androidToolsPluginGradle)
     testImplementation(libs.kotlinPluginGradle)
     testImplementation(libs.kotlinCompilerEmbeddable)
+    testImplementation(libs.kotlinCompilerTesting)
+    testImplementation(platform(libs.androidx.compose.bom))
+    testImplementation(libs.androidx.ui)
 
     compileOnly(libs.kotlinPluginGradle)
     compileOnly(libs.kotlinCompilerEmbeddable)

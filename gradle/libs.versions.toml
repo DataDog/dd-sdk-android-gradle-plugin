@@ -45,6 +45,7 @@ datadogPluginGradle = "1.15.0"
 
 # Kotlin Compiler Plugin
 kotlinCompilerEmbeddable = "1.8.20"
+kotlinCompilerTesting = "1.6.0"
 autoService = "1.0.1"
 junitVersion = "1.2.1"
 espressoCoreVersion = "3.6.1"
@@ -105,6 +106,7 @@ datadogPluginGradle = { module = "com.datadoghq:dd-sdk-android-gradle-plugin", v
 
 # Kotlin Compiler Plugin
 kotlinCompilerEmbeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlinCompilerEmbeddable" }
+kotlinCompilerTesting = { module = "com.github.tschuchortdev:kotlin-compile-testing", version.ref = "kotlinCompilerTesting" }
 autoService = { module = "com.google.auto.service:auto-service", version.ref = "autoService" }
 autoServiceAnnotation = { module = "com.google.auto.service:auto-service-annotations", version.ref = "autoService" }
 
