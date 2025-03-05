@@ -129,7 +129,9 @@ abstract class MappingFileUploadTask
             // after that any possible prefix (which has a smaller length).
             .sortedByDescending { it.key.length }
             .map {
-                Regex("(?<=^|\\W)${it.key}(?=\\W)") to it.value
+                val lookup = it.key.replace(".*", "")
+                    .replace(".", "\\.")
+                Regex("(?<=^|\\W)$lookup(?=\\W)") to it.value
             }
 
         mappingFile.readLines()
