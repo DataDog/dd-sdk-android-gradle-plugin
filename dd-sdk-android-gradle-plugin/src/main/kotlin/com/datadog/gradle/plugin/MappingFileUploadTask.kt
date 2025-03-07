@@ -101,11 +101,6 @@ abstract class MappingFileUploadTask
                 " is ${mappingFile.length()} bytes"
         )
 
-        val shrinkedFile = File(mappingFile.parent, MAPPING_OPTIMIZED_FILE_NAME)
-        if (shrinkedFile.exists()) {
-            shrinkedFile.delete()
-        }
-
         val replacements = mappingFilePackagesAliases
             .filter {
                 // not necessarily applicationId == package attribute from the Manifest, but it is
@@ -134,15 +129,23 @@ abstract class MappingFileUploadTask
                 Regex("(?<=^|\\W)$lookup(?=\\W)") to it.value
             }
 
-        mappingFile.readLines()
-            .run {
-                if (mappingFileTrimIndents) map { it.trimStart() } else this
-            }
-            .map {
-                applyShortAliases(it, replacements)
-            }
-            .forEach {
-                shrinkedFile.appendText(it + "\n")
+        val shrinkedFile = File(mappingFile.parent, MAPPING_OPTIMIZED_FILE_NAME)
+        if (shrinkedFile.exists()) {
+            shrinkedFile.delete()
+        }
+
+        shrinkedFile.bufferedWriter(bufferSize = MAPPING_OPTIMIZED_FILE_WRITE_BUFFER_SIZE)
+            .use { shrinkedFileWriter ->
+                mappingFile.useLines { lines ->
+                    lines.run { if (mappingFileTrimIndents) map { it.trimStart() } else this }
+                        .map {
+                            applyShortAliases(it, replacements)
+                        }
+                        .forEach {
+                            shrinkedFileWriter.appendLine(it)
+                        }
+                    shrinkedFileWriter.flush()
+                }
             }
 
         LOGGER.info("Size of optimized file is ${shrinkedFile.length()} bytes")
@@ -190,6 +193,7 @@ abstract class MappingFileUploadTask
         private const val MAPPING_FILE_CHANGE_DELIMITER = "->"
         private const val MAPPING_FILE_COMMENT_CHAR = '#'
         const val MAPPING_OPTIMIZED_FILE_NAME = "mapping-shrinked.txt"
+        const val MAPPING_OPTIMIZED_FILE_WRITE_BUFFER_SIZE = 32 * 1024 // 32 Kb
 
         const val API_KEY_MISSING_ERROR = "Make sure you define an API KEY to upload your mapping files to Datadog. " +
             "Create a DD_API_KEY or DATADOG_API_KEY environment variable, gradle" +
