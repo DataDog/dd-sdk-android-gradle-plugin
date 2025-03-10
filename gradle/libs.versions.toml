@@ -7,6 +7,7 @@ json = "20180813"
 okHttp = "4.12.0"
 composeBom = "2024.04.01"
 activityCompose = "1.9.3"
+androidXComposeNavigation = "2.8.8"
 
 # Android
 androidToolsPlugin = "8.7.2"
@@ -102,6 +103,7 @@ fuzzyWuzzy = { module = "me.xdrop:fuzzywuzzy", version.ref = "fuzzyWuzzy" }
 
 # Datadog
 datadogSdkRum = { module = "com.datadoghq:dd-sdk-android-rum", version.ref = "datadogSdk" }
+datadogSdkCompose = { module = "com.datadoghq:dd-sdk-android-compose", version.ref = "datadogSdk" }
 datadogPluginGradle = { module = "com.datadoghq:dd-sdk-android-gradle-plugin", version.ref = "datadogPluginGradle" }
 
 # Kotlin Compiler Plugin
@@ -123,6 +125,7 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCoreVersion" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+androidx-compose-navigation = { module = "androidx.navigation:navigation-compose", version.ref = "androidXComposeNavigation" }
 
 [bundles]
 

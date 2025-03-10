@@ -12,4 +12,8 @@ internal interface PluginContextUtils {
     fun getModifierThen(): IrSimpleFunctionSymbol?
     fun isComposableFunction(owner: IrFunction): Boolean
     fun referenceSingleFunction(callableId: CallableId): IrSimpleFunctionSymbol?
+    fun getDatadogTrackEffectSymbol(): IrSimpleFunctionSymbol?
+    fun isNavHostCall(owner: IrFunction): Boolean
+    fun getNavHostControllerClassSymbol(): IrClassSymbol?
+    fun getApplySymbol(): IrSimpleFunctionSymbol?
 }

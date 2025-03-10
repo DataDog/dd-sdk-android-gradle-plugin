@@ -11,7 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.extension.Extensions
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.junit.jupiter.MockitoSettings
-import org.mockito.kotlin.verifyNoInteractions
+import org.mockito.kotlin.verify
 import org.mockito.quality.Strictness
 
 @Extensions(
@@ -44,16 +44,15 @@ class ComposeNavHostCompilationTest : KotlinCompilerTest() {
 
         // Then
         assertThat(result.exitCode).isEqualTo(KotlinCompilation.ExitCode.OK)
-        // TODO RUM-8951: should be changed to 1 interaction after implementing the transformer for NavHost
-        verifyNoInteractions(mockCallback)
+        verify(mockCallback).invoke()
     }
 
     @Test
-    fun `M inject 'NavigationViewTrackingEffect' W found nav host with expression`() {
+    fun `M inject 'NavigationViewTrackingEffect' W found nav host with apply expression`() {
         // Given
         val navHostTestCaseSource = SourceFile.kotlin(
             NAV_HOST_TEST_CASE_FILE_NAME,
-            NAV_HOST_TEST_CASE_WITH_EXPRESSION_SOURCE_FILE_CONTENT
+            NAV_HOST_TEST_CASE_WITH_APPLY_EXPRESSION_SOURCE_FILE_CONTENT
         )
 
         // When
@@ -70,8 +69,32 @@ class ComposeNavHostCompilationTest : KotlinCompilerTest() {
 
         // Then
         assertThat(result.exitCode).isEqualTo(KotlinCompilation.ExitCode.OK)
-        // TODO RUM-8951: should be changed to 1 interaction after implementing the transformer for NavHost
-        verifyNoInteractions(mockCallback)
+        verify(mockCallback).invoke()
+    }
+
+    @Test
+    fun `M inject 'NavigationViewTrackingEffect' W found nav host with rememberNavController call`() {
+        // Given
+        val navHostTestCaseSource = SourceFile.kotlin(
+            NAV_HOST_TEST_CASE_FILE_NAME,
+            NAV_HOST_TEST_CASE_WITH_CALL_SOURCE_FILE_CONTENT
+        )
+
+        // When
+        val result = compileFile(
+            target = navHostTestCaseSource,
+            deps = dependencyFiles
+        )
+        executeClassFile(
+            result.classLoader,
+            "com.datadog.android.instrumented.NavHostTestCase",
+            "NavHostTestCase",
+            emptyList()
+        )
+
+        // Then
+        assertThat(result.exitCode).isEqualTo(KotlinCompilation.ExitCode.OK)
+        verify(mockCallback).invoke()
     }
 
     companion object {
@@ -100,7 +123,7 @@ class ComposeNavHostCompilationTest : KotlinCompilerTest() {
             """.trimIndent()
 
         @Language("kotlin")
-        private val NAV_HOST_TEST_CASE_WITH_EXPRESSION_SOURCE_FILE_CONTENT =
+        private val NAV_HOST_TEST_CASE_WITH_APPLY_EXPRESSION_SOURCE_FILE_CONTENT =
             """
             package com.datadog.android.instrumented
 
@@ -123,4 +146,24 @@ class ComposeNavHostCompilationTest : KotlinCompilerTest() {
             }
             """.trimIndent()
     }
+
+    @Language("kotlin")
+    private val NAV_HOST_TEST_CASE_WITH_CALL_SOURCE_FILE_CONTENT =
+        """
+            package com.datadog.android.instrumented
+
+            import androidx.compose.runtime.Composable
+            import androidx.navigation.compose.NavHost
+            import androidx.navigation.compose.composable
+            import androidx.navigation.compose.rememberNavController
+            
+            class NavHostTestCase{
+                @Composable
+                internal fun NavHostTestCase() {
+                    NavHost(rememberNavController(),""){
+                
+                    }          
+                }
+            }
+        """.trimIndent()
 }

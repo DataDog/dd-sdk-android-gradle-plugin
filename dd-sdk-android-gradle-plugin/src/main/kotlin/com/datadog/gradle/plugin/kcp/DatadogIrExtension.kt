@@ -15,12 +15,22 @@ internal class DatadogIrExtension(private val messageCollector: MessageCollector
 
     override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
         val composeTagTransformer = ComposeTagTransformer(messageCollector, pluginContext)
+        val composeNavHostTransformer = ComposeNavHostTransformer(messageCollector, pluginContext)
         if (composeTagTransformer.initReferences()) {
             moduleFragment.accept(composeTagTransformer, null)
         } else {
             messageCollector.report(
                 CompilerMessageSeverity.ERROR,
                 "Datadog Kotlin Compiler Plugin didn't succeed initializing references, abort."
+            )
+        }
+        if (composeNavHostTransformer.initReferences()) {
+            moduleFragment.accept(composeNavHostTransformer, null)
+        } else {
+            messageCollector.report(
+                CompilerMessageSeverity.ERROR,
+                "Datadog Kotlin Compiler Plugin didn't succeed initializing references, abort. " +
+                    "Have you added dd-sdk-android-compose library to the dependencies?"
             )
         }
     }
