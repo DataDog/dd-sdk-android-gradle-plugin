@@ -21,9 +21,15 @@ internal class DefaultPluginContextUtils(
 
     private val modifierClassId = ClassId(composeUiPackageName, modifierClassRelativeName)
     private val modifierThenCallableId = CallableId(modifierClassId, modifierThenIdentifier)
+    private val navHostControllerCallableId = ClassId(navigationPackageName, navHostControllerIdentifier)
+    private val datadogTrackEffectCallableId = CallableId(datadogTrackEffectPackageName, datadogTrackEffectIdentifier)
     private val datadogModifierCallableId = CallableId(
         packageName = datadogPackageName,
         callableName = datadogModifierIdentifier
+    )
+    private val applyCallableId = CallableId(
+        packageName = kotlinPackageName,
+        callableName = applyFunctionIdentifier
     )
 
     override fun getModifierCompanionClass(): IrClassSymbol? {
@@ -45,6 +51,25 @@ internal class DefaultPluginContextUtils(
 
     override fun getModifierThen(): IrSimpleFunctionSymbol? {
         return referenceSingleFunction(modifierThenCallableId)
+    }
+
+    override fun getDatadogTrackEffectSymbol(): IrSimpleFunctionSymbol? {
+        return referenceSingleFunction(datadogTrackEffectCallableId)
+    }
+
+    override fun getNavHostControllerClassSymbol(): IrClassSymbol? {
+        return pluginContext
+            .referenceClass(navHostControllerCallableId) ?: logNotFoundError(
+            navHostControllerCallableId.asString()
+        )
+    }
+
+    override fun getApplySymbol(): IrSimpleFunctionSymbol? {
+        return referenceSingleFunction(applyCallableId)
+    }
+
+    override fun isNavHostCall(owner: IrFunction): Boolean {
+        return owner.kotlinFqName == navHostCallName
     }
 
     override fun isComposableFunction(owner: IrFunction): Boolean {
@@ -85,5 +110,12 @@ internal class DefaultPluginContextUtils(
         private val composeUiPackageName = FqName("androidx.compose.ui")
         private val modifierClassRelativeName = Name.identifier("Modifier")
         private val modifierThenIdentifier = Name.identifier("then")
+        private val navigationPackageName = FqName("androidx.navigation")
+        private val navHostControllerIdentifier = Name.identifier("NavHostController")
+        private val navHostCallName = FqName("androidx.navigation.compose.NavHost")
+        private val datadogTrackEffectPackageName = FqName("com.datadog.android.compose")
+        private val datadogTrackEffectIdentifier = Name.identifier("NavigationViewTrackingEffect")
+        private val kotlinPackageName = FqName("kotlin")
+        private val applyFunctionIdentifier = Name.identifier("apply")
     }
 }

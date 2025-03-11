@@ -53,7 +53,7 @@ open class KotlinCompilerTest {
 
         return KotlinCompilation().apply {
             sources = deps + target
-            compilerPluginRegistrars = pluginRegistrars
+            componentRegistrars = pluginRegistrars
             inheritClassPath = true
             messageOutputStream = System.out
         }.compile()
