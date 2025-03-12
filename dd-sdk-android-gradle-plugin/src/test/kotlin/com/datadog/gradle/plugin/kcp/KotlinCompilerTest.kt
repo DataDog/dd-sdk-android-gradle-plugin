@@ -1,5 +1,6 @@
 package com.datadog.gradle.plugin.kcp
 
+import com.datadog.gradle.plugin.InstrumentationMode
 import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile
 import fr.xgouchet.elmyr.junit5.ForgeExtension
@@ -46,7 +47,14 @@ open class KotlinCompilerTest {
         enablePlugin: Boolean = true
     ): KotlinCompilation.Result {
         val pluginRegistrars = if (enablePlugin) {
-            listOf(DatadogPluginRegistrar())
+            listOf(
+                DatadogPluginRegistrar(
+                    InternalCompilerConfiguration(
+                        trackViews = InstrumentationMode.AUTO,
+                        recordImages = InstrumentationMode.AUTO
+                    )
+                )
+            )
         } else {
             listOf()
         }
