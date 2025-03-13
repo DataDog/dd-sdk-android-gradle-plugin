@@ -9,25 +9,18 @@ import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 
 /**
- * The extension registers all the visitors that need to explore the code being compiled.
+ * The extension registers [ComposeTagTransformer] into the plugin.
  */
 @FirIncompatiblePluginAPI
 @Suppress("UnusedParameter")
-internal class DatadogIrExtension(
+internal class ComposeTagExtension(
     private val messageCollector: MessageCollector,
     private val internalCompilerConfiguration: InternalCompilerConfiguration
-) : IrGenerationExtension {
+) :
+    IrGenerationExtension {
 
     override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
         internalCompilerConfiguration.apply {
-            if (trackViews != InstrumentationMode.DISABLE) {
-                registerNavHostTransformer(
-                    pluginContext = pluginContext,
-                    moduleFragment = moduleFragment,
-                    annotationModeEnabled = trackViews == InstrumentationMode.ANNOTATION
-                )
-            }
-
             if (recordImages != InstrumentationMode.DISABLE) {
                 registerTagTransformer(
                     pluginContext = pluginContext,
@@ -51,24 +44,6 @@ internal class DatadogIrExtension(
             messageCollector.report(
                 CompilerMessageSeverity.ERROR,
                 "Datadog Kotlin Compiler Plugin didn't succeed initializing references, abort."
-            )
-        }
-    }
-
-    private fun registerNavHostTransformer(
-        pluginContext: IrPluginContext,
-        moduleFragment: IrModuleFragment,
-        annotationModeEnabled: Boolean
-    ) {
-        // TODO RUM-9011: apply annotationModeEnabled to extension
-        val composeNavHostTransformer = ComposeNavHostTransformer(messageCollector, pluginContext)
-        if (composeNavHostTransformer.initReferences()) {
-            moduleFragment.accept(composeNavHostTransformer, null)
-        } else {
-            messageCollector.report(
-                CompilerMessageSeverity.ERROR,
-                "Datadog Kotlin Compiler Plugin didn't succeed initializing references, abort. " +
-                    "Have you added dd-sdk-android-compose library to the dependencies?"
             )
         }
     }

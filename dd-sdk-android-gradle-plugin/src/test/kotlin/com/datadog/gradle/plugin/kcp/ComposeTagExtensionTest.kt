@@ -37,8 +37,7 @@ import org.mockito.quality.Strictness
 )
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ForgeConfiguration(Configurator::class)
-internal class DatadogIrExtensionTest {
-
+internal class ComposeTagExtensionTest {
     @Mock
     private lateinit var mockMessageCollector: MessageCollector
 
@@ -73,7 +72,7 @@ internal class DatadogIrExtensionTest {
         @Forgery fakeConfiguration: InternalCompilerConfiguration
     ) {
         // Given
-        val datadogIrExtension = DatadogIrExtension(
+        val datadogIrExtension = ComposeTagExtension(
             mockMessageCollector,
             fakeConfiguration.copy(
                 recordImages = InstrumentationMode.AUTO
@@ -92,7 +91,7 @@ internal class DatadogIrExtensionTest {
         @Forgery fakeConfiguration: InternalCompilerConfiguration
     ) {
         // Given
-        val datadogIrExtension = DatadogIrExtension(
+        val datadogIrExtension = ComposeTagExtension(
             mockMessageCollector,
             fakeConfiguration.copy(
                 recordImages = InstrumentationMode.ANNOTATION
@@ -111,7 +110,7 @@ internal class DatadogIrExtensionTest {
         @Forgery fakeConfiguration: InternalCompilerConfiguration
     ) {
         // Given
-        val datadogIrExtension = DatadogIrExtension(
+        val datadogIrExtension = ComposeTagExtension(
             mockMessageCollector,
             fakeConfiguration.copy(
                 recordImages = InstrumentationMode.DISABLE
@@ -123,62 +122,5 @@ internal class DatadogIrExtensionTest {
 
         // Then
         verify(mockModuleFragment, never()).accept(any<ComposeTagTransformer>(), eq(null))
-    }
-
-    @Test
-    fun `M register nav host transformer W track views option is AUTO`(
-        @Forgery fakeConfiguration: InternalCompilerConfiguration
-    ) {
-        // Given
-        val datadogIrExtension = DatadogIrExtension(
-            mockMessageCollector,
-            fakeConfiguration.copy(
-                trackViews = InstrumentationMode.AUTO
-            )
-        )
-
-        // When
-        datadogIrExtension.generate(mockModuleFragment, mockPluginContext)
-
-        // Then
-        verify(mockModuleFragment).accept(any<ComposeNavHostTransformer>(), eq(null))
-    }
-
-    @Test
-    fun `M register nav host transformer W track views option is ANNOTATION`(
-        @Forgery fakeConfiguration: InternalCompilerConfiguration
-    ) {
-        // Given
-        val datadogIrExtension = DatadogIrExtension(
-            mockMessageCollector,
-            fakeConfiguration.copy(
-                trackViews = InstrumentationMode.ANNOTATION
-            )
-        )
-
-        // When
-        datadogIrExtension.generate(mockModuleFragment, mockPluginContext)
-
-        // Then
-        verify(mockModuleFragment).accept(any<ComposeNavHostTransformer>(), eq(null))
-    }
-
-    @Test
-    fun `M not register nav host transformer W track views option is DISABLE`(
-        @Forgery fakeConfiguration: InternalCompilerConfiguration
-    ) {
-        // Given
-        val datadogIrExtension = DatadogIrExtension(
-            mockMessageCollector,
-            fakeConfiguration.copy(
-                trackViews = InstrumentationMode.DISABLE
-            )
-        )
-
-        // When
-        datadogIrExtension.generate(mockModuleFragment, mockPluginContext)
-
-        // Then
-        verify(mockModuleFragment, never()).accept(any<ComposeNavHostTransformer>(), eq(null))
     }
 }

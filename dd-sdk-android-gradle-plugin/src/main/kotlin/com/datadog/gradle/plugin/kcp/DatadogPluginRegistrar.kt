@@ -44,8 +44,14 @@ internal class DatadogPluginRegistrar(
             overrideCompilerConfiguration ?: resolveConfiguration(configuration)
         project.extensionArea.getExtensionPoint(IrGenerationExtension.extensionPointName)
             .registerExtension(
-                DatadogIrExtension(messageCollector, internalCompilerConfiguration),
+                ComposeNavHostExtension(messageCollector, internalCompilerConfiguration),
                 LoadingOrder.FIRST,
+                project
+            )
+        project.extensionArea.getExtensionPoint(IrGenerationExtension.extensionPointName)
+            .registerExtension(
+                ComposeTagExtension(messageCollector, internalCompilerConfiguration),
+                LoadingOrder.LAST,
                 project
             )
     }
