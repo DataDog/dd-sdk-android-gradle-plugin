@@ -16,6 +16,10 @@ import com.datadog.gradle.plugin.internal.VariantIterator
 import com.datadog.gradle.plugin.internal.lazyBuildIdProvider
 import com.datadog.gradle.plugin.internal.variant.AppVariant
 import com.datadog.gradle.plugin.internal.variant.NewApiAppVariant
+import com.datadog.gradle.plugin.kcp.DatadogKotlinCompilerPluginCommandLineProcessor.Companion.KOTLIN_COMPILER_PLUGIN_ID
+import com.datadog.gradle.plugin.kcp.KotlinCompilerPluginOptions.RECORD_IMAGES
+import com.datadog.gradle.plugin.kcp.KotlinCompilerPluginOptions.TRACK_ACTIONS
+import com.datadog.gradle.plugin.kcp.KotlinCompilerPluginOptions.TRACK_VIEWS
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -50,7 +54,7 @@ class DdAndroidGradlePlugin @Inject constructor(
         val apiKey = resolveApiKey(target)
 
         target.pluginManager.withPlugin("org.jetbrains.kotlin.android") {
-            configureKotlinCompilerPlugin(target)
+            configureKotlinCompilerPlugin(target, extension)
         }
 
         // need to use withPlugin instead of afterEvaluate, because otherwise generated assets
@@ -372,7 +376,7 @@ class DdAndroidGradlePlugin @Inject constructor(
     }
 
     @Suppress("ReturnCount")
-    private fun configureKotlinCompilerPlugin(project: Project) {
+    private fun configureKotlinCompilerPlugin(project: Project, ddExtension: DdExtension) {
         val pluginJarPath = try {
             val codeSource = this::class.java.protectionDomain?.codeSource
             codeSource?.location?.toURI()?.path
@@ -397,10 +401,16 @@ class DdAndroidGradlePlugin @Inject constructor(
             )
             return
         }
-
+        val composeInstrumentation = ddExtension.composeInstrumentation
         project.tasks.withType(KotlinCompile::class.java).configureEach { task ->
             task.kotlinOptions.freeCompilerArgs += listOf(
-                "-Xplugin=$pluginJarPath"
+                "-Xplugin=$pluginJarPath",
+                "-P",
+                "plugin:$KOTLIN_COMPILER_PLUGIN_ID:$TRACK_VIEWS=${composeInstrumentation.trackViews.name}",
+                "-P",
+                "plugin:$KOTLIN_COMPILER_PLUGIN_ID:$TRACK_ACTIONS=${composeInstrumentation.trackActions.name}",
+                "-P",
+                "plugin:$KOTLIN_COMPILER_PLUGIN_ID:$RECORD_IMAGES=${composeInstrumentation.recordImages.name}"
             )
         }
     }
