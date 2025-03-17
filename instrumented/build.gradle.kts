@@ -1,4 +1,5 @@
 import com.datadog.gradle.config.AndroidConfig
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("com.android.application")
@@ -47,6 +48,15 @@ android {
             merges += "META-INF/LICENSE.md"
             merges += "META-INF/LICENSE-notice.md"
         }
+    }
+}
+
+tasks.withType<KotlinCompile>().configureEach {
+    kotlinOptions {
+        freeCompilerArgs += listOf(
+            "-P", "plugin:com.datadoghq.kotlin.compiler:TRACK_VIEWS=AUTO",
+            "-P", "plugin:com.datadoghq.kotlin.compiler:RECORD_IMAGES=AUTO"
+        )
     }
 }
 
