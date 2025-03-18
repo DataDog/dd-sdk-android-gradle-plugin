@@ -44,7 +44,7 @@ class ComposeNavHostCompilationTest : KotlinCompilerTest() {
 
         // Then
         assertThat(result.exitCode).isEqualTo(KotlinCompilation.ExitCode.OK)
-        verify(mockCallback).invoke()
+        verify(mockCallback).invoke(false)
     }
 
     @Test
@@ -69,7 +69,7 @@ class ComposeNavHostCompilationTest : KotlinCompilerTest() {
 
         // Then
         assertThat(result.exitCode).isEqualTo(KotlinCompilation.ExitCode.OK)
-        verify(mockCallback).invoke()
+        verify(mockCallback).invoke(false)
     }
 
     @Test
@@ -94,7 +94,7 @@ class ComposeNavHostCompilationTest : KotlinCompilerTest() {
 
         // Then
         assertThat(result.exitCode).isEqualTo(KotlinCompilation.ExitCode.OK)
-        verify(mockCallback).invoke()
+        verify(mockCallback).invoke(false)
     }
 
     companion object {

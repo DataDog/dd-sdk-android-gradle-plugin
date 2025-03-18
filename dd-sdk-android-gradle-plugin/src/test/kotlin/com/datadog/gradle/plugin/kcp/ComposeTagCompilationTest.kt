@@ -75,7 +75,7 @@ class ComposeTagCompilationTest : KotlinCompilerTest() {
 
         // Then
         assertThat(result.exitCode).isEqualTo(KotlinCompilation.ExitCode.OK)
-        verify(mockCallback).invoke()
+        verify(mockCallback).invoke(false)
     }
 
     @Test
@@ -126,7 +126,7 @@ class ComposeTagCompilationTest : KotlinCompilerTest() {
 
         // Then
         assertThat(result.exitCode).isEqualTo(KotlinCompilation.ExitCode.OK)
-        verify(mockCallback).invoke()
+        verify(mockCallback).invoke(false)
     }
 
     @Test
@@ -178,7 +178,85 @@ class ComposeTagCompilationTest : KotlinCompilerTest() {
 
         // Then
         assertThat(result.exitCode).isEqualTo(KotlinCompilation.ExitCode.OK)
-        verify(mockCallback).invoke()
+        verify(mockCallback).invoke(false)
+        verify(mockCustomModifierCallback).invoke()
+    }
+
+    @Test
+    fun `M inject dd modifier with Image Role W Image is present`() {
+        // Given
+        val imageTestCaseSource = SourceFile.kotlin(
+            IMAGE_TEST_CASE_FILE_NAME,
+            IMAGE_TEST_SOURCE_FILE_CONTENT
+        )
+
+        // When
+        val result = compileFile(
+            target = imageTestCaseSource,
+            deps = dependencyFiles
+        )
+        executeClassFile(
+            result.classLoader,
+            "com.datadog.kcp.ImageTestCase",
+            "ImageTestCase",
+            listOf(mockCustomModifierCallback)
+        )
+
+        // Then
+        assertThat(result.exitCode).isEqualTo(KotlinCompilation.ExitCode.OK)
+        verify(mockCallback).invoke(true)
+        verify(mockCustomModifierCallback).invoke()
+    }
+
+    @Test
+    fun `M inject dd modifier with Image Role W Icon is present`() {
+        // Given
+        val imageTestCaseSource = SourceFile.kotlin(
+            ICON_TEST_CASE_FILE_NAME,
+            ICON_TEST_SOURCE_FILE_CONTENT
+        )
+
+        // When
+        val result = compileFile(
+            target = imageTestCaseSource,
+            deps = dependencyFiles
+        )
+        executeClassFile(
+            result.classLoader,
+            "com.datadog.kcp.IconTestCase",
+            "IconTestCase",
+            listOf(mockCustomModifierCallback)
+        )
+
+        // Then
+        assertThat(result.exitCode).isEqualTo(KotlinCompilation.ExitCode.OK)
+        verify(mockCallback).invoke(true)
+        verify(mockCustomModifierCallback).invoke()
+    }
+
+    @Test
+    fun `M inject dd modifier with Image Role W Async is present`() {
+        // Given
+        val imageTestCaseSource = SourceFile.kotlin(
+            COIL_TEST_CASE_FILE_NAME,
+            COIL_TEST_SOURCE_FILE_CONTENT
+        )
+
+        // When
+        val result = compileFile(
+            target = imageTestCaseSource,
+            deps = dependencyFiles
+        )
+        executeClassFile(
+            result.classLoader,
+            "com.datadog.kcp.CoilTestCase",
+            "CoilTestCase",
+            listOf(mockCustomModifierCallback)
+        )
+
+        // Then
+        assertThat(result.exitCode).isEqualTo(KotlinCompilation.ExitCode.OK)
+        verify(mockCallback).invoke(true)
         verify(mockCustomModifierCallback).invoke()
     }
 
@@ -187,6 +265,9 @@ class ComposeTagCompilationTest : KotlinCompilerTest() {
         private const val NO_MODIFIER_TEST_CASE_FILE_NAME = "NoModifierTestCase.kt"
         private const val DEFAULT_MODIFIER_TEST_CASE_FILE_NAME = "DefaultModifierTestCase.kt"
         private const val CUSTOM_MODIFIER_TEST_CASE_FILE_NAME = "CustomModifierTestCase.kt"
+        private const val IMAGE_TEST_CASE_FILE_NAME = "ImageTestCase.kt"
+        private const val ICON_TEST_CASE_FILE_NAME = "IconTestCase.kt"
+        private const val COIL_TEST_CASE_FILE_NAME = "CoilTestCase.kt"
 
         @Language("kotlin")
         private val NO_MODIFIER_SOURCE_FILE_CONTENT =
@@ -269,5 +350,83 @@ class ComposeTagCompilationTest : KotlinCompilerTest() {
 
             }
             """.trimIndent()
+
+        @Language("kotlin")
+        private val IMAGE_TEST_SOURCE_FILE_CONTENT =
+            """
+            package com.datadog.kcp
+    
+            import androidx.compose.runtime.Composable
+            import androidx.compose.foundation.Image
+            import androidx.compose.ui.Modifier
+            
+            class ImageTestCase{
+                @Composable
+                fun ImageTestCase(customCallback : () -> Unit) {
+                    Image(
+                        modifier = Modifier.stubModifier(customCallback)
+                    )
+                }
+                
+                @Composable
+                fun Modifier.stubModifier(customCallback: () -> Unit): Modifier{
+                    customCallback.invoke()
+                    return Modifier
+                }
+
+            }
+            """.trimIndent()
+
+        @Language("kotlin")
+        private val ICON_TEST_SOURCE_FILE_CONTENT =
+            """
+            package com.datadog.kcp
+    
+            import androidx.compose.runtime.Composable
+            import androidx.compose.material.Icon
+            import androidx.compose.ui.Modifier
+            
+            class IconTestCase{
+                @Composable
+                fun IconTestCase(customCallback : () -> Unit) {
+                    Icon(
+                        modifier = Modifier.stubModifier(customCallback)
+                    )
+                }
+                
+                @Composable
+                fun Modifier.stubModifier(customCallback: () -> Unit): Modifier{
+                    customCallback.invoke()
+                    return Modifier
+                }
+
+            }
+            """.trimIndent()
     }
+
+    @Language("kotlin")
+    private val COIL_TEST_SOURCE_FILE_CONTENT =
+        """
+            package com.datadog.kcp
+    
+            import androidx.compose.runtime.Composable
+            import coil.compose.AsyncImage
+            import androidx.compose.ui.Modifier
+            
+            class CoilTestCase{
+                @Composable
+                fun CoilTestCase(customCallback : () -> Unit) {
+                    AsyncImage(
+                        modifier = Modifier.stubModifier(customCallback)
+                    )
+                }
+                
+                @Composable
+                fun Modifier.stubModifier(customCallback: () -> Unit): Modifier{
+                    customCallback.invoke()
+                    return Modifier
+                }
+
+            }
+        """.trimIndent()
 }

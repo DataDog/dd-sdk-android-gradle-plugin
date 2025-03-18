@@ -9,21 +9,21 @@ package com.datadog.gradle.plugin.kcp
  */
 object TestCallbackContainer {
 
-    private var callback: () -> Unit = {}
+    private var callback: (Boolean) -> Unit = {}
 
     /**
      * Sets the callback function to be invoked during testing.
      *
      * @param callback The function to be stored and later invoked.
      */
-    fun setCallback(callback: () -> Unit) {
+    fun setCallback(callback: (Boolean) -> Unit) {
         this.callback = callback
     }
 
     /**
      * Invokes the stored callback function.
      */
-    fun invokeCallback() {
-        callback.invoke()
+    fun invokeCallback(isImageRole: Boolean = false) {
+        callback.invoke(isImageRole)
     }
 }

@@ -23,7 +23,7 @@ import kotlin.reflect.full.declaredFunctions
 open class KotlinCompilerTest {
 
     @Mock
-    protected lateinit var mockCallback: () -> Unit
+    protected lateinit var mockCallback: (Boolean) -> Unit
 
     private val trackingEffectSourceFileContent = SourceFile.kotlin(
         TRACKING_EFFECT_FILE_NAME,
@@ -119,8 +119,8 @@ open class KotlinCompilerTest {
             import androidx.compose.ui.semantics.semantics
             import com.datadog.gradle.plugin.kcp.TestCallbackContainer
             
-            fun Modifier.datadog(name: String): Modifier {
-                TestCallbackContainer.invokeCallback()
+            fun Modifier.datadog(name: String, isImageRole: Boolean = false): Modifier {
+                TestCallbackContainer.invokeCallback(isImageRole)
                 return this.semantics {
                     this.datadog = name
                 }

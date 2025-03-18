@@ -5,10 +5,13 @@ import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.ir.IrStatement
+import org.jetbrains.kotlin.ir.builders.irBoolean
 import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irGetObjectValue
 import org.jetbrains.kotlin.ir.builders.irString
+import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrFunction
+import org.jetbrains.kotlin.ir.declarations.IrPackageFragment
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrComposite
 import org.jetbrains.kotlin.ir.expressions.IrExpression
@@ -83,19 +86,45 @@ internal class ComposeTagTransformer(
             // Locate where Modifier is accepted in the parameter list and replace it with the new expression.
             if (irValueParameter.type.classFqName == modifierClassFqName) {
                 val argument = expression.getValueArgument(index)
-                val irExpression = buildIrExpression(argument, builder)
+                val irExpression = buildIrExpression(argument, builder, isImageComposableFunction(expression))
                 expression.putValueArgument(index, irExpression)
             }
         }
         return super.visitCall(expression)
     }
 
+    @Suppress("ReturnCount")
+    private fun isImageComposableFunction(irExpression: IrExpression): Boolean {
+        if (irExpression !is IrCall) {
+            return false
+        }
+        val function = irExpression.symbol.owner
+
+        // Look up the parents until the package level.
+        var parent = function.parent
+        while (parent !is IrPackageFragment && parent is IrDeclaration) {
+            parent = parent.parent
+        }
+        if (parent !is IrPackageFragment) {
+            return false
+        }
+        pluginContextUtils.apply {
+            return isFoundationImage(function, parent) ||
+                isMaterialIcon(function, parent) ||
+                isCoilAsyncImage(function, parent)
+        }
+    }
+
     private fun buildIrExpression(
         expression: IrExpression?,
-        builder: DeclarationIrBuilder
+        builder: DeclarationIrBuilder,
+        isImageComposableFunction: Boolean
     ): IrExpression {
         // TODO RUM-8813:Use Compose function name as the semantics tag
-        val datadogTagModifier = buildDatadogTagModifierCall(builder)
+        val datadogTagModifier = buildDatadogTagModifierCall(
+            builder = builder,
+            isImageComposableFunction = isImageComposableFunction
+        )
         // A Column(){} will be transformed into following code during FIR:
         // Column(modifier = // COMPOSITE {
         //    null
@@ -124,7 +153,8 @@ internal class ComposeTagTransformer(
 
     private fun buildDatadogTagModifierCall(
         builder: DeclarationIrBuilder,
-        composableName: String = DD_DEFAULT_TAG
+        composableName: String = DD_DEFAULT_TAG,
+        isImageComposableFunction: Boolean = false
     ): IrCall {
         val datadogTagIrCall = builder.irCall(
             datadogTagFunctionSymbol,
@@ -136,6 +166,10 @@ internal class ComposeTagTransformer(
                 classSymbol = modifierCompanionClassSymbol
             )
             it.putValueArgument(0, builder.irString(composableName))
+
+            // For the images, Role.Image must be assigned to Semantics.Role to ensure that
+            // Session Replay is able to resolve the role.
+            it.putValueArgument(1, builder.irBoolean(isImageComposableFunction))
         }
         return datadogTagIrCall
     }
