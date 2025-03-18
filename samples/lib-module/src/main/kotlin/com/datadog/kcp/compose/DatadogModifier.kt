@@ -1,6 +1,8 @@
 package com.datadog.kcp.compose
 
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.SemanticsPropertyKey
 import androidx.compose.ui.semantics.SemanticsPropertyReceiver
 import androidx.compose.ui.semantics.semantics
@@ -10,9 +12,12 @@ import androidx.compose.ui.semantics.semantics
  * This function should have exactly the same package name, function signature and return type
  * with the production one.
  */
-fun Modifier.datadog(name: String): Modifier {
+fun Modifier.datadog(name: String, isImageRole: Boolean = false): Modifier {
     return this.semantics {
         this.datadog = name
+        if (isImageRole) {
+            this[SemanticsProperties.Role] = Role.Image
+        }
     }
 }
 

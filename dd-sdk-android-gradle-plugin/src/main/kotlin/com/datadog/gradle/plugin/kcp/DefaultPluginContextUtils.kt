@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.ir.declarations.IrFunction
+import org.jetbrains.kotlin.ir.declarations.IrPackageFragment
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.util.companionObject
@@ -76,6 +77,18 @@ internal class DefaultPluginContextUtils(
         return !isAndroidX(owner) && hasComposableAnnotation(owner)
     }
 
+    override fun isFoundationImage(owner: IrFunction, parent: IrPackageFragment): Boolean {
+        return owner.name == ImageIdentifier && parent.fqName == foundationPackageName
+    }
+
+    override fun isMaterialIcon(owner: IrFunction, parent: IrPackageFragment): Boolean {
+        return owner.name == IconIdentifier && parent.fqName == materialPackageName
+    }
+
+    override fun isCoilAsyncImage(owner: IrFunction, parent: IrPackageFragment): Boolean {
+        return owner.name == AsyncImageIdentifier && parent.fqName == coilPackageName
+    }
+
     override fun referenceSingleFunction(callableId: CallableId): IrSimpleFunctionSymbol? {
         return pluginContext
             .referenceFunctions(callableId)
@@ -117,5 +130,11 @@ internal class DefaultPluginContextUtils(
         private val datadogTrackEffectIdentifier = Name.identifier("NavigationViewTrackingEffect")
         private val kotlinPackageName = FqName("kotlin")
         private val applyFunctionIdentifier = Name.identifier("apply")
+        private val foundationPackageName = FqName("androidx.compose.foundation")
+        private val ImageIdentifier = Name.identifier("Image")
+        private val materialPackageName = FqName("androidx.compose.material")
+        private val IconIdentifier = Name.identifier("Icon")
+        private val coilPackageName = FqName("coil.compose")
+        private val AsyncImageIdentifier = Name.identifier("AsyncImage")
     }
 }
