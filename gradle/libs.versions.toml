@@ -10,7 +10,8 @@ activityCompose = "1.9.3"
 androidXComposeNavigation = "2.8.8"
 
 # Android
-androidToolsPlugin = "8.7.2"
+androidToolsPlugin = "8.9.0"
+
 # AndroidX
 androidx-core = "1.3.2"
 androidx-appcompat = "1.2.0"
@@ -41,7 +42,7 @@ versionsPluginGradle = "0.33.0"
 kotlinGrammarParser = "c35b50fa44"
 
 # Datadog
-datadogSdk = "2.18.0"
+datadogSdk = "2.19.1"
 datadogPluginGradle = "1.15.0"
 
 # Kotlin Compiler Plugin
