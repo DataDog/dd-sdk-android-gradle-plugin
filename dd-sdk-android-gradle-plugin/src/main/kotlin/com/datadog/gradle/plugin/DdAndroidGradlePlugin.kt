@@ -31,6 +31,7 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.process.ExecOperations
+import org.jetbrains.kotlin.gradle.internal.KaptGenerateStubsTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
 import java.net.URISyntaxException
@@ -402,8 +403,8 @@ class DdAndroidGradlePlugin @Inject constructor(
             return
         }
         val composeInstrumentation = ddExtension.composeInstrumentation
-        project.tasks.withType(KotlinCompile::class.java).configureEach { task ->
-            task.kotlinOptions.freeCompilerArgs += listOf(
+        project.tasks.configureKotlinCompile {
+            kotlinOptions.freeCompilerArgs += listOf(
                 "-Xplugin=$pluginJarPath",
                 "-P",
                 "plugin:$KOTLIN_COMPILER_PLUGIN_ID:$TRACK_VIEWS=${composeInstrumentation.trackViews.name}",
@@ -412,6 +413,18 @@ class DdAndroidGradlePlugin @Inject constructor(
                 "-P",
                 "plugin:$KOTLIN_COMPILER_PLUGIN_ID:$RECORD_IMAGES=${composeInstrumentation.recordImages.name}"
             )
+        }
+    }
+
+    private fun TaskContainer.configureKotlinCompile(action: KotlinCompile.() -> Unit) {
+        // `KaptGenerateStubsTask` and Ksp Task will have conflicts with the usage of `freeCompilerArgs` in Kotlin Compiler plugin,
+        // So we need to filter out these tasks when applying the `freeCompilerArgs`, see:
+        // https://youtrack.jetbrains.com/issue/KT-55565/Consider-de-duping-or-blocking-standard-addition-of-freeCompilerArgs-to-KaptGenerateStubsTask
+        // https://youtrack.jetbrains.com/issue/KT-55452
+        withType(KotlinCompile::class.java).matching {
+            it !is KaptGenerateStubsTask && !it.name.startsWith("ksp")
+        }.configureEach {
+            action(it)
         }
     }
 
