@@ -35,6 +35,13 @@ plugins {
     id("transitiveDependencies")
 }
 
+configurations.testRuntimeClasspath {
+    resolutionStrategy {
+        force("org.jetbrains.kotlin:kotlin-stdlib:1.9.23")
+        force("org.jetbrains.kotlin:kotlin-reflect:1.9.23")
+    }
+}
+
 dependencies {
     implementation(libs.kotlin)
     implementation(libs.okHttp)
