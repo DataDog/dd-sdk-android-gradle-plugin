@@ -85,8 +85,12 @@ internal class ComposeTagTransformer(
         expression.symbol.owner.valueParameters.forEachIndexed { index, irValueParameter ->
             // Locate where Modifier is accepted in the parameter list and replace it with the new expression.
             if (irValueParameter.type.classFqName == modifierClassFqName) {
-                val argument = expression.getValueArgument(index)
-                val irExpression = buildIrExpression(argument, builder, isImageComposableFunction(expression))
+                val irExpression = buildIrExpression(
+                    expression = expression.getValueArgument(index),
+                    builder = builder,
+                    functionName = expression.symbol.owner.name.asString(),
+                    isImageComposableFunction = isImageComposableFunction(expression)
+                )
                 expression.putValueArgument(index, irExpression)
             }
         }
@@ -118,11 +122,13 @@ internal class ComposeTagTransformer(
     private fun buildIrExpression(
         expression: IrExpression?,
         builder: DeclarationIrBuilder,
+        functionName: String,
         isImageComposableFunction: Boolean
     ): IrExpression {
         // TODO RUM-8813:Use Compose function name as the semantics tag
         val datadogTagModifier = buildDatadogTagModifierCall(
             builder = builder,
+            functionName = functionName,
             isImageComposableFunction = isImageComposableFunction
         )
         // A Column(){} will be transformed into following code during FIR:
@@ -153,7 +159,7 @@ internal class ComposeTagTransformer(
 
     private fun buildDatadogTagModifierCall(
         builder: DeclarationIrBuilder,
-        composableName: String = DD_DEFAULT_TAG,
+        functionName: String,
         isImageComposableFunction: Boolean = false
     ): IrCall {
         val datadogTagIrCall = builder.irCall(
@@ -165,7 +171,7 @@ internal class ComposeTagTransformer(
                 type = modifierCompanionClassSymbol.createType(false, emptyList()),
                 classSymbol = modifierCompanionClassSymbol
             )
-            it.putValueArgument(0, builder.irString(composableName))
+            it.putValueArgument(0, builder.irString(functionName))
 
             // For the images, Role.Image must be assigned to Semantics.Role to ensure that
             // Session Replay is able to resolve the role.
@@ -179,6 +185,5 @@ internal class ComposeTagTransformer(
     private companion object {
         private val modifierClassFqName = FqName("androidx.compose.ui.Modifier")
         private val kotlinNothingFqName = FqName("kotlin.Nothing")
-        private const val DD_DEFAULT_TAG = "DD_DEFAULT_TAG"
     }
 }
