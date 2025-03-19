@@ -38,8 +38,10 @@ class SemanticsTest {
         composeTestRule.setContent {
             ScreenWithDefaultModifier()
         }
-        val semanticsMatcher = hasSemanticsValue(DD_SEMANTICS_KEY_NAME, DD_SEMANTICS_VALUE_DEFAULT)
-        composeTestRule.onAllNodes(semanticsMatcher).assertCountEquals(2)
+        val textSemanticsMatcher = hasSemanticsValue(DD_SEMANTICS_KEY_NAME, "Text")
+        composeTestRule.onAllNodes(textSemanticsMatcher).assertCountEquals(1)
+        val columnSemanticsMatcher = hasSemanticsValue(DD_SEMANTICS_KEY_NAME, "Column")
+        composeTestRule.onAllNodes(columnSemanticsMatcher).assertCountEquals(1)
     }
 
     @Test
@@ -47,8 +49,10 @@ class SemanticsTest {
         composeTestRule.setContent {
             ScreenWithCustomModifier()
         }
-        val semanticsMatcher = hasSemanticsValue(DD_SEMANTICS_KEY_NAME, DD_SEMANTICS_VALUE_DEFAULT)
-        composeTestRule.onAllNodes(semanticsMatcher).assertCountEquals(2)
+        val textSemanticsMatcher = hasSemanticsValue(DD_SEMANTICS_KEY_NAME, "Text")
+        composeTestRule.onAllNodes(textSemanticsMatcher).assertCountEquals(1)
+        val columnSemanticsMatcher = hasSemanticsValue(DD_SEMANTICS_KEY_NAME, "Column")
+        composeTestRule.onAllNodes(columnSemanticsMatcher).assertCountEquals(1)
     }
 
     private fun <T> hasSemanticsValue(
