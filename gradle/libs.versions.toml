@@ -1,8 +1,8 @@
 [versions]
 
 # Commons
-kotlin = "1.9.23"
-kotlinComposePlugin = "2.0.20"
+kotlin = "2.0.21"
+kotlinComposePlugin = "2.0.21"
 json = "20180813"
 okHttp = "4.12.0"
 composeBom = "2024.04.01"
@@ -31,7 +31,7 @@ elmyr = "1.3.1"
 mockitoKotlin = "5.0.0"
 
 # Tools
-dokka = "1.9.20"
+dokka = "2.0.0"
 unmock = "0.7.5"
 
 fuzzyWuzzy = "1.2.0"
@@ -45,8 +45,8 @@ datadogSdk = "2.18.0"
 datadogPluginGradle = "1.15.0"
 
 # Kotlin Compiler Plugin
-kotlinCompilerEmbeddable = "1.8.20"
-kotlinCompilerTesting = "1.6.0"
+kotlinCompilerEmbeddable = "2.0.21"
+kotlinCompilerTesting = "0.7.0"
 autoService = "1.0.1"
 junitVersion = "1.2.1"
 espressoCoreVersion = "3.6.1"
@@ -108,7 +108,7 @@ datadogPluginGradle = { module = "com.datadoghq:dd-sdk-android-gradle-plugin", v
 
 # Kotlin Compiler Plugin
 kotlinCompilerEmbeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlinCompilerEmbeddable" }
-kotlinCompilerTesting = { module = "com.github.tschuchortdev:kotlin-compile-testing", version.ref = "kotlinCompilerTesting" }
+kotlinCompilerTesting = { module = "dev.zacsweers.kctfork:core", version.ref = "kotlinCompilerTesting" }
 autoService = { module = "com.google.auto.service:auto-service", version.ref = "autoService" }
 autoServiceAnnotation = { module = "com.google.auto.service:auto-service-annotations", version.ref = "autoService" }
 
