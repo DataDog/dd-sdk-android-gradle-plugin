@@ -1,6 +1,7 @@
 package com.datadog.gradle.plugin.kcp
 
 import com.datadog.gradle.plugin.InstrumentationMode
+import com.tschuchort.compiletesting.JvmCompilationResult
 import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile
 import fr.xgouchet.elmyr.junit5.ForgeExtension
@@ -45,7 +46,7 @@ open class KotlinCompilerTest {
         target: SourceFile,
         deps: List<SourceFile>,
         enablePlugin: Boolean = true
-    ): KotlinCompilation.Result {
+    ): JvmCompilationResult {
         val pluginRegistrars = if (enablePlugin) {
             listOf(
                 DatadogPluginRegistrar(

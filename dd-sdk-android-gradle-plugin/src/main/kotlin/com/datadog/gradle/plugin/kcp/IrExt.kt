@@ -10,7 +10,6 @@ import org.jetbrains.kotlin.ir.declarations.IrDeclarationParent
 import org.jetbrains.kotlin.ir.declarations.IrFactory
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.impl.IrFactoryImpl
-import org.jetbrains.kotlin.ir.declarations.impl.IrFunctionImpl
 import org.jetbrains.kotlin.ir.expressions.IrBody
 import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
@@ -96,7 +95,7 @@ internal fun irSimpleFunction(
     isFakeOverride: Boolean = origin == IrDeclarationOrigin.FAKE_OVERRIDE,
     containerSource: DeserializedContainerSource? = null,
     factory: IrFactory = IrFactoryImpl
-): IrSimpleFunction = IrFunctionImpl(
+): IrSimpleFunction = factory.createSimpleFunction(
     startOffset = UNDEFINED_OFFSET,
     endOffset = UNDEFINED_OFFSET,
     origin = origin,
@@ -113,8 +112,7 @@ internal fun irSimpleFunction(
     isInfix = isInfix,
     isExpect = isExpect,
     isFakeOverride = isFakeOverride,
-    containerSource = containerSource,
-    factory = factory
+    containerSource = containerSource
 ).apply {
     this.body = body
 }

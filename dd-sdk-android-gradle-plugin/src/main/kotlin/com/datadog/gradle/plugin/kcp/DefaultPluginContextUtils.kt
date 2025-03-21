@@ -78,15 +78,15 @@ internal class DefaultPluginContextUtils(
     }
 
     override fun isFoundationImage(owner: IrFunction, parent: IrPackageFragment): Boolean {
-        return owner.name == ImageIdentifier && parent.fqName == foundationPackageName
+        return owner.name == ImageIdentifier && parent.packageFqName == foundationPackageName
     }
 
     override fun isMaterialIcon(owner: IrFunction, parent: IrPackageFragment): Boolean {
-        return owner.name == IconIdentifier && parent.fqName == materialPackageName
+        return owner.name == IconIdentifier && parent.packageFqName == materialPackageName
     }
 
     override fun isCoilAsyncImage(owner: IrFunction, parent: IrPackageFragment): Boolean {
-        return owner.name == AsyncImageIdentifier && parent.fqName == coilPackageName
+        return owner.name == AsyncImageIdentifier && parent.packageFqName == coilPackageName
     }
 
     override fun referenceSingleFunction(callableId: CallableId): IrSimpleFunctionSymbol? {
