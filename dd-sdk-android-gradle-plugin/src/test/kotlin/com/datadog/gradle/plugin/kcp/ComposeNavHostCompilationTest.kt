@@ -235,7 +235,7 @@ internal class ComposeNavHostCompilationTest : KotlinCompilerTest() {
             import androidx.navigation.compose.NavHost
             import androidx.navigation.compose.composable
             import androidx.navigation.compose.rememberNavController
-            import com.datadog.kcp.compose.TrackViews
+            import com.datadog.android.compose.TrackViews
             
             class NavHostTestCase{
                 @TrackViews

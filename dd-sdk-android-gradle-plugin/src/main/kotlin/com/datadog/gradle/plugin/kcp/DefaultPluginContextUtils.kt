@@ -138,7 +138,7 @@ internal class DefaultPluginContextUtils(
         private const val ERROR_NOT_FOUND = "%s is not found."
         private const val MODIFIER_COMPANION_NAME = "Modifier.Companion"
         private val composableFqName = FqName("androidx.compose.runtime.Composable")
-        private val datadogPackageName = FqName("com.datadog.kcp.compose")
+        private val datadogPackageName = FqName("com.datadog.android.compose")
         private val datadogModifierIdentifier = Name.identifier("datadog")
         private val composeUiPackageName = FqName("androidx.compose.ui")
         private val modifierClassRelativeName = Name.identifier("Modifier")
@@ -156,8 +156,8 @@ internal class DefaultPluginContextUtils(
         private val IconIdentifier = Name.identifier("Icon")
         private val coilPackageName = FqName("coil.compose")
         private val AsyncImageIdentifier = Name.identifier("AsyncImage")
-        private val TrackViewsAnnotationName = FqName("com.datadog.kcp.compose.TrackViews")
+        private val TrackViewsAnnotationName = FqName("com.datadog.android.compose.TrackViews")
         private val RecordImageAnnotationName =
-            FqName("com.datadog.kcp.compose.RecordImages")
+            FqName("com.datadog.android.compose.RecordImages")
     }
 }
