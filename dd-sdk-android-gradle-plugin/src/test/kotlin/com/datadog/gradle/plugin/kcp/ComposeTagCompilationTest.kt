@@ -1,7 +1,11 @@
 package com.datadog.gradle.plugin.kcp
 
+import com.datadog.gradle.plugin.InstrumentationMode
+import com.datadog.gradle.plugin.utils.forge.Configurator
 import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile
+import fr.xgouchet.elmyr.annotation.Forgery
+import fr.xgouchet.elmyr.junit5.ForgeConfiguration
 import fr.xgouchet.elmyr.junit5.ForgeExtension
 import org.assertj.core.api.Assertions.assertThat
 import org.intellij.lang.annotations.Language
@@ -22,7 +26,8 @@ import org.mockito.quality.Strictness
 )
 @MockitoSettings(strictness = Strictness.LENIENT)
 @OptIn(ExperimentalCompilerApi::class)
-class ComposeTagCompilationTest : KotlinCompilerTest() {
+@ForgeConfiguration(Configurator::class)
+internal class ComposeTagCompilationTest : KotlinCompilerTest() {
 
     @Mock
     private var mockCustomModifierCallback: () -> Unit = {}
@@ -260,6 +265,38 @@ class ComposeTagCompilationTest : KotlinCompilerTest() {
         verify(mockCustomModifierCallback).invoke()
     }
 
+    @Test
+    fun `M match given instrumentation mode W instrument annotated function`(
+        @Forgery configuration: InternalCompilerConfiguration
+    ) {
+        // Given
+        val defaultModifierWithAnnotationTestCaseSource = SourceFile.kotlin(
+            DEFAULT_MODIFIER_WITH_ANNOTATION_TEST_CASE_FILE_NAME,
+            DEFAULT_MODIFIER_WITH_ANNOTATION_SOURCE_FILE_CONTENT
+        )
+
+        // When
+        val result = compileFile(
+            target = defaultModifierWithAnnotationTestCaseSource,
+            deps = dependencyFiles,
+            internalCompilerConfiguration = configuration
+        )
+        executeClassFile(
+            result.classLoader,
+            "com.datadog.kcp.DefaultModifierWithAnnotationTestCase",
+            "DefaultModifierWithAnnotationTestCase",
+            emptyList()
+        )
+
+        // Then
+        assertThat(result.exitCode).isEqualTo(KotlinCompilation.ExitCode.OK)
+        if (configuration.recordImages != InstrumentationMode.DISABLE) {
+            verify(mockCallback).invoke(false)
+        } else {
+            verifyNoInteractions(mockCallback)
+        }
+    }
+
     companion object {
 
         private const val NO_MODIFIER_TEST_CASE_FILE_NAME = "NoModifierTestCase.kt"
@@ -268,6 +305,8 @@ class ComposeTagCompilationTest : KotlinCompilerTest() {
         private const val IMAGE_TEST_CASE_FILE_NAME = "ImageTestCase.kt"
         private const val ICON_TEST_CASE_FILE_NAME = "IconTestCase.kt"
         private const val COIL_TEST_CASE_FILE_NAME = "CoilTestCase.kt"
+        private const val DEFAULT_MODIFIER_WITH_ANNOTATION_TEST_CASE_FILE_NAME =
+            "DefaultModifierWithAnnotationTestCase.kt"
 
         @Language("kotlin")
         private val NO_MODIFIER_SOURCE_FILE_CONTENT =
@@ -428,5 +467,34 @@ class ComposeTagCompilationTest : KotlinCompilerTest() {
                 }
 
             }
+        """.trimIndent()
+
+    @Language("kotlin")
+    private val DEFAULT_MODIFIER_WITH_ANNOTATION_SOURCE_FILE_CONTENT =
+        """
+            package com.datadog.kcp
+    
+            import androidx.compose.runtime.Composable
+            import androidx.compose.ui.Modifier
+            import com.datadog.kcp.compose.RecordImages
+            
+            class DefaultModifierWithAnnotationTestCase{
+                
+                @RecordImages
+                @Composable
+                fun DefaultModifierWithAnnotationTestCase() {
+                    CustomComposable(
+                        modifier = Modifier,
+                        text = "Default Modifier With Annotation Test Case"
+                    )
+                }
+                
+                @Composable
+                fun CustomComposable(modifier : Modifier = Modifier, text: String){
+                    // do nothing
+                }
+
+            }
+            
         """.trimIndent()
 }

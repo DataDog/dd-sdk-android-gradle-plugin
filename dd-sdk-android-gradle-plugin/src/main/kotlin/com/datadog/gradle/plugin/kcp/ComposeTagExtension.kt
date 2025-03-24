@@ -36,8 +36,11 @@ internal class ComposeTagExtension(
         moduleFragment: IrModuleFragment,
         annotationModeEnabled: Boolean
     ) {
-        // TODO RUM-9011: apply annotationModeEnabled to extension
-        val composeTagTransformer = ComposeTagTransformer(messageCollector, pluginContext)
+        val composeTagTransformer = ComposeTagTransformer(
+            messageCollector = messageCollector,
+            pluginContext = pluginContext,
+            annotationModeEnabled = annotationModeEnabled
+        )
         if (composeTagTransformer.initReferences()) {
             moduleFragment.accept(composeTagTransformer, null)
         } else {

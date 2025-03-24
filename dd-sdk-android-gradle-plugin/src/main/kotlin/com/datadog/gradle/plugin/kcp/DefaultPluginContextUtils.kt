@@ -95,6 +95,26 @@ internal class DefaultPluginContextUtils(
             .singleOrNull() ?: logSingleMatchError(callableId.callableName.asString())
     }
 
+    override fun isNavHostTargetFunc(
+        irFunction: IrFunction,
+        annotationModeEnabled: Boolean
+    ): Boolean {
+        return isComposableFunction(irFunction) && (
+            !annotationModeEnabled ||
+                irFunction.hasAnnotation(TrackViewsAnnotationName)
+            )
+    }
+
+    override fun isDatadogTagTargetFunc(
+        irFunction: IrFunction,
+        annotationModeEnabled: Boolean
+    ): Boolean {
+        return isComposableFunction(irFunction) && (
+            !annotationModeEnabled ||
+                irFunction.hasAnnotation(RecordImageAnnotationName)
+            )
+    }
+
     private fun <T> logSingleMatchError(target: String): T? {
         messageCollector.report(CompilerMessageSeverity.ERROR, ERROR_SINGLE_MATCH.format(target))
         return null
@@ -136,5 +156,8 @@ internal class DefaultPluginContextUtils(
         private val IconIdentifier = Name.identifier("Icon")
         private val coilPackageName = FqName("coil.compose")
         private val AsyncImageIdentifier = Name.identifier("AsyncImage")
+        private val TrackViewsAnnotationName = FqName("com.datadog.kcp.compose.TrackViews")
+        private val RecordImageAnnotationName =
+            FqName("com.datadog.kcp.compose.RecordImages")
     }
 }
