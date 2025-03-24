@@ -124,7 +124,7 @@ internal open class KotlinCompilerTest {
         @Language("kotlin")
         private val DD_MODIFIER_SOURCE_FILE_CONTENT =
             """
-            package com.datadog.kcp.compose
+            package com.datadog.android.compose
             
             import androidx.compose.ui.Modifier
             import androidx.compose.ui.semantics.SemanticsPropertyKey
@@ -171,7 +171,7 @@ internal open class KotlinCompilerTest {
         @Language("kotlin")
         private val TRACK_VIEWS_ANNOTATION_SOURCE_FILE_CONTENT =
             """
-            package com.datadog.kcp.compose
+            package com.datadog.android.compose
 
             @Retention(AnnotationRetention.BINARY)
             annotation class TrackViews
@@ -181,7 +181,7 @@ internal open class KotlinCompilerTest {
         @Language("kotlin")
         private val RECORD_IMAGES_ANNOTATION_SOURCE_FILE_CONTENT =
             """
-            package com.datadog.kcp.compose
+            package com.datadog.android.compose
 
             @Retention(AnnotationRetention.BINARY)
             annotation class RecordImages

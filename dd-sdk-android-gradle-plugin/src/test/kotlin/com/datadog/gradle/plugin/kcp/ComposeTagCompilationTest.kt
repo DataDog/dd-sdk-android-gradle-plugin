@@ -476,7 +476,7 @@ internal class ComposeTagCompilationTest : KotlinCompilerTest() {
     
             import androidx.compose.runtime.Composable
             import androidx.compose.ui.Modifier
-            import com.datadog.kcp.compose.RecordImages
+            import com.datadog.android.compose.RecordImages
             
             class DefaultModifierWithAnnotationTestCase{
                 

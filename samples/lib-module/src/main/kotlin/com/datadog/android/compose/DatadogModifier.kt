@@ -1,4 +1,4 @@
-package com.datadog.kcp.compose
+package com.datadog.android.compose
 
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
