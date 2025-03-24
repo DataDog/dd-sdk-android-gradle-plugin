@@ -26,6 +26,7 @@ import org.jetbrains.kotlin.name.SpecialNames
 internal class ComposeNavHostTransformer(
     private val messageCollector: MessageCollector,
     private val pluginContext: IrPluginContext,
+    private val annotationModeEnabled: Boolean,
     private val pluginContextUtils: PluginContextUtils = DefaultPluginContextUtils(
         pluginContext,
         messageCollector
@@ -55,20 +56,18 @@ internal class ComposeNavHostTransformer(
         } else {
             visitedFunctions.lastOrNull() ?: declarationName.toString()
         }
-        if (pluginContextUtils.isComposableFunction(declaration)) {
+        if (pluginContextUtils.isNavHostTargetFunc(declaration, annotationModeEnabled)) {
             visitedFunctions.add(functionName)
             visitedBuilders.add(DeclarationIrBuilder(pluginContext, declaration.symbol))
             visitedScopes.add(declaration)
+            val irStatement = super.visitFunctionNew(declaration)
+            visitedFunctions.removeLast()
+            visitedBuilders.removeLast()
+            visitedScopes.removeLast()
+            return irStatement
         } else {
-            visitedFunctions.add(null)
-            visitedBuilders.add(null)
-            visitedScopes.add(null)
+            return declaration
         }
-        val irStatement = super.visitFunctionNew(declaration)
-        visitedFunctions.removeLast()
-        visitedBuilders.removeLast()
-        visitedScopes.removeLast()
-        return irStatement
     }
 
     override fun visitCall(expression: IrCall): IrExpression {

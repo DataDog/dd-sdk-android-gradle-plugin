@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.name.SpecialNames
 internal class ComposeTagTransformer(
     private val messageCollector: MessageCollector,
     private val pluginContext: IrPluginContext,
+    private val annotationModeEnabled: Boolean,
     private val pluginContextUtils: PluginContextUtils = DefaultPluginContextUtils(
         pluginContext,
         messageCollector
@@ -58,18 +59,16 @@ internal class ComposeTagTransformer(
             visitedFunctions.lastOrNull() ?: declarationName.toString()
         }
 
-        if (pluginContextUtils.isComposableFunction(declaration)) {
+        if (pluginContextUtils.isDatadogTagTargetFunc(declaration, annotationModeEnabled)) {
             visitedFunctions.add(functionName)
             visitedBuilders.add(DeclarationIrBuilder(pluginContext, declaration.symbol))
+            val irStatement = super.visitFunctionNew(declaration)
+            visitedFunctions.removeLast()
+            visitedBuilders.removeLast()
+            return irStatement
         } else {
-            visitedFunctions.add(null)
-            visitedBuilders.add(null)
+            return declaration
         }
-
-        val irStatement = super.visitFunctionNew(declaration)
-        visitedFunctions.removeLast()
-        visitedBuilders.removeLast()
-        return irStatement
     }
 
     @Suppress("ReturnCount")

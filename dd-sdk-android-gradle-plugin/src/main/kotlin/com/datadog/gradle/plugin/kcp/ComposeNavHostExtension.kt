@@ -35,8 +35,12 @@ internal class ComposeNavHostExtension(
         moduleFragment: IrModuleFragment,
         annotationModeEnabled: Boolean
     ) {
-        // TODO RUM-9011: apply annotationModeEnabled to extension
-        val composeNavHostTransformer = ComposeNavHostTransformer(messageCollector, pluginContext)
+        val composeNavHostTransformer =
+            ComposeNavHostTransformer(
+                messageCollector = messageCollector,
+                pluginContext = pluginContext,
+                annotationModeEnabled = annotationModeEnabled
+            )
         if (composeNavHostTransformer.initReferences()) {
             moduleFragment.accept(composeNavHostTransformer, null)
         } else {

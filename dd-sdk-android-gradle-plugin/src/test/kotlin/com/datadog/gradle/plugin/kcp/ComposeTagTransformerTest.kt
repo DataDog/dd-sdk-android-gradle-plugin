@@ -25,7 +25,7 @@ import org.mockito.quality.Strictness
 )
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ForgeConfiguration(Configurator::class)
-class ComposeTagTransformerTest {
+internal class ComposeTagTransformerTest {
 
     @Mock
     private lateinit var mockPluginContext: IrPluginContext
@@ -55,7 +55,9 @@ class ComposeTagTransformerTest {
         testedComposeTagTransformer = ComposeTagTransformer(
             mockMessageCollector,
             mockPluginContext,
+            false,
             mockPluginContextUtils
+
         )
     }
 
