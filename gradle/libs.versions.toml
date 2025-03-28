@@ -1,7 +1,7 @@
 [versions]
 # Commons
 kotlin = "2.0.21"
-json = "20180813"
+json = "20231013"
 okHttp = "4.12.0"
 
 # Android
