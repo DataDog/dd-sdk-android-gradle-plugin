@@ -128,7 +128,7 @@ class DdAndroidGradlePlugin @Inject constructor(
             } else {
                 LOGGER.info(
                     "No native build tasks found for variant ${variant.name}," +
-                        " no additionalSymbolFilesLocations provided, " +
+                        " no additionalSymbolFilesLocations provided," +
                         " no NDK symbol file upload task created."
                 )
             }

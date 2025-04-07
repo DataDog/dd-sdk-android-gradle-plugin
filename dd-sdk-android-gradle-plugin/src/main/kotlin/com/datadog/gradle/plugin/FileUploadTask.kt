@@ -151,7 +151,10 @@ abstract class FileUploadTask @Inject constructor(
         }
 
         val mappingFiles = getFilesList()
-        if (mappingFiles.isEmpty()) return
+        if (mappingFiles.isEmpty()) {
+            LOGGER.warn("No mapping files to upload.")
+            return
+        }
 
         // it can be an overlap between java and kotlin directories and since File doesn't override
         // equals for set comparison, we will remove duplicates manually
@@ -171,6 +174,7 @@ abstract class FileUploadTask @Inject constructor(
 
         val site = DatadogSite.valueOf(site)
         val caughtErrors = mutableListOf<Exception>()
+
         for (mappingFile in mappingFiles) {
             LOGGER.info("Uploading ${mappingFile.fileType} file: ${mappingFile.file.absolutePath}")
             try {
