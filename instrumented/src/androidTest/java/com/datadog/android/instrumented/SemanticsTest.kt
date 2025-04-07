@@ -4,7 +4,6 @@ import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import fr.xgouchet.elmyr.junit5.ForgeExtension
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -23,14 +22,15 @@ class SemanticsTest {
     @get:Rule
     val composeTestRule = createComposeRule()
 
-    @Ignore("RUM-8813: Fix the compose tag injection when Modifier is absent")
     @Test
     fun `M have datadog semantics tag W modifier is absent`() {
         composeTestRule.setContent {
             ScreenWithoutModifier()
         }
-        val semanticsMatcher = hasSemanticsValue(DD_SEMANTICS_KEY_NAME, DD_SEMANTICS_VALUE_DEFAULT)
-        composeTestRule.onAllNodes(semanticsMatcher).assertCountEquals(2)
+        val columnSemanticsMatcher = hasSemanticsValue(DD_SEMANTICS_KEY_NAME, "Column")
+        composeTestRule.onAllNodes(columnSemanticsMatcher).assertCountEquals(1)
+        val textSemanticsMatcher = hasSemanticsValue(DD_SEMANTICS_KEY_NAME, "Text")
+        composeTestRule.onAllNodes(textSemanticsMatcher).assertCountEquals(1)
     }
 
     @Test
@@ -67,6 +67,5 @@ class SemanticsTest {
 
     companion object {
         private const val DD_SEMANTICS_KEY_NAME = "_dd_semantics"
-        private const val DD_SEMANTICS_VALUE_DEFAULT = "DD_DEFAULT_TAG"
     }
 }

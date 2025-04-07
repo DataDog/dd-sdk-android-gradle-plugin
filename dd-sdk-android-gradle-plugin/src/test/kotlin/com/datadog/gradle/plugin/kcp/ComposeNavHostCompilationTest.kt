@@ -156,6 +156,38 @@ internal class ComposeNavHostCompilationTest : KotlinCompilerTest() {
         }
     }
 
+    @Test
+    fun `M instrument NavHost W NavHost is nested`(
+        @Forgery configuration: InternalCompilerConfiguration
+    ) {
+        // Given
+        val navHostTestCaseSource = SourceFile.kotlin(
+            NAV_HOST_TEST_CASE_FILE_NAME,
+            NAV_HOST_NESTED_TEST_CASE_SOURCE_FILE_CONTENT
+        )
+
+        // When
+        val result = compileFile(
+            target = navHostTestCaseSource,
+            deps = dependencyFiles,
+            internalCompilerConfiguration = configuration
+        )
+        executeClassFile(
+            result.classLoader,
+            "com.datadog.kcp.NavHostNestedTestCase",
+            "NavHostNestedTestCase",
+            emptyList()
+        )
+
+        // Then
+        assertThat(result.exitCode).isEqualTo(KotlinCompilation.ExitCode.OK)
+        if (configuration.trackViews != InstrumentationMode.DISABLE) {
+            verify(mockCallback).invoke(false)
+        } else {
+            verifyNoInteractions(mockCallback)
+        }
+    }
+
     companion object {
 
         private const val NAV_HOST_TEST_CASE_FILE_NAME = "NavHostTestCase.kt"
@@ -246,6 +278,39 @@ internal class ComposeNavHostCompilationTest : KotlinCompilerTest() {
                 
                     }          
                 }
+            }
+        """.trimIndent()
+
+    @Language("kotlin")
+    private val NAV_HOST_NESTED_TEST_CASE_SOURCE_FILE_CONTENT =
+        """
+            package com.datadog.kcp
+
+            import androidx.compose.runtime.Composable
+            import androidx.navigation.compose.NavHost
+            import androidx.navigation.compose.composable
+            import androidx.navigation.compose.rememberNavController
+            import com.datadog.android.compose.TrackViews
+            
+            class NavHostNestedTestCase{
+                @TrackViews
+                @Composable
+                internal fun NavHostNestedTestCase() {
+                
+                    Container{
+                        val navHost = rememberNavController()       
+                        NavHost(navHost,""){
+                    
+                        }  
+                    }               
+                           
+                }
+    
+                @Composable
+                fun Container(content: @Composable () -> Unit){
+                    content.invoke()
+                }
+
             }
         """.trimIndent()
 }

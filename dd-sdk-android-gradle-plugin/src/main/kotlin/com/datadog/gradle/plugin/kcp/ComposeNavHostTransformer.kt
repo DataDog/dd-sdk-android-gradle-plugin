@@ -49,6 +49,12 @@ internal class ComposeNavHostTransformer(
         return true
     }
 
+    override fun visitFunctionExpression(expression: IrFunctionExpression): IrExpression {
+        // We should visit Jetpack Compose content lambda body as function for instrumentation.
+        expression.function.body?.accept(this, null)
+        return super.visitFunctionExpression(expression)
+    }
+
     override fun visitFunctionNew(declaration: IrFunction): IrStatement {
         val declarationName = declaration.name
         val functionName = if (!isAnonymousFunction(declarationName)) {
