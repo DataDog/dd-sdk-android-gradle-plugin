@@ -3,7 +3,7 @@
 # Commons
 kotlin = "2.0.21"
 kotlinComposePlugin = "2.0.21"
-json = "20180813"
+json = "20231013"
 okHttp = "4.12.0"
 composeBom = "2024.04.01"
 activityCompose = "1.9.3"
@@ -42,8 +42,8 @@ versionsPluginGradle = "0.33.0"
 kotlinGrammarParser = "c35b50fa44"
 
 # Datadog
-datadogSdk = "2.19.1"
-datadogPluginGradle = "1.15.0"
+datadogSdk = "2.19.2"
+datadogPluginGradle = "1.16.0"
 
 # Kotlin Compiler Plugin
 kotlinCompilerEmbeddable = "2.0.21"
