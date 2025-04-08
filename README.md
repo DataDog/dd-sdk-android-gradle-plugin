@@ -41,6 +41,9 @@ datadog {
     site = "US1" // Optional, can be "US1", "EU1" or "US1_FED", etc. (check `DatadogSite` documentation for the full list). Default is "US1"
     checkProjectDependencies = "warn" // Optional, can be "warn", "fail" or "none". Default is "fail". Will check if Datadog SDK is in the project dependencies.
     mappingFilePath = "path/to/mapping.txt" // Optional, provides a custom mapping file path. Default is "build/outputs/mapping/{variant}/mapping.txt".
+    nonDefaultObfuscation = false // Optional, to be used if a 3rd-party obfuscation tool is used. Default is false.
+    ignoreDatadogCiFileConfig = false // Optional, ignore configuration provided in `datadog-ci.json` file if found. Default is false.
+    additionalSymbolFilesLocations = ["/path/to/location/obj"] // Optional, additional locations the Gradle plugin will check for `.so` files during `uploadNdkSymbolFiles` task. Default is none.
 }
 ```
 
