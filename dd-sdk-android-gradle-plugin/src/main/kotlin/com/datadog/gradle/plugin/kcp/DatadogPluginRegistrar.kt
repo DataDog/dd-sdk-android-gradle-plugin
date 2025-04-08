@@ -51,7 +51,7 @@ internal class DatadogPluginRegistrar(
         project.extensionArea.getExtensionPoint(IrGenerationExtension.extensionPointName)
             .registerExtension(
                 ComposeTagExtension(messageCollector, internalCompilerConfiguration),
-                LoadingOrder.LAST,
+                LoadingOrder.FIRST,
                 project
             )
     }

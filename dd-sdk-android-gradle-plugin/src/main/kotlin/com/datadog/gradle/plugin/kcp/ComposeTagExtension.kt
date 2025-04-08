@@ -12,7 +12,6 @@ import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
  * The extension registers [ComposeTagTransformer] into the plugin.
  */
 @FirIncompatiblePluginAPI
-@Suppress("UnusedParameter")
 internal class ComposeTagExtension(
     private val messageCollector: MessageCollector,
     private val internalCompilerConfiguration: InternalCompilerConfiguration

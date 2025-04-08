@@ -1,5 +1,7 @@
 package com.datadog.android.instrumented
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -27,6 +29,30 @@ internal fun ScreenWithNavHost(onEvent: (NavHostController, Lifecycle.Event) -> 
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+}
+
+@Composable
+internal fun ScreenWithNavHostNested(onEvent: (NavHostController, Lifecycle.Event) -> Unit) {
+    Column {
+        Row {
+            val navHost = rememberNavController()
+            NavHost(navHost, TEST_DESTINATION) {
+                composable(TEST_DESTINATION) {
+                    Text(text = TEST_TEXT)
+                }
+            }
+            val lifecycleOwner = LocalLifecycleOwner.current
+            DisposableEffect(lifecycleOwner) {
+                val observer = LifecycleEventObserver { source, event ->
+                    onEvent(navHost, event)
+                }
+                lifecycleOwner.lifecycle.addObserver(observer)
+                onDispose {
+                    lifecycleOwner.lifecycle.removeObserver(observer)
+                }
+            }
         }
     }
 }

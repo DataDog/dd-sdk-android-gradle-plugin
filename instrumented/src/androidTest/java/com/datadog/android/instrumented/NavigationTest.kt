@@ -66,6 +66,37 @@ class NavigationTest {
         assertThat(isFunctionCalled).isTrue()
     }
 
+    @Test
+    fun `M call function and have original components W instrument nested NavHost with the Plugin`() {
+        // Given
+        val latch = CountDownLatch(1)
+        var isFunctionCalled = false
+
+        // When
+        val lifecycleOwner = composeTestRule.setContentWithStubLifeCycle {
+            ScreenWithNavHostNested(onEvent = { navHost, event ->
+                if (event == Lifecycle.Event.ON_RESUME) {
+                    val listeners = getOnDestinationChangedListenerSize(navHost)
+                    if (listeners > 0) {
+                        isFunctionCalled = true
+                    }
+                    latch.countDown()
+                }
+            })
+        }
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            lifecycleOwner.setCurrentState(Lifecycle.State.RESUMED)
+        }
+
+        // Then
+        composeTestRule
+            .onNodeWithText(TEST_TEXT)
+            .assertIsDisplayed()
+
+        latch.await(5, TimeUnit.SECONDS)
+        assertThat(isFunctionCalled).isTrue()
+    }
+
     private fun getOnDestinationChangedListenerSize(navHostController: NavHostController): Int {
         val listenersField = NavController::class.java.getDeclaredField("onDestinationChangedListeners")
         listenersField.isAccessible = true

@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.ir.declarations.IrPackageFragment
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrComposite
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.classFqName
@@ -71,6 +72,12 @@ internal class ComposeTagTransformer(
         }
     }
 
+    override fun visitFunctionExpression(expression: IrFunctionExpression): IrExpression {
+        // We should visit Jetpack Compose content lambda body as function for instrumentation.
+        expression.function.body?.accept(this, null)
+        return super.visitFunctionExpression(expression)
+    }
+
     @Suppress("ReturnCount")
     override fun visitCall(expression: IrCall): IrExpression {
         val builder = visitedBuilders.lastOrNull() ?: return super.visitCall(
@@ -124,7 +131,6 @@ internal class ComposeTagTransformer(
         functionName: String,
         isImageComposableFunction: Boolean
     ): IrExpression {
-        // TODO RUM-8813:Use Compose function name as the semantics tag
         val datadogTagModifier = buildDatadogTagModifierCall(
             builder = builder,
             functionName = functionName,

@@ -16,6 +16,7 @@ import org.junit.jupiter.api.extension.Extensions
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.junit.jupiter.MockitoSettings
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.quality.Strictness
@@ -297,6 +298,38 @@ internal class ComposeTagCompilationTest : KotlinCompilerTest() {
         }
     }
 
+    @Test
+    fun `M instrument every composable W elements are nested`(
+        @Forgery configuration: InternalCompilerConfiguration
+    ) {
+        // Given
+        val nestedComposableTestCaseSource = SourceFile.kotlin(
+            NESTED_COMPOSABLE_TEST_CASE_FILE_NAME,
+            NESTED_COMPOSABLE_SOURCE_FILE_CONTENT
+        )
+
+        // When
+        val result = compileFile(
+            target = nestedComposableTestCaseSource,
+            deps = dependencyFiles,
+            internalCompilerConfiguration = configuration
+        )
+        executeClassFile(
+            result.classLoader,
+            "com.datadog.kcp.NestedComposableTestCase",
+            "NestedComposableTestCase",
+            emptyList()
+        )
+
+        // Then
+        assertThat(result.exitCode).isEqualTo(KotlinCompilation.ExitCode.OK)
+        if (configuration.recordImages != InstrumentationMode.DISABLE) {
+            verify(mockCallback, times(2)).invoke(false)
+        } else {
+            verifyNoInteractions(mockCallback)
+        }
+    }
+
     companion object {
 
         private const val NO_MODIFIER_TEST_CASE_FILE_NAME = "NoModifierTestCase.kt"
@@ -307,6 +340,7 @@ internal class ComposeTagCompilationTest : KotlinCompilerTest() {
         private const val COIL_TEST_CASE_FILE_NAME = "CoilTestCase.kt"
         private const val DEFAULT_MODIFIER_WITH_ANNOTATION_TEST_CASE_FILE_NAME =
             "DefaultModifierWithAnnotationTestCase.kt"
+        private const val NESTED_COMPOSABLE_TEST_CASE_FILE_NAME = "NestedComposableTestCase.kt"
 
         @Language("kotlin")
         private val NO_MODIFIER_SOURCE_FILE_CONTENT =
@@ -488,6 +522,44 @@ internal class ComposeTagCompilationTest : KotlinCompilerTest() {
                         text = "Default Modifier With Annotation Test Case"
                     )
                 }
+                
+                @Composable
+                fun CustomComposable(modifier : Modifier = Modifier, text: String){
+                    // do nothing
+                }
+
+            }
+            
+        """.trimIndent()
+
+    @Language("kotlin")
+    private val NESTED_COMPOSABLE_SOURCE_FILE_CONTENT =
+        """
+            package com.datadog.kcp
+    
+            import androidx.compose.runtime.Composable
+            import androidx.compose.ui.Modifier
+            import com.datadog.android.compose.RecordImages
+            
+            class NestedComposableTestCase{
+                
+                @RecordImages
+                @Composable
+                fun NestedComposableTestCase() {
+                    Container { 
+                        CustomComposable(
+                            modifier = Modifier,
+                            text = "Nested Composable Test Case"
+                        )
+                    }
+                }
+                   
+                @Composable
+                fun Container(modifier : Modifier = Modifier,
+                              content: @Composable () -> Unit){
+                    content.invoke()
+                }
+
                 
                 @Composable
                 fun CustomComposable(modifier : Modifier = Modifier, text: String){
