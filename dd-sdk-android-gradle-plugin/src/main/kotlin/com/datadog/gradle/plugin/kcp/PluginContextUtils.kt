@@ -21,9 +21,5 @@ internal interface PluginContextUtils {
     fun isFoundationImage(owner: IrFunction, parent: IrPackageFragment): Boolean
     fun isMaterialIcon(owner: IrFunction, parent: IrPackageFragment): Boolean
     fun isCoilAsyncImage(owner: IrFunction, parent: IrPackageFragment): Boolean
-    fun isDatadogTagTargetFunc(irFunction: IrFunction, annotationModeEnabled: Boolean): Boolean
-    fun isNavHostTargetFunc(
-        irFunction: IrFunction,
-        annotationModeEnabled: Boolean
-    ): Boolean
+    fun isComposeInstrumentationTargetFunc(irFunction: IrFunction, annotationModeEnabled: Boolean): Boolean
 }

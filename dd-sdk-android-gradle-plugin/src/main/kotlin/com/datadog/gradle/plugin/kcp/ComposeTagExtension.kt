@@ -14,19 +14,17 @@ import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 @FirIncompatiblePluginAPI
 internal class ComposeTagExtension(
     private val messageCollector: MessageCollector,
-    private val internalCompilerConfiguration: InternalCompilerConfiguration
+    private val internalInstrumentationMode: InstrumentationMode
 ) :
     IrGenerationExtension {
 
     override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
-        internalCompilerConfiguration.apply {
-            if (recordImages != InstrumentationMode.DISABLE) {
-                registerTagTransformer(
-                    pluginContext = pluginContext,
-                    moduleFragment = moduleFragment,
-                    annotationModeEnabled = recordImages == InstrumentationMode.ANNOTATION
-                )
-            }
+        if (internalInstrumentationMode != InstrumentationMode.DISABLE) {
+            registerTagTransformer(
+                pluginContext = pluginContext,
+                moduleFragment = moduleFragment,
+                annotationModeEnabled = internalInstrumentationMode == InstrumentationMode.ANNOTATION
+            )
         }
     }
 

@@ -2,7 +2,6 @@ package com.datadog.gradle.plugin.kcp
 
 import com.datadog.gradle.plugin.InstrumentationMode
 import com.datadog.gradle.plugin.utils.forge.Configurator
-import fr.xgouchet.elmyr.annotation.Forgery
 import fr.xgouchet.elmyr.junit5.ForgeConfiguration
 import fr.xgouchet.elmyr.junit5.ForgeExtension
 import org.jetbrains.kotlin.backend.common.extensions.FirIncompatiblePluginAPI
@@ -68,15 +67,11 @@ internal class ComposeTagExtensionTest {
     }
 
     @Test
-    fun `M register tag transformer W recordImages option is AUTO`(
-        @Forgery fakeConfiguration: InternalCompilerConfiguration
-    ) {
+    fun `M register tag transformer W instrumentation mode is AUTO`() {
         // Given
         val datadogIrExtension = ComposeTagExtension(
             mockMessageCollector,
-            fakeConfiguration.copy(
-                recordImages = InstrumentationMode.AUTO
-            )
+            internalInstrumentationMode = InstrumentationMode.AUTO
         )
 
         // When
@@ -87,15 +82,11 @@ internal class ComposeTagExtensionTest {
     }
 
     @Test
-    fun `M register tag transformer W recordImages option is ANNOTATION`(
-        @Forgery fakeConfiguration: InternalCompilerConfiguration
-    ) {
+    fun `M register tag transformer W instrumentation mode is ANNOTATION`() {
         // Given
         val datadogIrExtension = ComposeTagExtension(
             mockMessageCollector,
-            fakeConfiguration.copy(
-                recordImages = InstrumentationMode.ANNOTATION
-            )
+            internalInstrumentationMode = InstrumentationMode.ANNOTATION
         )
 
         // When
@@ -106,15 +97,11 @@ internal class ComposeTagExtensionTest {
     }
 
     @Test
-    fun `M not register tag transformer W recordImages option is DISABLE`(
-        @Forgery fakeConfiguration: InternalCompilerConfiguration
-    ) {
+    fun `M not register tag transformer W instrumentation mode is DISABLE`() {
         // Given
         val datadogIrExtension = ComposeTagExtension(
             mockMessageCollector,
-            fakeConfiguration.copy(
-                recordImages = InstrumentationMode.DISABLE
-            )
+            internalInstrumentationMode = InstrumentationMode.DISABLE
         )
 
         // When

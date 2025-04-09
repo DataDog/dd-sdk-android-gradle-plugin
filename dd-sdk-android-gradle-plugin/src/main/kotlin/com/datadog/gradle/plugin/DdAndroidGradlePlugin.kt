@@ -17,9 +17,6 @@ import com.datadog.gradle.plugin.internal.lazyBuildIdProvider
 import com.datadog.gradle.plugin.internal.variant.AppVariant
 import com.datadog.gradle.plugin.internal.variant.NewApiAppVariant
 import com.datadog.gradle.plugin.kcp.DatadogKotlinCompilerPluginCommandLineProcessor.Companion.KOTLIN_COMPILER_PLUGIN_ID
-import com.datadog.gradle.plugin.kcp.KotlinCompilerPluginOptions.RECORD_IMAGES
-import com.datadog.gradle.plugin.kcp.KotlinCompilerPluginOptions.TRACK_ACTIONS
-import com.datadog.gradle.plugin.kcp.KotlinCompilerPluginOptions.TRACK_VIEWS
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -53,10 +50,6 @@ class DdAndroidGradlePlugin @Inject constructor(
     override fun apply(target: Project) {
         val extension = target.extensions.create(EXT_NAME, DdExtension::class.java)
         val apiKey = resolveApiKey(target)
-
-        target.pluginManager.withPlugin("org.jetbrains.kotlin.android") {
-            configureKotlinCompilerPlugin(target, extension)
-        }
 
         // need to use withPlugin instead of afterEvaluate, because otherwise generated assets
         // folder with buildId is not picked by AGP by some reason
@@ -93,6 +86,9 @@ class DdAndroidGradlePlugin @Inject constructor(
                 LOGGER.error(ERROR_NOT_ANDROID)
             } else if (!extension.enabled) {
                 LOGGER.info("Datadog extension disabled, no upload task created")
+            }
+            target.pluginManager.withPlugin("org.jetbrains.kotlin.android") {
+                configureKotlinCompilerPlugin(target, extension)
             }
         }
     }
@@ -407,11 +403,7 @@ class DdAndroidGradlePlugin @Inject constructor(
             kotlinOptions.freeCompilerArgs += listOf(
                 "-Xplugin=$pluginJarPath",
                 "-P",
-                "plugin:$KOTLIN_COMPILER_PLUGIN_ID:$TRACK_VIEWS=${composeInstrumentation.trackViews.name}",
-                "-P",
-                "plugin:$KOTLIN_COMPILER_PLUGIN_ID:$TRACK_ACTIONS=${composeInstrumentation.trackActions.name}",
-                "-P",
-                "plugin:$KOTLIN_COMPILER_PLUGIN_ID:$RECORD_IMAGES=${composeInstrumentation.recordImages.name}"
+                "plugin:$KOTLIN_COMPILER_PLUGIN_ID:$INSTRUMENTATION_MODE=${composeInstrumentation.name}"
             )
         }
     }
@@ -470,5 +462,7 @@ class DdAndroidGradlePlugin @Inject constructor(
 
         private const val ERROR_NOT_ANDROID = "The dd-android-gradle-plugin has been applied on " +
             "a non android application project"
+
+        private const val INSTRUMENTATION_MODE = "INSTRUMENTATION_MODE"
     }
 }

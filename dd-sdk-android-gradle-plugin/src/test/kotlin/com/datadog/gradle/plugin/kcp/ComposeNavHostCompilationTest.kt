@@ -30,7 +30,7 @@ internal class ComposeNavHostCompilationTest : KotlinCompilerTest() {
 
     @Test
     fun `M inject 'NavigationViewTrackingEffect' W found nav host`(
-        @Forgery configuration: InternalCompilerConfiguration
+        @Forgery fakeInstrumentationMode: InstrumentationMode
     ) {
         // Given
         val navHostTestCaseSource = SourceFile.kotlin(
@@ -42,7 +42,7 @@ internal class ComposeNavHostCompilationTest : KotlinCompilerTest() {
         val result = compileFile(
             target = navHostTestCaseSource,
             deps = dependencyFiles,
-            internalCompilerConfiguration = configuration
+            internalInstrumentationMode = fakeInstrumentationMode
         )
         executeClassFile(
             result.classLoader,
@@ -53,7 +53,7 @@ internal class ComposeNavHostCompilationTest : KotlinCompilerTest() {
 
         // Then
         assertThat(result.exitCode).isEqualTo(KotlinCompilation.ExitCode.OK)
-        if (configuration.trackViews == InstrumentationMode.AUTO) {
+        if (fakeInstrumentationMode == InstrumentationMode.AUTO) {
             verify(mockCallback).invoke(false)
         } else {
             verifyNoInteractions(mockCallback)
@@ -62,7 +62,7 @@ internal class ComposeNavHostCompilationTest : KotlinCompilerTest() {
 
     @Test
     fun `M inject 'NavigationViewTrackingEffect' W found nav host with apply expression`(
-        @Forgery configuration: InternalCompilerConfiguration
+        @Forgery instrumentationMode: InstrumentationMode
     ) {
         // Given
         val navHostTestCaseSource = SourceFile.kotlin(
@@ -74,7 +74,7 @@ internal class ComposeNavHostCompilationTest : KotlinCompilerTest() {
         val result = compileFile(
             target = navHostTestCaseSource,
             deps = dependencyFiles,
-            internalCompilerConfiguration = configuration
+            internalInstrumentationMode = instrumentationMode
         )
         executeClassFile(
             result.classLoader,
@@ -85,7 +85,7 @@ internal class ComposeNavHostCompilationTest : KotlinCompilerTest() {
 
         // Then
         assertThat(result.exitCode).isEqualTo(KotlinCompilation.ExitCode.OK)
-        if (configuration.trackViews == InstrumentationMode.AUTO) {
+        if (instrumentationMode == InstrumentationMode.AUTO) {
             verify(mockCallback).invoke(false)
         } else {
             verifyNoInteractions(mockCallback)
@@ -94,7 +94,7 @@ internal class ComposeNavHostCompilationTest : KotlinCompilerTest() {
 
     @Test
     fun `M inject 'NavigationViewTrackingEffect' W found nav host with rememberNavController call`(
-        @Forgery configuration: InternalCompilerConfiguration
+        @Forgery instrumentationMode: InstrumentationMode
     ) {
         // Given
         val navHostTestCaseSource = SourceFile.kotlin(
@@ -106,7 +106,7 @@ internal class ComposeNavHostCompilationTest : KotlinCompilerTest() {
         val result = compileFile(
             target = navHostTestCaseSource,
             deps = dependencyFiles,
-            internalCompilerConfiguration = configuration
+            internalInstrumentationMode = instrumentationMode
         )
         executeClassFile(
             result.classLoader,
@@ -117,7 +117,7 @@ internal class ComposeNavHostCompilationTest : KotlinCompilerTest() {
 
         // Then
         assertThat(result.exitCode).isEqualTo(KotlinCompilation.ExitCode.OK)
-        if (configuration.trackViews == InstrumentationMode.AUTO) {
+        if (instrumentationMode == InstrumentationMode.AUTO) {
             verify(mockCallback).invoke(false)
         } else {
             verifyNoInteractions(mockCallback)
@@ -126,7 +126,7 @@ internal class ComposeNavHostCompilationTest : KotlinCompilerTest() {
 
     @Test
     fun `M match given instrumentation mode W instrument annotated function`(
-        @Forgery configuration: InternalCompilerConfiguration
+        @Forgery instrumentationMode: InstrumentationMode
     ) {
         // Given
         val navHostTestCaseSource = SourceFile.kotlin(
@@ -138,7 +138,7 @@ internal class ComposeNavHostCompilationTest : KotlinCompilerTest() {
         val result = compileFile(
             target = navHostTestCaseSource,
             deps = dependencyFiles,
-            internalCompilerConfiguration = configuration
+            internalInstrumentationMode = instrumentationMode
         )
         executeClassFile(
             result.classLoader,
@@ -149,7 +149,7 @@ internal class ComposeNavHostCompilationTest : KotlinCompilerTest() {
 
         // Then
         assertThat(result.exitCode).isEqualTo(KotlinCompilation.ExitCode.OK)
-        if (configuration.trackViews != InstrumentationMode.DISABLE) {
+        if (instrumentationMode != InstrumentationMode.DISABLE) {
             verify(mockCallback).invoke(false)
         } else {
             verifyNoInteractions(mockCallback)
@@ -158,7 +158,7 @@ internal class ComposeNavHostCompilationTest : KotlinCompilerTest() {
 
     @Test
     fun `M instrument NavHost W NavHost is nested`(
-        @Forgery configuration: InternalCompilerConfiguration
+        @Forgery instrumentationMode: InstrumentationMode
     ) {
         // Given
         val navHostTestCaseSource = SourceFile.kotlin(
@@ -170,7 +170,7 @@ internal class ComposeNavHostCompilationTest : KotlinCompilerTest() {
         val result = compileFile(
             target = navHostTestCaseSource,
             deps = dependencyFiles,
-            internalCompilerConfiguration = configuration
+            internalInstrumentationMode = instrumentationMode
         )
         executeClassFile(
             result.classLoader,
@@ -181,7 +181,7 @@ internal class ComposeNavHostCompilationTest : KotlinCompilerTest() {
 
         // Then
         assertThat(result.exitCode).isEqualTo(KotlinCompilation.ExitCode.OK)
-        if (configuration.trackViews != InstrumentationMode.DISABLE) {
+        if (instrumentationMode != InstrumentationMode.DISABLE) {
             verify(mockCallback).invoke(false)
         } else {
             verifyNoInteractions(mockCallback)
@@ -267,10 +267,10 @@ internal class ComposeNavHostCompilationTest : KotlinCompilerTest() {
             import androidx.navigation.compose.NavHost
             import androidx.navigation.compose.composable
             import androidx.navigation.compose.rememberNavController
-            import com.datadog.android.compose.TrackViews
+            import com.datadog.android.compose.ComposeInstrumentation
             
             class NavHostTestCase{
-                @TrackViews
+                @ComposeInstrumentation
                 @Composable
                 internal fun NavHostTestCase() {
                     val navHost = rememberNavController()       
@@ -290,10 +290,10 @@ internal class ComposeNavHostCompilationTest : KotlinCompilerTest() {
             import androidx.navigation.compose.NavHost
             import androidx.navigation.compose.composable
             import androidx.navigation.compose.rememberNavController
-            import com.datadog.android.compose.TrackViews
+            import com.datadog.android.compose.ComposeInstrumentation
             
             class NavHostNestedTestCase{
-                @TrackViews
+                @ComposeInstrumentation
                 @Composable
                 internal fun NavHostNestedTestCase() {
                 

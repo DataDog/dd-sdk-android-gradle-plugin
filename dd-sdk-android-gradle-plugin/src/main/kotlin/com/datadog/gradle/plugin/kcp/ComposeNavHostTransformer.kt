@@ -62,7 +62,7 @@ internal class ComposeNavHostTransformer(
         } else {
             visitedFunctions.lastOrNull() ?: declarationName.toString()
         }
-        if (pluginContextUtils.isNavHostTargetFunc(declaration, annotationModeEnabled)) {
+        if (pluginContextUtils.isComposeInstrumentationTargetFunc(declaration, annotationModeEnabled)) {
             visitedFunctions.add(functionName)
             visitedBuilders.add(DeclarationIrBuilder(pluginContext, declaration.symbol))
             visitedScopes.add(declaration)

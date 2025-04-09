@@ -2,7 +2,6 @@ package com.datadog.gradle.plugin.kcp
 
 import com.datadog.gradle.plugin.InstrumentationMode
 import com.datadog.gradle.plugin.utils.forge.Configurator
-import fr.xgouchet.elmyr.annotation.Forgery
 import fr.xgouchet.elmyr.junit5.ForgeConfiguration
 import fr.xgouchet.elmyr.junit5.ForgeExtension
 import org.jetbrains.kotlin.backend.common.extensions.FirIncompatiblePluginAPI
@@ -69,15 +68,11 @@ internal class ComposeNavHostExtensionTest {
     }
 
     @Test
-    fun `M register nav host transformer W track views option is AUTO`(
-        @Forgery fakeConfiguration: InternalCompilerConfiguration
-    ) {
+    fun `M register nav host transformer W instrumentation mode is AUTO`() {
         // Given
         val datadogIrExtension = ComposeNavHostExtension(
             mockMessageCollector,
-            fakeConfiguration.copy(
-                trackViews = InstrumentationMode.AUTO
-            )
+            internalInstrumentationMode = InstrumentationMode.AUTO
         )
 
         // When
@@ -88,15 +83,11 @@ internal class ComposeNavHostExtensionTest {
     }
 
     @Test
-    fun `M register nav host transformer W track views option is ANNOTATION`(
-        @Forgery fakeConfiguration: InternalCompilerConfiguration
-    ) {
+    fun `M register nav host transformer W instrumentation mode option is ANNOTATION`() {
         // Given
         val datadogIrExtension = ComposeNavHostExtension(
             mockMessageCollector,
-            fakeConfiguration.copy(
-                trackViews = InstrumentationMode.ANNOTATION
-            )
+            internalInstrumentationMode = InstrumentationMode.ANNOTATION
         )
 
         // When
@@ -107,15 +98,11 @@ internal class ComposeNavHostExtensionTest {
     }
 
     @Test
-    fun `M not register nav host transformer W track views option is DISABLE`(
-        @Forgery fakeConfiguration: InternalCompilerConfiguration
-    ) {
+    fun `M not register nav host transformer W instrumentation mode is DISABLE`() {
         // Given
         val datadogIrExtension = ComposeNavHostExtension(
             mockMessageCollector,
-            fakeConfiguration.copy(
-                trackViews = InstrumentationMode.DISABLE
-            )
+            internalInstrumentationMode = InstrumentationMode.DISABLE
         )
 
         // When

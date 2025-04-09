@@ -95,23 +95,13 @@ internal class DefaultPluginContextUtils(
             .singleOrNull() ?: logSingleMatchError(callableId.callableName.asString())
     }
 
-    override fun isNavHostTargetFunc(
+    override fun isComposeInstrumentationTargetFunc(
         irFunction: IrFunction,
         annotationModeEnabled: Boolean
     ): Boolean {
         return isComposableFunction(irFunction) && (
             !annotationModeEnabled ||
-                irFunction.hasAnnotation(TrackViewsAnnotationName)
-            )
-    }
-
-    override fun isDatadogTagTargetFunc(
-        irFunction: IrFunction,
-        annotationModeEnabled: Boolean
-    ): Boolean {
-        return isComposableFunction(irFunction) && (
-            !annotationModeEnabled ||
-                irFunction.hasAnnotation(RecordImageAnnotationName)
+                irFunction.hasAnnotation(ComposeInstrumentationAnnotationName)
             )
     }
 
@@ -156,8 +146,7 @@ internal class DefaultPluginContextUtils(
         private val IconIdentifier = Name.identifier("Icon")
         private val coilPackageName = FqName("coil.compose")
         private val AsyncImageIdentifier = Name.identifier("AsyncImage")
-        private val TrackViewsAnnotationName = FqName("com.datadog.android.compose.TrackViews")
-        private val RecordImageAnnotationName =
-            FqName("com.datadog.android.compose.RecordImages")
+        private val ComposeInstrumentationAnnotationName =
+            FqName("com.datadog.android.compose.ComposeInstrumentation")
     }
 }

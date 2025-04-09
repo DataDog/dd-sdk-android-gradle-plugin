@@ -28,7 +28,7 @@ import org.jetbrains.kotlin.config.CompilerConfigurationKey
 @OptIn(ExperimentalCompilerApi::class)
 @AutoService(ComponentRegistrar::class)
 internal class DatadogPluginRegistrar(
-    private val overrideCompilerConfiguration: InternalCompilerConfiguration? = null
+    private val overrideInstrumentationMode: InstrumentationMode? = null
 ) : ComponentRegistrar {
     // Supports Kotlin 2.x compiler
     override val supportsK2 = true
@@ -41,7 +41,7 @@ internal class DatadogPluginRegistrar(
         val messageCollector =
             configuration.get(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, MessageCollector.NONE)
         val internalCompilerConfiguration =
-            overrideCompilerConfiguration ?: resolveConfiguration(configuration)
+            overrideInstrumentationMode ?: resolveConfiguration(configuration)
         project.extensionArea.getExtensionPoint(IrGenerationExtension.extensionPointName)
             .registerExtension(
                 ComposeNavHostExtension(messageCollector, internalCompilerConfiguration),
@@ -56,16 +56,8 @@ internal class DatadogPluginRegistrar(
             )
     }
 
-    private fun resolveConfiguration(configuration: CompilerConfiguration): InternalCompilerConfiguration {
-        val trackViewsMode = resolveOptionValue(configuration.get(CONFIG_TRACK_VIEWS))
-        val trackActionsMode = resolveOptionValue(configuration.get(CONFIG_TRACK_ACTIONS))
-        val recordImagesMode = resolveOptionValue(configuration.get(CONFIG_RECORD_IMAGES))
-
-        return InternalCompilerConfiguration(
-            trackViews = trackViewsMode,
-            trackActions = trackActionsMode,
-            recordImages = recordImagesMode
-        )
+    private fun resolveConfiguration(configuration: CompilerConfiguration): InstrumentationMode {
+        return resolveOptionValue(configuration.get(CONFIG_INSTRUMENTATION_MODE))
     }
 
     private fun resolveOptionValue(value: String?): InstrumentationMode {
@@ -73,14 +65,7 @@ internal class DatadogPluginRegistrar(
     }
 
     companion object {
-        private const val OPTION_KEY_TRACK_VIEWS = "TRACK_VIEWS"
-        private const val OPTION_KEY_TRACK_ACTIONS = "TRACK_ACTIONS"
-        private const val OPTION_KEY_RECORD_IMAGES = "RECORD_IMAGES"
-        val CONFIG_TRACK_VIEWS =
-            CompilerConfigurationKey.create<String>(OPTION_KEY_TRACK_VIEWS)
-        val CONFIG_TRACK_ACTIONS =
-            CompilerConfigurationKey.create<String>(OPTION_KEY_TRACK_ACTIONS)
-        val CONFIG_RECORD_IMAGES =
-            CompilerConfigurationKey.create<String>(OPTION_KEY_RECORD_IMAGES)
+        private const val OPTION_KEY_INSTRUMENTATION_MODE = "INSTRUMENTATION_MODE"
+        val CONFIG_INSTRUMENTATION_MODE = CompilerConfigurationKey.create<String>(OPTION_KEY_INSTRUMENTATION_MODE)
     }
 }
