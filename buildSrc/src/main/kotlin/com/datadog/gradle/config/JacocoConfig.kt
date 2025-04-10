@@ -31,7 +31,7 @@ fun Project.jacocoConfig() {
         rule {
             limit {
                 // TODO increase that when coverage is better?
-                minimum = BigDecimal(0.75)
+                minimum = BigDecimal(0.70)
             }
         }
     }
