@@ -81,14 +81,15 @@ class DdAndroidGradlePlugin @Inject constructor(
         }
 
         target.afterEvaluate {
+            var isKcpEnabled = false
+            target.pluginManager.withPlugin("org.jetbrains.kotlin.android") {
+                isKcpEnabled = configureKotlinCompilerPlugin(target, extension)
+            }
             val androidExtension = target.androidApplicationExtension
-            if (androidExtension == null) {
+            if (androidExtension == null && !isKcpEnabled) {
                 LOGGER.error(ERROR_NOT_ANDROID)
             } else if (!extension.enabled) {
-                LOGGER.info("Datadog extension disabled, no upload task created")
-            }
-            target.pluginManager.withPlugin("org.jetbrains.kotlin.android") {
-                configureKotlinCompilerPlugin(target, extension)
+                LOGGER.info(MSG_PLUGIN_DISABLED)
             }
         }
     }
@@ -373,7 +374,7 @@ class DdAndroidGradlePlugin @Inject constructor(
     }
 
     @Suppress("ReturnCount")
-    private fun configureKotlinCompilerPlugin(project: Project, ddExtension: DdExtension) {
+    private fun configureKotlinCompilerPlugin(project: Project, ddExtension: DdExtension): Boolean {
         val pluginJarPath = try {
             val codeSource = this::class.java.protectionDomain?.codeSource
             codeSource?.location?.toURI()?.path
@@ -382,13 +383,13 @@ class DdAndroidGradlePlugin @Inject constructor(
                 "Can not parse Datadog Gradle Plugin path because the URI is not correctly formatted.",
                 e
             )
-            return
+            return false
         } catch (e: SecurityException) {
             LOGGER.error(
                 "Failed to access Datadog Gradle Plugin protection domain due to insufficient permissions.",
                 e
             )
-            return
+            return false
         }
 
         if (pluginJarPath == null) {
@@ -396,7 +397,7 @@ class DdAndroidGradlePlugin @Inject constructor(
                 "$DD_PLUGIN_MAVEN_COORDINATES not found in classpath, " +
                     "Skipping Kotlin Compiler Plugin configuration."
             )
-            return
+            return false
         }
         val composeInstrumentation = ddExtension.composeInstrumentation
         project.tasks.configureKotlinCompile {
@@ -406,6 +407,7 @@ class DdAndroidGradlePlugin @Inject constructor(
                 "plugin:$KOTLIN_COMPILER_PLUGIN_ID:$INSTRUMENTATION_MODE=${composeInstrumentation.name}"
             )
         }
+        return composeInstrumentation != InstrumentationMode.DISABLE
     }
 
     private fun TaskContainer.configureKotlinCompile(action: KotlinCompile.() -> Unit) {
@@ -462,6 +464,9 @@ class DdAndroidGradlePlugin @Inject constructor(
 
         private const val ERROR_NOT_ANDROID = "The dd-android-gradle-plugin has been applied on " +
             "a non android application project"
+
+        private const val MSG_PLUGIN_DISABLED =
+            "Datadog extension disabled, no upload task created, no Compose instrumentation applied"
 
         private const val INSTRUMENTATION_MODE = "INSTRUMENTATION_MODE"
     }
