@@ -36,36 +36,26 @@ internal open class KotlinCompilerTest {
         DD_MODIFIER_SOURCE_FILE_CONTENT
     )
 
-    private val trackViewsAnnotationSourceFileContent = SourceFile.kotlin(
-        TRACK_VIEWS_ANNOTATION_FILE_NAME,
-        TRACK_VIEWS_ANNOTATION_SOURCE_FILE_CONTENT
-    )
-
-    private val recordImagesAnnotationSourceFileContent = SourceFile.kotlin(
-        RECORD_IMAGES_ANNOTATION_FILE_NAME,
-        RECORD_IMAGES_ANNOTATION_SOURCE_FILE_CONTENT
+    private val composeInstrumentationAnnotationSourceFileContent = SourceFile.kotlin(
+        COMPOSE_INSTRUMENTATION_ANNOTATION_FILE_NAME,
+        COMPOSE_INSTRUMENTATION_ANNOTATION_SOURCE_FILE_CONTENT
     )
 
     // TODO RUM-8950: Dependency file should be separated in each file after the DSL configuration is introduced.
     protected val dependencyFiles = listOf(
         trackingEffectSourceFileContent,
         datadogModifierSourceFileContent,
-        trackViewsAnnotationSourceFileContent,
-        recordImagesAnnotationSourceFileContent
+        composeInstrumentationAnnotationSourceFileContent
     )
 
     protected fun compileFile(
         target: SourceFile,
         deps: List<SourceFile>,
         enablePlugin: Boolean = true,
-        internalCompilerConfiguration: InternalCompilerConfiguration =
-            InternalCompilerConfiguration(
-                trackViews = InstrumentationMode.AUTO,
-                recordImages = InstrumentationMode.AUTO
-            )
+        internalInstrumentationMode: InstrumentationMode = InstrumentationMode.AUTO
     ): JvmCompilationResult {
         val pluginRegistrars = if (enablePlugin) {
-            listOf(DatadogPluginRegistrar(internalCompilerConfiguration))
+            listOf(DatadogPluginRegistrar(internalInstrumentationMode))
         } else {
             listOf()
         }
@@ -118,8 +108,7 @@ internal open class KotlinCompilerTest {
         private const val NAV_HOST_CONTROLLER_PATH = "androidx.navigation.NavHostController"
         private const val TRACKING_EFFECT_FILE_NAME = "Navigation.kt"
         private const val DD_MODIFIER_CLASS_FILE_NAME = "DatadogModifier.kt"
-        private const val TRACK_VIEWS_ANNOTATION_FILE_NAME = "TrackViews.kt"
-        private const val RECORD_IMAGES_ANNOTATION_FILE_NAME = "RecordImages.kt"
+        private const val COMPOSE_INSTRUMENTATION_ANNOTATION_FILE_NAME = "ComposeInstrumentation.kt"
 
         @Language("kotlin")
         private val DD_MODIFIER_SOURCE_FILE_CONTENT =
@@ -169,22 +158,12 @@ internal open class KotlinCompilerTest {
             """.trimIndent()
 
         @Language("kotlin")
-        private val TRACK_VIEWS_ANNOTATION_SOURCE_FILE_CONTENT =
+        private val COMPOSE_INSTRUMENTATION_ANNOTATION_SOURCE_FILE_CONTENT =
             """
             package com.datadog.android.compose
 
             @Retention(AnnotationRetention.BINARY)
-            annotation class TrackViews
-
-            """.trimIndent()
-
-        @Language("kotlin")
-        private val RECORD_IMAGES_ANNOTATION_SOURCE_FILE_CONTENT =
-            """
-            package com.datadog.android.compose
-
-            @Retention(AnnotationRetention.BINARY)
-            annotation class RecordImages
+            annotation class ComposeInstrumentation
 
             """.trimIndent()
     }

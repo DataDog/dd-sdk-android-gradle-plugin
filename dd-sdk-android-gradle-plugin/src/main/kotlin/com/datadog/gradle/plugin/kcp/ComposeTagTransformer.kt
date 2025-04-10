@@ -60,7 +60,7 @@ internal class ComposeTagTransformer(
             visitedFunctions.lastOrNull() ?: declarationName.toString()
         }
 
-        if (pluginContextUtils.isDatadogTagTargetFunc(declaration, annotationModeEnabled)) {
+        if (pluginContextUtils.isComposeInstrumentationTargetFunc(declaration, annotationModeEnabled)) {
             visitedFunctions.add(functionName)
             visitedBuilders.add(DeclarationIrBuilder(pluginContext, declaration.symbol))
             val irStatement = super.visitFunctionNew(declaration)

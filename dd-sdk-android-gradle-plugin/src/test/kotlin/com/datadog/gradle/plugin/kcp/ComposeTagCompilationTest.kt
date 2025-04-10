@@ -268,7 +268,7 @@ internal class ComposeTagCompilationTest : KotlinCompilerTest() {
 
     @Test
     fun `M match given instrumentation mode W instrument annotated function`(
-        @Forgery configuration: InternalCompilerConfiguration
+        @Forgery instrumentationMode: InstrumentationMode
     ) {
         // Given
         val defaultModifierWithAnnotationTestCaseSource = SourceFile.kotlin(
@@ -280,7 +280,7 @@ internal class ComposeTagCompilationTest : KotlinCompilerTest() {
         val result = compileFile(
             target = defaultModifierWithAnnotationTestCaseSource,
             deps = dependencyFiles,
-            internalCompilerConfiguration = configuration
+            internalInstrumentationMode = instrumentationMode
         )
         executeClassFile(
             result.classLoader,
@@ -291,7 +291,7 @@ internal class ComposeTagCompilationTest : KotlinCompilerTest() {
 
         // Then
         assertThat(result.exitCode).isEqualTo(KotlinCompilation.ExitCode.OK)
-        if (configuration.recordImages != InstrumentationMode.DISABLE) {
+        if (instrumentationMode != InstrumentationMode.DISABLE) {
             verify(mockCallback).invoke(false)
         } else {
             verifyNoInteractions(mockCallback)
@@ -300,7 +300,7 @@ internal class ComposeTagCompilationTest : KotlinCompilerTest() {
 
     @Test
     fun `M instrument every composable W elements are nested`(
-        @Forgery configuration: InternalCompilerConfiguration
+        @Forgery instrumentationMode: InstrumentationMode
     ) {
         // Given
         val nestedComposableTestCaseSource = SourceFile.kotlin(
@@ -312,7 +312,7 @@ internal class ComposeTagCompilationTest : KotlinCompilerTest() {
         val result = compileFile(
             target = nestedComposableTestCaseSource,
             deps = dependencyFiles,
-            internalCompilerConfiguration = configuration
+            internalInstrumentationMode = instrumentationMode
         )
         executeClassFile(
             result.classLoader,
@@ -323,7 +323,7 @@ internal class ComposeTagCompilationTest : KotlinCompilerTest() {
 
         // Then
         assertThat(result.exitCode).isEqualTo(KotlinCompilation.ExitCode.OK)
-        if (configuration.recordImages != InstrumentationMode.DISABLE) {
+        if (instrumentationMode != InstrumentationMode.DISABLE) {
             verify(mockCallback, times(2)).invoke(false)
         } else {
             verifyNoInteractions(mockCallback)
@@ -510,11 +510,11 @@ internal class ComposeTagCompilationTest : KotlinCompilerTest() {
     
             import androidx.compose.runtime.Composable
             import androidx.compose.ui.Modifier
-            import com.datadog.android.compose.RecordImages
+            import com.datadog.android.compose.ComposeInstrumentation
             
             class DefaultModifierWithAnnotationTestCase{
                 
-                @RecordImages
+                @ComposeInstrumentation
                 @Composable
                 fun DefaultModifierWithAnnotationTestCase() {
                     CustomComposable(
@@ -539,11 +539,11 @@ internal class ComposeTagCompilationTest : KotlinCompilerTest() {
     
             import androidx.compose.runtime.Composable
             import androidx.compose.ui.Modifier
-            import com.datadog.android.compose.RecordImages
+            import com.datadog.android.compose.ComposeInstrumentation
             
             class NestedComposableTestCase{
                 
-                @RecordImages
+                @ComposeInstrumentation
                 @Composable
                 fun NestedComposableTestCase() {
                     Container { 

@@ -15,18 +15,16 @@ import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 @Suppress("UnusedParameter")
 internal class ComposeNavHostExtension(
     private val messageCollector: MessageCollector,
-    private val internalCompilerConfiguration: InternalCompilerConfiguration
+    private val internalInstrumentationMode: InstrumentationMode
 ) : IrGenerationExtension {
 
     override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
-        internalCompilerConfiguration.apply {
-            if (trackViews != InstrumentationMode.DISABLE) {
-                registerNavHostTransformer(
-                    pluginContext = pluginContext,
-                    moduleFragment = moduleFragment,
-                    annotationModeEnabled = trackViews == InstrumentationMode.ANNOTATION
-                )
-            }
+        if (internalInstrumentationMode != InstrumentationMode.DISABLE) {
+            registerNavHostTransformer(
+                pluginContext = pluginContext,
+                moduleFragment = moduleFragment,
+                annotationModeEnabled = internalInstrumentationMode == InstrumentationMode.ANNOTATION
+            )
         }
     }
 

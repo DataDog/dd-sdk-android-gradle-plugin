@@ -6,8 +6,6 @@
 
 package com.datadog.gradle.plugin
 
-import com.datadog.gradle.plugin.kcp.InstrumentationConfiguration
-
 /**
  * Base extension used to configure the `dd-android-gradle-plugin`.
  * @param name Name of the given configuration.
@@ -113,16 +111,12 @@ open class DdExtensionConfiguration(
      */
     var additionalSymbolFilesLocations: List<String>? = null
 
-    internal var composeInstrumentation: InstrumentationConfiguration = InstrumentationConfiguration()
-
     /**
      * This function allow to register the instrumentation mode for Jetpack Compose RUM views tracking, actions tracking
-     * and images recording. If the `composeInstrumentation` is not set, all the instrumentation will be disabled by
-     * default.
+     * and images recording. If the `composeInstrumentation` is not set, the instrumentation mode will be
+     * [InstrumentationMode.DISABLE] by default.
      */
-    fun composeInstrumentation(configure: InstrumentationConfiguration.() -> Unit) {
-        composeInstrumentation.apply(configure)
-    }
+    var composeInstrumentation: InstrumentationMode = InstrumentationMode.DISABLE
 
     internal fun updateWith(config: DdExtensionConfiguration) {
         config.versionName?.let { versionName = it }

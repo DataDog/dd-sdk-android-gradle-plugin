@@ -17,7 +17,6 @@ internal class Configurator : ForgeConfigurator {
         forge.addFactory(DdExtensionForgeryFactory())
         forge.addFactory(DdExtensionConfigurationForgeryFactory())
         forge.addFactory(RepositoryInfoForgeryFactory())
-        forge.addFactory(InternalCompilerConfigurationFactory())
         forge.useJvmFactories()
     }
 }

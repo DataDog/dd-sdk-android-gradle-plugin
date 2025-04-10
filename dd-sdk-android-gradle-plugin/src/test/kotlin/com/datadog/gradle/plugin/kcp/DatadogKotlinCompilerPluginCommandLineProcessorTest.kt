@@ -1,5 +1,6 @@
 package com.datadog.gradle.plugin.kcp
 
+import com.datadog.gradle.plugin.kcp.DatadogKotlinCompilerPluginCommandLineProcessor.Companion.INSTRUMENTATION_MODE
 import com.datadog.gradle.plugin.utils.forge.Configurator
 import fr.xgouchet.elmyr.annotation.StringForgery
 import fr.xgouchet.elmyr.junit5.ForgeConfiguration
@@ -30,32 +31,13 @@ internal class DatadogKotlinCompilerPluginCommandLineProcessorTest {
     private lateinit var mockCompilerConfiguration: CompilerConfiguration
 
     @Test
-    fun `M put value W option name is track views`(
-        @StringForgery fakeValue: String,
-        @StringForgery fakeDescription: String
-    ) {
-        // Given
-        val fakeCliOption: AbstractCliOption = CliOption(
-            optionName = KotlinCompilerPluginOptions.TRACK_VIEWS,
-            valueDescription = "<string>",
-            description = fakeDescription
-        )
-
-        // When
-        testedProcessor.processOption(fakeCliOption, fakeValue, mockCompilerConfiguration)
-
-        // Then
-        verify(mockCompilerConfiguration).put(DatadogPluginRegistrar.CONFIG_TRACK_VIEWS, fakeValue)
-    }
-
-    @Test
     fun `M put value W option name is track actions`(
         @StringForgery fakeValue: String,
         @StringForgery fakeDescription: String
     ) {
         // Given
         val fakeCliOption: AbstractCliOption = CliOption(
-            optionName = KotlinCompilerPluginOptions.TRACK_ACTIONS,
+            optionName = INSTRUMENTATION_MODE,
             valueDescription = "<string>",
             description = fakeDescription
         )
@@ -64,25 +46,6 @@ internal class DatadogKotlinCompilerPluginCommandLineProcessorTest {
         testedProcessor.processOption(fakeCliOption, fakeValue, mockCompilerConfiguration)
 
         // Then
-        verify(mockCompilerConfiguration).put(DatadogPluginRegistrar.CONFIG_TRACK_ACTIONS, fakeValue)
-    }
-
-    @Test
-    fun `M put value W option name is record images`(
-        @StringForgery fakeValue: String,
-        @StringForgery fakeDescription: String
-    ) {
-        // Given
-        val fakeCliOption: AbstractCliOption = CliOption(
-            optionName = KotlinCompilerPluginOptions.RECORD_IMAGES,
-            valueDescription = "<string>",
-            description = fakeDescription
-        )
-
-        // When
-        testedProcessor.processOption(fakeCliOption, fakeValue, mockCompilerConfiguration)
-
-        // Then
-        verify(mockCompilerConfiguration).put(DatadogPluginRegistrar.CONFIG_RECORD_IMAGES, fakeValue)
+        verify(mockCompilerConfiguration).put(DatadogPluginRegistrar.CONFIG_INSTRUMENTATION_MODE, fakeValue)
     }
 }

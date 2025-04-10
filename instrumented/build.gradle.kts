@@ -54,8 +54,7 @@ android {
 tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions {
         freeCompilerArgs += listOf(
-            "-P", "plugin:com.datadoghq.kotlin.compiler:TRACK_VIEWS=AUTO",
-            "-P", "plugin:com.datadoghq.kotlin.compiler:RECORD_IMAGES=AUTO"
+            "-P", "plugin:com.datadoghq.kotlin.compiler:INSTRUMENTATION_MODE=AUTO"
         )
     }
 }
