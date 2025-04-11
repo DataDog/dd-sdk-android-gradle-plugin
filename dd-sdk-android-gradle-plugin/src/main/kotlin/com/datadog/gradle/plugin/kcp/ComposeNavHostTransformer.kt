@@ -43,9 +43,19 @@ internal class ComposeNavHostTransformer(
 
     @Suppress("ReturnCount")
     fun initReferences(): Boolean {
-        trackEffectFunctionSymbol = pluginContextUtils.getDatadogTrackEffectSymbol() ?: return false
-        navHostControllerClassSymbol = pluginContextUtils.getNavHostControllerClassSymbol() ?: return false
-        applyFunctionSymbol = pluginContextUtils.getApplySymbol() ?: return false
+        trackEffectFunctionSymbol = pluginContextUtils.getDatadogTrackEffectSymbol() ?: run {
+            error(ERROR_MISSING_DATADOG_COMPOSE_INTEGRATION)
+            return false
+        }
+
+        navHostControllerClassSymbol = pluginContextUtils.getNavHostControllerClassSymbol() ?: run {
+            error(ERROR_MISSING_COMPOSE_NAV)
+            return false
+        }
+        applyFunctionSymbol = pluginContextUtils.getApplySymbol() ?: run {
+            error(ERROR_MISSING_KOTLIN_STDLIB)
+            return false
+        }
         return true
     }
 
@@ -158,4 +168,17 @@ internal class ComposeNavHostTransformer(
     }
 
     private fun isAnonymousFunction(name: Name): Boolean = name == SpecialNames.ANONYMOUS
+
+    private fun error(message: String) {
+        messageCollector.report(CompilerMessageSeverity.ERROR, message)
+    }
+
+    companion object {
+        private const val ERROR_MISSING_DATADOG_COMPOSE_INTEGRATION =
+            "Missing com.datadoghq:dd-sdk-android-compose dependency."
+        private const val ERROR_MISSING_COMPOSE_NAV =
+            "Missing androidx.navigation:navigation-compose dependency."
+        private const val ERROR_MISSING_KOTLIN_STDLIB =
+            "Missing org.jetbrains.kotlin:kotlin-stdlib dependency."
+    }
 }

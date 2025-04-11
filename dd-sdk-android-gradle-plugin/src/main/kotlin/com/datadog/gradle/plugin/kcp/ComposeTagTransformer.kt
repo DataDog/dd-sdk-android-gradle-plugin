@@ -3,6 +3,7 @@ package com.datadog.gradle.plugin.kcp
 import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.builders.irBoolean
@@ -45,10 +46,22 @@ internal class ComposeTagTransformer(
 
     @Suppress("ReturnCount")
     fun initReferences(): Boolean {
-        datadogTagFunctionSymbol = pluginContextUtils.getDatadogModifierSymbol() ?: return false
-        modifierClass = pluginContextUtils.getModifierClassSymbol() ?: return false
-        modifierThenSymbol = pluginContextUtils.getModifierThen() ?: return false
-        modifierCompanionClassSymbol = pluginContextUtils.getModifierCompanionClass() ?: return false
+        datadogTagFunctionSymbol = pluginContextUtils.getDatadogModifierSymbol() ?: run {
+            error(ERROR_MISSING_DATADOG_COMPOSE_INTEGRATION)
+            return false
+        }
+        modifierClass = pluginContextUtils.getModifierClassSymbol() ?: run {
+            error(ERROR_MISSING_COMPOSE_UI)
+            return false
+        }
+        modifierThenSymbol = pluginContextUtils.getModifierThen() ?: run {
+            error(ERROR_MISSING_COMPOSE_UI)
+            return false
+        }
+        modifierCompanionClassSymbol = pluginContextUtils.getModifierCompanionClass() ?: run {
+            error(ERROR_MISSING_COMPOSE_UI)
+            return false
+        }
         return true
     }
 
@@ -187,8 +200,16 @@ internal class ComposeTagTransformer(
 
     private fun isAnonymousFunction(name: Name): Boolean = name == SpecialNames.ANONYMOUS
 
+    private fun error(message: String) {
+        messageCollector.report(CompilerMessageSeverity.ERROR, message)
+    }
+
     private companion object {
         private val modifierClassFqName = FqName("androidx.compose.ui.Modifier")
         private val kotlinNothingFqName = FqName("kotlin.Nothing")
+        private const val ERROR_MISSING_DATADOG_COMPOSE_INTEGRATION =
+            "Missing com.datadoghq:dd-sdk-android-compose dependency."
+        private const val ERROR_MISSING_COMPOSE_UI =
+            "Missing androidx.compose.ui:ui dependency."
     }
 }
