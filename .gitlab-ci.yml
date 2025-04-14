@@ -40,7 +40,9 @@ stages:
     - $ANDROID_HOME/emulator/emulator -avd "$EMULATOR_NAME" -grpc-use-jwt -no-snapstorage -no-audio -no-window -no-boot-anim -verbose -qemu -machine virt &
     - GRADLE_OPTS="-Xmx3072m" ./gradlew :instrumented:connectedDebugAndroidTest --stacktrace --no-daemon || exit_code=$?
     - $ANDROID_HOME/platform-tools/adb emu kill
-    - echo "$exit_code"
+    - pkill -f emulator || true
+    - pkill -f qemu || true
+    - pkill -f adb || true
     - exit "$exit_code"
   install-android-sdk:
     - curl -sSL -o commandlinetools.zip https://dl.google.com/android/repository/commandlinetools-mac-11076708_latest.zip
