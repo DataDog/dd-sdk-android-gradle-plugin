@@ -4,7 +4,6 @@ import com.datadog.gradle.plugin.InstrumentationMode
 import org.jetbrains.kotlin.backend.common.extensions.FirIncompatiblePluginAPI
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 
@@ -41,10 +40,7 @@ internal class ComposeTagExtension(
         if (composeTagTransformer.initReferences()) {
             moduleFragment.accept(composeTagTransformer, null)
         } else {
-            messageCollector.report(
-                CompilerMessageSeverity.ERROR,
-                "Datadog Kotlin Compiler Plugin didn't succeed initializing references, abort."
-            )
+            messageCollector.abortError()
         }
     }
 }
