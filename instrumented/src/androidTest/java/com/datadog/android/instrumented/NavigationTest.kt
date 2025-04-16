@@ -15,6 +15,7 @@ import androidx.navigation.NavHostController
 import androidx.test.platform.app.InstrumentationRegistry
 import fr.xgouchet.elmyr.junit5.ForgeExtension
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -36,6 +37,7 @@ class NavigationTest {
     val composeTestRule = createComposeRule()
 
     @Test
+    @Ignore("RUM-9513: This test will fail due to API change of SDK, Restore this test after the next release of SDK")
     fun `M call function and have original components W instrument with the Plugin`() {
         // Given
         val latch = CountDownLatch(1)
@@ -67,6 +69,7 @@ class NavigationTest {
     }
 
     @Test
+    @Ignore("RUM-9513: This test will fail due to API change of SDK, Restore this test after the next release of SDK")
     fun `M call function and have original components W instrument nested NavHost with the Plugin`() {
         // Given
         val latch = CountDownLatch(1)

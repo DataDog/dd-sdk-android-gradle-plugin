@@ -12,7 +12,7 @@ import androidx.compose.ui.semantics.semantics
  * This function should have exactly the same package name, function signature and return type
  * with the production one.
  */
-fun Modifier.datadog(name: String, isImageRole: Boolean = false): Modifier {
+internal fun Modifier.instrumentedDatadog(name: String, isImageRole: Boolean = false): Modifier {
     return this.semantics {
         this.datadog = name
         if (isImageRole) {

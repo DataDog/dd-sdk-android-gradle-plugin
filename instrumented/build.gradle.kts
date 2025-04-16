@@ -54,7 +54,8 @@ android {
 tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions {
         freeCompilerArgs += listOf(
-            "-P", "plugin:com.datadoghq.kotlin.compiler:INSTRUMENTATION_MODE=AUTO"
+            // RUM-9513: This KCP is disabled due to API change of SDK, Restore this test after the next release of SDK
+            "-P", "plugin:com.datadoghq.kotlin.compiler:INSTRUMENTATION_MODE=DISABLE"
         )
     }
 }

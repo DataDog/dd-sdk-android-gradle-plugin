@@ -129,7 +129,7 @@ internal class DefaultPluginContextUtils(
         private const val MODIFIER_COMPANION_NAME = "Modifier.Companion"
         private val composableFqName = FqName("androidx.compose.runtime.Composable")
         private val datadogPackageName = FqName("com.datadog.android.compose")
-        private val datadogModifierIdentifier = Name.identifier("datadog")
+        private val datadogModifierIdentifier = Name.identifier("instrumentedDatadog")
         private val composeUiPackageName = FqName("androidx.compose.ui")
         private val modifierClassRelativeName = Name.identifier("Modifier")
         private val modifierThenIdentifier = Name.identifier("then")
@@ -137,7 +137,7 @@ internal class DefaultPluginContextUtils(
         private val navHostControllerIdentifier = Name.identifier("NavHostController")
         private val navHostCallName = FqName("androidx.navigation.compose.NavHost")
         private val datadogTrackEffectPackageName = FqName("com.datadog.android.compose")
-        private val datadogTrackEffectIdentifier = Name.identifier("NavigationViewTrackingEffect")
+        private val datadogTrackEffectIdentifier = Name.identifier("InstrumentedNavigationViewTrackingEffect")
         private val kotlinPackageName = FqName("kotlin")
         private val applyFunctionIdentifier = Name.identifier("apply")
         private val foundationPackageName = FqName("androidx.compose.foundation")

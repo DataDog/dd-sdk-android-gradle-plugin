@@ -4,6 +4,7 @@ import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import fr.xgouchet.elmyr.junit5.ForgeExtension
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -23,6 +24,7 @@ class SemanticsTest {
     val composeTestRule = createComposeRule()
 
     @Test
+    @Ignore("RUM-9513: This test will fail due to API change of SDK, Restore this test after the next release of SDK")
     fun `M have datadog semantics tag W modifier is absent`() {
         composeTestRule.setContent {
             ScreenWithoutModifier()
@@ -34,6 +36,7 @@ class SemanticsTest {
     }
 
     @Test
+    @Ignore("RUM-9513: This test will fail due to API change of SDK, Restore this test after the next release of SDK")
     fun `M have datadog semantics tag W modifier is default`() {
         composeTestRule.setContent {
             ScreenWithDefaultModifier()
@@ -45,6 +48,7 @@ class SemanticsTest {
     }
 
     @Test
+    @Ignore("RUM-9513: This test will fail due to API change of SDK, Restore this test after the next release of SDK")
     fun `M have datadog semantics tag W modifier is custom`() {
         composeTestRule.setContent {
             ScreenWithCustomModifier()
