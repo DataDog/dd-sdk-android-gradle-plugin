@@ -1,3 +1,24 @@
+# 1.16.0 / 2025-04-07
+
+* [IMPROVEMENT] Log message if there are no files to upload. See [#309](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/309)
+* [IMPROVEMENT] Escape user input for mapping file packages aliases. See [#325](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/325)
+* [IMPROVEMENT] Improve big mapping file handling in the shrinking process. See [#326](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/326)
+* [MAINTENANCE] Next dev iteration. See [#305](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/305)
+* [MAINTENANCE] Update version of Datadog Gradle Plugin used in samples to 1.15.0. See [#308](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/308)
+* [MAINTENANCE] Update Datadog SDK to 2.18.0. See [#310](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/310)
+* [MAINTENANCE] Update `github/codeql-action` to latest version. See [#312](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/312)
+* [MAINTENANCE] Overwrite `gradle.properties` with CI configs for test plugin task. See [#316](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/316)
+* [MAINTENANCE] Increase CI kubernetes memory limit to 20Gi to avoid OOM. See [#318](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/318)
+* [MAINTENANCE] Remove git fetch calls from jobs. See [#319](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/319)
+* [MAINTENANCE] Update AGP to 8.8.2. See [#320](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/320)
+* [MAINTENANCE] Update AGP to version 8.9.0. See [#324](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/324)
+* [MAINTENANCE] Update Datadog SDK to version 2.19.0. See [#327](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/327)
+* [MAINTENANCE] Update Datadog SDK to version 2.19.1. See [#333](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/333)
+* [MAINTENANCE] Bump Kotlin version to 2.0.21. See [#338](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/338)
+* [MAINTENANCE] Update Datadog SDK to version 2.19.2. See [#340](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/340)
+* [MAINTENANCE] Update `org.json:json` library version to 20231013. See [#347](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/347)
+* [DOCS] Add more configuration options to `README`. See [#349](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/349)
+
 # 1.15.0 / 2025-01-16
 
 * [FEATURE] Support custom native symbols path. See [#302](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/302)
