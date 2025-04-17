@@ -121,7 +121,7 @@ internal open class KotlinCompilerTest {
             import androidx.compose.ui.semantics.semantics
             import com.datadog.gradle.plugin.kcp.TestCallbackContainer
             
-            fun Modifier.datadog(name: String, isImageRole: Boolean = false): Modifier {
+            fun Modifier.instrumentedDatadog(name: String, isImageRole: Boolean = false): Modifier {
                 TestCallbackContainer.invokeCallback(isImageRole)
                 return this.semantics {
                     this.datadog = name
@@ -150,7 +150,7 @@ internal open class KotlinCompilerTest {
             
             
             @Composable
-            fun NavigationViewTrackingEffect(
+            fun InstrumentedNavigationViewTrackingEffect(
                 navController: NavController
             ) {
                 TestCallbackContainer.invokeCallback()
