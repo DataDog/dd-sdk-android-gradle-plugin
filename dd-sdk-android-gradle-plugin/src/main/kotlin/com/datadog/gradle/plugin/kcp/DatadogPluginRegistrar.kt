@@ -1,3 +1,5 @@
+@file:Suppress("Deprecation", "UnstableApiUsage")
+
 package com.datadog.gradle.plugin.kcp
 
 import com.datadog.gradle.plugin.InstrumentationMode
