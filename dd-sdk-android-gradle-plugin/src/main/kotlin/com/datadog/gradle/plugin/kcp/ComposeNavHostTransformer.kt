@@ -46,16 +46,16 @@ internal class ComposeNavHostTransformer(
     @Suppress("ReturnCount")
     fun initReferences(): Boolean {
         trackEffectFunctionSymbol = pluginContextUtils.getDatadogTrackEffectSymbol() ?: run {
-            error(ERROR_MISSING_DATADOG_COMPOSE_INTEGRATION)
+            warn(ERROR_MISSING_DATADOG_COMPOSE_INTEGRATION)
             return false
         }
 
         navHostControllerClassSymbol = pluginContextUtils.getNavHostControllerClassSymbol() ?: run {
-            error(ERROR_MISSING_COMPOSE_NAV)
+            warn(ERROR_MISSING_COMPOSE_NAV)
             return false
         }
         applyFunctionSymbol = pluginContextUtils.getApplySymbol() ?: run {
-            error(ERROR_MISSING_KOTLIN_STDLIB)
+            warn(ERROR_MISSING_KOTLIN_STDLIB)
             return false
         }
         return true
@@ -171,8 +171,8 @@ internal class ComposeNavHostTransformer(
 
     private fun isAnonymousFunction(name: Name): Boolean = name == SpecialNames.ANONYMOUS
 
-    private fun error(message: String) {
-        messageCollector.report(CompilerMessageSeverity.ERROR, message)
+    private fun warn(message: String) {
+        messageCollector.report(CompilerMessageSeverity.STRONG_WARNING, message)
     }
 
     companion object {
