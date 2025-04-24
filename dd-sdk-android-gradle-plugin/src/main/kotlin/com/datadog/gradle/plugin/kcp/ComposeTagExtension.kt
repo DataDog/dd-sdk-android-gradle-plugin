@@ -40,7 +40,7 @@ internal class ComposeTagExtension(
         if (composeTagTransformer.initReferences()) {
             moduleFragment.accept(composeTagTransformer, null)
         } else {
-            messageCollector.abortError()
+            messageCollector.warnDependenciesError()
         }
     }
 }

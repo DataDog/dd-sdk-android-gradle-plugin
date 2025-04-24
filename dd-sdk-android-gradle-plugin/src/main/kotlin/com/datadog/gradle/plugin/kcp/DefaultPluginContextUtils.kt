@@ -36,20 +36,20 @@ internal class DefaultPluginContextUtils(
     )
 
     override fun getModifierCompanionClass(): IrClassSymbol? {
-        return getModifierClassSymbol()?.owner?.companionObject()?.symbol ?: logNotFoundError(
+        return getModifierClassSymbol()?.owner?.companionObject()?.symbol ?: warnNotFound(
             MODIFIER_COMPANION_NAME
         )
     }
 
     override fun getModifierClassSymbol(): IrClassSymbol? {
         return pluginContext
-            .referenceClass(modifierClassId) ?: logNotFoundError(
+            .referenceClass(modifierClassId) ?: warnNotFound(
             modifierClassId.asString()
         )
     }
 
     override fun getDatadogModifierSymbol(): IrSimpleFunctionSymbol? {
-        return referenceSingleFunction(datadogModifierCallableId)
+        return referenceSingleFunction(datadogModifierCallableId, isCritical = true)
     }
 
     override fun getModifierThen(): IrSimpleFunctionSymbol? {
@@ -57,12 +57,12 @@ internal class DefaultPluginContextUtils(
     }
 
     override fun getDatadogTrackEffectSymbol(): IrSimpleFunctionSymbol? {
-        return referenceSingleFunction(datadogTrackEffectCallableId)
+        return referenceSingleFunction(datadogTrackEffectCallableId, isCritical = true)
     }
 
     override fun getNavHostControllerClassSymbol(): IrClassSymbol? {
         return pluginContext
-            .referenceClass(navHostControllerCallableId) ?: logNotFoundError(
+            .referenceClass(navHostControllerCallableId) ?: warnNotFound(
             navHostControllerCallableId.asString()
         )
     }
@@ -91,10 +91,10 @@ internal class DefaultPluginContextUtils(
         return owner.name == AsyncImageIdentifier && parent.packageFqName == coilPackageName
     }
 
-    override fun referenceSingleFunction(callableId: CallableId): IrSimpleFunctionSymbol? {
+    override fun referenceSingleFunction(callableId: CallableId, isCritical: Boolean): IrSimpleFunctionSymbol? {
         return pluginContext
             .referenceFunctions(callableId)
-            .singleOrNull() ?: logSingleMatchError(callableId.callableName.asString())
+            .singleOrNull() ?: logSingleMatchError(callableId.callableName.asString(), isCritical)
     }
 
     override fun isComposeInstrumentationTargetFunc(
@@ -107,13 +107,14 @@ internal class DefaultPluginContextUtils(
             )
     }
 
-    private fun <T> logSingleMatchError(target: String): T? {
-        messageCollector.report(CompilerMessageSeverity.ERROR, ERROR_SINGLE_MATCH.format(target))
+    private fun <T> logSingleMatchError(target: String, isCritical: Boolean): T? {
+        val level = if (isCritical) CompilerMessageSeverity.ERROR else CompilerMessageSeverity.STRONG_WARNING
+        messageCollector.report(level, ERROR_SINGLE_MATCH.format(target))
         return null
     }
 
-    private fun <T> logNotFoundError(target: String): T? {
-        messageCollector.report(CompilerMessageSeverity.ERROR, ERROR_NOT_FOUND.format(target))
+    private fun <T> warnNotFound(target: String): T? {
+        messageCollector.report(CompilerMessageSeverity.WARNING, ERROR_NOT_FOUND.format(target))
         return null
     }
 

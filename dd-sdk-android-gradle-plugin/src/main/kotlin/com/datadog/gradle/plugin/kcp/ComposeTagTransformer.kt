@@ -47,19 +47,19 @@ internal class ComposeTagTransformer(
     @Suppress("ReturnCount")
     fun initReferences(): Boolean {
         datadogTagFunctionSymbol = pluginContextUtils.getDatadogModifierSymbol() ?: run {
-            error(ERROR_MISSING_DATADOG_COMPOSE_INTEGRATION)
+            warn(ERROR_MISSING_DATADOG_COMPOSE_INTEGRATION)
             return false
         }
         modifierClass = pluginContextUtils.getModifierClassSymbol() ?: run {
-            error(ERROR_MISSING_COMPOSE_UI)
+            warn(ERROR_MISSING_COMPOSE_UI)
             return false
         }
         modifierThenSymbol = pluginContextUtils.getModifierThen() ?: run {
-            error(ERROR_MISSING_COMPOSE_UI)
+            warn(ERROR_MISSING_COMPOSE_UI)
             return false
         }
         modifierCompanionClassSymbol = pluginContextUtils.getModifierCompanionClass() ?: run {
-            error(ERROR_MISSING_COMPOSE_UI)
+            warn(ERROR_MISSING_COMPOSE_UI)
             return false
         }
         return true
@@ -200,8 +200,8 @@ internal class ComposeTagTransformer(
 
     private fun isAnonymousFunction(name: Name): Boolean = name == SpecialNames.ANONYMOUS
 
-    private fun error(message: String) {
-        messageCollector.report(CompilerMessageSeverity.ERROR, message)
+    private fun warn(message: String) {
+        messageCollector.report(CompilerMessageSeverity.STRONG_WARNING, message)
     }
 
     private companion object {

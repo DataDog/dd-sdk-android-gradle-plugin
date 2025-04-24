@@ -1,3 +1,5 @@
+@file:OptIn(UnsafeDuringIrConstructionAPI::class)
+
 package com.datadog.gradle.plugin.kcp
 
 import com.datadog.gradle.plugin.InstrumentationMode
@@ -6,12 +8,12 @@ import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
+import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 
 /**
  * The extension registers [ComposeNavHostTransformer] into the plugin.
  */
 @FirIncompatiblePluginAPI
-@Suppress("UnusedParameter")
 internal class ComposeNavHostExtension(
     private val messageCollector: MessageCollector,
     private val internalInstrumentationMode: InstrumentationMode
@@ -41,7 +43,7 @@ internal class ComposeNavHostExtension(
         if (composeNavHostTransformer.initReferences()) {
             moduleFragment.accept(composeNavHostTransformer, null)
         } else {
-            messageCollector.abortError()
+            messageCollector.warnDependenciesError()
         }
     }
 }
