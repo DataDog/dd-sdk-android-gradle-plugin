@@ -1,3 +1,78 @@
+# 1.17.0-rc1 / 2025-04-25
+
+* [FEATURE] Kotlin Compiler Plugin: Add 'kotlin compiler plugin environment'.
+  See [#314](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/314)
+* [CHORE] Merge 'develop' into 'feature/kotlin-compiler-plugin'.
+  See [#317](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/317)
+* [TEST] Kotlin Compiler Plugin: Add 'instrumented test module'.
+  See [#315](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/315)
+* [FEATURE] Compose Instrumentation: Add 'ComposeTagTransformer' to inject 'datadog' modifier call.
+  See [#321](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/321)
+* [FEATURE] Kotlin Compiler Plugin: Register plugin to 'Kotlin compile options'.
+  See [#322](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/322)
+* [TEST] Kotlin Compiler Plugin: Add compilation unit test for modifier injection.
+  See [#323](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/323)
+* [TEST] Kotlin Compiler Plugin: Setup compiling test for 'NavHost' injection.
+  See [#328](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/328)
+* [FEATURE] Compose Instrumentation: Implement 'NavHost' instrumentation transformer.
+  See [#329](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/329)
+* [FEATURE] Kotlin Compiler Plugin: Implement DSL configuration.
+  See [#330](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/330)
+* [REFACTOR] Compose Instrumentation: Separate 'compose extension' to register respectively.
+  See [#332](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/332)
+* [FIX] CI: Fix 'gitlab-ci instrumented task'.
+  See [#331](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/331)
+* [FEATURE] Compose Semantics: Add 'semantics role' for 'Image', 'Icon', and 'AsyncImage'.
+  See [#334](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/334)
+* [FIX] Kotlin Compiler Plugin: Filter out 'ksp' and 'KaptGenerateStubsTask' from '
+  freeCompilerArgs'. See [#335](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/335)
+* [FEATURE] Compose Instrumentation: Use 'composable function name' as the semantics tag.
+  See [#337](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/337)
+* [BUILD] Kotlin: Bump version and embeddable to '2.0.21'.
+  See [#339](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/339)
+* [CHORE] Merge 'develop' into 'feature/kotlin-compiler-plugin'.
+  See [#336](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/336)
+* [TEST] Compose Instrumentation: Add instrumented test for view tracking.
+  See [#341](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/341)
+* [FEATURE] Kotlin Compiler Plugin: Implement 'annotation mode' for instrumentation.
+  See [#342](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/342)
+* [REFACTOR] Kotlin Compiler Plugin: Update package name of 'instrumentation API'.
+  See [#343](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/343)
+* [IMPROVEMENT] Kotlin Compiler Plugin: Enhance binary backward compatibility.
+  See [#345](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/345)
+* [CHORE] Dev: Start next development iteration.
+  See [#351](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/351)
+* [RELEASE] Datadog Gradle Plugin: Update to version '1.16.0'.
+  See [#354](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/354)
+* [CHORE] Merge 'release/1.16.0' into 'develop'.
+  See [#353](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/353)
+* [FIX] Compose Instrumentation: Fix tag injection when 'Modifier' is absent.
+  See [#357](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/357)
+* [CHORE] Merge 'develop' into 'feature/kotlin-compiler-plugin'.
+  See [#355](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/355)
+* [REFACTOR] Compose Instrumentation: Merge configuration into one.
+  See [#358](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/358)
+* [FIX] Kotlin Compiler Plugin: Do not show 'android project error' if KCP is enabled.
+  See [#359](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/359)
+* [FIX] CI: Fix instrumented test task timeout issue.
+  See [#362](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/362)
+* [IMPROVEMENT] Kotlin Compiler Plugin: Add precise error message for missing dependencies.
+  See [#361](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/361)
+* [CI] CodeQL: Update Ubuntu version from '20.04' to 'latest'.
+  See [#364](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/364)
+* [CHORE] Merge 'develop' into 'feature/kotlin-compiler-plugin'.
+  See [#365](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/365)
+* [REFACTOR] Compose Instrumentation: Update function references.
+  See [#363](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/363)
+* [CHORE] Merge 'feature/kotlin-compiler-plugin' into 'develop'.
+  See [#360](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/360)
+* [CI] Publishing: Start to publish SNAPSHOT from 'develop' branch.
+  See [#366](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/366)
+* [FIX] Build: Use Sonatype snapshot URL and fix compile warnings.
+  See [#367](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/367)
+  *[IMPROVEMENT] Error Handling: Only warn missing dependencies instead of throwing errors.
+  See [#368](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/368)
+
 # 1.16.0 / 2025-04-07
 
 * [IMPROVEMENT] Log message if there are no files to upload. See [#309](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/309)
