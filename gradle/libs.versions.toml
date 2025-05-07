@@ -43,6 +43,7 @@ kotlinGrammarParser = "c35b50fa44"
 
 # Datadog
 datadogSdk = "2.21.0"
+datadogSdkSnapshot = "2.22.0-SNAPSHOT"
 datadogPluginGradle = "1.16.0"
 
 # Kotlin Compiler Plugin
@@ -106,6 +107,10 @@ fuzzyWuzzy = { module = "me.xdrop:fuzzywuzzy", version.ref = "fuzzyWuzzy" }
 datadogSdkRum = { module = "com.datadoghq:dd-sdk-android-rum", version.ref = "datadogSdk" }
 datadogSdkCompose = { module = "com.datadoghq:dd-sdk-android-compose", version.ref = "datadogSdk" }
 datadogPluginGradle = { module = "com.datadoghq:dd-sdk-android-gradle-plugin", version.ref = "datadogPluginGradle" }
+
+# Datadog Snapshot
+datadogSdkRumSnapshot = { module = "com.datadoghq:dd-sdk-android-rum", version.ref = "datadogSdkSnapshot" }
+datadogSdkComposeSnapshot = { module = "com.datadoghq:dd-sdk-android-compose", version.ref = "datadogSdkSnapshot" }
 
 # Kotlin Compiler Plugin
 kotlinCompilerEmbeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlinCompilerEmbeddable" }
