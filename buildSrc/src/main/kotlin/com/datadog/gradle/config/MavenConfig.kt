@@ -18,7 +18,7 @@ import java.net.URI
 
 object MavenConfig {
 
-    val VERSION = Version(1, 17, 0, Version.Type.ReleaseCandidate(1))
+    val VERSION = Version(1, 17, 0, Version.Type.Release)
     const val GROUP_ID = "com.datadoghq"
     const val PUBLICATION = "pluginMaven"
 }
