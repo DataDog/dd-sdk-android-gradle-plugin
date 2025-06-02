@@ -54,8 +54,7 @@ android {
 tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions {
         freeCompilerArgs += listOf(
-            // RUM-9513: This KCP is disabled due to API change of SDK, Restore this test after the next release of SDK
-            "-P", "plugin:com.datadoghq.kotlin.compiler:INSTRUMENTATION_MODE=DISABLE"
+            "-P", "plugin:com.datadoghq.kotlin.compiler:INSTRUMENTATION_MODE=AUTO"
         )
     }
 }
@@ -68,7 +67,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.datadogSdkCompose)
+    implementation(libs.datadogSdkComposeSnapshot)
     implementation(libs.androidx.compose.navigation)
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
@@ -81,8 +80,7 @@ dependencies {
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     androidTestImplementation(libs.androidx.compose.navigation)
-    androidTestImplementation(libs.datadogSdkCompose)
-    androidTestImplementation(libs.datadogSdkRum)
+    androidTestImplementation(libs.datadogSdkRumSnapshot)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 }
