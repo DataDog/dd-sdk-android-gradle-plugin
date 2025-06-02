@@ -1,3 +1,10 @@
+# 1.17.0 / 2025-06-02
+
+* [MAINTENANCE] Update Datadog SDK to 2.22.0.
+  See [#376](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/376)
+* [MAINTENANCE] Use SDK snapshot version for instrumented test.
+  See [#372](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/372)
+
 # 1.17.0-rc1 / 2025-04-28
 
 * [FEATURE] Add Kotlin Compiler Plugin environment.
