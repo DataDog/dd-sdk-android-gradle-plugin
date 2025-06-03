@@ -18,7 +18,7 @@ import java.net.URI
 
 object MavenConfig {
 
-    val VERSION = Version(1, 16, 0, Version.Type.Release)
+    val VERSION = Version(1, 17, 0, Version.Type.Release)
     const val GROUP_ID = "com.datadoghq"
     const val PUBLICATION = "pluginMaven"
 }
@@ -56,7 +56,9 @@ fun Project.publishingConfig(projectDescription: String) {
 
         publishingExtension.apply {
             repositories.maven {
-                url = URI("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+                val releaseUrl = URI("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+                val snapshotUrl = URI("https://oss.sonatype.org/content/repositories/snapshots/")
+                url = if (version.toString().endsWith(Version.Type.Snapshot.suffix)) snapshotUrl else releaseUrl
                 val username = System.getenv("OSSRH_USERNAME")
                 val password = System.getenv("OSSRH_PASSWORD")
                 if ((!username.isNullOrEmpty()) && (!password.isNullOrEmpty())) {

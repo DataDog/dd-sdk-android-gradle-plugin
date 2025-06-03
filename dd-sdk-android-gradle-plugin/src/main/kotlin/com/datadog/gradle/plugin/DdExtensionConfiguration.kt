@@ -111,6 +111,13 @@ open class DdExtensionConfiguration(
      */
     var additionalSymbolFilesLocations: List<String>? = null
 
+    /**
+     * This function allow to register the instrumentation mode for Jetpack Compose RUM views tracking, actions tracking
+     * and images recording. If the `composeInstrumentation` is not set, the instrumentation mode will be
+     * [InstrumentationMode.DISABLE] by default.
+     */
+    var composeInstrumentation: InstrumentationMode = InstrumentationMode.DISABLE
+
     internal fun updateWith(config: DdExtensionConfiguration) {
         config.versionName?.let { versionName = it }
         config.serviceName?.let { serviceName = it }
@@ -123,5 +130,6 @@ open class DdExtensionConfiguration(
         mappingFileTrimIndents = config.mappingFileTrimIndents
         ignoreDatadogCiFileConfig = config.ignoreDatadogCiFileConfig
         nonDefaultObfuscation = config.nonDefaultObfuscation
+        composeInstrumentation = config.composeInstrumentation
     }
 }
