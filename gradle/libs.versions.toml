@@ -44,7 +44,7 @@ kotlinGrammarParser = "c35b50fa44"
 # Datadog
 datadogSdk = "2.22.0"
 datadogSdkSnapshot = "2.22.0-SNAPSHOT"
-datadogPluginGradle = "1.16.0"
+datadogPluginGradle = "1.17.0"
 
 # Kotlin Compiler Plugin
 kotlinCompilerEmbeddable = "2.0.21"
