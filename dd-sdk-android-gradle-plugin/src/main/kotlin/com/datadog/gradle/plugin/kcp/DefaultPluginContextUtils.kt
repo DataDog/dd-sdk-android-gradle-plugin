@@ -84,7 +84,8 @@ internal class DefaultPluginContextUtils(
     }
 
     override fun isMaterialIcon(owner: IrFunction, parent: IrPackageFragment): Boolean {
-        return owner.name == IconIdentifier && parent.packageFqName == materialPackageName
+        return owner.name == IconIdentifier &&
+            (parent.packageFqName == materialPackageName || parent.packageFqName == material3PackageName)
     }
 
     override fun isCoilAsyncImage(owner: IrFunction, parent: IrPackageFragment): Boolean {
@@ -146,6 +147,7 @@ internal class DefaultPluginContextUtils(
         private val foundationPackageName = FqName("androidx.compose.foundation")
         private val ImageIdentifier = Name.identifier("Image")
         private val materialPackageName = FqName("androidx.compose.material")
+        private val material3PackageName = FqName("androidx.compose.material3")
         private val IconIdentifier = Name.identifier("Icon")
         private val coilPackageName = FqName("coil.compose")
         private val AsyncImageIdentifier = Name.identifier("AsyncImage")
