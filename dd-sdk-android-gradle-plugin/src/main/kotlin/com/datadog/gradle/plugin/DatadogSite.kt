@@ -56,6 +56,11 @@ enum class DatadogSite(internal val domain: String) {
     AP1("ap1.datadoghq.com"),
 
     /**
+     *  The AP2 site: [ap2.datadoghq.com](https://ap2.datadoghq.com).
+     */
+    AP2("ap2.datadoghq.com"),
+
+    /**
      *  The STAGING site (internal usage only): [app.datad0g.com](https://app.datad0g.com).
      */
     STAGING("datad0g.com");
