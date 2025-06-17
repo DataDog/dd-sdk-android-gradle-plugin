@@ -1,29 +1,8 @@
 include:
   - 'https://gitlab-templates.ddbuild.io/slack-notifier/v1/template.yml'
+  - 'ci/pipelines/common-snippets.yml'
 
 # SETUP
-
-variables:
-  CURRENT_CI_IMAGE: "10"
-  CI_IMAGE_DOCKER: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/dd-sdk-android-gradle-plugin:$CURRENT_CI_IMAGE
-  GIT_DEPTH: 5
-
-  DD_SERVICE: "dd-sdk-android-gradle-plugin"
-  DD_ENV_TESTS: "ci"
-  DD_INTEGRATION_JUNIT_5_ENABLED: "true"
-  DD_CIVISIBILITY_ENABLED: "true"
-  DD_INSIDE_CI: "true"
-  DD_COMMON_AGENT_CONFIG: "dd.env=ci,dd.trace.enabled=false,dd.jmx.fetch.enabled=false"
-
-  EMULATOR_NAME: "android_emulator"
-  ANDROID_ARCH: "arm64-v8a"
-  ANDROID_API: "35"
-  ANDROID_EMULATOR_IMAGE: "system-images;android-$ANDROID_API;google_apis;${ANDROID_ARCH}"
-  ANDROID_PLATFORM: "platforms;android-$ANDROID_API"
-  ANDROID_BUILD_TOOLS: "build-tools;$ANDROID_API.0.0"
-
-  KUBERNETES_MEMORY_REQUEST: "8Gi"
-  KUBERNETES_MEMORY_LIMIT: "20Gi"
 
 stages:
   - ci-image
@@ -72,7 +51,7 @@ ci-image:
   tags: [ "arch:amd64" ]
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/docker:24.0.4-gbi-focal
   script:
-    - docker buildx build --tag $CI_IMAGE_DOCKER -f Dockerfile.gitlab --push .
+    - docker buildx build --tag $CI_IMAGE_DOCKER -f ./ci/Dockerfile.gitlab --push .
 
 # SECURITY
 
@@ -129,7 +108,7 @@ test:plugin:
     - CODECOV_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android-gradle-plugin.codecov-token --with-decryption --query "Parameter.Value" --out text)
     - export DD_AGENT_HOST="$BUILDENV_HOST_IP"
     - GRADLE_OPTS="-Xmx2560m" DD_TAGS="test.module:dd-sdk-android-gradle-plugin" ./gradlew :dd-sdk-android-gradle-plugin:test --stacktrace --no-daemon -Dorg.gradle.jvmargs=-javaagent:$(pwd)/libs/dd-java-agent-1.26.1.jar=$DD_COMMON_AGENT_CONFIG
-    - bash <(cat ./codecov.sh) -t $CODECOV_TOKEN
+    - bash <(cat ./ci/scripts/codecov.sh) -t $CODECOV_TOKEN
   artifacts:
     reports:
       junit: dd-sdk-android-gradle-plugin/build/test-results/test/TEST-*.xml
@@ -229,10 +208,9 @@ notify:dogfood-app:
   stage: notify
   when: on_success
   script:
+    - !reference [ .common-snippets, set-github-installation-token ]
     - pip3 install GitPython requests
-    # reuse service account
-    - aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android-gradle-plugin.gh_token --with-decryption --query "Parameter.Value" --out text >> ./gh_token
-    - python3 dogfood.py -v $CI_COMMIT_TAG -t app
+    - python3 ./ci/scripts/dogfood.py -v $CI_COMMIT_TAG -t app
 
 notify:dogfood-demo:
   tags: [ "arch:amd64" ]
@@ -242,10 +220,9 @@ notify:dogfood-demo:
   stage: notify
   when: on_success
   script:
+    - !reference [ .common-snippets, set-github-installation-token ]
     - pip3 install GitPython requests
-    # reuse service account
-    - aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android-gradle-plugin.gh_token --with-decryption --query "Parameter.Value" --out text >> ./gh_token
-    - python3 dogfood.py -v $CI_COMMIT_TAG -t demo
+    - python3 ./ci/scripts/dogfood.py -v $CI_COMMIT_TAG -t demo
 
 notify:dogfood-gradle-plugin:
   tags: [ "arch:amd64" ]
@@ -255,7 +232,6 @@ notify:dogfood-gradle-plugin:
   stage: notify
   when: on_success
   script:
+    - !reference [ .common-snippets, set-github-installation-token ]
     - pip3 install GitPython requests
-    # reuse service account
-    - aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android-gradle-plugin.gh_token --with-decryption --query "Parameter.Value" --out text >> ./gh_token
-    - python3 dogfood.py -v $CI_COMMIT_TAG -t gradle-plugin
+    - python3 ./ci/scripts/dogfood.py -v $CI_COMMIT_TAG -t gradle-plugin

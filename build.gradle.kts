@@ -36,3 +36,21 @@ task<Delete>("clean") {
 
 // Empty task defined by one of our CI pipeline which does not apply here.
 tasks.register("checkGeneratedFiles") {}
+
+tasks.register("listAllPublishedArtifactIds") {
+    doLast {
+        val artifactIds = rootProject.subprojects.flatMap { subproject ->
+            val publishing = subproject.extensions.findByType<PublishingExtension>()
+            publishing?.publications?.mapNotNull { publication ->
+                if (publication is MavenPublication) {
+                    publication.artifactId
+                } else {
+                    null
+                }
+            }.orEmpty()
+        }
+        artifactIds.forEach {
+            println(it)
+        }
+    }
+}
