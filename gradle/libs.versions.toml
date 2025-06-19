@@ -42,7 +42,7 @@ versionsPluginGradle = "0.33.0"
 kotlinGrammarParser = "c35b50fa44"
 
 # Datadog
-datadogSdk = "2.22.0"
+datadogSdk = "3.12.0"
 datadogSdkSnapshot = "2.22.0-SNAPSHOT"
 datadogPluginGradle = "1.17.0"
 
