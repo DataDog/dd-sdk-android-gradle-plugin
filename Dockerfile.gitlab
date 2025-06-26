@@ -95,3 +95,5 @@ RUN curl -L https://github.com/get-woke/woke/releases/download/v${WOKE_VERSION}/
  && tar -xf woke-linux-amd64.tar.gz \
  && mv woke-${WOKE_VERSION}-linux-amd64/woke /usr/bin/woke \
  && rm -Rf woke-${WOKE_VERSION}-linux-amd64 woke-${WOKE_VERSION}-linux-amd64.tar.gz
+
+COPY --from=registry.ddbuild.io/dd-octo-sts:v1.8.2 /usr/local/bin/dd-octo-sts /usr/local/bin/dd-octo-sts
