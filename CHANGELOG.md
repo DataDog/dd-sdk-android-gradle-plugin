@@ -1,3 +1,17 @@
+# 1.18.0 / 2025-06-30
+
+* [FEATURE] Add `AP2` datacenter support. See [#385](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/385)
+* [IMPROVEMENT] Support Material 3 Icon in Kotlin Compiler Plugin. See [#384](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/384)
+* [MAINTENANCE] Next dev iteration. See [#379](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/379)
+* [MAINTENANCE] Update Datadog Gradle Plugin to version 1.17.0. See [#378](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/378)
+* [MAINTENANCE] Allow PR creation by `dd-sdk-android` repository using `octo-sts`. See [#387](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/387)
+* [MAINTENANCE] Allow content write for `dd-sdk-android`. See [#388](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/388)
+* [MAINTENANCE] Update Datadog SDK version to 2.23.0. See [#391](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/391)
+* [MAINTENANCE] Use tag in `octo-sts-subject-pattern`. See [#392](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/392)
+* [MAINTENANCE] Update base Docker image to Ubuntu Jammy. See [#394](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/394)
+* [MAINTENANCE] Update latest build tooling versions config for the functional test. See [#395](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/395)
+* [MAINTENANCE] Add `dd-octo-sts` to Docker image and add policy YAMLs. See [#396](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/396)
+
 # 1.17.0 / 2025-06-02
 
 * [MAINTENANCE] Update Datadog SDK to 2.22.0.
