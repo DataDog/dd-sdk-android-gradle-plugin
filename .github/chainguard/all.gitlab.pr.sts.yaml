@@ -1,0 +1,7 @@
+issuer: https://gitlab.ddbuild.io
+
+subject_pattern: "project_path:DataDog/(dd-sdk-android|dd-sdk-android-gradle-plugin):ref_type:tag:ref:.*"
+
+permissions:
+  contents: write
+  pull_requests: write
