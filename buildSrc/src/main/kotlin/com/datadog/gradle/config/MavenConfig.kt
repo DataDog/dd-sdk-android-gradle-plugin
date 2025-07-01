@@ -45,7 +45,7 @@ fun Project.publishingConfig(projectDescription: String) {
             group = "publishing"
             dependsOn("dokkaJavadoc")
             archiveClassifier.convention("javadoc")
-            from("${buildDir.canonicalPath}/reports/javadoc")
+            from("${layout.buildDirectory.dir("/reports/javadoc")}")
         }
 
         val publishingExtension = extensions.findByType(PublishingExtension::class)
@@ -56,11 +56,15 @@ fun Project.publishingConfig(projectDescription: String) {
 
         publishingExtension.apply {
             repositories.maven {
-                val releaseUrl = URI("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
-                val snapshotUrl = URI("https://oss.sonatype.org/content/repositories/snapshots/")
+                // see https://github.com/gradle-nexus/publish-plugin#publishing-to-maven-central-via-sonatype-central
+                // For official documentation:
+                // staging repo publishing https://central.sonatype.org/publish/publish-portal-ossrh-staging-api/#configuration
+                // snapshot publishing https://central.sonatype.org/publish/publish-portal-snapshots/#publishing-via-other-methods
+                val releaseUrl = URI("https://ossrh-staging-api.central.sonatype.com/service/local/")
+                val snapshotUrl = URI("https://central.sonatype.com/repository/maven-snapshots/")
                 url = if (version.toString().endsWith(Version.Type.Snapshot.suffix)) snapshotUrl else releaseUrl
-                val username = System.getenv("OSSRH_USERNAME")
-                val password = System.getenv("OSSRH_PASSWORD")
+                val username = System.getenv("CENTRAL_PUBLISHER_USERNAME")
+                val password = System.getenv("CENTRAL_PUBLISHER_PASSWORD")
                 if ((!username.isNullOrEmpty()) && (!password.isNullOrEmpty())) {
                     credentials(PasswordCredentials::class.java) {
                         setUsername(username)
