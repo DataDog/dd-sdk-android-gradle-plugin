@@ -21,8 +21,9 @@ plugins {
     // Publish
     `maven-publish`
     signing
-    id("org.jetbrains.dokka")
-    id("com.gradle.plugin-publish") version "1.1.0"
+    id("org.jetbrains.dokka-javadoc")
+    alias(libs.plugins.gradlePluginPublish)
+    id("com.vanniktech.maven.publish.base")
 
     // Analysis tools
     id("com.github.ben-manes.versions")

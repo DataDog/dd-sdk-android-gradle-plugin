@@ -13,6 +13,7 @@ import org.gradle.testing.jacoco.plugins.JacocoPluginExtension
 import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification
 import org.gradle.testing.jacoco.tasks.JacocoReport
 import java.math.BigDecimal
+import java.nio.file.Paths
 
 fun Project.jacocoConfig() {
     val jacocoTestReport = tasks.getByName("jacocoTestReport", JacocoReport::class)
@@ -43,7 +44,11 @@ fun Project.jacocoConfig() {
 
         val mainSrc = "${project.projectDir}/src/main/kotlin"
 
-        task.executionData.setFrom(files("${buildDir.path}/jacoco/test.exec"))
+        task.executionData.setFrom(
+            layout.buildDirectory.files(
+                Paths.get("jacoco", "test.exec")
+            )
+        )
         task.sourceDirectories.setFrom(files(mainSrc))
     }
     jacocoTestReport.dependsOn("test")
