@@ -35,6 +35,7 @@ dependencies {
     implementation(libs.versionsPluginGradle)
     implementation(libs.fuzzyWuzzy)
     implementation(libs.dokkaPluginGradle)
+    implementation(libs.mavenPublishPlugin)
 
     // Tests
     testImplementation(libs.jUnit4)
