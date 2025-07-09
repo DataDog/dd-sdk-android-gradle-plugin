@@ -26,7 +26,7 @@ allprojects {
         google()
         mavenCentral()
         maven { setUrl(com.datadog.gradle.Dependencies.Repositories.Jitpack) }
-        maven("https://oss.sonatype.org/content/repositories/snapshots/")
+        maven("https://central.sonatype.com/repository/maven-snapshots/")
     }
 }
 
