@@ -373,7 +373,7 @@ class DdAndroidGradlePlugin @Inject constructor(
         return configuration
     }
 
-    @Suppress("ReturnCount")
+    @Suppress("ReturnCount", "DEPRECATION_ERROR")
     private fun configureKotlinCompilerPlugin(project: Project, ddExtension: DdExtension): Boolean {
         val pluginJarPath = try {
             val codeSource = this::class.java.protectionDomain?.codeSource
@@ -401,6 +401,9 @@ class DdAndroidGradlePlugin @Inject constructor(
         }
         val composeInstrumentation = ddExtension.composeInstrumentation
         project.tasks.configureKotlinCompile {
+            // Currently the non-deprecated way to add compiler plugin arguments is not working.
+            // Track how compose compiler remove the deprecation in the future:
+            // https://cs.android.com/android-studio/platform/tools/base/+/mirror-goog-studio-main:build-system/gradle-core/src/main/java/com/android/build/gradle/internal/utils/kgpUtils.kt;l=317?q=addComposeArgsToKotlinCompile
             kotlinOptions.freeCompilerArgs += listOf(
                 "-Xplugin=$pluginJarPath",
                 "-P",

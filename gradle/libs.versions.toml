@@ -1,8 +1,8 @@
 [versions]
 
 # Commons
-kotlin = "2.0.21"
-kotlinComposePlugin = "2.0.21"
+kotlin = "2.2.0"
+kotlinComposePlugin = "2.2.0"
 json = "20231013"
 okHttp = "4.12.0"
 composeBom = "2024.04.01"
@@ -10,7 +10,7 @@ activityCompose = "1.9.3"
 androidXComposeNavigation = "2.8.8"
 
 # Android
-androidToolsPlugin = "8.9.0"
+androidToolsPlugin = "8.11.1"
 
 # AndroidX
 androidx-core = "1.3.2"
@@ -47,8 +47,8 @@ datadogSdkSnapshot = "2.24.0-SNAPSHOT"
 datadogPluginGradle = "1.18.0"
 
 # Kotlin Compiler Plugin
-kotlinCompilerEmbeddable = "2.0.21"
-kotlinCompilerTesting = "0.7.0"
+kotlinCompilerEmbeddable = "2.2.0"
+kotlinCompilerTesting = "0.8.0"
 autoService = "1.0.1"
 junitVersion = "1.2.1"
 espressoCoreVersion = "3.6.1"

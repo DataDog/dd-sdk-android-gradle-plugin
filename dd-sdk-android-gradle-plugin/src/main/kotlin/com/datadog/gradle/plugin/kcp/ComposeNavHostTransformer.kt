@@ -1,5 +1,6 @@
 package com.datadog.gradle.plugin.kcp
 
+import org.jetbrains.kotlin.DeprecatedForRemovalCompilerApi
 import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
@@ -11,6 +12,7 @@ import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationParent
 import org.jetbrains.kotlin.ir.declarations.IrFunction
+import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
@@ -24,6 +26,7 @@ import org.jetbrains.kotlin.ir.util.dumpKotlinLike
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.name.SpecialNames
 
+@OptIn(DeprecatedForRemovalCompilerApi::class)
 @UnsafeDuringIrConstructionAPI
 internal class ComposeNavHostTransformer(
     private val messageCollector: MessageCollector,
@@ -96,14 +99,16 @@ internal class ComposeNavHostTransformer(
         val irSimpleFunction = expression.symbol.owner
         if (pluginContextUtils.isNavHostCall(irSimpleFunction)) {
             expression.logExpressionBeforeTransformation()
-            irSimpleFunction.valueParameters.forEachIndexed { index, irValueParameter ->
-                if (irValueParameter.type.getClass()?.symbol == navHostControllerClassSymbol) {
-                    expression.getValueArgument(index)?.let { argument ->
-                        val irExpression = appendTrackingEffect(argument, builder)
-                        expression.putValueArgument(index, irExpression)
+            irSimpleFunction.symbol.owner.parameters
+                .filter { it.kind == IrParameterKind.Regular || it.kind == IrParameterKind.Context }
+                .forEachIndexed { index, irValueParameter ->
+                    if (irValueParameter.type.getClass()?.symbol == navHostControllerClassSymbol) {
+                        expression.getValueArgument(index)?.let { argument ->
+                            val irExpression = appendTrackingEffect(argument, builder)
+                            expression.putValueArgument(index, irExpression)
+                        }
                     }
                 }
-            }
             expression.logExpressionAfterTransformation()
         }
         return super.visitCall(expression)
@@ -119,10 +124,13 @@ internal class ComposeNavHostTransformer(
         )
 
         // Assign expression return type to `apply{}` -> `apply<NavHostController>{}`
-        applyIrCall.putTypeArgument(0, expression.type)
+        applyIrCall.typeArguments[0] = expression.type
 
         // Assign expression as the dispatch receiver of `apply{ }` -> `navHost.apply<NavHostController>{ }`
-        applyIrCall.extensionReceiver = expression
+        applyIrCall.arguments[
+            applyIrCall.symbol.owner.parameters
+                .indexOfFirst { it.kind == IrParameterKind.ExtensionReceiver }
+        ] = expression
 
         // Build NavigationViewTrackingEffect function call
         val trackEffectCall: IrCall = builder.irCall(trackEffectFunctionSymbol)
@@ -134,8 +142,8 @@ internal class ComposeNavHostTransformer(
             trackEffectCall
         )
 
-        lambda.function.extensionReceiverParameter?.let {
-            trackEffectCall.putValueArgument(0, builder.irGet(it))
+        lambda.function.parameters.firstOrNull { it.kind == IrParameterKind.ExtensionReceiver }?.let {
+            trackEffectCall.arguments[0] = builder.irGet(it)
         }
 
         // Set the lambda as the argument of `apply` call

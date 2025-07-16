@@ -1,5 +1,6 @@
 package com.datadog.gradle.plugin.kcp
 
+import org.jetbrains.kotlin.DeprecatedForRemovalCompilerApi
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.DescriptorVisibility
@@ -8,6 +9,7 @@ import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOriginImpl
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationParent
+import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.impl.IrFactoryImpl
 import org.jetbrains.kotlin.ir.expressions.IrBody
@@ -16,6 +18,7 @@ import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.expressions.IrStatementOriginImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrFunctionExpressionImpl
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
+import org.jetbrains.kotlin.ir.symbols.IrValueParameterSymbol
 import org.jetbrains.kotlin.ir.symbols.impl.IrSimpleFunctionSymbolImpl
 import org.jetbrains.kotlin.ir.symbols.impl.IrValueParameterSymbolImpl
 import org.jetbrains.kotlin.ir.types.IrType
@@ -29,14 +32,15 @@ import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.primaryConstructor
 
 // Builds Lambda of (T.() -> Unit)
+@OptIn(DeprecatedForRemovalCompilerApi::class)
 internal fun IrPluginContext.irUnitLambdaExpression(
     body: IrBody,
     irDeclarationParent: IrDeclarationParent?,
     receiverType: IrType
 ): IrFunctionExpression {
     return buildCompatIrFunctionExpression(
-        symbols.irBuiltIns.functionN(0).defaultType,
-        irSimpleFunction(
+        type = symbols.irBuiltIns.functionN(0).defaultType,
+        function = irSimpleFunction(
             name = SpecialNames.ANONYMOUS,
             visibility = DescriptorVisibilities.LOCAL,
             returnType = symbols.unit.defaultType,
@@ -47,18 +51,18 @@ internal fun IrPluginContext.irUnitLambdaExpression(
                 this.parent = irDeclarationParent
             }
             this.extensionReceiverParameter = IrFactoryImpl.createValueParameter(
-                startOffset,
-                endOffset,
-                getCompatDefinedOrigin(),
-                symbol = getCompatValueParameterSymbolImpl(),
+                startOffset = startOffset,
+                endOffset = endOffset,
+                origin = getCompatDefinedOrigin(),
+                kind = IrParameterKind.ExtensionReceiver,
                 name = Name.identifier("receiver"),
-                index = -1,
                 type = receiverType,
+                isAssignable = false,
+                symbol = getCompatValueParameterSymbolImpl(),
                 varargElementType = null,
                 isCrossinline = false,
                 isNoinline = false,
-                isHidden = false,
-                isAssignable = false
+                isHidden = false
             ).apply {
                 irDeclarationParent?.let {
                     this.parent = irDeclarationParent
@@ -156,7 +160,7 @@ private fun getCompatSimpleFunctionSymbol(): IrSimpleFunctionSymbol {
     return IrSimpleFunctionSymbolImpl::class.createInstance()
 }
 
-private fun getCompatValueParameterSymbolImpl(): IrValueParameterSymbolImpl {
+private fun getCompatValueParameterSymbolImpl(): IrValueParameterSymbol {
     return IrValueParameterSymbolImpl::class.createInstance()
 }
 

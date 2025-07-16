@@ -1,5 +1,7 @@
+
 package com.datadog.gradle.plugin.kcp
 
+import org.jetbrains.kotlin.DeprecatedForRemovalCompilerApi
 import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
@@ -13,12 +15,14 @@ import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrPackageFragment
+import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrComposite
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
+import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.classFqName
 import org.jetbrains.kotlin.ir.types.createType
 import org.jetbrains.kotlin.ir.types.defaultType
@@ -27,6 +31,7 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.name.SpecialNames
 
+@OptIn(DeprecatedForRemovalCompilerApi::class, UnsafeDuringIrConstructionAPI::class)
 internal class ComposeTagTransformer(
     private val messageCollector: MessageCollector,
     private val pluginContext: IrPluginContext,
@@ -91,6 +96,7 @@ internal class ComposeTagTransformer(
         return super.visitFunctionExpression(expression)
     }
 
+    @OptIn(UnsafeDuringIrConstructionAPI::class)
     @Suppress("ReturnCount")
     override fun visitCall(expression: IrCall): IrExpression {
         val builder = visitedBuilders.lastOrNull() ?: return super.visitCall(
@@ -101,18 +107,20 @@ internal class ComposeTagTransformer(
         if (dispatchReceiver is IrCall) {
             return super.visitCall(expression)
         }
-        expression.symbol.owner.valueParameters.forEachIndexed { index, irValueParameter ->
-            // Locate where Modifier is accepted in the parameter list and replace it with the new expression.
-            if (irValueParameter.type.classFqName == modifierClassFqName) {
-                val irExpression = buildIrExpression(
-                    expression = expression.getValueArgument(index),
-                    builder = builder,
-                    functionName = expression.symbol.owner.name.asString(),
-                    isImageComposableFunction = isImageComposableFunction(expression)
-                )
-                expression.putValueArgument(index, irExpression)
+        expression.symbol.owner.parameters
+            .filter { it.kind == IrParameterKind.Regular || it.kind == IrParameterKind.Context }
+            .forEachIndexed { index, irValueParameter ->
+                // Locate where Modifier is accepted in the parameter list and replace it with the new expression.
+                if (irValueParameter.type.classFqName == modifierClassFqName) {
+                    val irExpression = buildIrExpression(
+                        expression = expression.getValueArgument(index),
+                        builder = builder,
+                        functionName = expression.symbol.owner.name.asString(),
+                        isImageComposableFunction = isImageComposableFunction(expression)
+                    )
+                    expression.putValueArgument(index, irExpression)
+                }
             }
-        }
         return super.visitCall(expression)
     }
 
@@ -184,8 +192,12 @@ internal class ComposeTagTransformer(
             datadogTagFunctionSymbol,
             modifierClass.defaultType
         ).also {
-            // Modifier
-            it.extensionReceiver = builder.irGetObjectValue(
+            // ExtensionReceiver argument
+            it.arguments[
+                it.symbol.owner.parameters.indexOfFirst { argument ->
+                    argument.kind == IrParameterKind.ExtensionReceiver
+                }
+            ] = builder.irGetObjectValue(
                 type = modifierCompanionClassSymbol.createType(false, emptyList()),
                 classSymbol = modifierCompanionClassSymbol
             )
