@@ -52,9 +52,8 @@ dependencies {
     testImplementation(libs.kotlinCompilerTesting)
     testImplementation(platform(libs.androidx.compose.bom))
     testImplementation(libs.androidx.ui)
-
-    compileOnly(libs.kotlinPluginGradle)
     compileOnly(libs.kotlinCompilerEmbeddable)
+    compileOnly(libs.kotlinPluginGradle)
     compileOnly(libs.autoServiceAnnotation)
     kapt(libs.autoService)
 }
