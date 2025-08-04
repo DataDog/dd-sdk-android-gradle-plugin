@@ -5,7 +5,7 @@ import com.datadog.gradle.config.AndroidConfig
 plugins {
     id("com.android.application")
     id("kotlin-android")
-//    id("com.datadoghq.dd-sdk-android-gradle-plugin")
+//    id("com.datadoghq.dd-sdk-android-gradle-plugin-local")
 }
 
 android {

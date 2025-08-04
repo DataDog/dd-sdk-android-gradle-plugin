@@ -24,5 +24,5 @@ check_release_existence() {
   fi
 }
 
-check_release_existence "https://plugins.gradle.org/plugin/com.datadoghq.dd-sdk-android-gradle-plugin/$tag_name" "Gradle Portal"
+check_release_existence "https://plugins.gradle.org/plugin/com.datadoghq.dd-sdk-android-gradle-plugin-local/$tag_name" "Gradle Portal"
 check_release_existence "https://repo1.maven.org/maven2/com/datadoghq/dd-sdk-android-gradle-plugin/$tag_name/dd-sdk-android-gradle-plugin-$tag_name.jar" "Maven Central"

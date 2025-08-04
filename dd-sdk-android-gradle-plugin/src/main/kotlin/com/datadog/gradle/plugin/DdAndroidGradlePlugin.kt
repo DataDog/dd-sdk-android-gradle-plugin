@@ -7,6 +7,7 @@
 package com.datadog.gradle.plugin
 
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
+import com.android.build.api.variant.Variant
 import com.android.build.gradle.AppExtension
 import com.datadog.gradle.plugin.internal.ApiKey
 import com.datadog.gradle.plugin.internal.ApiKeySource
@@ -34,6 +35,9 @@ import java.io.File
 import java.net.URISyntaxException
 import javax.inject.Inject
 import kotlin.io.path.Path
+import com.datadog.gradle.plugin.asm.SpanAddingClassVisitorFactory
+import com.android.build.api.instrumentation.InstrumentationScope
+import com.android.build.api.variant.ApplicationVariant
 
 /**
  * Plugin adding tasks for Android projects using Datadog's SDK for Android.
@@ -64,6 +68,7 @@ class DdAndroidGradlePlugin @Inject constructor(
                         AppVariant.create(variant, target),
                         apiKey
                     )
+                    configureAsm(variant)
                 }
             } else {
                 val androidExtension = target.androidApplicationExtension ?: return@withPlugin
@@ -75,12 +80,14 @@ class DdAndroidGradlePlugin @Inject constructor(
                             AppVariant.create(variant, androidExtension, target),
                             apiKey
                         )
+//                        configureAsm(variant)
                     }
                 }
             }
         }
 
         target.afterEvaluate {
+            println("WAHAHA CUSTOM PLUGIN!")
             var isKcpEnabled = false
             target.pluginManager.withPlugin("org.jetbrains.kotlin.android") {
                 isKcpEnabled = configureKotlinCompilerPlugin(target, extension)
@@ -408,6 +415,22 @@ class DdAndroidGradlePlugin @Inject constructor(
             )
         }
         return composeInstrumentation != InstrumentationMode.DISABLE
+    }
+
+    private fun configureAsm(variant: ApplicationVariant) {
+        variant.transformClassesWith(
+            SpanAddingClassVisitorFactory::class.java,
+            InstrumentationScope.ALL
+        ) { params ->
+//            if (extension.tracingInstrumentation.forceInstrumentDependencies.get()) {
+//                params.invalidate.setDisallowChanges(System.currentTimeMillis())
+//            }
+//            params.debug.setDisallowChanges(
+//                extension.tracingInstrumentation.debug.get()
+//            )
+            params.debug.set(false)
+            params.tmpDir.set(File("tmpDir"))
+        }
     }
 
     private fun TaskContainer.configureKotlinCompile(action: KotlinCompile.() -> Unit) {

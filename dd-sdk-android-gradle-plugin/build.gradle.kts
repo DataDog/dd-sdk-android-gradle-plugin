@@ -42,6 +42,9 @@ dependencies {
     // because auto-wiring into Android projects
     compileOnly(libs.androidToolsPluginGradle)
 
+    implementation(libs.asm)
+    implementation(libs.asmCommons)
+
     testImplementation(libs.bundles.jUnit5)
     testImplementation(libs.bundles.testTools)
     testImplementation(libs.okHttpMock)
@@ -73,7 +76,7 @@ gradlePlugin {
     plugins {
         register("dd-sdk-android-gradle-plugin") {
             description = "This plugin is used to upload your Proguard/R8 mapping files to Datadog."
-            id = "com.datadoghq.dd-sdk-android-gradle-plugin" // the alias
+            id = "com.datadoghq.dd-sdk-android-gradle-plugin-local" // the alias
             implementationClass = "com.datadog.gradle.plugin.DdAndroidGradlePlugin"
             displayName = "Gradle Plugin for Datadog Android SDK"
             version = MavenConfig.VERSION.name

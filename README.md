@@ -12,7 +12,7 @@ Add the following line to your `build.gradle` file.
 
 ```groovy
 plugins {
-    id("com.datadoghq.dd-sdk-android-gradle-plugin") version "x.y.z"
+    id("com.datadoghq.dd-sdk-android-gradle-plugin-local") version "x.y.z"
 }
 ```
 
