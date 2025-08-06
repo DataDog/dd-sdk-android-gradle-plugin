@@ -36,6 +36,14 @@ plugins {
     id("transitiveDependencies")
 }
 
+// Creating the source sets for different Kotlin versions for compiler plugin compatibility.
+// Kotlin 2.0.x versions
+val kotlin20: SourceSet by sourceSets.creating
+// Kotlin 2.1.x versions
+val kotlin21: SourceSet by sourceSets.creating
+// Kotlin 2.2.x versions
+val kotlin22: SourceSet by sourceSets.creating
+
 dependencies {
     implementation(libs.kotlin)
     implementation(libs.okHttp)
@@ -48,13 +56,21 @@ dependencies {
     testImplementation(libs.okHttpMock)
     testImplementation(libs.androidToolsPluginGradle)
     testImplementation(libs.kotlinPluginGradle)
-    testImplementation(libs.kotlinCompilerEmbeddable)
+    testImplementation(kotlin20.output)
+    testImplementation(kotlin21.output)
+    testImplementation(kotlin22.output)
     testImplementation(libs.kotlinCompilerTesting)
     testImplementation(platform(libs.androidx.compose.bom))
     testImplementation(libs.androidx.ui)
 
     compileOnly(libs.kotlinPluginGradle)
+    kotlin20.compileOnlyConfigurationName(libs.kotlinCompilerEmbeddable20)
+    kotlin21.compileOnlyConfigurationName(libs.kotlinCompilerEmbeddable21)
+    kotlin22.compileOnlyConfigurationName(libs.kotlinCompilerEmbeddable22)
     compileOnly(libs.kotlinCompilerEmbeddable)
+    compileOnly(kotlin20.output)
+    compileOnly(kotlin21.output)
+    compileOnly(kotlin22.output)
     compileOnly(libs.autoServiceAnnotation)
     kapt(libs.autoService)
 }
@@ -65,6 +81,12 @@ jacocoConfig()
 javadocConfig()
 dependencyUpdateConfig()
 publishingConfig("Plugin to upload Proguard/R8 mapping files to Datadog.")
+
+tasks.withType<Jar>().configureEach {
+    from(kotlin20.output)
+    from(kotlin21.output)
+    from(kotlin22.output)
+}
 
 gradlePlugin {
 
