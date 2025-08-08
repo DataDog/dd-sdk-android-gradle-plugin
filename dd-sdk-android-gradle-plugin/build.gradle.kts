@@ -142,3 +142,10 @@ java {
 tasks.withType<Test> {
     dependsOn("pluginUnderTestMetadata")
 }
+
+// TODO RUM-11262: Currently we rely on the `-Xskip-metadata-version-check` compiler option to avoid compilation errors.
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    kotlinOptions {
+        freeCompilerArgs += "-Xskip-metadata-version-check"
+    }
+}
