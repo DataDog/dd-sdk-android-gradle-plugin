@@ -35,7 +35,6 @@ internal class DatadogPluginRegistrar(
     // Supports Kotlin 2.x compiler
     override val supportsK2 = true
 
-    @OptIn(FirIncompatiblePluginAPI::class)
     override fun registerProjectComponents(
         project: MockProject,
         configuration: CompilerConfiguration
@@ -44,18 +43,53 @@ internal class DatadogPluginRegistrar(
             configuration.get(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, MessageCollector.NONE)
         val internalCompilerConfiguration =
             overrideInstrumentationMode ?: resolveConfiguration(configuration)
-        project.extensionArea.getExtensionPoint(IrGenerationExtension.extensionPointName)
-            .registerExtension(
-                ComposeNavHostExtension(messageCollector, internalCompilerConfiguration),
-                LoadingOrder.FIRST,
-                project
-            )
-        project.extensionArea.getExtensionPoint(IrGenerationExtension.extensionPointName)
-            .registerExtension(
-                ComposeTagExtension(messageCollector, internalCompilerConfiguration),
-                LoadingOrder.FIRST,
-                project
-            )
+
+        if (internalCompilerConfiguration != InstrumentationMode.DISABLE) {
+            project.extensionArea.getExtensionPoint(IrGenerationExtension.extensionPointName)
+                .registerExtension(
+                    getCompatibleComposeNavHostExtension(
+                        messageCollector = messageCollector,
+                        internalCompilerConfiguration = internalCompilerConfiguration
+                    ),
+                    LoadingOrder.FIRST,
+                    project
+                )
+            project.extensionArea.getExtensionPoint(IrGenerationExtension.extensionPointName)
+                .registerExtension(
+                    getCompatibleComposeTagExtension(
+                        messageCollector = messageCollector,
+                        internalCompilerConfiguration = internalCompilerConfiguration
+                    ),
+                    LoadingOrder.FIRST,
+                    project
+                )
+        }
+    }
+
+    @OptIn(FirIncompatiblePluginAPI::class)
+    private fun getCompatibleComposeNavHostExtension(
+        messageCollector: MessageCollector,
+        internalCompilerConfiguration: InstrumentationMode
+    ): IrGenerationExtension {
+        // TODO RUM-11266: Support Kotlin 2.1.x
+        // TODO rum-11267: Support Kotlin 2.2.x
+        return ComposeNavHostExtension20(
+            messageCollector = messageCollector,
+            annotationModeEnabled = internalCompilerConfiguration == InstrumentationMode.ANNOTATION
+        )
+    }
+
+    @OptIn(FirIncompatiblePluginAPI::class)
+    private fun getCompatibleComposeTagExtension(
+        messageCollector: MessageCollector,
+        internalCompilerConfiguration: InstrumentationMode
+    ): IrGenerationExtension {
+        // TODO RUM-11266: Support Kotlin 2.1.x
+        // TODO rum-11267: Support Kotlin 2.2.x
+        return ComposeTagExtension20(
+            messageCollector = messageCollector,
+            annotationModeEnabled = internalCompilerConfiguration == InstrumentationMode.ANNOTATION
+        )
     }
 
     private fun resolveConfiguration(configuration: CompilerConfiguration): InstrumentationMode {

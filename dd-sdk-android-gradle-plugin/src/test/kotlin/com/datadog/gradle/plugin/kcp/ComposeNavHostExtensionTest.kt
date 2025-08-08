@@ -1,7 +1,7 @@
 package com.datadog.gradle.plugin.kcp
 
-import com.datadog.gradle.plugin.InstrumentationMode
 import com.datadog.gradle.plugin.utils.forge.Configurator
+import fr.xgouchet.elmyr.annotation.BoolForgery
 import fr.xgouchet.elmyr.junit5.ForgeConfiguration
 import fr.xgouchet.elmyr.junit5.ForgeExtension
 import org.jetbrains.kotlin.backend.common.extensions.FirIncompatiblePluginAPI
@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
+import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.ClassId
 import org.junit.jupiter.api.BeforeEach
@@ -24,12 +25,11 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
 
-@OptIn(FirIncompatiblePluginAPI::class)
+@OptIn(FirIncompatiblePluginAPI::class, UnsafeDuringIrConstructionAPI::class)
 @Extensions(
     ExtendWith(MockitoExtension::class),
     ExtendWith(ForgeExtension::class)
@@ -37,6 +37,8 @@ import org.mockito.quality.Strictness
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ForgeConfiguration(Configurator::class)
 internal class ComposeNavHostExtensionTest {
+
+    private lateinit var testedExtension: ComposeNavHostExtension20
 
     @Mock
     private lateinit var mockMessageCollector: MessageCollector
@@ -68,47 +70,17 @@ internal class ComposeNavHostExtensionTest {
     }
 
     @Test
-    fun `M register nav host transformer W instrumentation mode is AUTO`() {
+    fun `M accept ComposeNavHostTransformer20 W generate`(@BoolForgery annotationModeEnabled: Boolean) {
         // Given
-        val datadogIrExtension = ComposeNavHostExtension(
-            mockMessageCollector,
-            internalInstrumentationMode = InstrumentationMode.AUTO
+        testedExtension = ComposeNavHostExtension20(
+            messageCollector = mockMessageCollector,
+            annotationModeEnabled = annotationModeEnabled
         )
 
         // When
-        datadogIrExtension.generate(mockModuleFragment, mockPluginContext)
+        testedExtension.generate(mockModuleFragment, mockPluginContext)
 
         // Then
-        verify(mockModuleFragment).accept(any<ComposeNavHostTransformer>(), eq(null))
-    }
-
-    @Test
-    fun `M register nav host transformer W instrumentation mode option is ANNOTATION`() {
-        // Given
-        val datadogIrExtension = ComposeNavHostExtension(
-            mockMessageCollector,
-            internalInstrumentationMode = InstrumentationMode.ANNOTATION
-        )
-
-        // When
-        datadogIrExtension.generate(mockModuleFragment, mockPluginContext)
-
-        // Then
-        verify(mockModuleFragment).accept(any<ComposeNavHostTransformer>(), eq(null))
-    }
-
-    @Test
-    fun `M not register nav host transformer W instrumentation mode is DISABLE`() {
-        // Given
-        val datadogIrExtension = ComposeNavHostExtension(
-            mockMessageCollector,
-            internalInstrumentationMode = InstrumentationMode.DISABLE
-        )
-
-        // When
-        datadogIrExtension.generate(mockModuleFragment, mockPluginContext)
-
-        // Then
-        verify(mockModuleFragment, never()).accept(any<ComposeNavHostTransformer>(), eq(null))
+        verify(mockModuleFragment).accept(any<ComposeNavHostTransformer20>(), eq(null))
     }
 }
