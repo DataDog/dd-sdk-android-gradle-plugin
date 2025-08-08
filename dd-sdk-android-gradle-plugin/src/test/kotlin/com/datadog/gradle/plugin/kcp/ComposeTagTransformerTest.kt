@@ -48,11 +48,11 @@ internal class ComposeTagTransformerTest {
     @Mock
     private lateinit var mockModifierCompanionClassSymbol: IrClassSymbol
 
-    private lateinit var testedComposeTagTransformer: ComposeTagTransformer20
+    private lateinit var testedComposeTagTransformer: ComposeTagTransformer21
 
     @BeforeEach
     fun `set up`() {
-        testedComposeTagTransformer = ComposeTagTransformer20(
+        testedComposeTagTransformer = ComposeTagTransformer21(
             mockMessageCollector,
             mockPluginContext,
             false,

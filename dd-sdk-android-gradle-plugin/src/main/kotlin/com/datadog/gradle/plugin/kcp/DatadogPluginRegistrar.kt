@@ -72,14 +72,17 @@ internal class DatadogPluginRegistrar(
         messageCollector: MessageCollector,
         internalCompilerConfiguration: InstrumentationMode
     ): IrGenerationExtension {
-        // TODO RUM-11266: Support Kotlin 2.1.x
         return when (KotlinVersion.from(KotlinCompilerVersion.getVersion())) {
             KotlinVersion.KOTLIN22 -> ComposeNavHostExtension22(
                 messageCollector = messageCollector,
                 annotationModeEnabled = internalCompilerConfiguration == InstrumentationMode.ANNOTATION
             )
 
-            KotlinVersion.KOTLIN21,
+            KotlinVersion.KOTLIN21 -> ComposeNavHostExtension21(
+                messageCollector = messageCollector,
+                annotationModeEnabled = internalCompilerConfiguration == InstrumentationMode.ANNOTATION
+            )
+
             KotlinVersion.KOTLIN20 -> ComposeNavHostExtension20(
                 messageCollector = messageCollector,
                 annotationModeEnabled = internalCompilerConfiguration == InstrumentationMode.ANNOTATION
@@ -92,14 +95,17 @@ internal class DatadogPluginRegistrar(
         messageCollector: MessageCollector,
         internalCompilerConfiguration: InstrumentationMode
     ): IrGenerationExtension {
-        // TODO RUM-11266: Support Kotlin 2.1.x
         return when (KotlinVersion.from(KotlinCompilerVersion.getVersion())) {
             KotlinVersion.KOTLIN22 -> ComposeTagExtension22(
                 messageCollector = messageCollector,
                 annotationModeEnabled = internalCompilerConfiguration == InstrumentationMode.ANNOTATION
             )
 
-            KotlinVersion.KOTLIN21,
+            KotlinVersion.KOTLIN21 -> ComposeTagExtension21(
+                messageCollector = messageCollector,
+                annotationModeEnabled = internalCompilerConfiguration == InstrumentationMode.ANNOTATION
+            )
+
             KotlinVersion.KOTLIN20 -> ComposeTagExtension20(
                 messageCollector = messageCollector,
                 annotationModeEnabled = internalCompilerConfiguration == InstrumentationMode.ANNOTATION
