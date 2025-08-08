@@ -27,7 +27,12 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.name.SpecialNames
 
-internal class ComposeTagTransformer(
+/**
+ * Transformer for Jetpack Compose UI's Modifier.
+ *
+ * Internal use only.
+ */
+class ComposeTagTransformer20(
     private val messageCollector: MessageCollector,
     private val pluginContext: IrPluginContext,
     private val annotationModeEnabled: Boolean,
@@ -44,6 +49,9 @@ internal class ComposeTagTransformer(
     private lateinit var modifierThenSymbol: IrSimpleFunctionSymbol
     private lateinit var modifierCompanionClassSymbol: IrClassSymbol
 
+    /**
+     * Initializes references to various symbols used in the plugin.
+     */
     @Suppress("ReturnCount")
     fun initReferences(): Boolean {
         datadogTagFunctionSymbol = pluginContextUtils.getDatadogModifierSymbol() ?: run {

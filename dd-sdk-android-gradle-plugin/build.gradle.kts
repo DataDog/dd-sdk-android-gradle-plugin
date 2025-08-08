@@ -37,6 +37,7 @@ plugins {
 }
 
 // Creating the source sets for different Kotlin versions for compiler plugin compatibility.
+val common: SourceSet by sourceSets.creating
 // Kotlin 2.0.x versions
 val kotlin20: SourceSet by sourceSets.creating
 // Kotlin 2.1.x versions
@@ -45,34 +46,61 @@ val kotlin21: SourceSet by sourceSets.creating
 val kotlin22: SourceSet by sourceSets.creating
 
 dependencies {
+    // Main implementation dependencies
     implementation(libs.kotlin)
     implementation(libs.okHttp)
     implementation(libs.json)
-    // because auto-wiring into Android projects
-    compileOnly(libs.androidToolsPluginGradle)
 
+    // Test dependencies
     testImplementation(libs.bundles.jUnit5)
     testImplementation(libs.bundles.testTools)
     testImplementation(libs.okHttpMock)
     testImplementation(libs.androidToolsPluginGradle)
     testImplementation(libs.kotlinPluginGradle)
-    testImplementation(kotlin20.output)
-    testImplementation(kotlin21.output)
-    testImplementation(kotlin22.output)
     testImplementation(libs.kotlinCompilerTesting)
     testImplementation(platform(libs.androidx.compose.bom))
     testImplementation(libs.androidx.ui)
 
+    // Test source set outputs
+    testImplementation(kotlin20.output)
+    testImplementation(kotlin21.output)
+    testImplementation(kotlin22.output)
+    testImplementation(common.output)
+
+    // Compile-only dependencies
+    compileOnly(libs.androidToolsPluginGradle) // for auto-wiring into Android projects
     compileOnly(libs.kotlinPluginGradle)
-    kotlin20.compileOnlyConfigurationName(libs.kotlinCompilerEmbeddable20)
-    kotlin21.compileOnlyConfigurationName(libs.kotlinCompilerEmbeddable21)
-    kotlin22.compileOnlyConfigurationName(libs.kotlinCompilerEmbeddable22)
     compileOnly(libs.kotlinCompilerEmbeddable)
     compileOnly(kotlin20.output)
     compileOnly(kotlin21.output)
     compileOnly(kotlin22.output)
+    compileOnly(common.output)
     compileOnly(libs.autoServiceAnnotation)
     kapt(libs.autoService)
+
+    // Common source set
+    common.compileOnlyConfigurationName(libs.kotlinCompilerEmbeddable)
+
+    // Kotlin 2.2.x source set
+    with(kotlin22) {
+        compileOnlyConfigurationName(libs.kotlinReflect)
+        compileOnlyConfigurationName(libs.kotlinCompilerEmbeddable22)
+        compileOnlyConfigurationName(common.output)
+    }
+
+    // Kotlin 2.1.x source set
+    with(kotlin21) {
+        compileOnlyConfigurationName(libs.kotlinReflect)
+        compileOnlyConfigurationName(libs.kotlinCompilerEmbeddable21)
+        compileOnlyConfigurationName(common.output)
+    }
+
+    // Kotlin 2.0.x source set
+    with(kotlin20) {
+        compileOnlyConfigurationName(libs.kotlinReflect)
+        compileOnlyConfigurationName(libs.kotlinCompilerEmbeddable20)
+        compileOnlyConfigurationName(common.output)
+    }
 }
 
 kotlinConfig()
@@ -86,6 +114,7 @@ tasks.withType<Jar>().configureEach {
     from(kotlin20.output)
     from(kotlin21.output)
     from(kotlin22.output)
+    from(common.output)
 }
 
 gradlePlugin {

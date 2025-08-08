@@ -16,8 +16,15 @@ import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 
+/**
+ * Utility class to provide access to various symbols and functions used in the plugin.
+ * It provides methods to retrieve symbols for Modifier, NavHostController, and other
+ * relevant components in the Compose UI framework.
+ *
+ * Internal use only.
+ */
 @UnsafeDuringIrConstructionAPI
-internal class DefaultPluginContextUtils(
+class DefaultPluginContextUtils(
     private val pluginContext: IrPluginContext,
     private val messageCollector: MessageCollector
 ) : PluginContextUtils {

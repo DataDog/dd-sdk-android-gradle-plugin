@@ -68,7 +68,7 @@ internal fun IrPluginContext.irUnitLambdaExpression(
     )
 }
 
-internal fun irSimpleFunction(
+private fun irSimpleFunction(
     name: Name,
     visibility: DescriptorVisibility,
     returnType: IrType,
