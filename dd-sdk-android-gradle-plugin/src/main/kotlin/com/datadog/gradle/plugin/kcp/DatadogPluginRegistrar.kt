@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.CompilerConfigurationKey
+import org.jetbrains.kotlin.config.KotlinCompilerVersion
 
 /**
  * Note that [ComponentRegistrar] is only deprecated in Kotlin 1.x and will not be deprecated in
@@ -72,11 +73,18 @@ internal class DatadogPluginRegistrar(
         internalCompilerConfiguration: InstrumentationMode
     ): IrGenerationExtension {
         // TODO RUM-11266: Support Kotlin 2.1.x
-        // TODO rum-11267: Support Kotlin 2.2.x
-        return ComposeNavHostExtension20(
-            messageCollector = messageCollector,
-            annotationModeEnabled = internalCompilerConfiguration == InstrumentationMode.ANNOTATION
-        )
+        return when (KotlinVersion.from(KotlinCompilerVersion.getVersion())) {
+            KotlinVersion.KOTLIN22 -> ComposeNavHostExtension22(
+                messageCollector = messageCollector,
+                annotationModeEnabled = internalCompilerConfiguration == InstrumentationMode.ANNOTATION
+            )
+
+            KotlinVersion.KOTLIN21,
+            KotlinVersion.KOTLIN20 -> ComposeNavHostExtension20(
+                messageCollector = messageCollector,
+                annotationModeEnabled = internalCompilerConfiguration == InstrumentationMode.ANNOTATION
+            )
+        }
     }
 
     @OptIn(FirIncompatiblePluginAPI::class)
@@ -85,11 +93,18 @@ internal class DatadogPluginRegistrar(
         internalCompilerConfiguration: InstrumentationMode
     ): IrGenerationExtension {
         // TODO RUM-11266: Support Kotlin 2.1.x
-        // TODO rum-11267: Support Kotlin 2.2.x
-        return ComposeTagExtension20(
-            messageCollector = messageCollector,
-            annotationModeEnabled = internalCompilerConfiguration == InstrumentationMode.ANNOTATION
-        )
+        return when (KotlinVersion.from(KotlinCompilerVersion.getVersion())) {
+            KotlinVersion.KOTLIN22 -> ComposeTagExtension22(
+                messageCollector = messageCollector,
+                annotationModeEnabled = internalCompilerConfiguration == InstrumentationMode.ANNOTATION
+            )
+
+            KotlinVersion.KOTLIN21,
+            KotlinVersion.KOTLIN20 -> ComposeTagExtension20(
+                messageCollector = messageCollector,
+                annotationModeEnabled = internalCompilerConfiguration == InstrumentationMode.ANNOTATION
+            )
+        }
     }
 
     private fun resolveConfiguration(configuration: CompilerConfiguration): InstrumentationMode {
