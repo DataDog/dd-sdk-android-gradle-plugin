@@ -38,7 +38,7 @@ import org.mockito.quality.Strictness
 @ForgeConfiguration(Configurator::class)
 internal class ComposeTagExtensionTest {
 
-    private lateinit var testedExtension: ComposeTagExtension20
+    private lateinit var testedExtension: ComposeTagExtension21
 
     @Mock
     private lateinit var mockMessageCollector: MessageCollector
@@ -72,7 +72,7 @@ internal class ComposeTagExtensionTest {
     @Test
     fun `M accept ComposeTagTransformer20 W generate`(@BoolForgery annotationModeEnabled: Boolean) {
         // Given
-        testedExtension = ComposeTagExtension20(
+        testedExtension = ComposeTagExtension21(
             messageCollector = mockMessageCollector,
             annotationModeEnabled = annotationModeEnabled
         )
@@ -81,6 +81,6 @@ internal class ComposeTagExtensionTest {
         testedExtension.generate(mockModuleFragment, mockPluginContext)
 
         // Then
-        verify(mockModuleFragment).accept(any<ComposeTagTransformer20>(), eq(null))
+        verify(mockModuleFragment).accept(any<ComposeTagTransformer21>(), eq(null))
     }
 }

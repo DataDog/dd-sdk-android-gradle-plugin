@@ -38,7 +38,7 @@ import org.mockito.quality.Strictness
 @ForgeConfiguration(Configurator::class)
 internal class ComposeNavHostExtensionTest {
 
-    private lateinit var testedExtension: ComposeNavHostExtension20
+    private lateinit var testedExtension: ComposeNavHostExtension21
 
     @Mock
     private lateinit var mockMessageCollector: MessageCollector
@@ -72,7 +72,7 @@ internal class ComposeNavHostExtensionTest {
     @Test
     fun `M accept ComposeNavHostTransformer20 W generate`(@BoolForgery annotationModeEnabled: Boolean) {
         // Given
-        testedExtension = ComposeNavHostExtension20(
+        testedExtension = ComposeNavHostExtension21(
             messageCollector = mockMessageCollector,
             annotationModeEnabled = annotationModeEnabled
         )
@@ -81,6 +81,6 @@ internal class ComposeNavHostExtensionTest {
         testedExtension.generate(mockModuleFragment, mockPluginContext)
 
         // Then
-        verify(mockModuleFragment).accept(any<ComposeNavHostTransformer20>(), eq(null))
+        verify(mockModuleFragment).accept(any<ComposeNavHostTransformer21>(), eq(null))
     }
 }
