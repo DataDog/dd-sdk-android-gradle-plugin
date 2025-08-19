@@ -7,16 +7,15 @@
 package com.datadog.gradle.config
 
 import org.gradle.api.Project
-import org.jetbrains.dokka.gradle.DokkaTask
+import org.jetbrains.dokka.gradle.DokkaExtension
+import java.nio.file.Paths
 
 fun Project.javadocConfig() {
-    tasks.withType(DokkaTask::class.java) {
-        val toOutputDirectory = file("${buildDir.canonicalPath}/reports/javadoc")
-        outputDirectory.set(toOutputDirectory)
-        doFirst {
-            if (!toOutputDirectory.exists()) {
-                toOutputDirectory.mkdirs()
-            }
+    extensions.configure(DokkaExtension::class.java) {
+        dokkaPublications.named("javadoc") {
+            val toOutputDirectory = layout.buildDirectory
+                .dir(Paths.get("reports", "javadoc").toString())
+            outputDirectory.set(toOutputDirectory)
         }
     }
 }

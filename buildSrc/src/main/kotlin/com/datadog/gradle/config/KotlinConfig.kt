@@ -6,15 +6,15 @@
 
 package com.datadog.gradle.config
 
-import org.gradle.api.JavaVersion
 import org.gradle.api.Project
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 fun Project.kotlinConfig() {
     taskConfig<KotlinCompile> {
-        kotlinOptions {
+        compilerOptions {
             // TODO RUMM-3257 Target Java 17 bytecode at some point
-            jvmTarget = JavaVersion.VERSION_11.toString()
+            jvmTarget.set(JvmTarget.JVM_11)
         }
     }
 }

@@ -7,18 +7,17 @@
 package com.datadog.gradle.config
 
 import com.datadog.gradle.utils.Version
+import com.vanniktech.maven.publish.MavenPublishBaseExtension
 import org.gradle.api.Project
-import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.jvm.tasks.Jar
 import org.gradle.kotlin.dsl.findByType
 import org.gradle.plugins.signing.SigningExtension
-import java.net.URI
 
 object MavenConfig {
 
-    val VERSION = Version(1, 18, 0, Version.Type.Release)
+    val VERSION = Version(1, 19, 0, Version.Type.Release)
     const val GROUP_ID = "com.datadoghq"
     const val PUBLICATION = "pluginMaven"
 }
@@ -28,7 +27,7 @@ fun Project.publishingConfig(projectDescription: String) {
     val signingExtension = extensions.findByType(SigningExtension::class)
 
     if (signingExtension == null) {
-        System.err.println("Missing signing extension for $projectName")
+        logger.error("Missing signing extension for $projectName")
         return
     }
     signingExtension.apply {
@@ -43,34 +42,18 @@ fun Project.publishingConfig(projectDescription: String) {
     afterEvaluate {
         tasks.named("javadocJar", Jar::class.java).configure {
             group = "publishing"
-            dependsOn("dokkaJavadoc")
+            dependsOn("dokkaGenerate")
             archiveClassifier.convention("javadoc")
-            from("${buildDir.canonicalPath}/reports/javadoc")
+            from("${layout.buildDirectory.dir("/reports/javadoc")}")
         }
 
-        val publishingExtension = extensions.findByType(PublishingExtension::class)
+        val publishingExtension = extensions.findByType<PublishingExtension>()
         if (publishingExtension == null) {
-            System.err.println("Missing publishing extension for $projectName")
+            logger.error("Missing publishing extension for $projectName")
             return@afterEvaluate
         }
 
         publishingExtension.apply {
-            repositories.maven {
-                val releaseUrl = URI("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
-                val snapshotUrl = URI("https://oss.sonatype.org/content/repositories/snapshots/")
-                url = if (version.toString().endsWith(Version.Type.Snapshot.suffix)) snapshotUrl else releaseUrl
-                val username = System.getenv("OSSRH_USERNAME")
-                val password = System.getenv("OSSRH_PASSWORD")
-                if ((!username.isNullOrEmpty()) && (!password.isNullOrEmpty())) {
-                    credentials(PasswordCredentials::class.java) {
-                        setUsername(username)
-                        setPassword(password)
-                    }
-                } else {
-                    System.err.println("Missing publishing credentials for $projectName")
-                }
-            }
-
             publications.getByName(MavenConfig.PUBLICATION) {
                 check(this is MavenPublication)
 
@@ -113,6 +96,16 @@ fun Project.publishingConfig(projectDescription: String) {
                     }
                 }
             }
+        }
+
+        val mavenPublishing = extensions.findByType<MavenPublishBaseExtension>()
+        if (mavenPublishing == null) {
+            logger.error("Missing Maven publishing extension for $projectName")
+            return@afterEvaluate
+        }
+
+        mavenPublishing.apply {
+            publishToMavenCentral(automaticRelease = false)
         }
     }
 }

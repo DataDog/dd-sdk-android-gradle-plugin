@@ -30,11 +30,12 @@ repositories {
 dependencies {
 
     // Dependencies used to configure the gradle plugins
-    implementation(embeddedKotlin("gradle-plugin"))
+    implementation(libs.kotlinPluginGradle)
     implementation(libs.androidToolsPluginGradle)
     implementation(libs.versionsPluginGradle)
     implementation(libs.fuzzyWuzzy)
     implementation(libs.dokkaPluginGradle)
+    implementation(libs.mavenPublishPlugin)
 
     // Tests
     testImplementation(libs.jUnit4)

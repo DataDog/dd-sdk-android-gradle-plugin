@@ -3,7 +3,15 @@ package com.datadog.gradle.plugin.kcp
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 
-internal fun MessageCollector.warnDependenciesError() {
+/**
+ * Extension function to report a warning about missing dependencies for Compose Instrumentation.
+ *
+ * This function is used to notify the user that certain dependencies required for Compose Instrumentation
+ * are missing in the current module, which may lead to incomplete functionality.
+ *
+ * @receiver MessageCollector - The message collector used to report the warning.
+ */
+fun MessageCollector.warnDependenciesError() {
     report(CompilerMessageSeverity.STRONG_WARNING, WARNING_MISSING_DEP)
 }
 

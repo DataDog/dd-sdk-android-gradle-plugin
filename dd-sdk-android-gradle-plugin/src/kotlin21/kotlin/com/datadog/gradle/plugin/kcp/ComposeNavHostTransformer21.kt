@@ -24,8 +24,13 @@ import org.jetbrains.kotlin.ir.util.dumpKotlinLike
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.name.SpecialNames
 
+/**
+ * Transformer for Jetpack Compose Navigation's NavHostController.
+ *
+ * Internal use only.
+ */
 @UnsafeDuringIrConstructionAPI
-internal class ComposeNavHostTransformer(
+class ComposeNavHostTransformer21(
     private val messageCollector: MessageCollector,
     private val pluginContext: IrPluginContext,
     private val annotationModeEnabled: Boolean,
@@ -43,6 +48,9 @@ internal class ComposeNavHostTransformer(
     private lateinit var navHostControllerClassSymbol: IrClassSymbol
     private lateinit var applyFunctionSymbol: IrSimpleFunctionSymbol
 
+    /**
+     * Initializes references to various symbols used in the plugin.
+     */
     @Suppress("ReturnCount")
     fun initReferences(): Boolean {
         trackEffectFunctionSymbol = pluginContextUtils.getDatadogTrackEffectSymbol() ?: run {
