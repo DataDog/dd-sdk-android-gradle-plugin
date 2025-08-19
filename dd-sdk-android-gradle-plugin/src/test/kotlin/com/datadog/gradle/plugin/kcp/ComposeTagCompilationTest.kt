@@ -1,11 +1,9 @@
 package com.datadog.gradle.plugin.kcp
 
 import com.datadog.gradle.plugin.InstrumentationMode
-import com.datadog.gradle.plugin.utils.forge.Configurator
 import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile
 import fr.xgouchet.elmyr.annotation.Forgery
-import fr.xgouchet.elmyr.junit5.ForgeConfiguration
 import fr.xgouchet.elmyr.junit5.ForgeExtension
 import org.assertj.core.api.Assertions.assertThat
 import org.intellij.lang.annotations.Language
@@ -15,20 +13,16 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.extension.Extensions
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
-import org.mockito.junit.jupiter.MockitoSettings
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
-import org.mockito.quality.Strictness
 
 @Extensions(
     ExtendWith(MockitoExtension::class),
     ExtendWith(ForgeExtension::class)
 )
-@MockitoSettings(strictness = Strictness.LENIENT)
 @OptIn(ExperimentalCompilerApi::class)
-@ForgeConfiguration(Configurator::class)
-internal class ComposeTagCompilationTest : KotlinCompilerTest() {
+abstract class ComposeTagCompilationTest : KotlinCompilerTest() {
 
     @Mock
     private var mockCustomModifierCallback: () -> Unit = {}

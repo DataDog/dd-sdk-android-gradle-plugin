@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.CompilerConfigurationKey
+import org.jetbrains.kotlin.config.KotlinCompilerVersion
 
 /**
  * Note that [ComponentRegistrar] is only deprecated in Kotlin 1.x and will not be deprecated in
@@ -35,7 +36,6 @@ internal class DatadogPluginRegistrar(
     // Supports Kotlin 2.x compiler
     override val supportsK2 = true
 
-    @OptIn(FirIncompatiblePluginAPI::class)
     override fun registerProjectComponents(
         project: MockProject,
         configuration: CompilerConfiguration
@@ -44,18 +44,73 @@ internal class DatadogPluginRegistrar(
             configuration.get(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, MessageCollector.NONE)
         val internalCompilerConfiguration =
             overrideInstrumentationMode ?: resolveConfiguration(configuration)
-        project.extensionArea.getExtensionPoint(IrGenerationExtension.extensionPointName)
-            .registerExtension(
-                ComposeNavHostExtension(messageCollector, internalCompilerConfiguration),
-                LoadingOrder.FIRST,
-                project
+
+        if (internalCompilerConfiguration != InstrumentationMode.DISABLE) {
+            project.extensionArea.getExtensionPoint(IrGenerationExtension.extensionPointName)
+                .registerExtension(
+                    getCompatibleComposeNavHostExtension(
+                        messageCollector = messageCollector,
+                        internalCompilerConfiguration = internalCompilerConfiguration
+                    ),
+                    LoadingOrder.FIRST,
+                    project
+                )
+            project.extensionArea.getExtensionPoint(IrGenerationExtension.extensionPointName)
+                .registerExtension(
+                    getCompatibleComposeTagExtension(
+                        messageCollector = messageCollector,
+                        internalCompilerConfiguration = internalCompilerConfiguration
+                    ),
+                    LoadingOrder.FIRST,
+                    project
+                )
+        }
+    }
+
+    @OptIn(FirIncompatiblePluginAPI::class)
+    private fun getCompatibleComposeNavHostExtension(
+        messageCollector: MessageCollector,
+        internalCompilerConfiguration: InstrumentationMode
+    ): IrGenerationExtension {
+        return when (KotlinVersion.from(KotlinCompilerVersion.getVersion())) {
+            KotlinVersion.KOTLIN22 -> ComposeNavHostExtension22(
+                messageCollector = messageCollector,
+                annotationModeEnabled = internalCompilerConfiguration == InstrumentationMode.ANNOTATION
             )
-        project.extensionArea.getExtensionPoint(IrGenerationExtension.extensionPointName)
-            .registerExtension(
-                ComposeTagExtension(messageCollector, internalCompilerConfiguration),
-                LoadingOrder.FIRST,
-                project
+
+            KotlinVersion.KOTLIN21 -> ComposeNavHostExtension21(
+                messageCollector = messageCollector,
+                annotationModeEnabled = internalCompilerConfiguration == InstrumentationMode.ANNOTATION
             )
+
+            KotlinVersion.KOTLIN20 -> ComposeNavHostExtension20(
+                messageCollector = messageCollector,
+                annotationModeEnabled = internalCompilerConfiguration == InstrumentationMode.ANNOTATION
+            )
+        }
+    }
+
+    @OptIn(FirIncompatiblePluginAPI::class)
+    private fun getCompatibleComposeTagExtension(
+        messageCollector: MessageCollector,
+        internalCompilerConfiguration: InstrumentationMode
+    ): IrGenerationExtension {
+        return when (KotlinVersion.from(KotlinCompilerVersion.getVersion())) {
+            KotlinVersion.KOTLIN22 -> ComposeTagExtension22(
+                messageCollector = messageCollector,
+                annotationModeEnabled = internalCompilerConfiguration == InstrumentationMode.ANNOTATION
+            )
+
+            KotlinVersion.KOTLIN21 -> ComposeTagExtension21(
+                messageCollector = messageCollector,
+                annotationModeEnabled = internalCompilerConfiguration == InstrumentationMode.ANNOTATION
+            )
+
+            KotlinVersion.KOTLIN20 -> ComposeTagExtension20(
+                messageCollector = messageCollector,
+                annotationModeEnabled = internalCompilerConfiguration == InstrumentationMode.ANNOTATION
+            )
+        }
     }
 
     private fun resolveConfiguration(configuration: CompilerConfiguration): InstrumentationMode {

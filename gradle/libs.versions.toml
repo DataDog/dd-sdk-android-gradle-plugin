@@ -1,8 +1,8 @@
 [versions]
 
 # Commons
-kotlin = "2.0.21"
-kotlinComposePlugin = "2.0.21"
+kotlin = "2.1.21"
+kotlinComposePlugin = "2.1.21"
 json = "20231013"
 okHttp = "4.12.0"
 composeBom = "2024.04.01"
@@ -47,8 +47,12 @@ datadogSdkSnapshot = "2.25.0-SNAPSHOT"
 datadogPluginGradle = "1.18.0"
 
 # Kotlin Compiler Plugin
-kotlinCompilerEmbeddable = "2.0.21"
-kotlinCompilerTesting = "0.7.0"
+kotlinCompilerEmbeddable20 = "2.0.21"
+kotlinCompilerEmbeddable21 = "2.1.21"
+kotlinCompilerEmbeddable22 = "2.2.0"
+kotlinCompilerTesting20 = "0.7.0"
+kotlinCompilerTesting21 = "0.7.0"
+kotlinCompilerTesting22 = "0.8.0"
 autoService = "1.0.1"
 junitVersion = "1.2.1"
 espressoCoreVersion = "3.6.1"
@@ -114,8 +118,13 @@ datadogSdkRumSnapshot = { module = "com.datadoghq:dd-sdk-android-rum", version.r
 datadogSdkComposeSnapshot = { module = "com.datadoghq:dd-sdk-android-compose", version.ref = "datadogSdkSnapshot" }
 
 # Kotlin Compiler Plugin
-kotlinCompilerEmbeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlinCompilerEmbeddable" }
-kotlinCompilerTesting = { module = "dev.zacsweers.kctfork:core", version.ref = "kotlinCompilerTesting" }
+kotlinCompilerEmbeddable = { group = "org.jetbrains.kotlin", name = "kotlin-compiler-embeddable" }
+kotlinCompilerEmbeddable20 = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlinCompilerEmbeddable20" }
+kotlinCompilerEmbeddable21 = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlinCompilerEmbeddable21" }
+kotlinCompilerEmbeddable22 = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlinCompilerEmbeddable22" }
+kotlinCompilerTesting20 = { module = "dev.zacsweers.kctfork:core", version.ref = "kotlinCompilerTesting20" }
+kotlinCompilerTesting21 = { module = "dev.zacsweers.kctfork:core", version.ref = "kotlinCompilerTesting21" }
+kotlinCompilerTesting22 = { module = "dev.zacsweers.kctfork:core", version.ref = "kotlinCompilerTesting22" }
 autoService = { module = "com.google.auto.service:auto-service", version.ref = "autoService" }
 autoServiceAnnotation = { module = "com.google.auto.service:auto-service-annotations", version.ref = "autoService" }
 
