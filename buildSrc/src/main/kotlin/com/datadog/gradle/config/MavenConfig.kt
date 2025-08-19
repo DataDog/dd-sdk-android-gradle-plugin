@@ -17,7 +17,7 @@ import org.gradle.plugins.signing.SigningExtension
 
 object MavenConfig {
 
-    val VERSION = Version(1, 19, 0, Version.Type.Snapshot)
+    val VERSION = Version(1, 20, 0, Version.Type.Snapshot)
     const val GROUP_ID = "com.datadoghq"
     const val PUBLICATION = "pluginMaven"
 }
