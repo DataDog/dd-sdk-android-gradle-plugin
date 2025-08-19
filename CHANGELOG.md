@@ -1,3 +1,25 @@
+# 1.19.0 / 2025-08-19
+
+* [IMPROVEMENT] Configure gradle file to create multiple source sets for Compiler Plugin. See [#412](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/412)
+* [IMPROVEMENT] Move Kotlin Compiler logic into `Kotlin20` source sets. See [#413](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/413)
+* [IMPROVEMENT] Add Kotlin `2.2.0` support in Kotlin Compiler Plugin. See [#414](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/414)
+* [IMPROVEMENT] Add Kotlin `2.1.x` support in Kotlin Compiler Plugin. See [#415](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/415)
+* [IMPROVEMENT] Fix `IrFunctionExpressionImpl` in Kotlin `2.0.0 - 2.0.10`. See [#416](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/416)
+* [IMPROVEMENT] Add unit test for each Kotlin source set. See [#417](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/417)
+* [IMPROVEMENT] Upgrade Kotlin Version to `2.1.21` to remove metadata check error. See [#420](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/420)
+* [IMPROVEMENT] Merge `Feature/kotlin-source-sets` into `develop`. See [#421](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/421)
+* [MAINTENANCE] Migrate to Central Publisher portal. See [#404](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/404)
+* [MAINTENANCE] Use Maven Publish plugin for the publication. See [#406](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/406)
+* [MAINTENANCE] Update URL for pulling snapshots. See [#405](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/405)
+* [MAINTENANCE] Update Datadog SDK to version `2.24.0`. See [#409](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/409)
+* [MAINTENANCE] Update Datadog SDK to version `2.25.0`. See [#410](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/410)
+* [MAINTENANCE] Update docker image for `ci-image` job to Jammy. See [#397](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/397)
+* [MAINTENANCE] Next dev iteration. See [#399](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/399)
+* [MAINTENANCE] Merge `release/1.18.0` branch into `develop` branch. See [#401](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/401)
+* [MAINTENANCE] Update Datadog Gradle Plugin to version `1.18.0`. See [#402](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/402)
+* [MAINTENANCE] Use `dd-octo-sts` to access GitHub REST API. See [#403](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/403)
+* [MAINTENANCE] 🔒 Pin GitHub Actions to specific SHA versions for enhanced security. See [#418](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/418)
+
 # 1.18.0 / 2025-06-30
 
 * [FEATURE] Add `AP2` datacenter support. See [#385](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/385)
