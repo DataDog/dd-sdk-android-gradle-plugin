@@ -81,8 +81,8 @@ dependencies {
 
     // Compile-only dependencies
     compileOnly(libs.androidToolsPluginGradle) // for auto-wiring into Android projects
-    compileOnly(libs.kotlinPluginGradle)
     compileOnly(libs.kotlinCompilerEmbeddable)
+    compileOnly(libs.kotlinPluginGradle)
     compileOnly(kotlin20.output)
     compileOnly(kotlin21.output)
     compileOnly(kotlin22.output)
@@ -200,11 +200,4 @@ listOf(
 
 tasks.named("test") {
     dependsOn("testKotlin20", "testKotlin21", "testKotlin22")
-}
-
-// TODO RUM-11262: Currently we rely on the `-Xskip-metadata-version-check` compiler option to avoid compilation errors.
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-    kotlinOptions {
-        freeCompilerArgs += "-Xskip-metadata-version-check"
-    }
 }
