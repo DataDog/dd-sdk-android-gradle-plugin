@@ -10,7 +10,7 @@ import fr.xgouchet.elmyr.Forge
 import fr.xgouchet.elmyr.ForgeConfigurator
 import fr.xgouchet.elmyr.jvm.useJvmFactories
 
-internal class Configurator : ForgeConfigurator {
+class Configurator : ForgeConfigurator {
 
     override fun configure(forge: Forge) {
         forge.addFactory(IdentifierForgeryFactory())

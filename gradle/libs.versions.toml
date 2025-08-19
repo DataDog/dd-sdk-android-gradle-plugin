@@ -50,7 +50,9 @@ datadogPluginGradle = "1.18.0"
 kotlinCompilerEmbeddable20 = "2.0.21"
 kotlinCompilerEmbeddable21 = "2.1.21"
 kotlinCompilerEmbeddable22 = "2.2.0"
-kotlinCompilerTesting = "0.7.0"
+kotlinCompilerTesting20 = "0.7.0"
+kotlinCompilerTesting21 = "0.7.0"
+kotlinCompilerTesting22 = "0.8.0"
 autoService = "1.0.1"
 junitVersion = "1.2.1"
 espressoCoreVersion = "3.6.1"
@@ -120,7 +122,9 @@ kotlinCompilerEmbeddable = { group = "org.jetbrains.kotlin", name = "kotlin-comp
 kotlinCompilerEmbeddable20 = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlinCompilerEmbeddable20" }
 kotlinCompilerEmbeddable21 = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlinCompilerEmbeddable21" }
 kotlinCompilerEmbeddable22 = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlinCompilerEmbeddable22" }
-kotlinCompilerTesting = { module = "dev.zacsweers.kctfork:core", version.ref = "kotlinCompilerTesting" }
+kotlinCompilerTesting20 = { module = "dev.zacsweers.kctfork:core", version.ref = "kotlinCompilerTesting20" }
+kotlinCompilerTesting21 = { module = "dev.zacsweers.kctfork:core", version.ref = "kotlinCompilerTesting21" }
+kotlinCompilerTesting22 = { module = "dev.zacsweers.kctfork:core", version.ref = "kotlinCompilerTesting22" }
 autoService = { module = "com.google.auto.service:auto-service", version.ref = "autoService" }
 autoServiceAnnotation = { module = "com.google.auto.service:auto-service-annotations", version.ref = "autoService" }
 

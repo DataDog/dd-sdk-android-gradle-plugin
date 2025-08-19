@@ -40,10 +40,21 @@ plugins {
 val common: SourceSet by sourceSets.creating
 // Kotlin 2.0.x versions
 val kotlin20: SourceSet by sourceSets.creating
+val kotlin20Test: SourceSet by sourceSets.creating
 // Kotlin 2.1.x versions
 val kotlin21: SourceSet by sourceSets.creating
+val kotlin21Test: SourceSet by sourceSets.creating
 // Kotlin 2.2.x versions
 val kotlin22: SourceSet by sourceSets.creating
+val kotlin22Test: SourceSet by sourceSets.creating
+
+configurations {
+    listOf("kotlin20TestImplementation", "kotlin21TestImplementation", "kotlin22TestImplementation").forEach {
+        named(it) {
+            extendsFrom(configurations["testImplementation"], configurations["implementation"])
+        }
+    }
+}
 
 dependencies {
     // Main implementation dependencies
@@ -56,8 +67,9 @@ dependencies {
     testImplementation(libs.bundles.testTools)
     testImplementation(libs.okHttpMock)
     testImplementation(libs.androidToolsPluginGradle)
+    testImplementation(libs.kotlinCompilerEmbeddable)
+    testImplementation(libs.kotlinCompilerTesting20)
     testImplementation(libs.kotlinPluginGradle)
-    testImplementation(libs.kotlinCompilerTesting)
     testImplementation(platform(libs.androidx.compose.bom))
     testImplementation(libs.androidx.ui)
 
@@ -101,6 +113,35 @@ dependencies {
         compileOnlyConfigurationName(libs.kotlinCompilerEmbeddable20)
         compileOnlyConfigurationName(common.output)
     }
+    val testSourceVersions = listOf("20", "21", "22")
+
+    testSourceVersions.forEach { version ->
+        val sourceSetName = "kotlin$version"
+        val testImpl = "${sourceSetName}TestImplementation"
+
+        val compilerEmbeddableLib = when (version) {
+            "20" -> libs.kotlinCompilerEmbeddable20
+            "21" -> libs.kotlinCompilerEmbeddable21
+            "22" -> libs.kotlinCompilerEmbeddable22
+            else -> error("No embeddable lib for version $version")
+        }
+
+        val compilerTestingLib = when (version) {
+            "20" -> libs.kotlinCompilerTesting20
+            "21" -> libs.kotlinCompilerTesting21
+            "22" -> libs.kotlinCompilerTesting22
+            else -> error("No testing lib for version $version")
+        }
+
+        dependencies {
+            add(testImpl, libs.bundles.jUnit5)
+            add(testImpl, compilerTestingLib)
+            add(testImpl, compilerEmbeddableLib)
+            add(testImpl, sourceSets["test"].output)
+            add(testImpl, sourceSets["main"].output)
+            add(testImpl, sourceSets[sourceSetName].output)
+        }
+    }
 }
 
 kotlinConfig()
@@ -141,6 +182,24 @@ java {
 
 tasks.withType<Test> {
     dependsOn("pluginUnderTestMetadata")
+}
+
+listOf(
+    "kotlin20" to kotlin20Test,
+    "kotlin21" to kotlin21Test,
+    "kotlin22" to kotlin22Test
+).forEach { (name, sourceSet) ->
+    tasks.register<Test>("test${name.replaceFirstChar { it.uppercaseChar() }}") {
+        group = "verification"
+        description = "Runs tests for ${name.replace("kotlin", "Kotlin ")}.x source set."
+        testClassesDirs = sourceSet.output.classesDirs
+        classpath = sourceSet.runtimeClasspath
+        useJUnitPlatform()
+    }
+}
+
+tasks.named("test") {
+    dependsOn("testKotlin20", "testKotlin21", "testKotlin22")
 }
 
 // TODO RUM-11262: Currently we rely on the `-Xskip-metadata-version-check` compiler option to avoid compilation errors.
