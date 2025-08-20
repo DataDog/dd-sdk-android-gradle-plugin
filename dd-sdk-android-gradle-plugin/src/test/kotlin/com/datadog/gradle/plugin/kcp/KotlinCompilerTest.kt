@@ -21,7 +21,7 @@ import kotlin.reflect.full.declaredFunctions
 )
 @MockitoSettings(strictness = Strictness.LENIENT)
 @OptIn(ExperimentalCompilerApi::class)
-internal open class KotlinCompilerTest {
+open class KotlinCompilerTest {
 
     @Mock
     protected lateinit var mockCallback: (Boolean) -> Unit

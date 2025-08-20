@@ -16,7 +16,7 @@ internal object TaskUtils {
 
     @Suppress("StringLiteralDuplication")
     fun resolveDatadogRepositoryFile(target: Project): File {
-        val outputsDir = File(target.buildDir, "outputs")
+        val outputsDir = target.layout.buildDirectory.dir("outputs").get().asFile
         val reportsDir = File(outputsDir, "reports")
         val datadogDir = File(reportsDir, "datadog")
         return File(datadogDir, "repository.json")

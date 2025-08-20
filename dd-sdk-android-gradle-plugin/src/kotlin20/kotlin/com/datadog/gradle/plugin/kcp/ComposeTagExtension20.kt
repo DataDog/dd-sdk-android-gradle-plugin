@@ -1,6 +1,5 @@
 package com.datadog.gradle.plugin.kcp
 
-import com.datadog.gradle.plugin.InstrumentationMode
 import org.jetbrains.kotlin.backend.common.extensions.FirIncompatiblePluginAPI
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
@@ -8,23 +7,21 @@ import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 
 /**
- * The extension registers [ComposeTagTransformer] into the plugin.
+ * The extension registers [ComposeTagTransformer20] into the plugin.
  */
 @FirIncompatiblePluginAPI
-internal class ComposeTagExtension(
+class ComposeTagExtension20(
     private val messageCollector: MessageCollector,
-    private val internalInstrumentationMode: InstrumentationMode
+    private val annotationModeEnabled: Boolean
 ) :
     IrGenerationExtension {
 
     override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
-        if (internalInstrumentationMode != InstrumentationMode.DISABLE) {
-            registerTagTransformer(
-                pluginContext = pluginContext,
-                moduleFragment = moduleFragment,
-                annotationModeEnabled = internalInstrumentationMode == InstrumentationMode.ANNOTATION
-            )
-        }
+        registerTagTransformer(
+            pluginContext = pluginContext,
+            moduleFragment = moduleFragment,
+            annotationModeEnabled = annotationModeEnabled
+        )
     }
 
     private fun registerTagTransformer(
@@ -32,15 +29,16 @@ internal class ComposeTagExtension(
         moduleFragment: IrModuleFragment,
         annotationModeEnabled: Boolean
     ) {
-        val composeTagTransformer = ComposeTagTransformer(
+        ComposeTagTransformer20(
             messageCollector = messageCollector,
             pluginContext = pluginContext,
             annotationModeEnabled = annotationModeEnabled
-        )
-        if (composeTagTransformer.initReferences()) {
-            moduleFragment.accept(composeTagTransformer, null)
-        } else {
-            messageCollector.warnDependenciesError()
+        ).apply {
+            if (initReferences()) {
+                moduleFragment.accept(this, null)
+            } else {
+                messageCollector.warnDependenciesError()
+            }
         }
     }
 }

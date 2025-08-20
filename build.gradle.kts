@@ -26,12 +26,12 @@ allprojects {
         google()
         mavenCentral()
         maven { setUrl(com.datadog.gradle.Dependencies.Repositories.Jitpack) }
-        maven("https://oss.sonatype.org/content/repositories/snapshots/")
+        maven("https://central.sonatype.com/repository/maven-snapshots/")
     }
 }
 
 task<Delete>("clean") {
-    delete(rootProject.buildDir)
+    delete(rootProject.layout.buildDirectory)
 }
 
 // Empty task defined by one of our CI pipeline which does not apply here.

@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions")
+
 package com.datadog.gradle.plugin.kcp
 
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
@@ -24,8 +26,10 @@ import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.name.SpecialNames
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
+import kotlin.reflect.KClass
 import kotlin.reflect.KVisibility
 import kotlin.reflect.full.createInstance
+import kotlin.reflect.full.declaredFunctions
 import kotlin.reflect.full.primaryConstructor
 
 // Builds Lambda of (T.() -> Unit)
@@ -68,7 +72,7 @@ internal fun IrPluginContext.irUnitLambdaExpression(
     )
 }
 
-internal fun irSimpleFunction(
+private fun irSimpleFunction(
     name: Name,
     visibility: DescriptorVisibility,
     returnType: IrType,
@@ -164,8 +168,21 @@ private fun buildCompatIrFunctionExpression(
     type: IrType,
     function: IrSimpleFunction
 ): IrFunctionExpression {
+    // Kotlin Version 1.9.23 ~ 1.9.25 has `IrFunctionExpressionImpl` class with public constructor.
+    // Kotlin Version 2.0 ~ 2.0.10 has `IrFunctionExpressionImpl` class with internal constructor.
+    // Kotlin Version 2.0.20 ~ 2.0.21 has added `IrFunctionExpressionImpl` function in `builders.kt`
     val primaryConstructor = IrFunctionExpressionImpl::class.primaryConstructor
-    return primaryConstructor?.takeIf {
+    val kClass = getClassSafe("org.jetbrains.kotlin.ir.expressions.impl.IrFunctionExpressionImplKt")
+    val kFunction = kClass?.declaredFunctions?.firstOrNull { it.name == "IrFunctionExpressionImpl" }
+    return kFunction?.let {
+        it.call(
+            UNDEFINED_OFFSET,
+            UNDEFINED_OFFSET,
+            type,
+            function,
+            getCompatLambdaStateOrigin()
+        ) as? IrFunctionExpression
+    } ?: primaryConstructor?.takeIf {
         it.visibility == KVisibility.PUBLIC
     }?.call(
         UNDEFINED_OFFSET,
@@ -180,4 +197,14 @@ private fun buildCompatIrFunctionExpression(
         function,
         getCompatLambdaStateOrigin()
     )
+}
+
+@Suppress("TooGenericExceptionCaught", "SwallowedException")
+private fun getClassSafe(className: String): KClass<*>? {
+    return try {
+        Class.forName(className).kotlin
+    } catch (e: Exception) {
+        // Ignore all the exceptions and return null
+        null
+    }
 }
