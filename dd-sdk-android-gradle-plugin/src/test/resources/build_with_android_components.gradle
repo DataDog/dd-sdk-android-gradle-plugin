@@ -27,7 +27,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.variants"
-        minSdkVersion 21
+        minSdkVersion 23
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
