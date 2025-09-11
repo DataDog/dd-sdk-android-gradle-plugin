@@ -36,24 +36,36 @@ internal object TaskUtils {
         return null
     }
 
-    fun isAgpAbove(major: Int, minor: Int, patch: Int): Boolean {
-        return isVersionAbove(Version.ANDROID_GRADLE_PLUGIN_VERSION, major, minor, patch)
+    fun isAgpEqualOrAbove(major: Int, minor: Int, patch: Int): Boolean {
+        return isVersionEqualOrAbove(Version.ANDROID_GRADLE_PLUGIN_VERSION, major, minor, patch)
     }
 
     // Gradle version may not have patch version
-    fun isGradleAbove(project: Project, major: Int, minor: Int, patch: Int = 0): Boolean {
-        return isVersionAbove(project.gradle.gradleVersion, major, minor, patch)
+    fun isGradleEqualOrAbove(project: Project, major: Int, minor: Int, patch: Int = 0): Boolean {
+        return isVersionEqualOrAbove(project.gradle.gradleVersion, major, minor, patch)
     }
 
-    @Suppress("MagicNumber", "ReturnCount")
-    private fun isVersionAbove(refVersion: String, major: Int, minor: Int, patch: Int): Boolean {
+    @Suppress("MagicNumber")
+    fun isVersionEqualOrAbove(refVersion: String, major: Int, minor: Int, patch: Int): Boolean {
         val groups = refVersion.split(".")
         // should be at least major and minor versions
         if (groups.size < 2) return false
         val currentMajor = groups[0].toIntOrNull() ?: 0
         val currentMinor = groups[1].toIntOrNull() ?: 0
         val currentPatch = groups.getOrNull(2)?.substringBefore("-")?.toIntOrNull() ?: 0
-        return currentMajor >= major && currentMinor >= minor && currentPatch >= patch
+        return SemVer(currentMajor, currentMinor, currentPatch) >= SemVer(major, minor, patch)
+    }
+
+    private class SemVer(val major: Int, val minor: Int, val patch: Int)
+
+    private operator fun SemVer.compareTo(other: SemVer): Int {
+        return if (this.major != other.major) {
+            this.major - other.major
+        } else if (this.minor != other.minor) {
+            this.minor - other.minor
+        } else {
+            this.patch - other.patch
+        }
     }
 }
 
