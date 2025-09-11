@@ -1001,7 +1001,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         // Then
         val uploadTask = result.output
             .split("\n")
-            .firstOrNull { it.startsWith("upload") }
+            .firstOrNull { it.startsWith(DdAndroidGradlePlugin.UPLOAD_TASK_NAME) }
         assertThat(uploadTask).isNull()
     }
 
@@ -1552,15 +1552,15 @@ internal class DdAndroidGradlePluginFunctionalTest {
             }
         """.trimIndent()
 
-        private const val LATEST_GRADLE_VERSION = "8.14.2"
-        private const val LATEST_AGP_VERSION = "8.11.0"
+        private const val LATEST_GRADLE_VERSION = "8.14.3"
+        private const val LATEST_AGP_VERSION = "8.13.0"
 
         val LATEST_VERSIONS_TEST_CONFIGURATION = BuildVersionConfig(
             agpVersion = LATEST_AGP_VERSION,
             gradleVersion = LATEST_GRADLE_VERSION,
             buildToolsVersion = "36.0.0",
             targetSdkVersion = "36",
-            kotlinVersion = "2.2.0",
+            kotlinVersion = "2.2.20",
             jvmTarget = JavaVersion.VERSION_17.toString()
         )
 
