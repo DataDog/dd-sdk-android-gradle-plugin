@@ -1,3 +1,15 @@
+# 1.20.0 / 2025-09-15
+
+* [BUGFIX] Fix Gradle 9.0 support. See [#435](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/435)
+* [MAINTENANCE] Add Github action to automatically close stale issues. See [#427](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/427)
+* [MAINTENANCE] Update Datadog Gradle Plugin to version 1.19.0. See [#423](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/423)
+* [MAINTENANCE] Update Datadog SDK to version 2.26.0. See [#428](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/428)
+* [MAINTENANCE] Bump `slack-notifier` version. See [#430](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/430)
+* [MAINTENANCE] Update Datadog SDK to version 3.0.0. See [#431](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/431)
+* [MAINTENANCE] Bump `dd-trace-java` version to 1.53.0. See [#433](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/433)
+* [MAINTENANCE] Update latest test configuration for the functional tests. See [#434](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/434)
+* [DOCS] Fix link to `CONTRIBUTING` from PR template. See [#438](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/438)
+
 # 1.19.0 / 2025-08-19
 
 * [IMPROVEMENT] Configure gradle file to create multiple source sets for Compiler Plugin. See [#412](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/412)
