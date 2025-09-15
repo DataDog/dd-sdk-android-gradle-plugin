@@ -14,5 +14,5 @@ Anything else we should know when reviewing?
 
 - [ ] Feature or bugfix MUST have appropriate tests (unit, integration, e2e)
 - [ ] Make sure you discussed the feature or bugfix with the maintaining team in an Issue
-- [ ] Make sure each commit and the PR mention the Issue number (cf the [CONTRIBUTING](CONTRIBUTING.md) doc)
+- [ ] Make sure each commit and the PR mention the Issue number (cf the [CONTRIBUTING](../CONTRIBUTING.md) doc)
 

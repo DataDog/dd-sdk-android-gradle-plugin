@@ -13,14 +13,14 @@ internal object CurrentAgpVersion {
 
     // can work probably even with lower versions, but legacy Variant API is working fine there as well
     val CAN_ENABLE_NEW_VARIANT_API: Boolean
-        get() = TaskUtils.isAgpAbove(major = 8, minor = 4, patch = 0)
+        get() = TaskUtils.isAgpEqualOrAbove(major = 8, minor = 4, patch = 0)
 
     val SUPPORTS_KOTLIN_DIRECTORIES_SOURCE_PROVIDER: Boolean
-        get() = TaskUtils.isAgpAbove(major = 7, minor = 0, patch = 0)
+        get() = TaskUtils.isAgpEqualOrAbove(major = 7, minor = 0, patch = 0)
 
     val EXTERNAL_NATIVE_BUILD_SOFOLDER_IS_PUBLIC: Boolean
-        get() = TaskUtils.isAgpAbove(major = 8, minor = 0, patch = 0)
+        get() = TaskUtils.isAgpEqualOrAbove(major = 8, minor = 0, patch = 0)
 
     val CAN_QUERY_MAPPING_FILE_PROVIDER: Boolean
-        get() = TaskUtils.isAgpAbove(major = 7, minor = 0, patch = 0)
+        get() = TaskUtils.isAgpEqualOrAbove(major = 7, minor = 0, patch = 0)
 }
