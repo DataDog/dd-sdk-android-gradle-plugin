@@ -10,12 +10,17 @@ import com.datadog.gradle.plugin.utils.forge.Configurator
 import fr.xgouchet.elmyr.Forge
 import fr.xgouchet.elmyr.junit5.ForgeConfiguration
 import fr.xgouchet.elmyr.junit5.ForgeExtension
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.extension.Extensions
 import org.junit.jupiter.api.io.TempDir
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
+import org.junit.jupiter.params.provider.ValueSource
 import java.io.File
+import java.util.stream.Stream
 
 @Extensions(
     ExtendWith(ForgeExtension::class)
@@ -37,7 +42,7 @@ class TaskUtilsTest {
         val ciFile = TaskUtils.findDatadogCiFile(tree.last())
 
         // Then
-        Assertions.assertThat(ciFile).isNotNull()
+        assertThat(ciFile).isNotNull()
     }
 
     @Test
@@ -52,7 +57,7 @@ class TaskUtilsTest {
         val ciFile = TaskUtils.findDatadogCiFile(tree.last())
 
         // Then
-        Assertions.assertThat(ciFile).isNull()
+        assertThat(ciFile).isNull()
     }
 
     @Test
@@ -67,7 +72,65 @@ class TaskUtilsTest {
         val ciFile = TaskUtils.findDatadogCiFile(tree.last())
 
         // Then
-        Assertions.assertThat(ciFile).isNull()
+        assertThat(ciFile).isNull()
+    }
+
+    @ParameterizedTest
+    @MethodSource("versionsBelow")
+    fun `M return false W isVersionEqualOrAbove() { version is below }`(
+        left: SemVer,
+        right: SemVer
+    ) {
+        // When
+        val isEqualOrAbove = TaskUtils.isVersionEqualOrAbove(left.toString(), right.major, right.minor, right.patch)
+
+        // Then
+        assertThat(isEqualOrAbove).isFalse
+    }
+
+    @ParameterizedTest
+    @MethodSource("versionsAbove")
+    fun `M return true W isVersionEqualOrAbove() { version is above }`(
+        left: SemVer,
+        right: SemVer
+    ) {
+        // When
+        val isEqualOrAbove = TaskUtils.isVersionEqualOrAbove(left.toString(), right.major, right.minor, right.patch)
+
+        // Then
+        assertThat(isEqualOrAbove).isTrue
+    }
+
+    @Test
+    fun `M return true W isVersionEqualOrAbove() { versions are equal }`(
+        forge: Forge
+    ) {
+        // Given
+        val major = forge.aPositiveInt()
+        val minor = forge.aPositiveInt()
+        val patch = forge.aPositiveInt()
+
+        // When
+        val isEqualOrAbove = TaskUtils.isVersionEqualOrAbove("$major.$minor.$patch", major, minor, patch)
+
+        // Then
+        assertThat(isEqualOrAbove).isTrue
+    }
+
+    @Test
+    fun `M return false W isVersionEqualOrAbove() { empty string }`(
+        forge: Forge
+    ) {
+        // Given
+        val major = forge.aPositiveInt()
+        val minor = forge.aPositiveInt()
+        val patch = forge.aPositiveInt()
+
+        // When
+        val isEqualOrAbove = TaskUtils.isVersionEqualOrAbove("", major, minor, patch)
+
+        // Then
+        assertThat(isEqualOrAbove).isFalse
     }
 
     private fun buildDirectoryTree(
@@ -89,5 +152,35 @@ class TaskUtilsTest {
         tree.last().mkdirs()
 
         return tree
+    }
+
+    class SemVer(val major: Int, val minor: Int, val patch: Int, val suffix: String = "") {
+        override fun toString(): String {
+            return "$major.$minor.$patch${if (suffix.isNotEmpty()) "-$suffix" else ""}"
+        }
+    }
+
+    companion object {
+        @ValueSource
+        @JvmStatic
+        fun versionsBelow(): Stream<Arguments> {
+            return Stream.of(
+                Arguments.of(SemVer(1, 2, 3), SemVer(2, 2, 3)),
+                Arguments.of(SemVer(1, 2, 3, "rc1"), SemVer(2, 2, 3)),
+                Arguments.of(SemVer(1, 2, 3), SemVer(1, 3, 3)),
+                Arguments.of(SemVer(1, 2, 3), SemVer(1, 2, 4))
+            )
+        }
+
+        @ValueSource
+        @JvmStatic
+        fun versionsAbove(): Stream<Arguments> {
+            return Stream.of(
+                Arguments.of(SemVer(1, 2, 3), SemVer(0, 2, 3)),
+                Arguments.of(SemVer(1, 2, 3), SemVer(1, 1, 3)),
+                Arguments.of(SemVer(1, 2, 3), SemVer(1, 2, 2)),
+                Arguments.of(SemVer(1, 2, 3, "rc1"), SemVer(1, 2, 2))
+            )
+        }
     }
 }

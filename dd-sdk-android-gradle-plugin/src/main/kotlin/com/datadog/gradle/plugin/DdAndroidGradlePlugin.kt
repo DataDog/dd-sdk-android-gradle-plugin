@@ -215,7 +215,7 @@ class DdAndroidGradlePlugin @Inject constructor(
         ).apply {
             configure { uploadTask ->
                 @Suppress("MagicNumber")
-                if (TaskUtils.isGradleAbove(target, 7, 5)) {
+                if (TaskUtils.isGradleEqualOrAbove(target, 7, 5)) {
                     uploadTask.notCompatibleWithConfigurationCache(
                         "Datadog Upload Mapping task is not" +
                             " compatible with configuration cache yet."
