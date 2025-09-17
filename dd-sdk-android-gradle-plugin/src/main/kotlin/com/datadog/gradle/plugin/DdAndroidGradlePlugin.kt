@@ -32,6 +32,7 @@ import org.jetbrains.kotlin.gradle.internal.KaptGenerateStubsTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
 import java.net.URISyntaxException
+import java.nio.file.Paths
 import javax.inject.Inject
 import kotlin.io.path.Path
 
@@ -375,9 +376,16 @@ class DdAndroidGradlePlugin @Inject constructor(
 
     @Suppress("ReturnCount")
     private fun configureKotlinCompilerPlugin(project: Project, ddExtension: DdExtension): Boolean {
-        val pluginJarPath = try {
+        val pluginJarFile: File = try {
             val codeSource = this::class.java.protectionDomain?.codeSource
-            codeSource?.location?.toURI()?.path
+            if (codeSource == null) {
+                LOGGER.warn(
+                    "$DD_PLUGIN_MAVEN_COORDINATES not found in classpath, " +
+                        "Skipping Kotlin Compiler Plugin configuration."
+                )
+                return false
+            }
+            Paths.get(codeSource.location.toURI()).toFile()
         } catch (e: URISyntaxException) {
             LOGGER.error(
                 "Can not parse Datadog Gradle Plugin path because the URI is not correctly formatted.",
@@ -391,18 +399,15 @@ class DdAndroidGradlePlugin @Inject constructor(
             )
             return false
         }
-
-        if (pluginJarPath == null) {
-            LOGGER.warn(
-                "$DD_PLUGIN_MAVEN_COORDINATES not found in classpath, " +
-                    "Skipping Kotlin Compiler Plugin configuration."
-            )
+        val pluginPath = pluginJarFile.absolutePath
+        if (!pluginJarFile.exists()) {
+            LOGGER.error("Datadog plugin jar '$pluginPath' does not exist; skipping KCP configuration.")
             return false
         }
         val composeInstrumentation = ddExtension.composeInstrumentation
         project.tasks.configureKotlinCompile {
             kotlinOptions.freeCompilerArgs += listOf(
-                "-Xplugin=$pluginJarPath",
+                "-Xplugin=$pluginPath",
                 "-P",
                 "plugin:$KOTLIN_COMPILER_PLUGIN_ID:$INSTRUMENTATION_MODE=${composeInstrumentation.name}"
             )
