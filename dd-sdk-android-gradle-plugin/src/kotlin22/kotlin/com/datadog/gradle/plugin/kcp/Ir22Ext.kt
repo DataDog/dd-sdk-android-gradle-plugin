@@ -1,3 +1,4 @@
+
 package com.datadog.gradle.plugin.kcp
 
 import org.jetbrains.kotlin.DeprecatedForRemovalCompilerApi
@@ -17,10 +18,10 @@ import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.expressions.impl.IrFunctionExpressionImpl
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.IrValueParameterSymbol
+import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.symbols.impl.IrSimpleFunctionSymbolImpl
 import org.jetbrains.kotlin.ir.symbols.impl.IrValueParameterSymbolImpl
 import org.jetbrains.kotlin.ir.types.IrType
-import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.name.SpecialNames
@@ -30,7 +31,7 @@ import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.primaryConstructor
 
 // Builds Lambda of (T.() -> Unit)
-@OptIn(DeprecatedForRemovalCompilerApi::class)
+@OptIn(DeprecatedForRemovalCompilerApi::class, UnsafeDuringIrConstructionAPI::class)
 internal fun IrPluginContext.irUnitLambdaExpression(
     body: IrBody,
     irDeclarationParent: IrDeclarationParent?,
@@ -41,7 +42,7 @@ internal fun IrPluginContext.irUnitLambdaExpression(
         function = irSimpleFunction(
             name = SpecialNames.ANONYMOUS,
             visibility = DescriptorVisibilities.LOCAL,
-            returnType = symbols.unit.defaultType,
+            returnType = symbols.unit.owner.defaultType,
             origin = IrDeclarationOrigin.LOCAL_FUNCTION_FOR_LAMBDA,
             body = body
         ).apply {

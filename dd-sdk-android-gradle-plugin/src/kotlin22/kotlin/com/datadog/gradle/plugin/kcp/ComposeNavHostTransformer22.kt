@@ -20,8 +20,8 @@ import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.IrType
-import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.getClass
+import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.dumpKotlinLike
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.name.SpecialNames
@@ -145,7 +145,7 @@ class ComposeNavHostTransformer22(
         // Build lambda for apply function
         val lambda = createLocalAnonymousFunc(
             builder,
-            navHostControllerClassSymbol.defaultType,
+            navHostControllerClassSymbol.owner.defaultType,
             trackEffectCall
         )
 
