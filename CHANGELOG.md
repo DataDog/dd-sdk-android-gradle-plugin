@@ -1,3 +1,13 @@
+# 1.21.0 / 2025-10-02
+
+* [IMPROVEMENT] Unbox default type to fix Kotlin 2.2.20 breaking change. See [#440](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/449)
+* [BUGFIX] Fix Kotlin Compiler Plugin wrong jar path for Windows. See [#448](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/448)
+* [MAINTENANCE] Next dev iteration. See [#440](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/440)
+* [MAINTENANCE] Merge `release/1.20.0` branch into `develop` branch. See [#442](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/442)
+* [MAINTENANCE] Update Datadog Gradle Plugin to version 1.20.0. See [#443](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/443)
+* [MAINTENANCE] Update Datadog SDK to version 3.1.0. See [#446](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/446)
+* [MAINTENANCE] Update Datadog SDK snapshot version used to `3.2.0-SNAPSHOT`. See [#447](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/447)
+
 # 1.20.0 / 2025-09-15
 
 * [BUGFIX] Fix Gradle 9.0 support. See [#435](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/435)
