@@ -24,7 +24,6 @@ import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.classFqName
 import org.jetbrains.kotlin.ir.types.createType
-import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
@@ -197,7 +196,7 @@ class ComposeTagTransformer22(
     ): IrCall {
         val datadogTagIrCall = builder.irCall(
             datadogTagFunctionSymbol,
-            modifierClass.defaultType
+            modifierClass.owner.defaultType
         ).also {
             // Modifier
             // ExtensionReceiver argument
