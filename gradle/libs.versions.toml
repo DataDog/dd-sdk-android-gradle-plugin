@@ -42,14 +42,14 @@ gradlePluginPublishPlugin = "1.3.1"
 mavenPublishPlugin = "0.33.0"
 
 # Datadog
-datadogSdk = "3.0.0"
-datadogSdkSnapshot = "2.25.0-SNAPSHOT"
-datadogPluginGradle = "1.19.0"
+datadogSdk = "3.1.0"
+datadogSdkSnapshot = "3.2.0-SNAPSHOT"
+datadogPluginGradle = "1.20.0"
 
 # Kotlin Compiler Plugin
 kotlinCompilerEmbeddable20 = "2.0.21"
 kotlinCompilerEmbeddable21 = "2.1.21"
-kotlinCompilerEmbeddable22 = "2.2.0"
+kotlinCompilerEmbeddable22 = "2.2.20"
 kotlinCompilerTesting20 = "0.7.0"
 kotlinCompilerTesting21 = "0.7.0"
 kotlinCompilerTesting22 = "0.8.0"
