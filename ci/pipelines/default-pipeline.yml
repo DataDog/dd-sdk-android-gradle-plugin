@@ -106,7 +106,7 @@ test:plugin:
     - rm -rf ~/.gradle/daemon/
     - CODECOV_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android-gradle-plugin.codecov-token --with-decryption --query "Parameter.Value" --out text)
     - export DD_AGENT_HOST="$BUILDENV_HOST_IP"
-    - GRADLE_OPTS="-Xmx2560m" DD_TAGS="test.module:dd-sdk-android-gradle-plugin" ./gradlew :dd-sdk-android-gradle-plugin:test --stacktrace --no-daemon -Dorg.gradle.jvmargs=-javaagent:$(pwd)/libs/dd-java-agent-1.53.0.jar=$DD_COMMON_AGENT_CONFIG
+    - GRADLE_OPTS="-Xmx2560m" DD_TAGS="test.module:dd-sdk-android-gradle-plugin" ./gradlew :dd-sdk-android-gradle-plugin:test --stacktrace --no-daemon -Dorg.gradle.jvmargs=-javaagent:$(pwd)/libs/dd-java-agent-1.54.0.jar=$DD_COMMON_AGENT_CONFIG
     - bash <(cat ./ci/scripts/codecov.sh) -t $CODECOV_TOKEN
   artifacts:
     reports:
