@@ -81,7 +81,6 @@ internal class OkHttpUploader : Uploader {
                 .build()
         }
 
-        val call = client.newCall(request)
         val response = try {
             if (emulateNetworkCall) {
                 Response.Builder()
@@ -91,7 +90,7 @@ internal class OkHttpUploader : Uploader {
                     .code(HttpURLConnection.HTTP_ACCEPTED)
                     .build()
             } else {
-                call.execute()
+                client.newCall(request).execute()
             }
         } catch (e: Throwable) {
             LOGGER.error("Error uploading the mapping file for $identifier", e)
@@ -198,6 +197,7 @@ internal class OkHttpUploader : Uploader {
                 }
             }
         }
+        response.close()
     }
 
     private fun validateApiKey(site: DatadogSite, apiKey: String): Boolean? {
