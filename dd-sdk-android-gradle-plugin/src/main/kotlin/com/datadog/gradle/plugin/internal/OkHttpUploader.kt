@@ -197,7 +197,7 @@ internal class OkHttpUploader : Uploader {
                 }
             }
         }
-        response.close()
+        response.body?.close()
     }
 
     private fun validateApiKey(site: DatadogSite, apiKey: String): Boolean? {
