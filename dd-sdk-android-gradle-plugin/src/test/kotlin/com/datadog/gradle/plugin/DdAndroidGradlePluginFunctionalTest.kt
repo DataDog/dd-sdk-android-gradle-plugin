@@ -1494,7 +1494,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
                     buildToolsVersion = buildToolsVersion
                     // some AndroidX dependencies in recent SDK versions require compileSdk >= 33, so downgrading
                     datadogSdkDependency = targetSdkVersion >= 33 ?
-                       "com.datadoghq:dd-sdk-android-rum:3.3.0" : "com.datadoghq:dd-sdk-android:1.15.0"
+                       "com.datadoghq:dd-sdk-android-rum:3.4.0" : "com.datadoghq:dd-sdk-android:1.15.0"
                     jvmTarget = jvmTarget
                 }
                 repositories {
