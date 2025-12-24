@@ -12,14 +12,22 @@ import org.junit.Test
 class KotlinVersionTest {
 
     @Test
-    fun `M return KOTLIN22 W give version 2_2_0 and newer`() {
+    fun `M return KOTLIN22 W give version 2_2_x and newer`() {
+        // KOTLIN22 handles both 2.2.x and 2.3.x+ via backward-compatible API
         assertEquals(KotlinVersion.KOTLIN22, KotlinVersion.from("2.2.0"))
         assertEquals(KotlinVersion.KOTLIN22, KotlinVersion.from("2.2.10"))
+        assertEquals(KotlinVersion.KOTLIN22, KotlinVersion.from("2.2.20"))
         assertEquals(KotlinVersion.KOTLIN22, KotlinVersion.from("2.3.0"))
+        assertEquals(KotlinVersion.KOTLIN22, KotlinVersion.from("2.3.10"))
+        assertEquals(KotlinVersion.KOTLIN22, KotlinVersion.from("2.4.0"))
         assertEquals(KotlinVersion.KOTLIN22, KotlinVersion.from("3.0.0"))
         assertEquals(
             KotlinVersion.KOTLIN22,
             KotlinVersion.from("2.2.0-alpha")
+        ) // Suffixes should be handled
+        assertEquals(
+            KotlinVersion.KOTLIN22,
+            KotlinVersion.from("2.3.0-alpha")
         ) // Suffixes should be handled
     }
 

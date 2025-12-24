@@ -36,6 +36,8 @@ import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.primaryConstructor
 
 // Builds Lambda of (T.() -> Unit)
+// Note: We use irBuiltIns directly (not symbols.irBuiltIns) for compatibility with Kotlin 2.3+
+// where IrPluginContext.getSymbols() was removed. The direct irBuiltIns path works in all Kotlin 2.x versions.
 @OptIn(DeprecatedForRemovalCompilerApi::class, UnsafeDuringIrConstructionAPI::class)
 internal fun IrPluginContext.irUnitLambdaExpression(
     body: IrBody,
@@ -43,11 +45,11 @@ internal fun IrPluginContext.irUnitLambdaExpression(
     receiverType: IrType
 ): IrFunctionExpression {
     return buildCompatIrFunctionExpression(
-        type = symbols.irBuiltIns.functionN(0).defaultType,
+        type = irBuiltIns.functionN(0).defaultType,
         function = irSimpleFunction(
             name = SpecialNames.ANONYMOUS,
             visibility = DescriptorVisibilities.LOCAL,
-            returnType = symbols.unit.owner.defaultType,
+            returnType = irBuiltIns.unitType,
             origin = IrDeclarationOrigin.LOCAL_FUNCTION_FOR_LAMBDA,
             body = body
         ).apply {

@@ -30,6 +30,7 @@ internal enum class KotlinVersion {
             val minor = versionParts[1]
             val patch = versionParts[2]
 
+            // Kotlin 2.2+ and 2.3+ use KOTLIN22 (backward-compatible API in Ir22Ext.kt)
             return when {
                 major > 2 || (major == 2 && minor >= 2) -> KOTLIN22
                 major == 2 && minor == 1 && patch >= 20 -> KOTLIN21
