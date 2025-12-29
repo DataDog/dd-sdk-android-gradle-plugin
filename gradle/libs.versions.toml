@@ -1,8 +1,9 @@
 [versions]
 
 # Commons
-kotlin = "2.1.21"
-kotlinComposePlugin = "2.1.21"
+# Note: Using 2.2.20 to enable reading Kotlin 2.3.0 metadata for kotlin23Test source set
+kotlin = "2.2.20"
+kotlinComposePlugin = "2.2.20"
 json = "20231013"
 okHttp = "4.12.0"
 composeBom = "2024.04.01"
@@ -50,9 +51,13 @@ datadogPluginGradle = "1.20.0"
 kotlinCompilerEmbeddable20 = "2.0.21"
 kotlinCompilerEmbeddable21 = "2.1.21"
 kotlinCompilerEmbeddable22 = "2.2.20"
+kotlinCompilerEmbeddable23 = "2.3.0"
+# kctfork versions must match their target kotlin-compiler-embeddable versions
+# kctfork is tightly coupled to specific Kotlin compiler APIs
 kotlinCompilerTesting20 = "0.7.0"
 kotlinCompilerTesting21 = "0.7.0"
 kotlinCompilerTesting22 = "0.8.0"
+kotlinCompilerTesting23 = "0.12.0"
 autoService = "1.0.1"
 junitVersion = "1.2.1"
 espressoCoreVersion = "3.6.1"
@@ -122,9 +127,11 @@ kotlinCompilerEmbeddable = { group = "org.jetbrains.kotlin", name = "kotlin-comp
 kotlinCompilerEmbeddable20 = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlinCompilerEmbeddable20" }
 kotlinCompilerEmbeddable21 = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlinCompilerEmbeddable21" }
 kotlinCompilerEmbeddable22 = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlinCompilerEmbeddable22" }
+kotlinCompilerEmbeddable23 = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlinCompilerEmbeddable23" }
 kotlinCompilerTesting20 = { module = "dev.zacsweers.kctfork:core", version.ref = "kotlinCompilerTesting20" }
 kotlinCompilerTesting21 = { module = "dev.zacsweers.kctfork:core", version.ref = "kotlinCompilerTesting21" }
 kotlinCompilerTesting22 = { module = "dev.zacsweers.kctfork:core", version.ref = "kotlinCompilerTesting22" }
+kotlinCompilerTesting23 = { module = "dev.zacsweers.kctfork:core", version.ref = "kotlinCompilerTesting23" }
 autoService = { module = "com.google.auto.service:auto-service", version.ref = "autoService" }
 autoServiceAnnotation = { module = "com.google.auto.service:auto-service-annotations", version.ref = "autoService" }
 

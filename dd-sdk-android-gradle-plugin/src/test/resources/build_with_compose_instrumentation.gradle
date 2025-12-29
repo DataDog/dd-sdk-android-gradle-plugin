@@ -1,0 +1,88 @@
+plugins {
+    id("com.android.application")
+    id("kotlin-android")
+    id("org.jetbrains.kotlin.plugin.compose")
+    id("com.datadoghq.dd-sdk-android-gradle-plugin")
+}
+
+repositories {
+    google()
+    mavenCentral()
+}
+
+android {
+    compileSdkVersion = rootProject.ext.targetSdkVersion
+    buildToolsVersion = rootProject.ext.buildToolsVersion
+
+    defaultConfig {
+        applicationId "com.example.variants"
+        minSdkVersion 23
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 1
+        versionName "1.0"
+        multiDexEnabled = true
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+        debug {
+            minifyEnabled false
+        }
+    }
+
+    namespace = "com.example.variants"
+
+    compileOptions {
+        sourceCompatibility = rootProject.ext.jvmTarget
+        targetCompatibility = rootProject.ext.jvmTarget
+    }
+
+    kotlinOptions {
+        jvmTarget = rootProject.ext.jvmTarget
+    }
+
+    buildFeatures {
+        compose = true
+    }
+
+    flavorDimensions("version", "colour")
+    productFlavors {
+        demo {
+            dimension "version"
+            applicationIdSuffix ".demo"
+            versionNameSuffix "-demo"
+        }
+        full {
+            dimension "version"
+            applicationIdSuffix ".full"
+            versionNameSuffix "-full"
+        }
+
+        green {
+            dimension "colour"
+        }
+        blue {
+            dimension "colour"
+        }
+    }
+}
+
+datadog {
+    composeInstrumentation = com.datadog.gradle.plugin.InstrumentationMode.AUTO
+}
+
+dependencies {
+    implementation(rootProject.ext.datadogSdkDependency)
+    // Use a version compatible with the SDK version defined in datadogSdkDependency
+    implementation("com.datadoghq:dd-sdk-android-compose:2.17.0")
+
+    // Compose dependencies
+    def composeBom = platform("androidx.compose:compose-bom:2024.04.01")
+    implementation(composeBom)
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.activity:activity-compose:1.9.3")
+    implementation("androidx.navigation:navigation-compose:2.8.8")
+}

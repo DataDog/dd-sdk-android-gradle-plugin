@@ -60,18 +60,49 @@ open class KotlinCompilerTest {
         enablePlugin: Boolean = true,
         internalInstrumentationMode: InstrumentationMode = InstrumentationMode.AUTO
     ): JvmCompilationResult {
-        val pluginRegistrars = if (enablePlugin) {
-            listOf(DatadogPluginRegistrar(internalInstrumentationMode))
-        } else {
-            listOf()
-        }
-
         return KotlinCompilation().apply {
             sources = deps + target
-            componentRegistrars = pluginRegistrars
+            configurePluginRegistrars(enablePlugin, internalInstrumentationMode)
             inheritClassPath = true
             messageOutputStream = System.out
         }.compile()
+    }
+
+    /**
+     * Configures plugin registrars using either the new API (compilerPluginRegistrars)
+     * or the old API (componentRegistrars) depending on what's available.
+     * kctfork 0.12.0+ uses compilerPluginRegistrars, older versions use componentRegistrars.
+     */
+    @Suppress("TooGenericExceptionCaught")
+    private fun KotlinCompilation.configurePluginRegistrars(
+        enablePlugin: Boolean,
+        internalInstrumentationMode: InstrumentationMode
+    ) {
+        if (!enablePlugin) return
+
+        // Try the new API first (compilerPluginRegistrars) - available in kctfork 0.12.0+
+        try {
+            val newApiProperty = this::class.java.methods.find { it.name == "setCompilerPluginRegistrars" }
+            if (newApiProperty != null) {
+                val registrars = listOf(DatadogCompilerPluginRegistrar(internalInstrumentationMode))
+                newApiProperty.invoke(this, registrars)
+                return
+            }
+        } catch (_: Exception) {
+            // Fall through to old API
+        }
+
+        // Fall back to old API (componentRegistrars) - available in kctfork 0.8.0 and earlier
+        try {
+            @Suppress("DEPRECATION")
+            componentRegistrars = listOf(DatadogPluginRegistrar(internalInstrumentationMode))
+        } catch (e: Exception) {
+            throw IllegalStateException(
+                "Unable to configure plugin registrars. " +
+                    "Neither compilerPluginRegistrars nor componentRegistrars API is available.",
+                e
+            )
+        }
     }
 
     protected fun executeClassFile(

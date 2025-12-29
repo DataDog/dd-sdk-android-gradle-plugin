@@ -145,6 +145,53 @@ internal class DdAndroidGradlePluginFunctionalTest {
         assertThat(result).hasSuccessfulTaskOutcome(":samples:app:assembleRelease")
     }
 
+    // region Kotlin 2.3 Compatibility Tests
+
+    @Test
+    fun `M success W assembleDebug { Kotlin 2_3 }`() {
+        // This test ensures Kotlin 2.3.0 compatibility (debug build to avoid R8 slowness)
+        // Given
+        stubGradlePropertiesFile(Kotlin23TestConstants.KOTLIN_2_3_TEST_CONFIGURATION)
+        stubGradleBuildFromResourceFile(
+            "build_with_datadog_dep.gradle",
+            appBuildGradleFile
+        )
+        // When
+        val result = gradleRunner(
+            gradleVersion = Kotlin23TestConstants.KOTLIN_2_3_TEST_CONFIGURATION.gradleVersion
+        ) {
+            withArguments("--stacktrace", ":samples:app:assembleDebug")
+        }.build()
+
+        // Then
+        assertThat(result).hasSuccessfulTaskOutcome(":samples:app:assembleDebug")
+    }
+
+    @Test
+    fun `M success W assembleDebug { Kotlin 2_3 with Compose instrumentation }`() {
+        // This test verifies Compose instrumentation compiles successfully with Kotlin 2.3.0
+        // Given
+        stubFile(rootBuildFile, Kotlin23TestConstants.ROOT_BUILD_FILE_CONTENT_WITH_COMPOSE)
+        stubGradlePropertiesFile(Kotlin23TestConstants.KOTLIN_2_3_TEST_CONFIGURATION)
+        stubGradleBuildFromResourceFile(
+            "build_with_compose_instrumentation.gradle",
+            appBuildGradleFile
+        )
+        stubFile(sampleApplicationClassFile, Kotlin23TestConstants.COMPOSE_NAVHOST_SOURCE_CONTENT)
+
+        // When
+        val result = gradleRunner(
+            gradleVersion = Kotlin23TestConstants.KOTLIN_2_3_TEST_CONFIGURATION.gradleVersion
+        ) {
+            withArguments("--stacktrace", ":samples:app:assembleDebug")
+        }.build()
+
+        // Then
+        assertThat(result).hasSuccessfulTaskOutcome(":samples:app:assembleDebug")
+    }
+
+    // endregion
+
     @Test
     fun `M success W assembleRelease { new Variant API is used in buildscript }`() {
         // Given
@@ -1575,7 +1622,8 @@ internal class DdAndroidGradlePluginFunctionalTest {
                 kotlinVersion = "1.6.10",
                 jvmTarget = JavaVersion.VERSION_11.toString()
             ),
-            LATEST_VERSIONS_TEST_CONFIGURATION
+            LATEST_VERSIONS_TEST_CONFIGURATION,
+            Kotlin23TestConstants.KOTLIN_2_3_TEST_CONFIGURATION
         )
 
         const val BUILD_ID_FILE_PATH_APK = "assets/datadog.buildId"

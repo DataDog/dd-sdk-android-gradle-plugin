@@ -405,12 +405,13 @@ class DdAndroidGradlePlugin @Inject constructor(
             return false
         }
         val composeInstrumentation = ddExtension.composeInstrumentation
+        val compilerArgs = listOf(
+            "-Xplugin=$pluginPath",
+            "-P",
+            "plugin:$KOTLIN_COMPILER_PLUGIN_ID:$INSTRUMENTATION_MODE=${composeInstrumentation.name}"
+        )
         project.tasks.configureKotlinCompile {
-            kotlinOptions.freeCompilerArgs += listOf(
-                "-Xplugin=$pluginPath",
-                "-P",
-                "plugin:$KOTLIN_COMPILER_PLUGIN_ID:$INSTRUMENTATION_MODE=${composeInstrumentation.name}"
-            )
+            configureCompilerArgs(compilerArgs)
         }
         return composeInstrumentation != InstrumentationMode.DISABLE
     }
@@ -424,6 +425,26 @@ class DdAndroidGradlePlugin @Inject constructor(
             it !is KaptGenerateStubsTask && !it.name.startsWith("ksp")
         }.configureEach {
             action(it)
+        }
+    }
+
+    /**
+     * Configures compiler args using compilerOptions (Kotlin 1.8+) or kotlinOptions (older versions).
+     * Uses reflection to support both APIs at runtime for backward compatibility.
+     */
+    @Suppress("TooGenericExceptionCaught", "DEPRECATION_ERROR")
+    private fun KotlinCompile.configureCompilerArgs(args: List<String>) {
+        try {
+            // Try the new compilerOptions API (Kotlin 1.8+)
+            val compilerOptionsMethod = this::class.java.getMethod("getCompilerOptions")
+            val compilerOptions = compilerOptionsMethod.invoke(this)
+            val freeCompilerArgsMethod = compilerOptions::class.java.getMethod("getFreeCompilerArgs")
+            val freeCompilerArgs = freeCompilerArgsMethod.invoke(compilerOptions)
+            val addAllMethod = freeCompilerArgs::class.java.getMethod("addAll", Collection::class.java)
+            addAllMethod.invoke(freeCompilerArgs, args)
+        } catch (_: Exception) {
+            // Fall back to the deprecated kotlinOptions API (Kotlin < 1.8)
+            kotlinOptions.freeCompilerArgs += args
         }
     }
 

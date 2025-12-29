@@ -47,9 +47,17 @@ val kotlin21Test: SourceSet by sourceSets.creating
 // Kotlin 2.2.x versions
 val kotlin22: SourceSet by sourceSets.creating
 val kotlin22Test: SourceSet by sourceSets.creating
+// Kotlin 2.3.x versions
+val kotlin23: SourceSet by sourceSets.creating
+val kotlin23Test: SourceSet by sourceSets.creating
 
 configurations {
-    listOf("kotlin20TestImplementation", "kotlin21TestImplementation", "kotlin22TestImplementation").forEach {
+    listOf(
+        "kotlin20TestImplementation",
+        "kotlin21TestImplementation",
+        "kotlin22TestImplementation",
+        "kotlin23TestImplementation"
+    ).forEach {
         named(it) {
             extendsFrom(configurations["testImplementation"], configurations["implementation"])
         }
@@ -77,6 +85,7 @@ dependencies {
     testImplementation(kotlin20.output)
     testImplementation(kotlin21.output)
     testImplementation(kotlin22.output)
+    testImplementation(kotlin23.output)
     testImplementation(common.output)
 
     // Compile-only dependencies
@@ -86,12 +95,23 @@ dependencies {
     compileOnly(kotlin20.output)
     compileOnly(kotlin21.output)
     compileOnly(kotlin22.output)
+    compileOnly(kotlin23.output)
     compileOnly(common.output)
     compileOnly(libs.autoServiceAnnotation)
     kapt(libs.autoService)
 
     // Common source set
     common.compileOnlyConfigurationName(libs.kotlinCompilerEmbeddable)
+
+    // Kotlin 2.3.x source set (reuses kotlin22 classes via typealiases)
+    // Uses kotlinCompilerEmbeddable22 because the typealiases point to kotlin22 classes
+    // which were compiled against 2.2 APIs. Using 2.3 would cause deprecation errors.
+    with(kotlin23) {
+        compileOnlyConfigurationName(libs.kotlinReflect)
+        compileOnlyConfigurationName(libs.kotlinCompilerEmbeddable22)
+        compileOnlyConfigurationName(common.output)
+        compileOnlyConfigurationName(kotlin22.output)
+    }
 
     // Kotlin 2.2.x source set
     with(kotlin22) {
@@ -113,7 +133,7 @@ dependencies {
         compileOnlyConfigurationName(libs.kotlinCompilerEmbeddable20)
         compileOnlyConfigurationName(common.output)
     }
-    val testSourceVersions = listOf("20", "21", "22")
+    val testSourceVersions = listOf("20", "21", "22", "23")
 
     testSourceVersions.forEach { version ->
         val sourceSetName = "kotlin$version"
@@ -123,6 +143,7 @@ dependencies {
             "20" -> libs.kotlinCompilerEmbeddable20
             "21" -> libs.kotlinCompilerEmbeddable21
             "22" -> libs.kotlinCompilerEmbeddable22
+            "23" -> libs.kotlinCompilerEmbeddable23
             else -> error("No embeddable lib for version $version")
         }
 
@@ -130,6 +151,7 @@ dependencies {
             "20" -> libs.kotlinCompilerTesting20
             "21" -> libs.kotlinCompilerTesting21
             "22" -> libs.kotlinCompilerTesting22
+            "23" -> libs.kotlinCompilerTesting23
             else -> error("No testing lib for version $version")
         }
 
@@ -140,6 +162,26 @@ dependencies {
             add(testImpl, sourceSets["test"].output)
             add(testImpl, sourceSets["main"].output)
             add(testImpl, sourceSets[sourceSetName].output)
+        }
+
+        // Force the specific kotlin-compiler-embeddable version for each test configuration
+        // This overrides the transitive dependency from kctfork
+        val embeddableVersion = when (version) {
+            "20" -> "2.0.21"
+            "21" -> "2.1.21"
+            "22" -> "2.2.20"
+            "23" -> "2.3.0"
+            else -> error("No version for $version")
+        }
+        configurations.named("${sourceSetName}TestCompileClasspath") {
+            resolutionStrategy {
+                force("org.jetbrains.kotlin:kotlin-compiler-embeddable:$embeddableVersion")
+            }
+        }
+        configurations.named("${sourceSetName}TestRuntimeClasspath") {
+            resolutionStrategy {
+                force("org.jetbrains.kotlin:kotlin-compiler-embeddable:$embeddableVersion")
+            }
         }
     }
 }
@@ -155,6 +197,7 @@ tasks.withType<Jar>().configureEach {
     from(kotlin20.output)
     from(kotlin21.output)
     from(kotlin22.output)
+    from(kotlin23.output)
     from(common.output)
 }
 
@@ -187,7 +230,8 @@ tasks.withType<Test> {
 listOf(
     "kotlin20" to kotlin20Test,
     "kotlin21" to kotlin21Test,
-    "kotlin22" to kotlin22Test
+    "kotlin22" to kotlin22Test,
+    "kotlin23" to kotlin23Test
 ).forEach { (name, sourceSet) ->
     tasks.register<Test>("test${name.replaceFirstChar { it.uppercaseChar() }}") {
         group = "verification"
@@ -195,9 +239,18 @@ listOf(
         testClassesDirs = sourceSet.output.classesDirs
         classpath = sourceSet.runtimeClasspath
         useJUnitPlatform()
+
+        // kotlin20/kotlin21 compilation tests are skipped because kctfork versions for those
+        // Kotlin versions are incompatible with the project's Kotlin 2.2.20 runtime.
+        // Extension tests (which only mock compiler APIs) still run.
+        if (name == "kotlin20" || name == "kotlin21") {
+            filter {
+                excludeTestsMatching("*Compilation*Test")
+            }
+        }
     }
 }
 
 tasks.register("allTests") {
-    dependsOn("test", "testKotlin20", "testKotlin21", "testKotlin22")
+    dependsOn("test", "testKotlin20", "testKotlin21", "testKotlin22", "testKotlin23")
 }

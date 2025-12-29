@@ -5,6 +5,7 @@ build,io.gitlab.arturbosch.detekt,Apache-2.0,Copyright 2016-2019 the original au
 build,org.ec4j.core,Apache-2.0,"Copyright (c) 2017 Angelo Zerr and other contributors"
 build,org.jetbrains.dokka,Apache-2.0,"Copyright 2014-2019 JetBrains s.r.o. and Dokka project contributors."
 build,org.jetbrains.intellij.deps,LGPL-2.1-only,"Copyright (c) 2001-2002, Eric D. Friedman, Jason Baldridge, Copyright (c) 1999 CERN - European Organization for Nuclear Research"
+build,org.bouncycastle,BouncyCastle-License,Copyright (c) 2000-2024 The Legion of the Bouncy Castle Inc.
 import,com.android.tools.build,Apache-2.0,Copyright (C) 2013 The Android Open Source Project
 import,com.squareup.okhttp3,Apache-2.0,"Copyright 2019 Square, Inc"
 import,org.jetbrains,Apache-2.0,Copyright 2010-2019 JetBrains s.r.o. and Kotlin Programming Language contributors

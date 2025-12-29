@@ -11,6 +11,7 @@ captures/
 # Gradle files
 .gradle/
 build/
+bin/
 
 # CMake
 .cxx/
