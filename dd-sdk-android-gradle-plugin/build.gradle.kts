@@ -44,11 +44,10 @@ val kotlin20Test: SourceSet by sourceSets.creating
 // Kotlin 2.1.x versions
 val kotlin21: SourceSet by sourceSets.creating
 val kotlin21Test: SourceSet by sourceSets.creating
-// Kotlin 2.2.x versions
+// Kotlin 2.2.x versions (also used for Kotlin 2.3.x - API compatible)
 val kotlin22: SourceSet by sourceSets.creating
 val kotlin22Test: SourceSet by sourceSets.creating
-// Kotlin 2.3.x versions
-val kotlin23: SourceSet by sourceSets.creating
+// Kotlin 2.3.x tests (uses kotlin22 classes - API compatible)
 val kotlin23Test: SourceSet by sourceSets.creating
 
 configurations {
@@ -85,7 +84,6 @@ dependencies {
     testImplementation(kotlin20.output)
     testImplementation(kotlin21.output)
     testImplementation(kotlin22.output)
-    testImplementation(kotlin23.output)
     testImplementation(common.output)
 
     // Compile-only dependencies
@@ -95,7 +93,6 @@ dependencies {
     compileOnly(kotlin20.output)
     compileOnly(kotlin21.output)
     compileOnly(kotlin22.output)
-    compileOnly(kotlin23.output)
     compileOnly(common.output)
     compileOnly(libs.autoServiceAnnotation)
     kapt(libs.autoService)
@@ -103,17 +100,7 @@ dependencies {
     // Common source set
     common.compileOnlyConfigurationName(libs.kotlinCompilerEmbeddable)
 
-    // Kotlin 2.3.x source set (reuses kotlin22 classes via typealiases)
-    // Uses kotlinCompilerEmbeddable22 because the typealiases point to kotlin22 classes
-    // which were compiled against 2.2 APIs. Using 2.3 would cause deprecation errors.
-    with(kotlin23) {
-        compileOnlyConfigurationName(libs.kotlinReflect)
-        compileOnlyConfigurationName(libs.kotlinCompilerEmbeddable22)
-        compileOnlyConfigurationName(common.output)
-        compileOnlyConfigurationName(kotlin22.output)
-    }
-
-    // Kotlin 2.2.x source set
+    // Kotlin 2.2.x source set (also used for Kotlin 2.3.x - API compatible)
     with(kotlin22) {
         compileOnlyConfigurationName(libs.kotlinReflect)
         compileOnlyConfigurationName(libs.kotlinCompilerEmbeddable22)
@@ -155,17 +142,27 @@ dependencies {
             else -> error("No testing lib for version $version")
         }
 
+        // For kotlin23Test, use kotlin22 classes (API compatible)
+        val sourceSetOutput = if (version == "23") {
+            sourceSets["kotlin22"].output
+        } else {
+            sourceSets[sourceSetName].output
+        }
+
         dependencies {
             add(testImpl, libs.bundles.jUnit5)
             add(testImpl, compilerTestingLib)
             add(testImpl, compilerEmbeddableLib)
             add(testImpl, sourceSets["test"].output)
             add(testImpl, sourceSets["main"].output)
-            add(testImpl, sourceSets[sourceSetName].output)
+            add(testImpl, sourceSetOutput)
         }
 
-        // Force the specific kotlin-compiler-embeddable version for each test configuration
-        // This overrides the transitive dependency from kctfork
+        // Force the specific kotlin-compiler-embeddable version for each test configuration.
+        // This is required because testImplementation includes kotlinCompilerEmbeddable (version-less)
+        // which resolves to the project's Kotlin 2.2.20, and the versioned test configs inherit from
+        // testImplementation. Without force(), Gradle's conflict resolution picks 2.2.20 over the
+        // version-specific one from kctfork.
         val embeddableVersion = when (version) {
             "20" -> "2.0.21"
             "21" -> "2.1.21"
@@ -197,7 +194,6 @@ tasks.withType<Jar>().configureEach {
     from(kotlin20.output)
     from(kotlin21.output)
     from(kotlin22.output)
-    from(kotlin23.output)
     from(common.output)
 }
 

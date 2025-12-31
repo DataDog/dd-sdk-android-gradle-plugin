@@ -25,7 +25,8 @@ internal class ComposeTagExtension23Test : ComposeTagExtensionTest() {
     @Test
     override fun `M accept ComposeTagTransformer W generate`(@BoolForgery annotationModeEnabled: Boolean) {
         // Given
-        val composeTagExtension = ComposeTagExtension23(
+        // Uses kotlin22 classes - API compatible with Kotlin 2.3.x
+        val composeTagExtension = ComposeTagExtension22(
             messageCollector = mockMessageCollector,
             annotationModeEnabled = annotationModeEnabled
         )
@@ -38,7 +39,7 @@ internal class ComposeTagExtension23Test : ComposeTagExtensionTest() {
 
         // Then
         verify(mockModuleFragment).accept(
-            any<ComposeTagTransformer23>(),
+            any<ComposeTagTransformer22>(),
             isNull()
         )
     }

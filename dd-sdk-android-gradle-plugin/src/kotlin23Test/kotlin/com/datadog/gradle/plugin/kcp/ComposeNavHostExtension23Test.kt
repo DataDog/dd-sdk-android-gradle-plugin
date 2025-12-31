@@ -28,7 +28,8 @@ internal class ComposeNavHostExtension23Test : ComposeNavHostExtensionTest() {
 
     @Test
     override fun `M accept ComposeNavHostTransformer W generate`(@BoolForgery annotationModeEnabled: Boolean) {
-        val composeNavHostExtension = ComposeNavHostExtension23(
+        // Uses kotlin22 classes - API compatible with Kotlin 2.3.x
+        val composeNavHostExtension = ComposeNavHostExtension22(
             messageCollector = mockMessageCollector,
             annotationModeEnabled = annotationModeEnabled
         )
@@ -37,6 +38,6 @@ internal class ComposeNavHostExtension23Test : ComposeNavHostExtensionTest() {
         composeNavHostExtension.generate(mockModuleFragment, mockPluginContext)
 
         // Then
-        verify(mockModuleFragment).accept(any<ComposeNavHostTransformer23>(), eq(null))
+        verify(mockModuleFragment).accept(any<ComposeNavHostTransformer22>(), eq(null))
     }
 }
