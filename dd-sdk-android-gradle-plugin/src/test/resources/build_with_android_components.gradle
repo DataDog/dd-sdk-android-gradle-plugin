@@ -37,7 +37,7 @@ android {
     buildTypes {
         release {
             minifyEnabled true
-            proguardFiles getDefaultProguardFile ('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile ('proguard-android-optimize.txt')
         }
     }
 
@@ -47,9 +47,19 @@ android {
         sourceCompatibility = rootProject.ext.jvmTarget
         targetCompatibility = rootProject.ext.jvmTarget
     }
+}
 
-    kotlinOptions {
-        jvmTarget = rootProject.ext.jvmTarget
+if (Integer.parseInt(rootProject.ext.agpVersion.split("\\.")[0]) >= 9) {
+    kotlin {
+        compilerOptions {
+            jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.fromTarget(rootProject.ext.jvmTarget)
+        }
+    }
+} else {
+    android {
+        kotlinOptions {
+            jvmTarget = rootProject.ext.jvmTarget
+        }
     }
 }
 
