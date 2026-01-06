@@ -6,6 +6,13 @@
 
 include(":dd-sdk-android-gradle-plugin")
 
+// KCP modules as composite builds (allows different Kotlin versions per module)
+includeBuild("dd-sdk-android-gradle-plugin/dd-kcp-common")
+includeBuild("dd-sdk-android-gradle-plugin/dd-kcp-test-fixtures")
+includeBuild("dd-sdk-android-gradle-plugin/dd-kcp-kotlin20")
+includeBuild("dd-sdk-android-gradle-plugin/dd-kcp-kotlin21")
+includeBuild("dd-sdk-android-gradle-plugin/dd-kcp-kotlin22")
+
 include(":samples:basic")
 include(":samples:ndk")
 include(":samples:variants")
