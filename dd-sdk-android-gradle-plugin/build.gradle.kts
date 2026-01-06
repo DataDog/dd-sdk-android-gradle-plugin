@@ -36,7 +36,6 @@ plugins {
     id("transitiveDependencies")
 }
 
-
 dependencies {
     // Main implementation dependencies
     implementation(libs.kotlin)
@@ -78,7 +77,6 @@ jacocoConfig()
 javadocConfig()
 dependencyUpdateConfig()
 publishingConfig("Plugin to upload Proguard/R8 mapping files to Datadog.")
-
 
 gradlePlugin {
 
@@ -123,3 +121,13 @@ tasks.withType<Jar>().configureEach {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
+// Run all tests including KCP module tests from composite builds
+tasks.register("allTests") {
+    description = "Runs all tests including KCP module tests."
+    group = "verification"
+    val testTask = ":test"
+    dependsOn("test")
+    dependsOn(gradle.includedBuild("dd-kcp-kotlin20").task(testTask))
+    dependsOn(gradle.includedBuild("dd-kcp-kotlin21").task(testTask))
+    dependsOn(gradle.includedBuild("dd-kcp-kotlin22").task(testTask))
+}

@@ -41,8 +41,9 @@ tasks.register("checkGeneratedFiles") {}
 tasks.register("allTests") {
     description = "Runs all tests including KCP module tests."
     group = "verification"
+    val testTask = ":test"
     dependsOn(":dd-sdk-android-gradle-plugin:test")
-    dependsOn(gradle.includedBuild("dd-kcp-kotlin20").task(":test"))
-    dependsOn(gradle.includedBuild("dd-kcp-kotlin21").task(":test"))
-    dependsOn(gradle.includedBuild("dd-kcp-kotlin22").task(":test"))
+    dependsOn(gradle.includedBuild("dd-kcp-kotlin20").task(testTask))
+    dependsOn(gradle.includedBuild("dd-kcp-kotlin21").task(testTask))
+    dependsOn(gradle.includedBuild("dd-kcp-kotlin22").task(testTask))
 }

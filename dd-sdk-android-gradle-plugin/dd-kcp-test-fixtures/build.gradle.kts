@@ -4,6 +4,8 @@
  * Copyright 2020-Present Datadog, Inc.
  */
 
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     id("java-library")
     kotlin("jvm") version "2.0.21"
@@ -20,7 +22,9 @@ java {
 }
 
 kotlin {
-    jvmToolchain(11)
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_11)
+    }
 }
 
 repositories {
@@ -30,7 +34,7 @@ repositories {
 dependencies {
     // Kotlin compiler - compileOnly so each consumer provides their own version
     compileOnly("org.jetbrains.kotlin:kotlin-compiler-embeddable:2.0.21")
-    
+
     // Testing framework - exposed as api so consumers get these
     api(platform("org.junit:junit-bom:5.9.3"))
     api("org.junit.jupiter:junit-jupiter")
