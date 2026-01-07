@@ -6,6 +6,7 @@
 
 package com.datadog.gradle.plugin
 
+import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import com.android.build.gradle.AppExtension
 import com.datadog.gradle.plugin.internal.ApiKey
@@ -67,7 +68,7 @@ class DdAndroidGradlePlugin @Inject constructor(
                     )
                 }
             } else {
-                val androidExtension = target.androidApplicationExtension ?: return@withPlugin
+                val androidExtension = target.legacyAndroidApplicationExtension ?: return@withPlugin
                 androidExtension.applicationVariants.all { variant ->
                     if (extension.enabled) {
                         configureTasksForVariant(
@@ -83,12 +84,19 @@ class DdAndroidGradlePlugin @Inject constructor(
 
         target.afterEvaluate {
             var isKcpEnabled = false
-            target.pluginManager.withPlugin("org.jetbrains.kotlin.android") {
+            if (CurrentAgpVersion.IMPLEMENTS_BUILT_IN_KOTLIN) {
                 isKcpEnabled = configureKotlinCompilerPlugin(target, extension)
+            } else {
+                target.pluginManager.withPlugin("org.jetbrains.kotlin.android") {
+                    isKcpEnabled = configureKotlinCompilerPlugin(target, extension)
+                }
             }
-            val androidExtension = target.androidApplicationExtension
-            if (androidExtension == null && !isKcpEnabled) {
-                LOGGER.error(ERROR_NOT_ANDROID)
+            if (!target.isAndroidAppPluginApplied) {
+                if (extension.composeInstrumentation != InstrumentationMode.DISABLE) {
+                    if (!isKcpEnabled) LOGGER.error(ERROR_COMPOSE_INSTRUMENTATION_NOT_APPLIED)
+                } else {
+                    LOGGER.error(ERROR_NOT_ANDROID)
+                }
             } else if (!extension.enabled) {
                 LOGGER.info(MSG_PLUGIN_DISABLED)
             }
@@ -406,13 +414,25 @@ class DdAndroidGradlePlugin @Inject constructor(
         }
         val composeInstrumentation = ddExtension.composeInstrumentation
         project.tasks.configureKotlinCompile {
-            kotlinOptions.freeCompilerArgs += listOf(
-                "-Xplugin=$pluginPath",
-                "-P",
-                "plugin:$KOTLIN_COMPILER_PLUGIN_ID:$INSTRUMENTATION_MODE=${composeInstrumentation.name}"
+            addCompilerArgs(
+                listOf(
+                    "-Xplugin=$pluginPath",
+                    "-P",
+                    "plugin:$KOTLIN_COMPILER_PLUGIN_ID:$INSTRUMENTATION_MODE=${composeInstrumentation.name}"
+                )
             )
         }
-        return composeInstrumentation != InstrumentationMode.DISABLE
+        return true
+    }
+
+    private fun KotlinCompile.addCompilerArgs(args: List<String>) {
+        if (CurrentAgpVersion.IMPLEMENTS_BUILT_IN_KOTLIN) {
+            compilerOptions.freeCompilerArgs.addAll(args)
+        } else {
+            // can cut this branch off once we support Kotlin 1.8 min
+            @Suppress("DEPRECATION")
+            kotlinOptions.freeCompilerArgs += args
+        }
     }
 
     private fun TaskContainer.configureKotlinCompile(action: KotlinCompile.() -> Unit) {
@@ -441,7 +461,13 @@ class DdAndroidGradlePlugin @Inject constructor(
         return isDefaultObfuscationEnabled || isNonDefaultObfuscationEnabled
     }
 
-    private val Project.androidApplicationExtension: AppExtension?
+    private val Project.isAndroidAppPluginApplied: Boolean
+        get() = extensions.findByName("android")?.let {
+            // legacy vs new API
+            it is AppExtension || it is ApplicationExtension
+        } ?: false
+
+    private val Project.legacyAndroidApplicationExtension: AppExtension?
         get() = extensions.findByType(AppExtension::class.java)
 
     private val Project.androidApplicationComponentExtension: ApplicationAndroidComponentsExtension?
@@ -466,6 +492,9 @@ class DdAndroidGradlePlugin @Inject constructor(
         private const val EXT_NAME = "datadog"
 
         internal const val UPLOAD_TASK_NAME = "uploadMapping"
+
+        private const val ERROR_COMPOSE_INSTRUMENTATION_NOT_APPLIED = "The dd-android-gradle-plugin has been applied" +
+            " on a project where Datadog Jetpack Compose Instrumentation cannot be activated."
 
         private const val ERROR_NOT_ANDROID = "The dd-android-gradle-plugin has been applied on " +
             "a non android application project"
