@@ -1,3 +1,18 @@
+# 1.22.0 / 2026-01-19
+
+* [IMPROVEMENT] Don't fail NDK upload task if architecture is not supported. See [#465](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/465)
+* [IMPROVEMENT] `OkHttpUploader`: Fix response not being closed in `handleResponse()`. See [#469](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/469)
+* [IMPROVEMENT] Support AGP 9.0. See [#478](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/478)
+* [MAINTENANCE] Update Datadog Gradle Plugin to version 1.21.0. See [#452](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/452)
+* [MAINTENANCE] Update files missing copyright. See [#455](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/455)
+* [MAINTENANCE] Bump `dd-trace-java` version to 1.54.0. See [#456](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/456)
+* [MAINTENANCE] Update Datadog SDK to version 3.2.0. See [#457](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/457)
+* [MAINTENANCE] Add `allTests` to include all the unit tests in gradle plugin. See [#459](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/459)
+* [MAINTENANCE] Update Datadog SDK to version 3.3.0. See [#468](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/468)
+* [MAINTENANCE] Update Datadog SDK to version 3.4.0. See [#473](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/473)
+* [MAINTENANCE] Use Kotlin 2.3 and Gradle 9.2.1 for the latest configuration in functional test runs. See [#476](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/476)
+* [MAINTENANCE] Update Datadog SDK to version 3.5.0. See [#480](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/480)
+
 # 1.21.0 / 2025-10-02
 
 * [IMPROVEMENT] Unbox default type to fix Kotlin 2.2.20 breaking change. See [#440](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/449)
