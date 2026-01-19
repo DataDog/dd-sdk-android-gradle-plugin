@@ -42,22 +42,32 @@ internal abstract class NdkSymbolFileUploadTask @Inject constructor(
         searchDirectories
             .flatMap(this::findSoFiles)
             .toSet()
-            .forEach { file ->
-                val arch = file.parentFile.name
+            .groupBy { it.parentFile }
+            .forEach { archToFiles ->
+                val arch = archToFiles.key.name
                 val archMapping = SUPPORTED_ARCHS.firstOrNull { it.arch == arch }
-                require(archMapping != null)
-                files.add(
-                    Uploader.UploadFileInfo(
-                        KEY_NDK_SYMBOL_FILE,
-                        file,
-                        encoding = ENCODING,
-                        TYPE_NDK_SYMBOL_FILE,
-                        file.name,
-                        mapOf(
-                            "arch" to archMapping.uploadArch
+                if (archMapping == null) {
+                    logger.warn(
+                        "Unknown architecture: $arch found in folder: ${archToFiles.key.absolutePath}, ignoring it." +
+                            " Supported architectures are: " +
+                            SUPPORTED_ARCHS.joinToString(", ") { it.arch }
+                    )
+                    return@forEach
+                }
+                archToFiles.value.forEach {
+                    files.add(
+                        Uploader.UploadFileInfo(
+                            KEY_NDK_SYMBOL_FILE,
+                            it,
+                            encoding = ENCODING,
+                            TYPE_NDK_SYMBOL_FILE,
+                            it.name,
+                            mapOf(
+                                "arch" to archMapping.uploadArch
+                            )
                         )
                     )
-                )
+                }
             }
 
         return files

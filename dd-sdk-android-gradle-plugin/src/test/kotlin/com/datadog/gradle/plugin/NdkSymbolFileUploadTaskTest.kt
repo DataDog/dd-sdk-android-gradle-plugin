@@ -220,6 +220,55 @@ internal class NdkSymbolFileUploadTaskTest {
     }
 
     @Test
+    fun `M upload multiple files W applyTask() { ignore unsupported arch }`(
+        @StringForgery fakeArch: String
+    ) {
+        // Given
+        val fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
+        testedTask.repositoryFile = fakeRepositoryFile
+        whenever(mockRepositoryDetector.detectRepositories(any(), eq("")))
+            .doReturn(listOf(fakeRepoInfo))
+
+        val fakeSoFiles = mapOf(
+            "arm64" to writeFakeSoFile("arm64-v8a"),
+            "x86" to writeFakeSoFile("x86"),
+            fakeArch to writeFakeSoFile(fakeArch)
+        )
+
+        // When
+        testedTask.applyTask()
+
+        // Then
+        fakeSoFiles.minus(fakeArch).forEach {
+            verify(mockUploader).upload(
+                fakeSite,
+                Uploader.UploadFileInfo(
+                    fileKey = NdkSymbolFileUploadTask.KEY_NDK_SYMBOL_FILE,
+                    file = it.value,
+                    encoding = NdkSymbolFileUploadTask.ENCODING,
+                    fileType = NdkSymbolFileUploadTask.TYPE_NDK_SYMBOL_FILE,
+                    fileName = "libfake.so",
+                    extraAttributes = mapOf(
+                        "arch" to it.key
+                    )
+                ),
+                fakeRepositoryFile,
+                fakeApiKey.value,
+                DdAppIdentifier(
+                    serviceName = fakeService,
+                    version = fakeVersion,
+                    versionCode = fakeVersionCode,
+                    variant = fakeVariantName,
+                    buildId = fakeBuildId
+                ),
+                fakeRepoInfo,
+                useGzip = true,
+                emulateNetworkCall = false
+            )
+        }
+    }
+
+    @Test
     fun `M upload file W applyTask { remote url provided }`(
         @StringForgery(regex = "git@github\\.com:[a-z]+/[a-z][a-z0-9_-]+\\.git")
         fakeRemoteUrl: String

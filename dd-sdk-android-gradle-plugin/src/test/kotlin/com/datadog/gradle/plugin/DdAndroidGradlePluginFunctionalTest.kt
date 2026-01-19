@@ -269,6 +269,12 @@ internal class DdAndroidGradlePluginFunctionalTest {
     fun `M success W assembleRelease { configuration cache, checkProjectDependencies enabled }`() {
         // Given
         // depends on https://github.com/gradle/gradle/issues/12871, which was released only with Gradle 7.5
+        buildVersionConfig = LATEST_VERSIONS_TEST_CONFIGURATION
+        stubGradleBuildFromResourceFile(
+            "lib_module_build.gradle",
+            libModuleBuildGradleFile,
+            overwrite = true
+        )
         stubGradlePropertiesFile(LATEST_VERSIONS_TEST_CONFIGURATION)
         stubGradleBuildFromResourceFile(
             "build_with_datadog_dep.gradle",
@@ -342,6 +348,12 @@ internal class DdAndroidGradlePluginFunctionalTest {
     fun `M success W assembleRelease { configuration cache, checkDependencies disabled  }`() {
         // Given
         // depends on https://github.com/gradle/gradle/issues/12871, which was released only with Gradle 7.5
+        buildVersionConfig = LATEST_VERSIONS_TEST_CONFIGURATION
+        stubGradleBuildFromResourceFile(
+            "lib_module_build.gradle",
+            libModuleBuildGradleFile,
+            overwrite = true
+        )
         stubGradlePropertiesFile(LATEST_VERSIONS_TEST_CONFIGURATION)
         stubGradleBuildFromResourceFile(
             "build_with_check_deps_disabled.gradle",
@@ -924,6 +936,12 @@ internal class DdAndroidGradlePluginFunctionalTest {
         // Given
         // this test is using Task.notCompatibleWithConfigurationCache, which appeared only in Gradle 7.5,
         // and moreover configuration cache support in Gradle is still ongoing work
+        buildVersionConfig = LATEST_VERSIONS_TEST_CONFIGURATION
+        stubGradleBuildFromResourceFile(
+            "lib_module_build.gradle",
+            libModuleBuildGradleFile,
+            overwrite = true
+        )
         stubGradlePropertiesFile(LATEST_VERSIONS_TEST_CONFIGURATION)
         stubGradleBuildFromResourceFile(
             "build_with_datadog_dep.gradle",
@@ -1328,9 +1346,18 @@ internal class DdAndroidGradlePluginFunctionalTest {
         }
     }
 
-    private fun stubGradleBuildFromResourceFile(resourceFilePath: String, gradleFile: File) {
+    private fun stubGradleBuildFromResourceFile(
+        resourceFilePath: String,
+        gradleFile: File,
+        overwrite: Boolean = false
+    ) {
         javaClass.classLoader.getResource(resourceFilePath)?.file?.let {
-            File(it).copyTo(gradleFile)
+            File(it).copyTo(gradleFile, overwrite)
+            if (buildVersionConfig.agpVersion.split(".").first().toInt() >= 9) {
+                gradleFile.readText().let {
+                    gradleFile.writeText(it.replace("id(\"kotlin-android\")", ""))
+                }
+            }
         }
     }
 
@@ -1492,9 +1519,10 @@ internal class DdAndroidGradlePluginFunctionalTest {
                 ext {
                     targetSdkVersion = targetSdkVersion as Integer
                     buildToolsVersion = buildToolsVersion
+                    agpVersion = agpVersion
                     // some AndroidX dependencies in recent SDK versions require compileSdk >= 33, so downgrading
                     datadogSdkDependency = targetSdkVersion >= 33 ?
-                       "com.datadoghq:dd-sdk-android-rum:3.1.0" : "com.datadoghq:dd-sdk-android:1.15.0"
+                       "com.datadoghq:dd-sdk-android-rum:3.5.0" : "com.datadoghq:dd-sdk-android:1.15.0"
                     jvmTarget = jvmTarget
                 }
                 repositories {
@@ -1552,15 +1580,15 @@ internal class DdAndroidGradlePluginFunctionalTest {
             }
         """.trimIndent()
 
-        private const val LATEST_GRADLE_VERSION = "9.0.0"
-        private const val LATEST_AGP_VERSION = "8.13.0"
+        private const val LATEST_GRADLE_VERSION = "9.2.1"
+        private const val LATEST_AGP_VERSION = "9.0.0-rc02"
 
         val LATEST_VERSIONS_TEST_CONFIGURATION = BuildVersionConfig(
             agpVersion = LATEST_AGP_VERSION,
             gradleVersion = LATEST_GRADLE_VERSION,
-            buildToolsVersion = "36.0.0",
+            buildToolsVersion = "36.1.0",
             targetSdkVersion = "36",
-            kotlinVersion = "2.2.20",
+            kotlinVersion = "2.3.0",
             jvmTarget = JavaVersion.VERSION_17.toString()
         )
 
