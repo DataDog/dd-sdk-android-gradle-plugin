@@ -198,6 +198,6 @@ listOf(
     }
 }
 
-tasks.named("test") {
-    dependsOn("testKotlin20", "testKotlin21", "testKotlin22")
+tasks.register("allTests") {
+    dependsOn("test", "testKotlin20", "testKotlin21", "testKotlin22")
 }

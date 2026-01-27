@@ -23,4 +23,7 @@ internal object CurrentAgpVersion {
 
     val CAN_QUERY_MAPPING_FILE_PROVIDER: Boolean
         get() = TaskUtils.isAgpEqualOrAbove(major = 7, minor = 0, patch = 0)
+
+    val IMPLEMENTS_BUILT_IN_KOTLIN: Boolean
+        get() = TaskUtils.isAgpEqualOrAbove(major = 9, minor = 0, patch = 0)
 }
