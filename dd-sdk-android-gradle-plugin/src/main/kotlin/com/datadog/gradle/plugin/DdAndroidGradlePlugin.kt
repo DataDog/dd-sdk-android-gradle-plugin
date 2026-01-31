@@ -447,10 +447,6 @@ class DdAndroidGradlePlugin @Inject constructor(
         }
     }
 
-    private fun Project.stringProperty(propertyName: String): String? {
-        return findProperty(propertyName)?.toString()
-    }
-
     private fun isObfuscationEnabled(
         variant: AppVariant,
         extension: DdExtension
