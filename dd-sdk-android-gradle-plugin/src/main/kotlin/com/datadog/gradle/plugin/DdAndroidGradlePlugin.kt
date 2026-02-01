@@ -166,7 +166,7 @@ class DdAndroidGradlePlugin @Inject constructor(
 
     internal fun resolveApiKey(target: Project): ApiKey {
         fun resolve(key: String, provider: (String) -> Provider<String>, source: ApiKeySource) =
-            provider(key).filter { it.isNotBlank() }.map { ApiKey(it, source) }
+            provider(key).map { it.ifBlank { null } }.map { ApiKey(it, source) }
         val providers = target.providers
         return resolve(key = DD_API_KEY, provider = providers::gradleProperty, source = GRADLE_PROPERTY)
             .orElse(resolve(key = DATADOG_API_KEY, provider = providers::gradleProperty, source = GRADLE_PROPERTY))
