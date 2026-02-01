@@ -58,8 +58,8 @@ class DdAndroidGradlePlugin @Inject constructor(
         // need to use withPlugin instead of afterEvaluate, because otherwise generated assets
         // folder with buildId is not picked by AGP by some reason
         target.pluginManager.withPlugin("com.android.application") {
-            if (CurrentAgpVersion.CAN_ENABLE_NEW_VARIANT_API && !target.providers.gradleProperty(DD_FORCE_LEGACY_VARIANT_API).isPresent
-            ) {
+            val forceLegacyVariant = target.providers.gradleProperty(DD_FORCE_LEGACY_VARIANT_API)
+            if (CurrentAgpVersion.CAN_ENABLE_NEW_VARIANT_API && !forceLegacyVariant.isPresent) {
                 val androidComponentsExtension = target.androidApplicationComponentExtension ?: return@withPlugin
                 androidComponentsExtension.onVariants { variant ->
                     configureTasksForVariant(
