@@ -164,14 +164,19 @@ class DdAndroidGradlePlugin @Inject constructor(
     }
 
     internal fun resolveApiKey(target: Project): ApiKey {
-        fun resolve(key: String, provider: (String) -> Provider<String>, source: ApiKeySource) =
-            provider(key).map { it.ifBlank { null } }.map { ApiKey(it, source) }
+        fun resolve(key: String, provider: (String) -> Provider<String>, source: ApiKeySource): ApiKey? {
+            return provider(key)
+                .orNull
+                ?.ifBlank { null }
+                ?.let { ApiKey(it, source) }
+        }
+
         val providers = target.providers
         return resolve(key = DD_API_KEY, provider = providers::gradleProperty, source = GRADLE_PROPERTY)
-            .orElse(resolve(key = DATADOG_API_KEY, provider = providers::gradleProperty, source = GRADLE_PROPERTY))
-            .orElse(resolve(key = DD_API_KEY, provider = providers::environmentVariable, source = ENVIRONMENT))
-            .orElse(resolve(key = DATADOG_API_KEY, provider = providers::environmentVariable, source = ENVIRONMENT))
-            .getOrElse(ApiKey.NONE)
+            ?: resolve(key = DATADOG_API_KEY, provider = providers::gradleProperty, source = GRADLE_PROPERTY)
+            ?: resolve(key = DD_API_KEY, provider = providers::environmentVariable, source = ENVIRONMENT)
+            ?: resolve(key = DATADOG_API_KEY, provider = providers::environmentVariable, source = ENVIRONMENT)
+            ?: ApiKey.NONE
     }
 
     private fun configureNdkSymbolUploadTask(
