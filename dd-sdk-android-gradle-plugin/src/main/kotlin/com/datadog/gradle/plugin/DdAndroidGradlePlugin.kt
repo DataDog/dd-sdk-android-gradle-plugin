@@ -164,19 +164,18 @@ class DdAndroidGradlePlugin @Inject constructor(
     }
 
     internal fun resolveApiKey(target: Project): ApiKey {
-        fun resolve(key: String, provider: (String) -> Provider<String>, source: ApiKeySource): ApiKey? {
-            return provider(key)
-                .orNull
-                ?.ifBlank { null }
-                ?.let { ApiKey(it, source) }
-        }
+        // https://docs.gradle.org/current/javadoc/org/gradle/api/provider/ProviderFactory.html
+        // The Callable may return null, in which case the provider is considered to have no value.
+        @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
+        fun resolve(key: String, provider: (String) -> Provider<String>, source: ApiKeySource) =
+            provider(key).map { it.ifBlank { null } }.map { ApiKey(it, source) }
 
         val providers = target.providers
         return resolve(key = DD_API_KEY, provider = providers::gradleProperty, source = GRADLE_PROPERTY)
-            ?: resolve(key = DATADOG_API_KEY, provider = providers::gradleProperty, source = GRADLE_PROPERTY)
-            ?: resolve(key = DD_API_KEY, provider = providers::environmentVariable, source = ENVIRONMENT)
-            ?: resolve(key = DATADOG_API_KEY, provider = providers::environmentVariable, source = ENVIRONMENT)
-            ?: ApiKey.NONE
+            .orElse(resolve(key = DATADOG_API_KEY, provider = providers::gradleProperty, source = GRADLE_PROPERTY))
+            .orElse(resolve(key = DD_API_KEY, provider = providers::environmentVariable, source = ENVIRONMENT))
+            .orElse(resolve(key = DATADOG_API_KEY, provider = providers::environmentVariable, source = ENVIRONMENT))
+            .getOrElse(ApiKey.NONE)
     }
 
     private fun configureNdkSymbolUploadTask(
