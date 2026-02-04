@@ -11,6 +11,8 @@ import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import com.android.build.gradle.AppExtension
 import com.datadog.gradle.plugin.internal.ApiKey
 import com.datadog.gradle.plugin.internal.ApiKeySource
+import com.datadog.gradle.plugin.internal.ApiKeySource.ENVIRONMENT
+import com.datadog.gradle.plugin.internal.ApiKeySource.GRADLE_PROPERTY
 import com.datadog.gradle.plugin.internal.CurrentAgpVersion
 import com.datadog.gradle.plugin.internal.GitRepositoryDetector
 import com.datadog.gradle.plugin.internal.VariantIterator
@@ -56,8 +58,8 @@ class DdAndroidGradlePlugin @Inject constructor(
         // need to use withPlugin instead of afterEvaluate, because otherwise generated assets
         // folder with buildId is not picked by AGP by some reason
         target.pluginManager.withPlugin("com.android.application") {
-            if (CurrentAgpVersion.CAN_ENABLE_NEW_VARIANT_API && !target.hasProperty(DD_FORCE_LEGACY_VARIANT_API)
-            ) {
+            val forceLegacyVariant = target.providers.gradleProperty(DD_FORCE_LEGACY_VARIANT_API)
+            if (CurrentAgpVersion.CAN_ENABLE_NEW_VARIANT_API && !forceLegacyVariant.isPresent) {
                 val androidComponentsExtension = target.androidApplicationComponentExtension ?: return@withPlugin
                 androidComponentsExtension.onVariants { variant ->
                     configureTasksForVariant(
@@ -161,17 +163,19 @@ class DdAndroidGradlePlugin @Inject constructor(
         }
     }
 
-    @Suppress("ReturnCount")
-    // TODO RUMM-2382 use ProviderFactory/Provider APIs to watch changes in external environment
     internal fun resolveApiKey(target: Project): ApiKey {
-        val apiKey = listOf(
-            ApiKey(target.stringProperty(DD_API_KEY).orEmpty(), ApiKeySource.GRADLE_PROPERTY),
-            ApiKey(target.stringProperty(DATADOG_API_KEY).orEmpty(), ApiKeySource.GRADLE_PROPERTY),
-            ApiKey(System.getenv(DD_API_KEY).orEmpty(), ApiKeySource.ENVIRONMENT),
-            ApiKey(System.getenv(DATADOG_API_KEY).orEmpty(), ApiKeySource.ENVIRONMENT)
-        ).firstOrNull { it.value.isNotBlank() }
+        // https://docs.gradle.org/current/javadoc/org/gradle/api/provider/ProviderFactory.html
+        // The Callable may return null, in which case the provider is considered to have no value.
+        @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
+        fun resolve(key: String, provider: (String) -> Provider<String>, source: ApiKeySource) =
+            provider(key).map { it.ifBlank { null } }.map { ApiKey(it, source) }
 
-        return apiKey ?: ApiKey.NONE
+        val providers = target.providers
+        return resolve(key = DD_API_KEY, provider = providers::gradleProperty, source = GRADLE_PROPERTY)
+            .orElse(resolve(key = DATADOG_API_KEY, provider = providers::gradleProperty, source = GRADLE_PROPERTY))
+            .orElse(resolve(key = DD_API_KEY, provider = providers::environmentVariable, source = ENVIRONMENT))
+            .orElse(resolve(key = DATADOG_API_KEY, provider = providers::environmentVariable, source = ENVIRONMENT))
+            .getOrElse(ApiKey.NONE)
     }
 
     private fun configureNdkSymbolUploadTask(
@@ -445,10 +449,6 @@ class DdAndroidGradlePlugin @Inject constructor(
         }.configureEach {
             action(it)
         }
-    }
-
-    private fun Project.stringProperty(propertyName: String): String? {
-        return findProperty(propertyName)?.toString()
     }
 
     private fun isObfuscationEnabled(
