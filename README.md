@@ -94,7 +94,7 @@ For more information, see [Android Crash Reporting and Error Tracking](https://d
 ## Troubleshooting
 
 If you encounter any issue when using the Gradle Plugin for Datadog Android SDK, please take a look at 
-the existing [issues](https://github.com/DataDog/dd-sdk-android/issues?q=is%3Aissue).
+the existing [issues](https://github.com/DataDog/dd-sdk-android-gradle-plugin/issues?q=is%3Aissue).
 
 ## Contributing
 
