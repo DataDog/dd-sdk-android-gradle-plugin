@@ -9,21 +9,23 @@ package com.datadog.gradle.plugin.kcp
 internal enum class KotlinVersion {
     KOTLIN22,
     KOTLIN21,
-    KOTLIN20;
+    KOTLIN20,
+    KOTLIN19,
+    UNSUPPORTED;
 
     companion object {
 
         @Suppress("ReturnCount", "MagicNumber")
         fun from(versionString: String?): KotlinVersion {
             if (versionString == null) {
-                return KOTLIN20 // Default or handle error as preferred
+                return UNSUPPORTED // Default or handle error as preferred
             }
 
             val versionParts =
                 versionString.split('.').mapNotNull { it.substringBefore('-').toIntOrNull() }
 
             if (versionParts.size < 3) {
-                return KOTLIN20 // Or handle malformed version string
+                return UNSUPPORTED // Or handle malformed version string
             }
 
             val major = versionParts[0]
@@ -31,9 +33,11 @@ internal enum class KotlinVersion {
             val patch = versionParts[2]
 
             return when {
+                major == 1 && minor == 9 && patch >= 23 -> KOTLIN19
+                major == 2 && minor == 1 -> KOTLIN21
+                major == 2 && minor == 0 -> KOTLIN20
                 major > 2 || (major == 2 && minor >= 2) -> KOTLIN22
-                major == 2 && minor == 1 && patch >= 20 -> KOTLIN21
-                else -> KOTLIN20
+                else -> UNSUPPORTED
             }
         }
     }
