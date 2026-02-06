@@ -126,7 +126,7 @@ internal class DdAndroidGradlePluginTest {
             fakeProject,
             mockVariant,
             mockBuildIdGenerationTask(fakeBuildId),
-            fakeApiKey,
+            fakeProject.providers.provider { fakeApiKey },
             fakeExtension
         ).get()
 
@@ -136,8 +136,8 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.name).isEqualTo(
             "uploadMapping${variantName.replaceFirstChar { capitalizeChar(it) }}"
         )
-        assertThat(task.apiKey).isEqualTo(fakeApiKey.value)
-        assertThat(task.apiKeySource).isEqualTo(fakeApiKey.source)
+        assertThat(task.apiKey.get()).isEqualTo(fakeApiKey.value)
+        assertThat(task.apiKeySource.get()).isEqualTo(fakeApiKey.source)
         assertThat(task.variantName).isEqualTo(flavorName)
         assertThat(task.versionName.get()).isEqualTo(versionName)
         assertThat(task.serviceName.get()).isEqualTo(packageName)
@@ -175,7 +175,7 @@ internal class DdAndroidGradlePluginTest {
             fakeProject,
             mockVariant,
             mockBuildIdGenerationTask(fakeBuildId),
-            fakeApiKey,
+            fakeProject.providers.provider { fakeApiKey },
             fakeExtension
         ).get()
 
@@ -185,8 +185,8 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.name).isEqualTo(
             "uploadMapping${variantName.replaceFirstChar { capitalizeChar(it) }}"
         )
-        assertThat(task.apiKey).isEqualTo(fakeApiKey.value)
-        assertThat(task.apiKeySource).isEqualTo(fakeApiKey.source)
+        assertThat(task.apiKey.get()).isEqualTo(fakeApiKey.value)
+        assertThat(task.apiKeySource.get()).isEqualTo(fakeApiKey.source)
         assertThat(task.variantName).isEqualTo(flavorName)
         assertThat(task.versionName.get()).isEqualTo(fakeExtension.versionName)
         assertThat(task.serviceName.get()).isEqualTo(fakeExtension.serviceName)
@@ -236,7 +236,7 @@ internal class DdAndroidGradlePluginTest {
             fakeProject,
             mockVariant,
             mockBuildIdGenerationTask(fakeBuildId),
-            fakeApiKey,
+            fakeProject.providers.provider { fakeApiKey },
             fakeExtension
         ).get()
 
@@ -246,8 +246,8 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.name).isEqualTo(
             "uploadMapping${variantName.replaceFirstChar { capitalizeChar(it) }}"
         )
-        assertThat(task.apiKey).isEqualTo(fakeApiKey.value)
-        assertThat(task.apiKeySource).isEqualTo(fakeApiKey.source)
+        assertThat(task.apiKey.get()).isEqualTo(fakeApiKey.value)
+        assertThat(task.apiKeySource.get()).isEqualTo(fakeApiKey.source)
         assertThat(task.variantName).isEqualTo(flavorName)
         assertThat(task.versionName.get()).isEqualTo(fakeExtension.versionName)
         assertThat(task.serviceName.get()).isEqualTo(fakeExtension.serviceName)
@@ -296,7 +296,7 @@ internal class DdAndroidGradlePluginTest {
             fakeProject,
             mockVariant,
             mockBuildIdGenerationTask(fakeBuildId),
-            fakeApiKey,
+            fakeProject.providers.provider { fakeApiKey },
             fakeExtension
         ).get()
 
@@ -306,8 +306,8 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.name).isEqualTo(
             "uploadMapping${variantName.replaceFirstChar { capitalizeChar(it) }}"
         )
-        assertThat(task.apiKey).isEqualTo(fakeApiKey.value)
-        assertThat(task.apiKeySource).isEqualTo(fakeApiKey.source)
+        assertThat(task.apiKey.get()).isEqualTo(fakeApiKey.value)
+        assertThat(task.apiKeySource.get()).isEqualTo(fakeApiKey.source)
         assertThat(task.variantName).isEqualTo(flavorName)
         assertThat(task.versionName.get()).isEqualTo(versionName)
         assertThat(task.serviceName.get()).isEqualTo(packageName)
@@ -357,7 +357,7 @@ internal class DdAndroidGradlePluginTest {
             fakeProject,
             mockVariant,
             mockBuildIdGenerationTask(fakeBuildId),
-            fakeApiKey,
+            fakeProject.providers.provider { fakeApiKey },
             fakeExtension
         ).get()
 
@@ -367,8 +367,8 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.name).isEqualTo(
             "uploadMapping${variantName.replaceFirstChar { capitalizeChar(it) }}"
         )
-        assertThat(task.apiKey).isEqualTo(fakeApiKey.value)
-        assertThat(task.apiKeySource).isEqualTo(fakeApiKey.source)
+        assertThat(task.apiKey.get()).isEqualTo(fakeApiKey.value)
+        assertThat(task.apiKeySource.get()).isEqualTo(fakeApiKey.source)
         assertThat(task.variantName).isEqualTo(flavorName)
         assertThat(task.versionName.get()).isEqualTo(versionName)
         assertThat(task.serviceName.get()).isEqualTo(packageName)
@@ -418,7 +418,7 @@ internal class DdAndroidGradlePluginTest {
             fakeProject,
             mockVariant,
             mockBuildIdGenerationTask(fakeBuildId),
-            fakeApiKey,
+            fakeProject.providers.provider { fakeApiKey },
             fakeExtension
         ).get()
 
@@ -428,8 +428,8 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.name).isEqualTo(
             "uploadMapping${variantName.replaceFirstChar { capitalizeChar(it) }}"
         )
-        assertThat(task.apiKey).isEqualTo(fakeApiKey.value)
-        assertThat(task.apiKeySource).isEqualTo(fakeApiKey.source)
+        assertThat(task.apiKey.get()).isEqualTo(fakeApiKey.value)
+        assertThat(task.apiKeySource.get()).isEqualTo(fakeApiKey.source)
         assertThat(task.variantName).isEqualTo(flavorName)
         assertThat(task.versionName.get()).isEqualTo(versionName)
         assertThat(task.serviceName.get()).isEqualTo(packageName)
@@ -460,7 +460,7 @@ internal class DdAndroidGradlePluginTest {
             fakeProject,
             fakeExtension,
             mockVariant,
-            fakeApiKey
+            fakeProject.providers.provider { fakeApiKey }
         )
 
         // Then
@@ -495,7 +495,7 @@ internal class DdAndroidGradlePluginTest {
             fakeProject,
             fakeExtension,
             mockVariant,
-            fakeApiKey
+            fakeProject.providers.provider { fakeApiKey }
         )
 
         // Then
@@ -530,7 +530,7 @@ internal class DdAndroidGradlePluginTest {
             fakeProject,
             fakeExtension,
             mockVariant,
-            fakeApiKey
+            fakeProject.providers.provider { fakeApiKey }
         )
 
         // Then
@@ -562,7 +562,7 @@ internal class DdAndroidGradlePluginTest {
             fakeProject,
             fakeExtension,
             mockVariant,
-            fakeApiKey
+            fakeProject.providers.provider { fakeApiKey }
         )
 
         // Then
@@ -595,7 +595,7 @@ internal class DdAndroidGradlePluginTest {
             fakeProject,
             mockVariant,
             mockBuildIdGenerationTask(fakeBuildId),
-            fakeApiKey,
+            fakeProject.providers.provider { fakeApiKey },
             fakeExtension
         ).get()
 
@@ -605,8 +605,8 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.name).isEqualTo(
             "uploadMapping${variantName.replaceFirstChar { capitalizeChar(it) }}"
         )
-        assertThat(task.apiKey).isEqualTo(fakeApiKey.value)
-        assertThat(task.apiKeySource).isEqualTo(fakeApiKey.source)
+        assertThat(task.apiKey.get()).isEqualTo(fakeApiKey.value)
+        assertThat(task.apiKeySource.get()).isEqualTo(fakeApiKey.source)
         assertThat(task.variantName).isEqualTo(flavorName)
         assertThat(task.versionName.get()).isEqualTo(fakeExtension.versionName)
         assertThat(task.serviceName.get()).isEqualTo(fakeExtension.serviceName)
@@ -640,7 +640,7 @@ internal class DdAndroidGradlePluginTest {
         whenever(fakeProviderFactory.gradleProperty(DdAndroidGradlePlugin.DD_API_KEY)) doReturn apiKeyProvider
 
         // When
-        val apiKey = testedPlugin.resolveApiKey(fakeProject)
+        val apiKey = testedPlugin.resolveApiKey(fakeProject).get()
 
         // Then
         assertThat(apiKey.value).isEqualTo(fakeApiKey.value)
@@ -661,7 +661,7 @@ internal class DdAndroidGradlePluginTest {
         whenever(fakeProviderFactory.environmentVariable(DdAndroidGradlePlugin.DD_API_KEY)) doReturn apiKeyProvider
 
         // When
-        val apiKey = testedPlugin.resolveApiKey(fakeProject)
+        val apiKey = testedPlugin.resolveApiKey(fakeProject).get()
 
         // Then
         assertThat(apiKey.value).isEqualTo(fakeApiKey.value)
@@ -682,7 +682,7 @@ internal class DdAndroidGradlePluginTest {
         whenever(fakeProviderFactory.gradleProperty(DdAndroidGradlePlugin.DATADOG_API_KEY)) doReturn apiKeyProvider
 
         // When
-        val apiKey = testedPlugin.resolveApiKey(fakeProject)
+        val apiKey = testedPlugin.resolveApiKey(fakeProject).get()
 
         // Then
         assertThat(apiKey.value).isEqualTo(fakeApiKey.value)
@@ -703,7 +703,7 @@ internal class DdAndroidGradlePluginTest {
         whenever(fakeProviderFactory.environmentVariable(DdAndroidGradlePlugin.DATADOG_API_KEY)) doReturn apiKeyProvider
 
         // When
-        val apiKey = testedPlugin.resolveApiKey(fakeProject)
+        val apiKey = testedPlugin.resolveApiKey(fakeProject).get()
 
         // Then
         assertThat(apiKey.value).isEqualTo(fakeApiKey.value)
@@ -713,7 +713,7 @@ internal class DdAndroidGradlePluginTest {
     @Test
     fun `M returns empty String W resolveApiKey() {key not defined anywhere}`() {
         // When
-        val apiKey = testedPlugin.resolveApiKey(fakeProject)
+        val apiKey = testedPlugin.resolveApiKey(fakeProject).get()
 
         // Then
         assertThat(apiKey).isEqualTo(ApiKey.NONE)
