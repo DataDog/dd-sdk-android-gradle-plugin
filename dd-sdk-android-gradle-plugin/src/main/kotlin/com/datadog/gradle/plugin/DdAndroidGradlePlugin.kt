@@ -165,6 +165,20 @@ class DdAndroidGradlePlugin @Inject constructor(
         }
     }
 
+    /**
+     * Resolves the Datadog API key from multiple sources using lazy evaluation.
+     *
+     * The API key is resolved in the following priority order (first match wins):
+     * 1. DD_API_KEY gradle property (e.g., -PDD_API_KEY=xxx or gradle.properties)
+     * 2. DATADOG_API_KEY gradle property (e.g., -PDATADOG_API_KEY=xxx or gradle.properties)
+     * 3. DD_API_KEY environment variable
+     * 4. DATADOG_API_KEY environment variable
+     * 5. apiKey field in datadog-ci.json file (searched in project directory and parent directories)
+     * 6. NONE (default - will cause task validation to fail)
+     *
+     * @param target The Gradle project to resolve the API key for
+     * @return A Provider that lazily evaluates to the resolved API key and its source
+     */
     internal fun resolveApiKey(target: Project): Provider<ApiKey> {
         // https://docs.gradle.org/current/javadoc/org/gradle/api/provider/ProviderFactory.html
         // The Callable may return null, in which case the provider is considered to have no value.
