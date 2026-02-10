@@ -33,7 +33,10 @@ import org.gradle.api.tasks.TaskProvider
 import org.gradle.process.ExecOperations
 import org.jetbrains.kotlin.gradle.internal.KaptGenerateStubsTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.json.JSONException
+import org.json.JSONObject
 import java.io.File
+import java.io.IOException
 import java.net.URISyntaxException
 import java.nio.file.Paths
 import javax.inject.Inject
@@ -53,7 +56,7 @@ class DdAndroidGradlePlugin @Inject constructor(
     /** @inheritdoc */
     override fun apply(target: Project) {
         val extension = target.extensions.create(EXT_NAME, DdExtension::class.java)
-        val apiKey = resolveApiKey(target)
+        val apiKeyProvider = resolveApiKey(target)
 
         // need to use withPlugin instead of afterEvaluate, because otherwise generated assets
         // folder with buildId is not picked by AGP by some reason
@@ -66,7 +69,7 @@ class DdAndroidGradlePlugin @Inject constructor(
                         target,
                         extension,
                         AppVariant.create(variant, target),
-                        apiKey
+                        apiKeyProvider
                     )
                 }
             } else {
@@ -77,7 +80,7 @@ class DdAndroidGradlePlugin @Inject constructor(
                             target,
                             extension,
                             AppVariant.create(variant, androidExtension, target),
-                            apiKey
+                            apiKeyProvider
                         )
                     }
                 }
@@ -113,7 +116,7 @@ class DdAndroidGradlePlugin @Inject constructor(
         target: Project,
         datadogExtension: DdExtension,
         variant: AppVariant,
-        apiKey: ApiKey
+        apiKeyProvider: Provider<ApiKey>
     ) {
         val isObfuscationEnabled = isObfuscationEnabled(variant, datadogExtension)
         val isNativeBuildRequired = variant.isNativeBuildEnabled
@@ -129,7 +132,7 @@ class DdAndroidGradlePlugin @Inject constructor(
                     target,
                     variant,
                     buildIdGenerationTask,
-                    apiKey,
+                    apiKeyProvider,
                     datadogExtension
                 )
             } else {
@@ -142,7 +145,7 @@ class DdAndroidGradlePlugin @Inject constructor(
                     datadogExtension,
                     variant,
                     buildIdGenerationTask,
-                    apiKey
+                    apiKeyProvider
                 )
             } else {
                 LOGGER.info(
@@ -163,7 +166,21 @@ class DdAndroidGradlePlugin @Inject constructor(
         }
     }
 
-    internal fun resolveApiKey(target: Project): ApiKey {
+    /**
+     * Resolves the Datadog API key from multiple sources using lazy evaluation.
+     *
+     * The API key is resolved in the following priority order (first match wins):
+     * 1. DD_API_KEY gradle property (e.g., -PDD_API_KEY=xxx or gradle.properties)
+     * 2. DATADOG_API_KEY gradle property (e.g., -PDATADOG_API_KEY=xxx or gradle.properties)
+     * 3. DD_API_KEY environment variable
+     * 4. DATADOG_API_KEY environment variable
+     * 5. apiKey field in datadog-ci.json file (searched in project directory and parent directories)
+     * 6. NONE (default - will cause task validation to fail)
+     *
+     * @param target The Gradle project to resolve the API key for
+     * @return A Provider that lazily evaluates to the resolved API key and its source
+     */
+    internal fun resolveApiKey(target: Project): Provider<ApiKey> {
         // https://docs.gradle.org/current/javadoc/org/gradle/api/provider/ProviderFactory.html
         // The Callable may return null, in which case the provider is considered to have no value.
         @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
@@ -171,11 +188,36 @@ class DdAndroidGradlePlugin @Inject constructor(
             provider(key).map { it.ifBlank { null } }.map { ApiKey(it, source) }
 
         val providers = target.providers
+        val datadogCiFileProvider = providers.provider {
+            val ciFile = TaskUtils.findDatadogCiFile(target.projectDir)
+            if (ciFile != null) {
+                try {
+                    val config = JSONObject(ciFile.readText())
+                    val apiKey = config.optString(FileUploadTask.DATADOG_CI_API_KEY_PROPERTY, null)
+                    if (!apiKey.isNullOrEmpty()) {
+                        LOGGER.info("API key found in Datadog CI config file, using it.")
+                        ApiKey(apiKey, ApiKeySource.DATADOG_CI_CONFIG_FILE)
+                    } else {
+                        null
+                    }
+                } catch (jsonException: JSONException) {
+                    LOGGER.warn("Failed to parse API key from datadog-ci.json", jsonException)
+                    null
+                } catch (ioException: IOException) {
+                    LOGGER.warn("Failed to read datadog-ci.json file", ioException)
+                    null
+                }
+            } else {
+                null
+            }
+        }
+
         return resolve(key = DD_API_KEY, provider = providers::gradleProperty, source = GRADLE_PROPERTY)
             .orElse(resolve(key = DATADOG_API_KEY, provider = providers::gradleProperty, source = GRADLE_PROPERTY))
             .orElse(resolve(key = DD_API_KEY, provider = providers::environmentVariable, source = ENVIRONMENT))
             .orElse(resolve(key = DATADOG_API_KEY, provider = providers::environmentVariable, source = ENVIRONMENT))
-            .getOrElse(ApiKey.NONE)
+            .orElse(datadogCiFileProvider)
+            .orElse(target.providers.provider { ApiKey.NONE })
     }
 
     private fun configureNdkSymbolUploadTask(
@@ -183,7 +225,7 @@ class DdAndroidGradlePlugin @Inject constructor(
         extension: DdExtension,
         variant: AppVariant,
         buildIdTask: TaskProvider<GenerateBuildIdTask>,
-        apiKey: ApiKey
+        apiKeyProvider: Provider<ApiKey>
     ): TaskProvider<NdkSymbolFileUploadTask> {
         val extensionConfiguration = resolveExtensionConfiguration(extension, variant)
 
@@ -192,7 +234,7 @@ class DdAndroidGradlePlugin @Inject constructor(
             variant,
             buildIdTask,
             providerFactory,
-            apiKey,
+            apiKeyProvider,
             extensionConfiguration,
             GitRepositoryDetector(execOps)
         )
@@ -217,7 +259,7 @@ class DdAndroidGradlePlugin @Inject constructor(
         target: Project,
         variant: AppVariant,
         buildIdGenerationTask: TaskProvider<GenerateBuildIdTask>,
-        apiKey: ApiKey,
+        apiKeyProvider: Provider<ApiKey>,
         extension: DdExtension
     ): TaskProvider<MappingFileUploadTask> {
         val uploadTaskName = UPLOAD_TASK_NAME + variant.name.capitalize()
@@ -238,7 +280,7 @@ class DdAndroidGradlePlugin @Inject constructor(
                 configureVariantTask(
                     target.objects,
                     uploadTask,
-                    apiKey,
+                    apiKeyProvider,
                     extensionConfiguration,
                     variant
                 )
@@ -337,12 +379,12 @@ class DdAndroidGradlePlugin @Inject constructor(
     private fun configureVariantTask(
         objectFactory: ObjectFactory,
         uploadTask: MappingFileUploadTask,
-        apiKey: ApiKey,
+        apiKeyProvider: Provider<ApiKey>,
         extensionConfiguration: DdExtensionConfiguration,
         variant: AppVariant
     ) {
-        uploadTask.apiKey = apiKey.value
-        uploadTask.apiKeySource = apiKey.source
+        uploadTask.apiKey.set(apiKeyProvider.map { it.value })
+        uploadTask.apiKeySource.set(apiKeyProvider.map { it.source })
         uploadTask.variantName = variant.flavorName
 
         uploadTask.applicationId.set(variant.applicationId)

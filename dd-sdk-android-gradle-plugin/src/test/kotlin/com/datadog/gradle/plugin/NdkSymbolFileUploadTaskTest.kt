@@ -122,7 +122,7 @@ internal class NdkSymbolFileUploadTaskTest {
             this
         }
         testedTask.configureWith(
-            fakeApiKey,
+            fakeProject.providers.provider { fakeApiKey },
             fakeConfiguration,
             mockVariant
         )
@@ -359,8 +359,8 @@ internal class NdkSymbolFileUploadTaskTest {
     @Test
     fun `M throw error when applyTask() { no api key }`() {
         // Given
-        testedTask.apiKey = ""
-        testedTask.apiKeySource = ApiKeySource.NONE
+        testedTask.apiKey.set("")
+        testedTask.apiKeySource.set(ApiKeySource.NONE)
         writeFakeSoFile("arm64-v8a")
 
         // When
@@ -378,12 +378,14 @@ internal class NdkSymbolFileUploadTaskTest {
         forge: Forge
     ) {
         // Given
-        testedTask.apiKey = forge.anAlphaNumericalString().let {
-            val splitIndex = forge.anInt(min = 0, max = it.length) + 1
-            it.substring(0, splitIndex) +
-                forge.anElementFrom("\"", "'") +
-                it.substring(splitIndex)
-        }
+        testedTask.apiKey.set(
+            forge.anAlphaNumericalString().let {
+                val splitIndex = forge.anInt(min = 0, max = it.length) + 1
+                it.substring(0, splitIndex) +
+                    forge.anElementFrom("\"", "'") +
+                    it.substring(splitIndex)
+            }
+        )
         writeFakeSoFile("arm64")
 
         // When
@@ -500,37 +502,6 @@ internal class NdkSymbolFileUploadTaskTest {
     }
 
     @Test
-    fun `M apply datadog CI config if exists W applyTask()`(forge: Forge) {
-        // Given
-        val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
-
-        val fakeDatadogCiApiKey = forge.anAlphabeticalString()
-        val fakeDatadogCiDomain = forge.aValueFrom(DatadogSite::class.java).domain
-
-        fakeDatadogCiFile.writeText(
-            JSONObject().apply {
-                put("apiKey", fakeDatadogCiApiKey)
-                put("datadogSite", fakeDatadogCiDomain)
-            }.toString()
-        )
-
-        testedTask.apiKeySource = forge.aValueFrom(
-            ApiKeySource::class.java,
-            exclude = listOf(ApiKeySource.GRADLE_PROPERTY)
-        )
-        testedTask.datadogCiFile = fakeDatadogCiFile
-        testedTask.site = ""
-
-        // When
-        testedTask.applyTask()
-
-        // Then
-        assertThat(testedTask.apiKey).isEqualTo(fakeDatadogCiApiKey)
-        assertThat(testedTask.apiKeySource).isEqualTo(ApiKeySource.DATADOG_CI_CONFIG_FILE)
-        assertThat(testedTask.site).isEqualTo(DatadogSite.fromDomain(fakeDatadogCiDomain)?.name)
-    }
-
-    @Test
     fun `M apply datadog CI config if exists W applyTask() {apiKey from gradle}`(forge: Forge) {
         // Given
         val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
@@ -545,7 +516,7 @@ internal class NdkSymbolFileUploadTaskTest {
             }.toString()
         )
 
-        testedTask.apiKeySource = ApiKeySource.GRADLE_PROPERTY
+        testedTask.apiKeySource.set(ApiKeySource.GRADLE_PROPERTY)
         testedTask.datadogCiFile = fakeDatadogCiFile
         testedTask.site = ""
 
@@ -553,8 +524,8 @@ internal class NdkSymbolFileUploadTaskTest {
         testedTask.applyTask()
 
         // Then
-        assertThat(testedTask.apiKey).isEqualTo(fakeApiKey.value)
-        assertThat(testedTask.apiKeySource).isEqualTo(ApiKeySource.GRADLE_PROPERTY)
+        assertThat(testedTask.apiKey.get()).isEqualTo(fakeApiKey.value)
+        assertThat(testedTask.apiKeySource.get()).isEqualTo(ApiKeySource.GRADLE_PROPERTY)
         assertThat(testedTask.site).isEqualTo(DatadogSite.fromDomain(fakeDatadogCiDomain)?.name)
     }
 
@@ -578,7 +549,7 @@ internal class NdkSymbolFileUploadTaskTest {
         testedTask.applyTask()
 
         // Then
-        assertThat(testedTask.apiKey).isEqualTo(fakeApiKey.value)
+        assertThat(testedTask.apiKey.get()).isEqualTo(fakeApiKey.value)
         assertThat(testedTask.site).isEqualTo(DatadogSite.fromDomain(fakeDatadogCiDomain)?.name)
     }
 
@@ -595,9 +566,11 @@ internal class NdkSymbolFileUploadTaskTest {
             }.toString()
         )
 
-        testedTask.apiKeySource = forge.aValueFrom(
-            ApiKeySource::class.java,
-            exclude = listOf(ApiKeySource.GRADLE_PROPERTY)
+        testedTask.apiKeySource.set(
+            forge.aValueFrom(
+                ApiKeySource::class.java,
+                exclude = listOf(ApiKeySource.DATADOG_CI_CONFIG_FILE)
+            )
         )
         testedTask.datadogCiFile = fakeDatadogCiFile
 
@@ -605,8 +578,8 @@ internal class NdkSymbolFileUploadTaskTest {
         testedTask.applyTask()
 
         // Then
-        assertThat(testedTask.apiKey).isEqualTo(fakeDatadogCiApiKey)
-        assertThat(testedTask.apiKeySource).isEqualTo(ApiKeySource.DATADOG_CI_CONFIG_FILE)
+        assertThat(testedTask.apiKey.get()).isNotEqualTo(fakeDatadogCiApiKey)
+        assertThat(testedTask.apiKeySource.get()).isNotEqualTo(ApiKeySource.DATADOG_CI_CONFIG_FILE)
         assertThat(testedTask.site).isEqualTo(fakeSite.name)
     }
 
@@ -630,8 +603,8 @@ internal class NdkSymbolFileUploadTaskTest {
         testedTask.applyTask()
 
         // Then
-        assertThat(testedTask.apiKey).isEqualTo(fakeApiKey.value)
-        assertThat(testedTask.apiKeySource).isEqualTo(fakeApiKey.source)
+        assertThat(testedTask.apiKey.get()).isEqualTo(fakeApiKey.value)
+        assertThat(testedTask.apiKeySource.get()).isEqualTo(fakeApiKey.source)
         assertThat(testedTask.site).isEqualTo(DatadogSite.US1.name)
     }
 
@@ -654,8 +627,8 @@ internal class NdkSymbolFileUploadTaskTest {
         testedTask.applyTask()
 
         // Then
-        assertThat(testedTask.apiKey).isEqualTo(fakeApiKey.value)
-        assertThat(testedTask.apiKeySource).isEqualTo(fakeApiKey.source)
+        assertThat(testedTask.apiKey.get()).isEqualTo(fakeApiKey.value)
+        assertThat(testedTask.apiKeySource.get()).isEqualTo(fakeApiKey.source)
         assertThat(testedTask.site).isEqualTo(fakeSite.name)
     }
 
@@ -670,8 +643,8 @@ internal class NdkSymbolFileUploadTaskTest {
         testedTask.applyTask()
 
         // Then
-        assertThat(testedTask.apiKey).isEqualTo(fakeApiKey.value)
-        assertThat(testedTask.apiKeySource).isEqualTo(fakeApiKey.source)
+        assertThat(testedTask.apiKey.get()).isEqualTo(fakeApiKey.value)
+        assertThat(testedTask.apiKeySource.get()).isEqualTo(fakeApiKey.source)
         assertThat(testedTask.site).isEqualTo(DatadogSite.fromDomain(fakeDatadogEnvDomain)?.name)
     }
 
@@ -685,8 +658,8 @@ internal class NdkSymbolFileUploadTaskTest {
         testedTask.applyTask()
 
         // Then
-        assertThat(testedTask.apiKey).isEqualTo(fakeApiKey.value)
-        assertThat(testedTask.apiKeySource).isEqualTo(fakeApiKey.source)
+        assertThat(testedTask.apiKey.get()).isEqualTo(fakeApiKey.value)
+        assertThat(testedTask.apiKeySource.get()).isEqualTo(fakeApiKey.source)
         assertThat(testedTask.site).isEqualTo(fakeSite.name)
     }
 
@@ -703,8 +676,8 @@ internal class NdkSymbolFileUploadTaskTest {
         testedTask.applyTask()
 
         // Then
-        assertThat(testedTask.apiKey).isEqualTo(fakeApiKey.value)
-        assertThat(testedTask.apiKeySource).isEqualTo(fakeApiKey.source)
+        assertThat(testedTask.apiKey.get()).isEqualTo(fakeApiKey.value)
+        assertThat(testedTask.apiKeySource.get()).isEqualTo(fakeApiKey.source)
         assertThat(testedTask.site).isEqualTo(fakeSite.name)
     }
 
