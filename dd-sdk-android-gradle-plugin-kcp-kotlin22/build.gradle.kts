@@ -19,6 +19,7 @@ plugins {
     // Publish
     `maven-publish`
     signing
+    alias(libs.plugins.gradlePluginPublish)
     id("org.jetbrains.dokka-javadoc")
     id("com.vanniktech.maven.publish.base")
 
@@ -64,5 +65,5 @@ javadocConfig()
 dependencyUpdateConfig()
 publishingConfig(
     "Module to support Datadog Compiler Plugin with kotlin 2.2.x or above",
-    false
+    true
 )

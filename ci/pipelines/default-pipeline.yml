@@ -190,6 +190,7 @@ publish:publish-sonatype:
     - tags
     # Snapshot is only published on Maven Central, because Gradle Plugin portal can't handle snapshot
     - develop
+    - yl/use-gradle-plugin-publish
   image: $CI_IMAGE_DOCKER
   stage: publish
   timeout: 30m
