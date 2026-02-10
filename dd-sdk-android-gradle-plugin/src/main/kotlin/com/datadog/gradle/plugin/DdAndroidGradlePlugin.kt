@@ -19,7 +19,7 @@ import com.datadog.gradle.plugin.internal.VariantIterator
 import com.datadog.gradle.plugin.internal.lazyBuildIdProvider
 import com.datadog.gradle.plugin.internal.variant.AppVariant
 import com.datadog.gradle.plugin.internal.variant.NewApiAppVariant
-import com.datadog.gradle.plugin.kcp.DatadogKotlinCompilerPluginCommandLineProcessor.Companion.KOTLIN_COMPILER_PLUGIN_ID
+import com.datadog.gradle.plugin.kcp.DatadogKotlinCompilerPluginSupport
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -31,14 +31,10 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.process.ExecOperations
-import org.jetbrains.kotlin.gradle.internal.KaptGenerateStubsTask
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
 import java.io.IOException
-import java.net.URISyntaxException
-import java.nio.file.Paths
 import javax.inject.Inject
 import kotlin.io.path.Path
 
@@ -87,21 +83,19 @@ class DdAndroidGradlePlugin @Inject constructor(
             }
         }
 
-        target.afterEvaluate {
-            var isKcpEnabled = false
-            if (CurrentAgpVersion.IMPLEMENTS_BUILT_IN_KOTLIN) {
-                isKcpEnabled = configureKotlinCompilerPlugin(target, extension)
-            } else {
-                target.pluginManager.withPlugin("org.jetbrains.kotlin.android") {
-                    isKcpEnabled = configureKotlinCompilerPlugin(target, extension)
-                }
+        if (CurrentAgpVersion.IMPLEMENTS_BUILT_IN_KOTLIN) {
+            target.pluginManager.apply(DatadogKotlinCompilerPluginSupport::class.java)
+        } else {
+            target.pluginManager.withPlugin("org.jetbrains.kotlin.android") {
+                target.pluginManager.apply(DatadogKotlinCompilerPluginSupport::class.java)
             }
-            if (!target.isAndroidAppPluginApplied) {
-                if (extension.composeInstrumentation != InstrumentationMode.DISABLE) {
-                    if (!isKcpEnabled) LOGGER.error(ERROR_COMPOSE_INSTRUMENTATION_NOT_APPLIED)
-                } else {
-                    LOGGER.error(ERROR_NOT_ANDROID)
-                }
+        }
+
+        target.afterEvaluate {
+            if (!target.isAndroidAppPluginApplied && extension.composeInstrumentation == InstrumentationMode.DISABLE) {
+                // We show this error when composeInstrumentation is not enabled but the whole plugin is still applied
+                // to a non-Android module.
+                LOGGER.error(ERROR_NOT_ANDROID)
             } else if (!extension.enabled) {
                 LOGGER.info(MSG_PLUGIN_DISABLED)
             }
@@ -428,71 +422,6 @@ class DdAndroidGradlePlugin @Inject constructor(
         return configuration
     }
 
-    @Suppress("ReturnCount")
-    private fun configureKotlinCompilerPlugin(project: Project, ddExtension: DdExtension): Boolean {
-        val pluginJarFile: File = try {
-            val codeSource = this::class.java.protectionDomain?.codeSource
-            if (codeSource == null) {
-                LOGGER.warn(
-                    "$DD_PLUGIN_MAVEN_COORDINATES not found in classpath, " +
-                        "Skipping Kotlin Compiler Plugin configuration."
-                )
-                return false
-            }
-            Paths.get(codeSource.location.toURI()).toFile()
-        } catch (e: URISyntaxException) {
-            LOGGER.error(
-                "Can not parse Datadog Gradle Plugin path because the URI is not correctly formatted.",
-                e
-            )
-            return false
-        } catch (e: SecurityException) {
-            LOGGER.error(
-                "Failed to access Datadog Gradle Plugin protection domain due to insufficient permissions.",
-                e
-            )
-            return false
-        }
-        val pluginPath = pluginJarFile.absolutePath
-        if (!pluginJarFile.exists()) {
-            LOGGER.error("Datadog plugin jar '$pluginPath' does not exist; skipping KCP configuration.")
-            return false
-        }
-        val composeInstrumentation = ddExtension.composeInstrumentation
-        project.tasks.configureKotlinCompile {
-            addCompilerArgs(
-                listOf(
-                    "-Xplugin=$pluginPath",
-                    "-P",
-                    "plugin:$KOTLIN_COMPILER_PLUGIN_ID:$INSTRUMENTATION_MODE=${composeInstrumentation.name}"
-                )
-            )
-        }
-        return true
-    }
-
-    private fun KotlinCompile.addCompilerArgs(args: List<String>) {
-        if (CurrentAgpVersion.IMPLEMENTS_BUILT_IN_KOTLIN) {
-            compilerOptions.freeCompilerArgs.addAll(args)
-        } else {
-            // can cut this branch off once we support Kotlin 1.8 min
-            @Suppress("DEPRECATION")
-            kotlinOptions.freeCompilerArgs += args
-        }
-    }
-
-    private fun TaskContainer.configureKotlinCompile(action: KotlinCompile.() -> Unit) {
-        // `KaptGenerateStubsTask` and Ksp Task will have conflicts with the usage of `freeCompilerArgs` in Kotlin Compiler plugin,
-        // So we need to filter out these tasks when applying the `freeCompilerArgs`, see:
-        // https://youtrack.jetbrains.com/issue/KT-55565/Consider-de-duping-or-blocking-standard-addition-of-freeCompilerArgs-to-KaptGenerateStubsTask
-        // https://youtrack.jetbrains.com/issue/KT-55452
-        withType(KotlinCompile::class.java).matching {
-            it !is KaptGenerateStubsTask && !it.name.startsWith("ksp")
-        }.configureEach {
-            action(it)
-        }
-    }
-
     private fun isObfuscationEnabled(
         variant: AppVariant,
         extension: DdExtension
@@ -521,8 +450,6 @@ class DdAndroidGradlePlugin @Inject constructor(
 
         private const val DD_FORCE_LEGACY_VARIANT_API = "dd-force-legacy-variant-api"
 
-        private const val DD_PLUGIN_MAVEN_COORDINATES = "com.datadoghq:dd-sdk-android-gradle-plugin"
-
         internal const val DD_API_KEY = "DD_API_KEY"
 
         internal const val DATADOG_API_KEY = "DATADOG_API_KEY"
@@ -535,15 +462,10 @@ class DdAndroidGradlePlugin @Inject constructor(
 
         internal const val UPLOAD_TASK_NAME = "uploadMapping"
 
-        private const val ERROR_COMPOSE_INSTRUMENTATION_NOT_APPLIED = "The dd-android-gradle-plugin has been applied" +
-            " on a project where Datadog Jetpack Compose Instrumentation cannot be activated."
-
         private const val ERROR_NOT_ANDROID = "The dd-android-gradle-plugin has been applied on " +
             "a non android application project"
 
         private const val MSG_PLUGIN_DISABLED =
             "Datadog extension disabled, no upload task created, no Compose instrumentation applied"
-
-        private const val INSTRUMENTATION_MODE = "INSTRUMENTATION_MODE"
     }
 }

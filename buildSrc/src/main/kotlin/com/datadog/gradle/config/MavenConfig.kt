@@ -9,10 +9,14 @@ package com.datadog.gradle.config
 import com.datadog.gradle.utils.Version
 import com.vanniktech.maven.publish.MavenPublishBaseExtension
 import org.gradle.api.Project
+import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.jvm.tasks.Jar
+import org.gradle.kotlin.dsl.configure
+import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.findByType
+import org.gradle.kotlin.dsl.get
 import org.gradle.plugins.signing.SigningExtension
 
 object MavenConfig {
@@ -22,7 +26,7 @@ object MavenConfig {
     const val PUBLICATION = "pluginMaven"
 }
 
-fun Project.publishingConfig(projectDescription: String) {
+fun Project.publishingConfig(projectDescription: String, publishAsGradlePlugin: Boolean = true) {
     val projectName = name
     val signingExtension = extensions.findByType(SigningExtension::class)
 
@@ -39,12 +43,21 @@ fun Project.publishingConfig(projectDescription: String) {
         // sign(publishingExtension.publications.getByName(MavenConfig.PUBLICATION))
     }
 
+    if (!publishAsGradlePlugin) {
+        configure<JavaPluginExtension> {
+            withSourcesJar()
+            withJavadocJar()
+        }
+    }
+
     afterEvaluate {
-        tasks.named("javadocJar", Jar::class.java).configure {
-            group = "publishing"
-            dependsOn("dokkaGenerate")
-            archiveClassifier.convention("javadoc")
-            from("${layout.buildDirectory.dir("/reports/javadoc")}")
+        if (publishAsGradlePlugin) {
+            tasks.named("javadocJar", Jar::class.java).configure {
+                group = "publishing"
+                dependsOn("dokkaGenerate")
+                archiveClassifier.convention("javadoc")
+                from("${layout.buildDirectory.dir("/reports/javadoc")}")
+            }
         }
 
         val publishingExtension = extensions.findByType<PublishingExtension>()
@@ -54,9 +67,15 @@ fun Project.publishingConfig(projectDescription: String) {
         }
 
         publishingExtension.apply {
-            publications.getByName(MavenConfig.PUBLICATION) {
-                check(this is MavenPublication)
+            val mavenPublication = if (publishAsGradlePlugin) {
+                publications.getByName(MavenConfig.PUBLICATION) as MavenPublication
+            } else {
+                publications.create<MavenPublication>(MavenConfig.PUBLICATION).apply {
+                    from(components.get("java"))
+                }
+            }
 
+            mavenPublication.apply {
                 groupId = MavenConfig.GROUP_ID
                 artifactId = projectName
                 version = MavenConfig.VERSION.name
