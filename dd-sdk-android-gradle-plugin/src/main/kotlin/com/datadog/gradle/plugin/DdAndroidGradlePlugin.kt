@@ -34,6 +34,7 @@ import org.gradle.process.ExecOperations
 import org.jetbrains.kotlin.gradle.internal.KaptGenerateStubsTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.json.JSONException
+import org.json.JSONObject
 import java.io.File
 import java.io.IOException
 import java.net.URISyntaxException
@@ -189,9 +190,9 @@ class DdAndroidGradlePlugin @Inject constructor(
         val providers = target.providers
         val datadogCiFileProvider = providers.provider {
             val ciFile = TaskUtils.findDatadogCiFile(target.projectDir)
-            if (ciFile != null && ciFile.exists()) {
+            if (ciFile != null) {
                 try {
-                    val config = org.json.JSONObject(ciFile.readText())
+                    val config = JSONObject(ciFile.readText())
                     val apiKey = config.optString(FileUploadTask.DATADOG_CI_API_KEY_PROPERTY, null)
                     if (!apiKey.isNullOrEmpty()) {
                         LOGGER.info("API key found in Datadog CI config file, using it.")
