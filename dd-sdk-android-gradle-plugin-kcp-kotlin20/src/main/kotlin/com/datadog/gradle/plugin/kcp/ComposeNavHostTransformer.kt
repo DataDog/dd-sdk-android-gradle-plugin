@@ -60,16 +60,17 @@ class ComposeNavHostTransformer(
     @Suppress("ReturnCount")
     fun initReferences(): Boolean {
         trackEffectFunctionSymbol = pluginContextUtils.getDatadogTrackEffectSymbol() ?: run {
-            warn(ERROR_MISSING_DATADOG_COMPOSE_INTEGRATION)
+            messageCollector.strongWarning(ERROR_MISSING_DATADOG_COMPOSE_INTEGRATION)
             return false
         }
 
         navHostControllerClassSymbol = pluginContextUtils.getNavHostControllerClassSymbol() ?: run {
-            warn(ERROR_MISSING_COMPOSE_NAV)
+            // androidx.navigation:navigation-compose library is optional for a compose module.
+            messageCollector.info(ERROR_MISSING_COMPOSE_NAV)
             return false
         }
         applyFunctionSymbol = pluginContextUtils.getApplySymbol() ?: run {
-            warn(ERROR_MISSING_KOTLIN_STDLIB)
+            messageCollector.strongWarning(ERROR_MISSING_KOTLIN_STDLIB)
             return false
         }
         return true
@@ -184,17 +185,4 @@ class ComposeNavHostTransformer(
     }
 
     private fun isAnonymousFunction(name: Name): Boolean = name == SpecialNames.ANONYMOUS
-
-    private fun warn(message: String) {
-        messageCollector.report(CompilerMessageSeverity.STRONG_WARNING, message)
-    }
-
-    companion object {
-        private const val ERROR_MISSING_DATADOG_COMPOSE_INTEGRATION =
-            "Missing com.datadoghq:dd-sdk-android-compose dependency."
-        private const val ERROR_MISSING_COMPOSE_NAV =
-            "Missing androidx.navigation:navigation-compose dependency."
-        private const val ERROR_MISSING_KOTLIN_STDLIB =
-            "Missing org.jetbrains.kotlin:kotlin-stdlib dependency."
-    }
 }
