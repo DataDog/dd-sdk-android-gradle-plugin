@@ -200,10 +200,10 @@ publish:publish-sonatype:
     - echo "mavenCentralUsername=$(aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android-gradle-plugin.publishing.central_username --with-decryption --query "Parameter.Value" --out text)" >> ./gradle.properties
     - echo "mavenCentralPassword=$(aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android-gradle-plugin.publishing.central_password --with-decryption --query "Parameter.Value" --out text)" >> ./gradle.properties
     - ./gradlew :dd-sdk-android-gradle-plugin:publishPluginMavenPublicationToMavenCentralRepository --stacktrace --no-daemon
-    - ./gradlew :dd-sdk-android-gradle-plugin-kcp-common:publishPluginMavenPublicationToMavenCentralRepository --stacktrace --no-daemon
-    - ./gradlew :dd-sdk-android-gradle-plugin-kcp-kotlin20:publishPluginMavenPublicationToMavenCentralRepository --stacktrace --no-daemon
-    - ./gradlew :dd-sdk-android-gradle-plugin-kcp-kotlin21:publishPluginMavenPublicationToMavenCentralRepository --stacktrace --no-daemon
-    - ./gradlew :dd-sdk-android-gradle-plugin-kcp-kotlin22:publishPluginMavenPublicationToMavenCentralRepository --stacktrace --no-daemon
+    - ./gradlew :dd-sdk-android-gradle-plugin-kcp-common:publishMavenPublicationToMavenCentralRepository --stacktrace --no-daemon
+    - ./gradlew :dd-sdk-android-gradle-plugin-kcp-kotlin20:publishMavenPublicationToMavenCentralRepository --stacktrace --no-daemon
+    - ./gradlew :dd-sdk-android-gradle-plugin-kcp-kotlin21:publishMavenPublicationToMavenCentralRepository --stacktrace --no-daemon
+    - ./gradlew :dd-sdk-android-gradle-plugin-kcp-kotlin22:publishMavenPublicationToMavenCentralRepository --stacktrace --no-daemon
 
 publish:publish-gradle-portal:
   tags: [ "arch:amd64" ]

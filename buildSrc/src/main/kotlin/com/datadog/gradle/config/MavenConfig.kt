@@ -9,21 +9,20 @@ package com.datadog.gradle.config
 import com.datadog.gradle.utils.Version
 import com.vanniktech.maven.publish.MavenPublishBaseExtension
 import org.gradle.api.Project
-import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.jvm.tasks.Jar
-import org.gradle.kotlin.dsl.configure
-import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.findByType
-import org.gradle.kotlin.dsl.get
 import org.gradle.plugins.signing.SigningExtension
 
 object MavenConfig {
 
     val VERSION = Version(1, 23, 0, Version.Type.Snapshot)
     const val GROUP_ID = "com.datadoghq"
-    const val PUBLICATION = "pluginMaven"
+    const val PLUGIN_PUBLICATION = "pluginMaven"
+
+    // should be aligned with com.vanniktech.maven.publish.Platform.PUBLICATION_NAME
+    const val KCP_PUBLICATION = "maven"
 }
 
 fun Project.publishingConfig(projectDescription: String, publishAsGradlePlugin: Boolean = true) {
@@ -43,14 +42,20 @@ fun Project.publishingConfig(projectDescription: String, publishAsGradlePlugin: 
         // sign(publishingExtension.publications.getByName(MavenConfig.PUBLICATION))
     }
 
-    if (!publishAsGradlePlugin) {
-        configure<JavaPluginExtension> {
-            withSourcesJar()
-            withJavadocJar()
-        }
+    val mavenPublishing = extensions.findByType<MavenPublishBaseExtension>()
+    if (mavenPublishing == null) {
+        logger.error("Missing Maven publishing extension for $projectName")
+        return
+    }
+
+    mavenPublishing.apply {
+        configureBasedOnAppliedPlugins()
     }
 
     afterEvaluate {
+        // should be in afterEvaluate
+        mavenPublishing.publishToMavenCentral(automaticRelease = false)
+
         if (publishAsGradlePlugin) {
             tasks.named("javadocJar", Jar::class.java).configure {
                 group = "publishing"
@@ -67,13 +72,12 @@ fun Project.publishingConfig(projectDescription: String, publishAsGradlePlugin: 
         }
 
         publishingExtension.apply {
-            val mavenPublication = if (publishAsGradlePlugin) {
-                publications.getByName(MavenConfig.PUBLICATION) as MavenPublication
+            val publicationName = if (publishAsGradlePlugin) {
+                MavenConfig.PLUGIN_PUBLICATION
             } else {
-                publications.create<MavenPublication>(MavenConfig.PUBLICATION).apply {
-                    from(components.get("java"))
-                }
+                MavenConfig.KCP_PUBLICATION
             }
+            val mavenPublication = publications.getByName(publicationName) as MavenPublication
 
             mavenPublication.apply {
                 groupId = MavenConfig.GROUP_ID
@@ -115,16 +119,6 @@ fun Project.publishingConfig(projectDescription: String, publishAsGradlePlugin: 
                     }
                 }
             }
-        }
-
-        val mavenPublishing = extensions.findByType<MavenPublishBaseExtension>()
-        if (mavenPublishing == null) {
-            logger.error("Missing Maven publishing extension for $projectName")
-            return@afterEvaluate
-        }
-
-        mavenPublishing.apply {
-            publishToMavenCentral(automaticRelease = false)
         }
     }
 }
