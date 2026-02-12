@@ -28,6 +28,8 @@ object MavenConfig {
 fun Project.publishingConfig(projectDescription: String, publishAsGradlePlugin: Boolean = true) {
     val projectName = name
     val signingExtension = extensions.findByType(SigningExtension::class)
+    project.group = MavenConfig.GROUP_ID
+    project.version = MavenConfig.VERSION.name
 
     if (signingExtension == null) {
         logger.error("Missing signing extension for $projectName")
@@ -53,9 +55,6 @@ fun Project.publishingConfig(projectDescription: String, publishAsGradlePlugin: 
     }
 
     afterEvaluate {
-        // should be in afterEvaluate
-        mavenPublishing.publishToMavenCentral(automaticRelease = false)
-
         if (publishAsGradlePlugin) {
             tasks.named("javadocJar", Jar::class.java).configure {
                 group = "publishing"
@@ -120,5 +119,8 @@ fun Project.publishingConfig(projectDescription: String, publishAsGradlePlugin: 
                 }
             }
         }
+
+        // should be in afterEvaluate
+        mavenPublishing.publishToMavenCentral(automaticRelease = false)
     }
 }
