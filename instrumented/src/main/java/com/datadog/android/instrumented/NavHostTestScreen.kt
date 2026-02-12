@@ -1,3 +1,9 @@
+/*
+ * Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+ * This product includes software developed at Datadog (https://www.datadoghq.com/).
+ * Copyright 2020-Present Datadog, Inc.
+ */
+
 package com.datadog.android.instrumented
 
 import androidx.compose.foundation.layout.Column
@@ -16,7 +22,10 @@ import androidx.navigation.compose.rememberNavController
 @Composable
 internal fun ScreenWithNavHost(onEvent: (NavHostController, Lifecycle.Event) -> Unit) {
     val navHost = rememberNavController()
-    NavHost(navHost, TEST_DESTINATION) {
+    NavHost(
+        navHost,
+        TEST_DESTINATION
+    ) {
         composable(TEST_DESTINATION) {
             Text(text = TEST_TEXT)
         }

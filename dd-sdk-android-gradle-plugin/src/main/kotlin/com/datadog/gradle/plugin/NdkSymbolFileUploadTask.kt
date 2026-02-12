@@ -13,6 +13,7 @@ import com.datadog.gradle.plugin.internal.variant.AppVariant
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.TaskProvider
@@ -107,7 +108,7 @@ internal abstract class NdkSymbolFileUploadTask @Inject constructor(
             variant: AppVariant,
             buildIdTask: TaskProvider<GenerateBuildIdTask>,
             providerFactory: ProviderFactory,
-            apiKey: ApiKey,
+            apiKeyProvider: Provider<ApiKey>,
             extensionConfiguration: DdExtensionConfiguration,
             repositoryDetector: RepositoryDetector
         ): TaskProvider<NdkSymbolFileUploadTask> {
@@ -127,7 +128,7 @@ internal abstract class NdkSymbolFileUploadTask @Inject constructor(
                         task.searchDirectories.from(it.toTypedArray())
                     }
                     task.configureWith(
-                        apiKey,
+                        apiKeyProvider,
                         extensionConfiguration,
                         variant
                     )

@@ -6,6 +6,11 @@
 
 include(":dd-sdk-android-gradle-plugin")
 
+include(":dd-sdk-android-gradle-plugin-kcp-common")
+include(":dd-sdk-android-gradle-plugin-kcp-kotlin20")
+include(":dd-sdk-android-gradle-plugin-kcp-kotlin21")
+include(":dd-sdk-android-gradle-plugin-kcp-kotlin22")
+
 include(":samples:basic")
 include(":samples:ndk")
 include(":samples:variants")

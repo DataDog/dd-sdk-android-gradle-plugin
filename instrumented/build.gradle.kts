@@ -1,3 +1,9 @@
+/*
+ * Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+ * This product includes software developed at Datadog (https://www.datadoghq.com/).
+ * Copyright 2020-Present Datadog, Inc.
+ */
+
 import com.datadog.gradle.config.AndroidConfig
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -64,13 +70,16 @@ tasks.withType<KotlinCompile>().configureEach {
 
 dependencies {
 
-    kotlinCompilerPluginClasspath(project(":dd-sdk-android-gradle-plugin"))
+    kotlinCompilerPluginClasspath(project(":dd-sdk-android-gradle-plugin-kcp-common"))
+    kotlinCompilerPluginClasspath(project(":dd-sdk-android-gradle-plugin-kcp-kotlin21"))
+    // We use kotlin21 because the kotlin compiler for this project is kotlin 2.1.x
     implementation(project(":samples:lib-module"))
     implementation(libs.androidx.core)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.datadogSdkComposeSnapshot)
+    implementation(libs.datadogSdkRumSnapshot)
     implementation(libs.androidx.compose.navigation)
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)

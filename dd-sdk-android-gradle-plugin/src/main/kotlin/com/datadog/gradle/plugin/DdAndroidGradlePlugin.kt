@@ -11,13 +11,15 @@ import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import com.android.build.gradle.AppExtension
 import com.datadog.gradle.plugin.internal.ApiKey
 import com.datadog.gradle.plugin.internal.ApiKeySource
+import com.datadog.gradle.plugin.internal.ApiKeySource.ENVIRONMENT
+import com.datadog.gradle.plugin.internal.ApiKeySource.GRADLE_PROPERTY
 import com.datadog.gradle.plugin.internal.CurrentAgpVersion
 import com.datadog.gradle.plugin.internal.GitRepositoryDetector
 import com.datadog.gradle.plugin.internal.VariantIterator
 import com.datadog.gradle.plugin.internal.lazyBuildIdProvider
 import com.datadog.gradle.plugin.internal.variant.AppVariant
 import com.datadog.gradle.plugin.internal.variant.NewApiAppVariant
-import com.datadog.gradle.plugin.kcp.DatadogKotlinCompilerPluginCommandLineProcessor.Companion.KOTLIN_COMPILER_PLUGIN_ID
+import com.datadog.gradle.plugin.kcp.DatadogKotlinCompilerPluginSupport
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -29,11 +31,10 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.process.ExecOperations
-import org.jetbrains.kotlin.gradle.internal.KaptGenerateStubsTask
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.json.JSONException
+import org.json.JSONObject
 import java.io.File
-import java.net.URISyntaxException
-import java.nio.file.Paths
+import java.io.IOException
 import javax.inject.Inject
 import kotlin.io.path.Path
 
@@ -51,20 +52,20 @@ class DdAndroidGradlePlugin @Inject constructor(
     /** @inheritdoc */
     override fun apply(target: Project) {
         val extension = target.extensions.create(EXT_NAME, DdExtension::class.java)
-        val apiKey = resolveApiKey(target)
+        val apiKeyProvider = resolveApiKey(target)
 
         // need to use withPlugin instead of afterEvaluate, because otherwise generated assets
         // folder with buildId is not picked by AGP by some reason
         target.pluginManager.withPlugin("com.android.application") {
-            if (CurrentAgpVersion.CAN_ENABLE_NEW_VARIANT_API && !target.hasProperty(DD_FORCE_LEGACY_VARIANT_API)
-            ) {
+            val forceLegacyVariant = target.providers.gradleProperty(DD_FORCE_LEGACY_VARIANT_API)
+            if (CurrentAgpVersion.CAN_ENABLE_NEW_VARIANT_API && !forceLegacyVariant.isPresent) {
                 val androidComponentsExtension = target.androidApplicationComponentExtension ?: return@withPlugin
                 androidComponentsExtension.onVariants { variant ->
                     configureTasksForVariant(
                         target,
                         extension,
                         AppVariant.create(variant, target),
-                        apiKey
+                        apiKeyProvider
                     )
                 }
             } else {
@@ -75,28 +76,26 @@ class DdAndroidGradlePlugin @Inject constructor(
                             target,
                             extension,
                             AppVariant.create(variant, androidExtension, target),
-                            apiKey
+                            apiKeyProvider
                         )
                     }
                 }
             }
         }
 
-        target.afterEvaluate {
-            var isKcpEnabled = false
-            if (CurrentAgpVersion.IMPLEMENTS_BUILT_IN_KOTLIN) {
-                isKcpEnabled = configureKotlinCompilerPlugin(target, extension)
-            } else {
-                target.pluginManager.withPlugin("org.jetbrains.kotlin.android") {
-                    isKcpEnabled = configureKotlinCompilerPlugin(target, extension)
-                }
+        if (CurrentAgpVersion.IMPLEMENTS_BUILT_IN_KOTLIN) {
+            target.pluginManager.apply(DatadogKotlinCompilerPluginSupport::class.java)
+        } else {
+            target.pluginManager.withPlugin("org.jetbrains.kotlin.android") {
+                target.pluginManager.apply(DatadogKotlinCompilerPluginSupport::class.java)
             }
-            if (!target.isAndroidAppPluginApplied) {
-                if (extension.composeInstrumentation != InstrumentationMode.DISABLE) {
-                    if (!isKcpEnabled) LOGGER.error(ERROR_COMPOSE_INSTRUMENTATION_NOT_APPLIED)
-                } else {
-                    LOGGER.error(ERROR_NOT_ANDROID)
-                }
+        }
+
+        target.afterEvaluate {
+            if (!target.isAndroidAppPluginApplied && extension.composeInstrumentation == InstrumentationMode.DISABLE) {
+                // We show this error when composeInstrumentation is not enabled but the whole plugin is still applied
+                // to a non-Android module.
+                LOGGER.error(ERROR_NOT_ANDROID)
             } else if (!extension.enabled) {
                 LOGGER.info(MSG_PLUGIN_DISABLED)
             }
@@ -111,7 +110,7 @@ class DdAndroidGradlePlugin @Inject constructor(
         target: Project,
         datadogExtension: DdExtension,
         variant: AppVariant,
-        apiKey: ApiKey
+        apiKeyProvider: Provider<ApiKey>
     ) {
         val isObfuscationEnabled = isObfuscationEnabled(variant, datadogExtension)
         val isNativeBuildRequired = variant.isNativeBuildEnabled
@@ -127,7 +126,7 @@ class DdAndroidGradlePlugin @Inject constructor(
                     target,
                     variant,
                     buildIdGenerationTask,
-                    apiKey,
+                    apiKeyProvider,
                     datadogExtension
                 )
             } else {
@@ -140,7 +139,7 @@ class DdAndroidGradlePlugin @Inject constructor(
                     datadogExtension,
                     variant,
                     buildIdGenerationTask,
-                    apiKey
+                    apiKeyProvider
                 )
             } else {
                 LOGGER.info(
@@ -161,17 +160,58 @@ class DdAndroidGradlePlugin @Inject constructor(
         }
     }
 
-    @Suppress("ReturnCount")
-    // TODO RUMM-2382 use ProviderFactory/Provider APIs to watch changes in external environment
-    internal fun resolveApiKey(target: Project): ApiKey {
-        val apiKey = listOf(
-            ApiKey(target.stringProperty(DD_API_KEY).orEmpty(), ApiKeySource.GRADLE_PROPERTY),
-            ApiKey(target.stringProperty(DATADOG_API_KEY).orEmpty(), ApiKeySource.GRADLE_PROPERTY),
-            ApiKey(System.getenv(DD_API_KEY).orEmpty(), ApiKeySource.ENVIRONMENT),
-            ApiKey(System.getenv(DATADOG_API_KEY).orEmpty(), ApiKeySource.ENVIRONMENT)
-        ).firstOrNull { it.value.isNotBlank() }
+    /**
+     * Resolves the Datadog API key from multiple sources using lazy evaluation.
+     *
+     * The API key is resolved in the following priority order (first match wins):
+     * 1. DD_API_KEY gradle property (e.g., -PDD_API_KEY=xxx or gradle.properties)
+     * 2. DATADOG_API_KEY gradle property (e.g., -PDATADOG_API_KEY=xxx or gradle.properties)
+     * 3. DD_API_KEY environment variable
+     * 4. DATADOG_API_KEY environment variable
+     * 5. apiKey field in datadog-ci.json file (searched in project directory and parent directories)
+     * 6. NONE (default - will cause task validation to fail)
+     *
+     * @param target The Gradle project to resolve the API key for
+     * @return A Provider that lazily evaluates to the resolved API key and its source
+     */
+    internal fun resolveApiKey(target: Project): Provider<ApiKey> {
+        // https://docs.gradle.org/current/javadoc/org/gradle/api/provider/ProviderFactory.html
+        // The Callable may return null, in which case the provider is considered to have no value.
+        @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
+        fun resolve(key: String, provider: (String) -> Provider<String>, source: ApiKeySource) =
+            provider(key).map { it.ifBlank { null } }.map { ApiKey(it, source) }
 
-        return apiKey ?: ApiKey.NONE
+        val providers = target.providers
+        val datadogCiFileProvider = providers.provider {
+            val ciFile = TaskUtils.findDatadogCiFile(target.projectDir)
+            if (ciFile != null) {
+                try {
+                    val config = JSONObject(ciFile.readText())
+                    val apiKey = config.optString(FileUploadTask.DATADOG_CI_API_KEY_PROPERTY, null)
+                    if (!apiKey.isNullOrEmpty()) {
+                        LOGGER.info("API key found in Datadog CI config file, using it.")
+                        ApiKey(apiKey, ApiKeySource.DATADOG_CI_CONFIG_FILE)
+                    } else {
+                        null
+                    }
+                } catch (jsonException: JSONException) {
+                    LOGGER.warn("Failed to parse API key from datadog-ci.json", jsonException)
+                    null
+                } catch (ioException: IOException) {
+                    LOGGER.warn("Failed to read datadog-ci.json file", ioException)
+                    null
+                }
+            } else {
+                null
+            }
+        }
+
+        return resolve(key = DD_API_KEY, provider = providers::gradleProperty, source = GRADLE_PROPERTY)
+            .orElse(resolve(key = DATADOG_API_KEY, provider = providers::gradleProperty, source = GRADLE_PROPERTY))
+            .orElse(resolve(key = DD_API_KEY, provider = providers::environmentVariable, source = ENVIRONMENT))
+            .orElse(resolve(key = DATADOG_API_KEY, provider = providers::environmentVariable, source = ENVIRONMENT))
+            .orElse(datadogCiFileProvider)
+            .orElse(target.providers.provider { ApiKey.NONE })
     }
 
     private fun configureNdkSymbolUploadTask(
@@ -179,7 +219,7 @@ class DdAndroidGradlePlugin @Inject constructor(
         extension: DdExtension,
         variant: AppVariant,
         buildIdTask: TaskProvider<GenerateBuildIdTask>,
-        apiKey: ApiKey
+        apiKeyProvider: Provider<ApiKey>
     ): TaskProvider<NdkSymbolFileUploadTask> {
         val extensionConfiguration = resolveExtensionConfiguration(extension, variant)
 
@@ -188,7 +228,7 @@ class DdAndroidGradlePlugin @Inject constructor(
             variant,
             buildIdTask,
             providerFactory,
-            apiKey,
+            apiKeyProvider,
             extensionConfiguration,
             GitRepositoryDetector(execOps)
         )
@@ -213,7 +253,7 @@ class DdAndroidGradlePlugin @Inject constructor(
         target: Project,
         variant: AppVariant,
         buildIdGenerationTask: TaskProvider<GenerateBuildIdTask>,
-        apiKey: ApiKey,
+        apiKeyProvider: Provider<ApiKey>,
         extension: DdExtension
     ): TaskProvider<MappingFileUploadTask> {
         val uploadTaskName = UPLOAD_TASK_NAME + variant.name.capitalize()
@@ -234,7 +274,7 @@ class DdAndroidGradlePlugin @Inject constructor(
                 configureVariantTask(
                     target.objects,
                     uploadTask,
-                    apiKey,
+                    apiKeyProvider,
                     extensionConfiguration,
                     variant
                 )
@@ -333,12 +373,12 @@ class DdAndroidGradlePlugin @Inject constructor(
     private fun configureVariantTask(
         objectFactory: ObjectFactory,
         uploadTask: MappingFileUploadTask,
-        apiKey: ApiKey,
+        apiKeyProvider: Provider<ApiKey>,
         extensionConfiguration: DdExtensionConfiguration,
         variant: AppVariant
     ) {
-        uploadTask.apiKey = apiKey.value
-        uploadTask.apiKeySource = apiKey.source
+        uploadTask.apiKey.set(apiKeyProvider.map { it.value })
+        uploadTask.apiKeySource.set(apiKeyProvider.map { it.source })
         uploadTask.variantName = variant.flavorName
 
         uploadTask.applicationId.set(variant.applicationId)
@@ -382,75 +422,6 @@ class DdAndroidGradlePlugin @Inject constructor(
         return configuration
     }
 
-    @Suppress("ReturnCount")
-    private fun configureKotlinCompilerPlugin(project: Project, ddExtension: DdExtension): Boolean {
-        val pluginJarFile: File = try {
-            val codeSource = this::class.java.protectionDomain?.codeSource
-            if (codeSource == null) {
-                LOGGER.warn(
-                    "$DD_PLUGIN_MAVEN_COORDINATES not found in classpath, " +
-                        "Skipping Kotlin Compiler Plugin configuration."
-                )
-                return false
-            }
-            Paths.get(codeSource.location.toURI()).toFile()
-        } catch (e: URISyntaxException) {
-            LOGGER.error(
-                "Can not parse Datadog Gradle Plugin path because the URI is not correctly formatted.",
-                e
-            )
-            return false
-        } catch (e: SecurityException) {
-            LOGGER.error(
-                "Failed to access Datadog Gradle Plugin protection domain due to insufficient permissions.",
-                e
-            )
-            return false
-        }
-        val pluginPath = pluginJarFile.absolutePath
-        if (!pluginJarFile.exists()) {
-            LOGGER.error("Datadog plugin jar '$pluginPath' does not exist; skipping KCP configuration.")
-            return false
-        }
-        val composeInstrumentation = ddExtension.composeInstrumentation
-        project.tasks.configureKotlinCompile {
-            addCompilerArgs(
-                listOf(
-                    "-Xplugin=$pluginPath",
-                    "-P",
-                    "plugin:$KOTLIN_COMPILER_PLUGIN_ID:$INSTRUMENTATION_MODE=${composeInstrumentation.name}"
-                )
-            )
-        }
-        return true
-    }
-
-    private fun KotlinCompile.addCompilerArgs(args: List<String>) {
-        if (CurrentAgpVersion.IMPLEMENTS_BUILT_IN_KOTLIN) {
-            compilerOptions.freeCompilerArgs.addAll(args)
-        } else {
-            // can cut this branch off once we support Kotlin 1.8 min
-            @Suppress("DEPRECATION")
-            kotlinOptions.freeCompilerArgs += args
-        }
-    }
-
-    private fun TaskContainer.configureKotlinCompile(action: KotlinCompile.() -> Unit) {
-        // `KaptGenerateStubsTask` and Ksp Task will have conflicts with the usage of `freeCompilerArgs` in Kotlin Compiler plugin,
-        // So we need to filter out these tasks when applying the `freeCompilerArgs`, see:
-        // https://youtrack.jetbrains.com/issue/KT-55565/Consider-de-duping-or-blocking-standard-addition-of-freeCompilerArgs-to-KaptGenerateStubsTask
-        // https://youtrack.jetbrains.com/issue/KT-55452
-        withType(KotlinCompile::class.java).matching {
-            it !is KaptGenerateStubsTask && !it.name.startsWith("ksp")
-        }.configureEach {
-            action(it)
-        }
-    }
-
-    private fun Project.stringProperty(propertyName: String): String? {
-        return findProperty(propertyName)?.toString()
-    }
-
     private fun isObfuscationEnabled(
         variant: AppVariant,
         extension: DdExtension
@@ -479,8 +450,6 @@ class DdAndroidGradlePlugin @Inject constructor(
 
         private const val DD_FORCE_LEGACY_VARIANT_API = "dd-force-legacy-variant-api"
 
-        private const val DD_PLUGIN_MAVEN_COORDINATES = "com.datadoghq:dd-sdk-android-gradle-plugin"
-
         internal const val DD_API_KEY = "DD_API_KEY"
 
         internal const val DATADOG_API_KEY = "DATADOG_API_KEY"
@@ -493,15 +462,10 @@ class DdAndroidGradlePlugin @Inject constructor(
 
         internal const val UPLOAD_TASK_NAME = "uploadMapping"
 
-        private const val ERROR_COMPOSE_INSTRUMENTATION_NOT_APPLIED = "The dd-android-gradle-plugin has been applied" +
-            " on a project where Datadog Jetpack Compose Instrumentation cannot be activated."
-
         private const val ERROR_NOT_ANDROID = "The dd-android-gradle-plugin has been applied on " +
             "a non android application project"
 
         private const val MSG_PLUGIN_DISABLED =
             "Datadog extension disabled, no upload task created, no Compose instrumentation applied"
-
-        private const val INSTRUMENTATION_MODE = "INSTRUMENTATION_MODE"
     }
 }
