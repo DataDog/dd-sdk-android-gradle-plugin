@@ -1,3 +1,17 @@
+# 1.23.0 / 2026-02-12
+
+* [IMPROVEMENT] Support Kotlin 2.3 in Datadog Jetpack Compose Auto-Instrumentation Plugin. See [#490](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/490)
+* [IMPROVEMENT] Make `DdAndroidGradlePlugin` compatible with Gradle Isolated Projects. See [#489](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/489)
+* [IMPROVEMENT] Implement lazy API key resolution using Provider APIs. See [#492](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/492)
+* [IMPROVEMENT] Commonize Compiler Plugin messages and lower AndroidX Navigation dependency message severity. See [#494](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/494)
+* [MAINTENANCE] Next dev iteration. See [#482](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/482)
+* [MAINTENANCE] Merge `release/1.22.0` branch into `develop` branch. See [#484](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/484)
+* [MAINTENANCE] Update Datadog Gradle Plugin to version 1.22.0. See [#485](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/485)
+* [MAINTENANCE] Update Datadog SDK to version 3.6.0. See [#486](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/486)
+* [MAINTENANCE] Fix issues link in the Troubleshooting section. See [#491](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/491)
+* [MAINTENANCE] Fix publishing. See [#493](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/493)
+* [MAINTENANCE] Fix publishing. See [#495](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/495)
+
 # 1.22.0 / 2026-01-19
 
 * [IMPROVEMENT] Don't fail NDK upload task if architecture is not supported. See [#465](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/465)
