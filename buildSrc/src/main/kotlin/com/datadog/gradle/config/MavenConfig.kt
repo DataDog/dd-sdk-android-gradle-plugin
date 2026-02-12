@@ -41,7 +41,14 @@ fun Project.publishingConfig(projectDescription: String, publishAsGradlePlugin: 
         isRequired = System.getenv("CI").toBoolean() && !hasProperty("dd-skip-signing")
         useInMemoryPgpKeys(privateKey, password)
         // com.gradle.plugin-publish plugin will automatically add signing task "signPluginMavenPublication"
-        // sign(publishingExtension.publications.getByName(MavenConfig.PUBLICATION))
+        // for KCP modules we need to do it manually
+        if (!publishAsGradlePlugin) {
+            afterEvaluate {
+                extensions.findByType<PublishingExtension>()?.apply {
+                    sign(publications.getByName(MavenConfig.KCP_PUBLICATION))
+                }
+            }
+        }
     }
 
     val mavenPublishing = extensions.findByType<MavenPublishBaseExtension>()
