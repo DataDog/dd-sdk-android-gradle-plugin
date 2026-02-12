@@ -117,8 +117,8 @@ internal class MappingFileUploadTaskTest {
             source = forge.aValueFrom(ApiKeySource::class.java)
         )
         fakeBuildId = forge.getForgery<UUID>().toString()
-        testedTask.apiKey = fakeApiKey.value
-        testedTask.apiKeySource = fakeApiKey.source
+        testedTask.apiKey.set(fakeApiKey.value)
+        testedTask.apiKeySource.set(fakeApiKey.source)
         testedTask.variantName = fakeVariant
         testedTask.versionName.set(fakeVersion)
         testedTask.versionCode.set(fakeVersionCode)
@@ -425,8 +425,8 @@ internal class MappingFileUploadTaskTest {
         val fakeMappingFile = File(tempDir, fakeMappingFileName)
         fakeMappingFile.writeText(fakeMappingFileContent)
         testedTask.mappingFile.set(fakeProject.objects.fileProperty().fileValue(File(fakeMappingFile.path)))
-        testedTask.apiKey = ""
-        testedTask.apiKeySource = ApiKeySource.NONE
+        testedTask.apiKey.set("")
+        testedTask.apiKeySource.set(ApiKeySource.NONE)
 
         // When
         val exception = assertThrows<IllegalStateException> {
@@ -446,13 +446,15 @@ internal class MappingFileUploadTaskTest {
         val fakeMappingFile = File(tempDir, fakeMappingFileName)
         fakeMappingFile.writeText(fakeMappingFileContent)
         testedTask.mappingFile.set(fakeProject.objects.fileProperty().fileValue(File(fakeMappingFile.path)))
-        testedTask.apiKey = forge.anAlphaNumericalString().let {
-            val splitIndex = forge.anInt(min = 0, max = it.length) + 1
-            it.substring(0, splitIndex) +
-                forge.anElementFrom("\"", "'") +
-                it.substring(splitIndex)
-        }
-        testedTask.apiKeySource = ApiKeySource.NONE
+        testedTask.apiKey.set(
+            forge.anAlphaNumericalString().let {
+                val splitIndex = forge.anInt(min = 0, max = it.length) + 1
+                it.substring(0, splitIndex) +
+                    forge.anElementFrom("\"", "'") +
+                    it.substring(splitIndex)
+            }
+        )
+        testedTask.apiKeySource.set(ApiKeySource.NONE)
 
         // When
         val exception = assertThrows<IllegalStateException> {
@@ -596,37 +598,6 @@ internal class MappingFileUploadTaskTest {
     }
 
     @Test
-    fun `M apply datadog CI config if exists W applyTask()`(forge: Forge) {
-        // Given
-        val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
-
-        val fakeDatadogCiApiKey = forge.anAlphabeticalString()
-        val fakeDatadogCiDomain = forge.aValueFrom(DatadogSite::class.java).domain
-
-        fakeDatadogCiFile.writeText(
-            JSONObject().apply {
-                put("apiKey", fakeDatadogCiApiKey)
-                put("datadogSite", fakeDatadogCiDomain)
-            }.toString()
-        )
-
-        testedTask.apiKeySource = forge.aValueFrom(
-            ApiKeySource::class.java,
-            exclude = listOf(ApiKeySource.GRADLE_PROPERTY)
-        )
-        testedTask.datadogCiFile = fakeDatadogCiFile
-        testedTask.site = ""
-
-        // When
-        testedTask.applyTask()
-
-        // Then
-        assertThat(testedTask.apiKey).isEqualTo(fakeDatadogCiApiKey)
-        assertThat(testedTask.apiKeySource).isEqualTo(ApiKeySource.DATADOG_CI_CONFIG_FILE)
-        assertThat(testedTask.site).isEqualTo(DatadogSite.fromDomain(fakeDatadogCiDomain)?.name)
-    }
-
-    @Test
     fun `M apply datadog CI config if exists W applyTask() {apiKey from gradle}`(forge: Forge) {
         // Given
         val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
@@ -641,7 +612,7 @@ internal class MappingFileUploadTaskTest {
             }.toString()
         )
 
-        testedTask.apiKeySource = ApiKeySource.GRADLE_PROPERTY
+        testedTask.apiKeySource.set(ApiKeySource.GRADLE_PROPERTY)
         testedTask.datadogCiFile = fakeDatadogCiFile
         testedTask.site = ""
 
@@ -649,8 +620,8 @@ internal class MappingFileUploadTaskTest {
         testedTask.applyTask()
 
         // Then
-        assertThat(testedTask.apiKey).isEqualTo(fakeApiKey.value)
-        assertThat(testedTask.apiKeySource).isEqualTo(ApiKeySource.GRADLE_PROPERTY)
+        assertThat(testedTask.apiKey.get()).isEqualTo(fakeApiKey.value)
+        assertThat(testedTask.apiKeySource.get()).isEqualTo(ApiKeySource.GRADLE_PROPERTY)
         assertThat(testedTask.site).isEqualTo(DatadogSite.fromDomain(fakeDatadogCiDomain)?.name)
     }
 
@@ -674,7 +645,7 @@ internal class MappingFileUploadTaskTest {
         testedTask.applyTask()
 
         // Then
-        assertThat(testedTask.apiKey).isEqualTo(fakeApiKey.value)
+        assertThat(testedTask.apiKey.get()).isEqualTo(fakeApiKey.value)
         assertThat(testedTask.site).isEqualTo(DatadogSite.fromDomain(fakeDatadogCiDomain)?.name)
     }
 
@@ -691,18 +662,12 @@ internal class MappingFileUploadTaskTest {
             }.toString()
         )
 
-        testedTask.apiKeySource = forge.aValueFrom(
-            ApiKeySource::class.java,
-            exclude = listOf(ApiKeySource.GRADLE_PROPERTY)
-        )
         testedTask.datadogCiFile = fakeDatadogCiFile
 
         // When
         testedTask.applyTask()
 
         // Then
-        assertThat(testedTask.apiKey).isEqualTo(fakeDatadogCiApiKey)
-        assertThat(testedTask.apiKeySource).isEqualTo(ApiKeySource.DATADOG_CI_CONFIG_FILE)
         assertThat(testedTask.site).isEqualTo(fakeSite.name)
     }
 
@@ -726,8 +691,8 @@ internal class MappingFileUploadTaskTest {
         testedTask.applyTask()
 
         // Then
-        assertThat(testedTask.apiKey).isEqualTo(fakeApiKey.value)
-        assertThat(testedTask.apiKeySource).isEqualTo(fakeApiKey.source)
+        assertThat(testedTask.apiKey.get()).isEqualTo(fakeApiKey.value)
+        assertThat(testedTask.apiKeySource.get()).isEqualTo(fakeApiKey.source)
         assertThat(testedTask.site).isEqualTo(DatadogSite.US1.name)
     }
 
@@ -750,8 +715,8 @@ internal class MappingFileUploadTaskTest {
         testedTask.applyTask()
 
         // Then
-        assertThat(testedTask.apiKey).isEqualTo(fakeApiKey.value)
-        assertThat(testedTask.apiKeySource).isEqualTo(fakeApiKey.source)
+        assertThat(testedTask.apiKey.get()).isEqualTo(fakeApiKey.value)
+        assertThat(testedTask.apiKeySource.get()).isEqualTo(fakeApiKey.source)
         assertThat(testedTask.site).isEqualTo(fakeSite.name)
     }
 
@@ -766,8 +731,8 @@ internal class MappingFileUploadTaskTest {
         testedTask.applyTask()
 
         // Then
-        assertThat(testedTask.apiKey).isEqualTo(fakeApiKey.value)
-        assertThat(testedTask.apiKeySource).isEqualTo(fakeApiKey.source)
+        assertThat(testedTask.apiKey.get()).isEqualTo(fakeApiKey.value)
+        assertThat(testedTask.apiKeySource.get()).isEqualTo(fakeApiKey.source)
         assertThat(testedTask.site).isEqualTo(DatadogSite.fromDomain(fakeDatadogEnvDomain)?.name)
     }
 
@@ -781,8 +746,8 @@ internal class MappingFileUploadTaskTest {
         testedTask.applyTask()
 
         // Then
-        assertThat(testedTask.apiKey).isEqualTo(fakeApiKey.value)
-        assertThat(testedTask.apiKeySource).isEqualTo(fakeApiKey.source)
+        assertThat(testedTask.apiKey.get()).isEqualTo(fakeApiKey.value)
+        assertThat(testedTask.apiKeySource.get()).isEqualTo(fakeApiKey.source)
         assertThat(testedTask.site).isEqualTo(fakeSite.name)
     }
 
@@ -799,8 +764,8 @@ internal class MappingFileUploadTaskTest {
         testedTask.applyTask()
 
         // Then
-        assertThat(testedTask.apiKey).isEqualTo(fakeApiKey.value)
-        assertThat(testedTask.apiKeySource).isEqualTo(fakeApiKey.source)
+        assertThat(testedTask.apiKey.get()).isEqualTo(fakeApiKey.value)
+        assertThat(testedTask.apiKeySource.get()).isEqualTo(fakeApiKey.source)
         assertThat(testedTask.site).isEqualTo(fakeSite.name)
     }
 

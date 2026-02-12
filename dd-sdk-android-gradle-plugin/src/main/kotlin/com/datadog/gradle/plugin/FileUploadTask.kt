@@ -47,7 +47,13 @@ abstract class FileUploadTask @Inject constructor(
      * The API key to use for uploading.
      */
     @get:Input
-    var apiKey: String = ""
+    abstract val apiKey: Property<String>
+
+    /**
+     * Source of the API key set: environment, gradle property, etc.
+     */
+    @get:Input
+    abstract val apiKeySource: Property<ApiKeySource>
 
     private val disableGzipOption: Provider<String> =
         providerFactory.gradleProperty(DISABLE_GZIP_GRADLE_PROPERTY)
@@ -55,12 +61,6 @@ abstract class FileUploadTask @Inject constructor(
     // needed for functional tests, because we don't have real API key
     private val emulateNetworkCall: Provider<String> =
         providerFactory.gradleProperty(EMULATE_UPLOAD_NETWORK_CALL)
-
-    /**
-     * Source of the API key set: environment, gradle property, etc.
-     */
-    @get:Input
-    var apiKeySource: ApiKeySource = ApiKeySource.NONE
 
     /**
      * The variant name of the application.
@@ -142,7 +142,7 @@ abstract class FileUploadTask @Inject constructor(
         applySiteFromEnvironment()
         validateConfiguration()
 
-        check(!(apiKey.contains("\"") || apiKey.contains("'"))) {
+        check(!(apiKey.get().contains("\"") || apiKey.get().contains("'"))) {
             INVALID_API_KEY_FORMAT_ERROR
         }
 
@@ -182,7 +182,7 @@ abstract class FileUploadTask @Inject constructor(
                     site,
                     mappingFile,
                     if (repositories.isEmpty()) null else repositoryFile,
-                    apiKey,
+                    apiKey.get(),
                     DdAppIdentifier(
                         serviceName = serviceName.get(),
                         version = versionName.get(),
@@ -218,12 +218,12 @@ abstract class FileUploadTask @Inject constructor(
     internal abstract fun getFilesList(): List<Uploader.UploadFileInfo>
 
     internal fun configureWith(
-        apiKey: ApiKey,
+        apiKeyProvider: Provider<ApiKey>,
         extensionConfiguration: DdExtensionConfiguration,
         variant: AppVariant
     ) {
-        this.apiKey = apiKey.value
-        apiKeySource = apiKey.source
+        this.apiKey.set(apiKeyProvider.map { it.value })
+        this.apiKeySource.set(apiKeyProvider.map { it.source })
         site = extensionConfiguration.site ?: ""
 
         versionName.set(variant.versionName)
@@ -266,26 +266,10 @@ abstract class FileUploadTask @Inject constructor(
     private fun applyDatadogCiConfig(datadogCiFile: File) {
         try {
             val config = JSONObject(datadogCiFile.readText())
-            applyApiKeyFromDatadogCiConfig(config)
+            // API key is now resolved via provider chain in resolveApiKey()
             applySiteFromDatadogCiConfig(config)
         } catch (e: JSONException) {
             DdAndroidGradlePlugin.LOGGER.error("Failed to parse Datadog CI config file.", e)
-        }
-    }
-
-    private fun applyApiKeyFromDatadogCiConfig(config: JSONObject) {
-        val apiKey = config.optString(DATADOG_CI_API_KEY_PROPERTY, null)
-        if (!apiKey.isNullOrEmpty()) {
-            if (this.apiKeySource == ApiKeySource.GRADLE_PROPERTY) {
-                DdAndroidGradlePlugin.LOGGER.info(
-                    "API key found in Datadog CI config file, but it will be ignored," +
-                        " because also an explicit one was provided as a gradle property."
-                )
-            } else {
-                DdAndroidGradlePlugin.LOGGER.info("API key found in Datadog CI config file, using it.")
-                this.apiKey = apiKey
-                this.apiKeySource = ApiKeySource.DATADOG_CI_CONFIG_FILE
-            }
         }
     }
 
@@ -311,7 +295,7 @@ abstract class FileUploadTask @Inject constructor(
 
     @Suppress("CheckInternal")
     private fun validateConfiguration() {
-        check(apiKey.isNotBlank()) { API_KEY_MISSING_ERROR }
+        check(apiKey.get().isNotBlank()) { API_KEY_MISSING_ERROR }
 
         if (site.isBlank()) {
             site = DatadogSite.US1.name
@@ -348,7 +332,7 @@ abstract class FileUploadTask @Inject constructor(
         private const val REPOSITORY_FILE_VERSION = 1
         private const val INDENT = 4
 
-        private const val DATADOG_CI_API_KEY_PROPERTY = "apiKey"
+        internal const val DATADOG_CI_API_KEY_PROPERTY = "apiKey"
         private const val DATADOG_CI_SITE_PROPERTY = "datadogSite"
         const val DATADOG_SITE = "DATADOG_SITE"
 

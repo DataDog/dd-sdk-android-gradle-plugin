@@ -2,6 +2,7 @@
 # IntelliJ
 *.iml
 .idea/
+bin/
 
 # Android Studio 3+
 .navigation/
