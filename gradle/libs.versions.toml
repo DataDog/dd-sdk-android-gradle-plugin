@@ -29,7 +29,7 @@ jUnit-mockitoExt = "5.4.0"
 # Tests Tools
 assertJ = "3.18.1"
 elmyr = "1.3.1"
-mockitoKotlin = "5.0.0"
+mockitoKotlin = "6.2.3"
 
 # Tools
 dokka = "2.0.0"
