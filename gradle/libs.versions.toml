@@ -1,63 +1,63 @@
 [versions]
 
 # Commons
-kotlin = "2.1.21"
-kotlinComposePlugin = "2.1.21"
+kotlin = "2.3.10"
+kotlinComposePlugin = "2.3.10"
 json = "20231013"
 okHttp = "4.12.0"
-composeBom = "2024.04.01"
-activityCompose = "1.9.3"
-androidXComposeNavigation = "2.8.8"
+composeBom = "2024.12.01"
+activityCompose = "1.12.4"
+androidXComposeNavigation = "2.9.7"
 
 # Android
-androidToolsPlugin = "8.9.3"
+androidToolsPlugin = "8.13.2"
 
 # AndroidX
-androidx-core = "1.3.2"
-androidx-appcompat = "1.2.0"
-androidx-constraintlayout = "2.0.4"
+androidx-core = "1.17.0"
+androidx-appcompat = "1.7.1"
+androidx-constraintlayout = "2.2.1"
 
 # JUnit 4
 jUnit4 = "4.13.2"
 
 # JUnit 5
-jUnit-jupiter = "5.9.3"
-jUnit-vintage = "5.9.3"
-jUnit-platform = "1.9.3"
-jUnit-mockitoExt = "5.4.0"
+jUnit-jupiter = "5.14.3"
+jUnit-vintage = "5.14.3"
+jUnit-platform = "1.14.3"
+jUnit-mockitoExt = "5.22.0"
 
 # Tests Tools
-assertJ = "3.18.1"
-elmyr = "1.3.1"
-mockitoKotlin = "5.0.0"
+assertJ = "3.27.7"
+elmyr = "1.3.4"
+mockitoKotlin = "5.4.0"
 
 # Tools
-dokka = "2.0.0"
+dokka = "2.1.0"
 unmock = "0.7.5"
 
-fuzzyWuzzy = "1.2.0"
+fuzzyWuzzy = "1.4.0"
 
-versionsPluginGradle = "0.33.0"
+versionsPluginGradle = "0.53.0"
 gradlePluginPublishPlugin = "1.3.1"
-mavenPublishPlugin = "0.34.0"
-buildConfig = "5.6.8"
+mavenPublishPlugin = "0.36.0"
+buildConfig = "5.7.1"
 
 # Datadog
 datadogSdk = "3.7.1"
-datadogSdkSnapshot = "3.7.0-SNAPSHOT"
-datadogPluginGradle = "1.22.0"
+datadogSdkSnapshot = "3.7.1"
+datadogPluginGradle = "1.23.0"
 
 # Kotlin Compiler Plugin
-kotlinCompilerEmbeddable20 = "2.0.21"
-kotlinCompilerEmbeddable21 = "2.1.21"
-kotlinCompilerEmbeddable22 = "2.2.20"
-kotlinCompilerTesting20 = "0.7.0"
-kotlinCompilerTesting21 = "0.7.0"
-kotlinCompilerTesting22 = "0.8.0"
-autoService = "1.0.1"
-junitVersion = "1.2.1"
-espressoCoreVersion = "3.6.1"
-lifecycleRuntimeKtx = "2.8.7"
+kotlinCompilerEmbeddable20 = "2.3.10"
+kotlinCompilerEmbeddable21 = "2.3.10"
+kotlinCompilerEmbeddable22 = "2.3.10"
+kotlinCompilerTesting20 = "0.12.1"
+kotlinCompilerTesting21 = "0.12.1"
+kotlinCompilerTesting22 = "0.12.1"
+autoService = "1.1.1"
+junitVersion = "1.3.0"
+espressoCoreVersion = "3.7.0"
+lifecycleRuntimeKtx = "2.10.0"
 
 [libraries]
 
