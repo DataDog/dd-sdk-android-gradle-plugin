@@ -5,7 +5,7 @@ kotlin = "2.1.21"
 kotlinComposePlugin = "2.1.21"
 json = "20231013"
 okHttp = "4.12.0"
-composeBom = "2024.04.01"
+composeBom = "2026.02.01"
 activityCompose = "1.9.3"
 androidXComposeNavigation = "2.8.8"
 
