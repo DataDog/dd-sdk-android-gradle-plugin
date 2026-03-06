@@ -23,7 +23,7 @@ jUnit4 = "4.13.2"
 # JUnit 5
 jUnit-jupiter = "5.9.3"
 jUnit-vintage = "5.9.3"
-jUnit-platform = "1.9.3"
+jUnit-platform = "6.0.3"
 jUnit-mockitoExt = "5.4.0"
 
 # Tests Tools
