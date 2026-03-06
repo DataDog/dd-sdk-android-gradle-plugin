@@ -40,7 +40,7 @@ fuzzyWuzzy = "1.2.0"
 versionsPluginGradle = "0.33.0"
 gradlePluginPublishPlugin = "1.3.1"
 mavenPublishPlugin = "0.34.0"
-buildConfig = "5.6.8"
+buildConfig = "6.0.8"
 
 # Datadog
 datadogSdk = "3.7.1"
