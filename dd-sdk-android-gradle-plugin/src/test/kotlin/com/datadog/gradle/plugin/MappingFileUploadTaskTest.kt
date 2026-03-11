@@ -434,7 +434,7 @@ internal class MappingFileUploadTaskTest {
         }
 
         // Then
-        assertThat(exception.message).isEqualTo(MappingFileUploadTask.API_KEY_MISSING_ERROR)
+        assertThat(exception.message).isEqualTo(FileUploadTask.API_KEY_MISSING_ERROR)
         verifyNoInteractions(mockUploader)
     }
 
@@ -463,7 +463,7 @@ internal class MappingFileUploadTaskTest {
 
         // Then
         assertThat(exception.message)
-            .isEqualTo(MappingFileUploadTask.INVALID_API_KEY_FORMAT_ERROR)
+            .isEqualTo(FileUploadTask.INVALID_API_KEY_FORMAT_ERROR)
         verifyNoInteractions(mockUploader)
     }
 
@@ -481,7 +481,7 @@ internal class MappingFileUploadTaskTest {
         }
 
         // Then
-        assertThat(exception.message).isEqualTo(MappingFileUploadTask.MISSING_BUILD_ID_ERROR)
+        assertThat(exception.message).isEqualTo(FileUploadTask.MISSING_BUILD_ID_ERROR)
         verifyNoInteractions(mockUploader)
     }
 
@@ -499,7 +499,7 @@ internal class MappingFileUploadTaskTest {
         }
 
         // Then
-        assertThat(exception.message).isEqualTo(MappingFileUploadTask.MISSING_BUILD_ID_ERROR)
+        assertThat(exception.message).isEqualTo(FileUploadTask.MISSING_BUILD_ID_ERROR)
         verifyNoInteractions(mockUploader)
     }
 
