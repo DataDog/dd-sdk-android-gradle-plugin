@@ -1,3 +1,11 @@
+# 1.24.0 / 2026-03-17
+
+* [BUGFIX] Fix Kotlin 2.3.20 breaking changes for Jetpack Compose instrumentation Plugin. See [#522](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/522)
+* [IMPROVEMENT] Remove redundant duplicated fields in `MappingFileUploadTask`. See [#518](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/518)
+* [MAINTENANCE] Next dev iteration. See [#497](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/497)
+* [MAINTENANCE] Update Datadog SDK to version 3.7.1. See [#505](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/505)
+* [MAINTENANCE] Update latest test configuration. See [#517](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/517)
+
 # 1.23.0 / 2026-02-12
 
 * [IMPROVEMENT] Support Kotlin 2.3 in Datadog Jetpack Compose Auto-Instrumentation Plugin. See [#490](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/490)
