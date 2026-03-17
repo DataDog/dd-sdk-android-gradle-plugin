@@ -194,13 +194,5 @@ abstract class MappingFileUploadTask
         private const val MAPPING_FILE_COMMENT_CHAR = '#'
         const val MAPPING_OPTIMIZED_FILE_NAME = "mapping-shrinked.txt"
         const val MAPPING_OPTIMIZED_FILE_WRITE_BUFFER_SIZE = 32 * 1024 // 32 Kb
-
-        const val API_KEY_MISSING_ERROR = "Make sure you define an API KEY to upload your mapping files to Datadog. " +
-            "Create a DD_API_KEY or DATADOG_API_KEY environment variable, gradle" +
-            " property or define it in datadog-ci.json file."
-        const val INVALID_API_KEY_FORMAT_ERROR =
-            "DD_API_KEY provided shouldn't contain quotes or apostrophes."
-        const val MISSING_BUILD_ID_ERROR =
-            "Build ID is missing, you need to run upload task only after APK/AAB file is generated."
     }
 }

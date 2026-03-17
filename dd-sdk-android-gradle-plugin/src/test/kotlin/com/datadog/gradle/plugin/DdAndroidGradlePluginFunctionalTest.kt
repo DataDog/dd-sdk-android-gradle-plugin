@@ -1522,7 +1522,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
                     agpVersion = agpVersion
                     // some AndroidX dependencies in recent SDK versions require compileSdk >= 33, so downgrading
                     datadogSdkDependency = targetSdkVersion >= 33 ?
-                       "com.datadoghq:dd-sdk-android-rum:3.6.0" : "com.datadoghq:dd-sdk-android:1.15.0"
+                       "com.datadoghq:dd-sdk-android-rum:3.7.1" : "com.datadoghq:dd-sdk-android:1.15.0"
                     jvmTarget = jvmTarget
                 }
                 repositories {
@@ -1580,15 +1580,15 @@ internal class DdAndroidGradlePluginFunctionalTest {
             }
         """.trimIndent()
 
-        private const val LATEST_GRADLE_VERSION = "9.2.1"
-        private const val LATEST_AGP_VERSION = "9.0.0-rc02"
+        private const val LATEST_GRADLE_VERSION = "9.4.0"
+        private const val LATEST_AGP_VERSION = "9.1.0"
 
         val LATEST_VERSIONS_TEST_CONFIGURATION = BuildVersionConfig(
             agpVersion = LATEST_AGP_VERSION,
             gradleVersion = LATEST_GRADLE_VERSION,
             buildToolsVersion = "36.1.0",
             targetSdkVersion = "36",
-            kotlinVersion = "2.3.0",
+            kotlinVersion = "2.3.10",
             jvmTarget = JavaVersion.VERSION_17.toString()
         )
 
