@@ -15,11 +15,11 @@ import org.gradle.api.tasks.TaskProvider
 import java.io.File
 import kotlin.reflect.full.memberProperties
 
-internal fun TaskProvider<ExternalNativeBuildTask>.getSearchObjDirs(providerFactory: ProviderFactory): Provider<File?> {
+internal fun TaskProvider<ExternalNativeBuildTask>.getSearchObjDirs(providerFactory: ProviderFactory): Provider<File> {
     return flatMap { task -> task.getSearchObjDirs(providerFactory) }
 }
 
-internal fun ExternalNativeBuildTask.getSearchObjDirs(providerFactory: ProviderFactory): Provider<File?> {
+internal fun ExternalNativeBuildTask.getSearchObjDirs(providerFactory: ProviderFactory): Provider<File> {
     return if (CurrentAgpVersion.EXTERNAL_NATIVE_BUILD_SOFOLDER_IS_PUBLIC) {
         soFolder.map { it.asFile }
     } else {

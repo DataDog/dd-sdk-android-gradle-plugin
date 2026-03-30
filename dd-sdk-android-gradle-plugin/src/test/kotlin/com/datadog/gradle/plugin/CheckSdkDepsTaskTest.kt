@@ -18,6 +18,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.ResolvedDependency
@@ -35,6 +36,7 @@ import org.mockito.junit.jupiter.MockitoSettings
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.spy
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
@@ -77,6 +79,9 @@ internal class CheckSdkDepsTaskTest {
     @Mock
     lateinit var mockResolvedConfiguration: ResolvedConfiguration
 
+    @Mock
+    lateinit var mockConfigurationContainer: ConfigurationContainer
+
     private lateinit var fakeProject: Project
 
     @BeforeEach
@@ -92,16 +97,23 @@ internal class CheckSdkDepsTaskTest {
             .withProjectDir(tempDir)
             .build()
 
-        fakeProject.configurations.add(mockConfiguration)
+        testedTask = spy(
+            fakeProject.tasks.register(
+                "CheckDepsTask",
+                CheckSdkDepsTask::class.java
+            ) {
+                it.configurationName.set(fakeConfigurationName)
+                it.sdkCheckLevel.set(fakeSdkCheckLevel)
+                it.variantName.set(fakeVariantName)
+            }.get()
+        )
 
-        testedTask = fakeProject.tasks.create(
-            "CheckDepsTask",
-            CheckSdkDepsTask::class.java
-        ) {
-            it.configurationName.set(fakeConfigurationName)
-            it.sdkCheckLevel.set(fakeSdkCheckLevel)
-            it.variantName.set(fakeVariantName)
-        }
+        // need to mock project, because otherwise we cannot mock configurations
+        val mockProject = mock<Project>()
+        whenever(testedTask.project) doReturn mockProject
+        val fakeConfigurations = mutableListOf(mockConfiguration)
+        whenever(mockConfigurationContainer.iterator()) doReturn fakeConfigurations.iterator()
+        whenever(mockProject.configurations) doReturn mockConfigurationContainer
     }
 
     @AfterEach
@@ -114,7 +126,7 @@ internal class CheckSdkDepsTaskTest {
     @Test
     fun `M log info + exception W configuration cannot be found`() {
         // GIVEN
-        fakeProject.configurations.remove(mockConfiguration)
+        whenever(mockConfigurationContainer.iterator()) doReturn mutableListOf<Configuration>().iterator()
 
         // WHEN
         testedTask.applyTask()
@@ -127,12 +139,10 @@ internal class CheckSdkDepsTaskTest {
     }
 
     @Test
-    fun `M log info + exception W configuration cannot be resolved`(
-        forge: Forge
-    ) {
+    fun `M log info + exception W configuration cannot be resolved`() {
         // GIVEN
         whenever(mockResolvedConfiguration.hasError()).thenReturn(true)
-        val resolveException = ResolveException(forge.anAlphaNumericalString(), forge.anException())
+        val resolveException = mock<ResolveException>()
         whenever(mockResolvedConfiguration.rethrowFailure()).thenThrow(resolveException)
 
         // WHEN

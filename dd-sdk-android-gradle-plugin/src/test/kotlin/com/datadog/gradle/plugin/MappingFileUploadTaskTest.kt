@@ -105,11 +105,11 @@ internal class MappingFileUploadTaskTest {
             .withProjectDir(tempDir)
             .build()
 
-        testedTask = fakeProject.tasks.create(
+        testedTask = fakeProject.tasks.register(
             "MappingFileUploadTask",
             MappingFileUploadTask::class.java,
             mockRepositoryDetector
-        )
+        ).get()
 
         testedTask.uploader = mockUploader
         fakeApiKey = ApiKey(
