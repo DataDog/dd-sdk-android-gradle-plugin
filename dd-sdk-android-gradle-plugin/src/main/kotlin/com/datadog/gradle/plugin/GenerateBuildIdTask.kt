@@ -14,11 +14,13 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskProvider
 import java.util.UUID
+import kotlin.io.path.Path
 
 /**
  * This task generates unique Build ID which is later used to match error and mapping file.
@@ -40,7 +42,7 @@ abstract class GenerateBuildIdTask : DefaultTask() {
     /**
      * Variant name this task is linked to.
      */
-    @get:Internal
+    @get:Input
     abstract val variantName: Property<String>
 
     init {
@@ -76,9 +78,9 @@ abstract class GenerateBuildIdTask : DefaultTask() {
          */
         fun register(
             target: Project,
-            variant: AppVariant,
-            buildIdDirectory: Provider<Directory>
+            variant: AppVariant
         ): TaskProvider<GenerateBuildIdTask> {
+            val buildIdDirectory = buildIdDirectory(target, variant.name)
             val generateBuildIdTask = target.tasks.register(
                 TASK_NAME + variant.name.capitalize(),
                 GenerateBuildIdTask::class.java
@@ -89,6 +91,17 @@ abstract class GenerateBuildIdTask : DefaultTask() {
             variant.bindWith(generateBuildIdTask, buildIdDirectory)
 
             return generateBuildIdTask
+        }
+
+        private fun buildIdFilePath(variantName: String) =
+            Path("generated", "datadog", "buildId", variantName, BUILD_ID_FILE_NAME)
+
+        private fun buildIdDirectory(target: Project, variantName: String): Provider<Directory> {
+            return target.layout.buildDirectory.dir(buildIdFilePath(variantName).parent.toString())
+        }
+
+        fun buildIdFile(target: Project, variantName: String): Provider<RegularFile> {
+            return target.layout.buildDirectory.file(buildIdFilePath(variantName).toString())
         }
     }
 }

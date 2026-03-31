@@ -19,6 +19,7 @@ import org.gradle.api.tasks.TaskProvider
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -52,13 +53,12 @@ internal class DdAndroidGradlePluginConfigureVariantForUploadTest : DdAndroidGra
         val task = testedPlugin.configureVariantForUploadTask(
             fakeProject,
             mockVariant,
-            mockBuildIdGenerationTask(fakeBuildId),
+            mock<TaskProvider<GenerateBuildIdTask>>(),
             fakeProject.providers.provider { fakeApiKey },
             fakeExtension
         ).get()
 
         // Then
-        check(task is MappingFileUploadTask)
         assertThat(task.repositoryDetector).isInstanceOf(GitRepositoryDetector::class.java)
         assertThat(task.name).isEqualTo(
             "uploadMapping${variantName.replaceFirstChar { capitalizeChar(it) }}"
@@ -71,11 +71,11 @@ internal class DdAndroidGradlePluginConfigureVariantForUploadTest : DdAndroidGra
         assertThat(task.site).isEqualTo(fakeExtension.site)
         assertThat(task.remoteRepositoryUrl).isEqualTo(fakeExtension.remoteRepositoryUrl)
         assertThat(task.mappingFile.get().asFile)
-            .isEqualTo(File(fakeProject.projectDir, fakeExtension.mappingFilePath))
+            .isEqualTo(File(fakeProject.projectDir, checkNotNull(fakeExtension.mappingFilePath)))
         assertThat(task.mappingFilePackagesAliases)
             .isEqualTo(fakeExtension.mappingFilePackageAliases)
         assertThat(task.datadogCiFile).isNull()
-        assertThat(task.buildId.get()).isEqualTo(fakeBuildId)
+        assertThat(task.buildIdFile.get().asFile).isEqualTo(expectedBuildIdFile(variantName))
     }
 
     @Test
@@ -101,13 +101,12 @@ internal class DdAndroidGradlePluginConfigureVariantForUploadTest : DdAndroidGra
         val task = testedPlugin.configureVariantForUploadTask(
             fakeProject,
             mockVariant,
-            mockBuildIdGenerationTask(fakeBuildId),
+            mock<TaskProvider<GenerateBuildIdTask>>(),
             fakeProject.providers.provider { fakeApiKey },
             fakeExtension
         ).get()
 
         // Then
-        check(task is MappingFileUploadTask)
         assertThat(task.repositoryDetector).isInstanceOf(GitRepositoryDetector::class.java)
         assertThat(task.name).isEqualTo(
             "uploadMapping${variantName.replaceFirstChar { capitalizeChar(it) }}"
@@ -120,13 +119,13 @@ internal class DdAndroidGradlePluginConfigureVariantForUploadTest : DdAndroidGra
         assertThat(task.site).isEqualTo(fakeExtension.site)
         assertThat(task.remoteRepositoryUrl).isEqualTo(fakeExtension.remoteRepositoryUrl)
         assertThat(task.mappingFile.get().asFile)
-            .isEqualTo(File(fakeProject.projectDir, fakeExtension.mappingFilePath))
+            .isEqualTo(File(fakeProject.projectDir, checkNotNull(fakeExtension.mappingFilePath)))
         assertThat(task.mappingFilePackagesAliases)
             .isEqualTo(fakeExtension.mappingFilePackageAliases)
         assertThat(task.mappingFileTrimIndents)
             .isEqualTo(fakeExtension.mappingFileTrimIndents)
         assertThat(task.datadogCiFile).isNull()
-        assertThat(task.buildId.get()).isEqualTo(fakeBuildId)
+        assertThat(task.buildIdFile.get().asFile).isEqualTo(expectedBuildIdFile(variantName))
     }
 
     @Test
@@ -162,13 +161,12 @@ internal class DdAndroidGradlePluginConfigureVariantForUploadTest : DdAndroidGra
         val task = testedPlugin.configureVariantForUploadTask(
             fakeProject,
             mockVariant,
-            mockBuildIdGenerationTask(fakeBuildId),
+            mock<TaskProvider<GenerateBuildIdTask>>(),
             fakeProject.providers.provider { fakeApiKey },
             fakeExtension
         ).get()
 
         // Then
-        check(task is MappingFileUploadTask)
         assertThat(task.repositoryDetector).isInstanceOf(GitRepositoryDetector::class.java)
         assertThat(task.name).isEqualTo(
             "uploadMapping${variantName.replaceFirstChar { capitalizeChar(it) }}"
@@ -181,13 +179,13 @@ internal class DdAndroidGradlePluginConfigureVariantForUploadTest : DdAndroidGra
         assertThat(task.site).isEqualTo(fakeExtension.site)
         assertThat(task.remoteRepositoryUrl).isEqualTo(fakeExtension.remoteRepositoryUrl)
         assertThat(task.mappingFile.get().asFile)
-            .isEqualTo(File(fakeProject.projectDir, fakeExtension.mappingFilePath))
+            .isEqualTo(File(fakeProject.projectDir, checkNotNull(fakeExtension.mappingFilePath)))
         assertThat(task.mappingFilePackagesAliases)
             .isEqualTo(fakeExtension.mappingFilePackageAliases.minus(aliasToFilterOut.first))
         assertThat(task.mappingFileTrimIndents)
             .isEqualTo(fakeExtension.mappingFileTrimIndents)
         assertThat(task.datadogCiFile).isNull()
-        assertThat(task.buildId.get()).isEqualTo(fakeBuildId)
+        assertThat(task.buildIdFile.get().asFile).isEqualTo(expectedBuildIdFile(variantName))
     }
 
     @Test
@@ -222,13 +220,12 @@ internal class DdAndroidGradlePluginConfigureVariantForUploadTest : DdAndroidGra
         val task = testedPlugin.configureVariantForUploadTask(
             fakeProject,
             mockVariant,
-            mockBuildIdGenerationTask(fakeBuildId),
+            mock<TaskProvider<GenerateBuildIdTask>>(),
             fakeProject.providers.provider { fakeApiKey },
             fakeExtension
         ).get()
 
         // Then
-        check(task is MappingFileUploadTask)
         assertThat(task.repositoryDetector).isInstanceOf(GitRepositoryDetector::class.java)
         assertThat(task.name).isEqualTo(
             "uploadMapping${variantName.replaceFirstChar { capitalizeChar(it) }}"
@@ -244,7 +241,7 @@ internal class DdAndroidGradlePluginConfigureVariantForUploadTest : DdAndroidGra
         assertThat(task.mappingFilePackagesAliases).isEmpty()
         assertThat(task.mappingFileTrimIndents).isFalse
         assertThat(task.datadogCiFile).isNull()
-        assertThat(task.buildId.get()).isEqualTo(fakeBuildId)
+        assertThat(task.buildIdFile.get().asFile).isEqualTo(expectedBuildIdFile(variantName))
     }
 
     @Test
@@ -283,13 +280,12 @@ internal class DdAndroidGradlePluginConfigureVariantForUploadTest : DdAndroidGra
         val task = testedPlugin.configureVariantForUploadTask(
             fakeProject,
             mockVariant,
-            mockBuildIdGenerationTask(fakeBuildId),
+            mock<TaskProvider<GenerateBuildIdTask>>(),
             fakeProject.providers.provider { fakeApiKey },
             fakeExtension
         ).get()
 
         // Then
-        check(task is MappingFileUploadTask)
         assertThat(task.repositoryDetector).isInstanceOf(GitRepositoryDetector::class.java)
         assertThat(task.name).isEqualTo(
             "uploadMapping${variantName.replaceFirstChar { capitalizeChar(it) }}"
@@ -305,7 +301,7 @@ internal class DdAndroidGradlePluginConfigureVariantForUploadTest : DdAndroidGra
         assertThat(task.mappingFilePackagesAliases).isEmpty()
         assertThat(task.mappingFileTrimIndents).isFalse
         assertThat(task.datadogCiFile).isEqualTo(fakeDatadogCiFile)
-        assertThat(task.buildId.get()).isEqualTo(fakeBuildId)
+        assertThat(task.buildIdFile.get().asFile).isEqualTo(expectedBuildIdFile(variantName))
     }
 
     @Test
@@ -344,13 +340,12 @@ internal class DdAndroidGradlePluginConfigureVariantForUploadTest : DdAndroidGra
         val task = testedPlugin.configureVariantForUploadTask(
             fakeProject,
             mockVariant,
-            mockBuildIdGenerationTask(fakeBuildId),
+            mock<TaskProvider<GenerateBuildIdTask>>(),
             fakeProject.providers.provider { fakeApiKey },
             fakeExtension
         ).get()
 
         // Then
-        check(task is MappingFileUploadTask)
         assertThat(task.repositoryDetector).isInstanceOf(GitRepositoryDetector::class.java)
         assertThat(task.name).isEqualTo(
             "uploadMapping${variantName.replaceFirstChar { capitalizeChar(it) }}"
@@ -366,7 +361,7 @@ internal class DdAndroidGradlePluginConfigureVariantForUploadTest : DdAndroidGra
         assertThat(task.mappingFilePackagesAliases).isEmpty()
         assertThat(task.mappingFileTrimIndents).isFalse
         assertThat(task.datadogCiFile).isNull()
-        assertThat(task.buildId.get()).isEqualTo(fakeBuildId)
+        assertThat(task.buildIdFile.get().asFile).isEqualTo(expectedBuildIdFile(variantName))
     }
 
     @Test
@@ -521,13 +516,12 @@ internal class DdAndroidGradlePluginConfigureVariantForUploadTest : DdAndroidGra
         val task = testedPlugin.configureVariantForUploadTask(
             fakeProject,
             mockVariant,
-            mockBuildIdGenerationTask(fakeBuildId),
+            mock<TaskProvider<GenerateBuildIdTask>>(),
             fakeProject.providers.provider { fakeApiKey },
             fakeExtension
         ).get()
 
         // Then
-        check(task is MappingFileUploadTask)
         assertThat(task.repositoryDetector).isInstanceOf(GitRepositoryDetector::class.java)
         assertThat(task.name).isEqualTo(
             "uploadMapping${variantName.replaceFirstChar { capitalizeChar(it) }}"
@@ -540,12 +534,19 @@ internal class DdAndroidGradlePluginConfigureVariantForUploadTest : DdAndroidGra
         assertThat(task.site).isEqualTo(fakeExtension.site)
         assertThat(task.remoteRepositoryUrl).isEqualTo(fakeExtension.remoteRepositoryUrl)
         assertThat(task.mappingFile.get().asFile)
-            .isEqualTo(File(fakeProject.projectDir, fakeExtension.mappingFilePath))
+            .isEqualTo(File(fakeProject.projectDir, checkNotNull(fakeExtension.mappingFilePath)))
         assertThat(task.mappingFilePackagesAliases)
             .isEqualTo(fakeExtension.mappingFilePackageAliases)
         assertThat(task.mappingFileTrimIndents)
             .isEqualTo(fakeExtension.mappingFileTrimIndents)
         assertThat(task.datadogCiFile).isNull()
-        assertThat(task.buildId.get()).isEqualTo(fakeBuildId)
+        assertThat(task.buildIdFile.get().asFile).isEqualTo(expectedBuildIdFile(variantName))
+    }
+
+    private fun expectedBuildIdFile(variantName: String): File {
+        return File(
+            fakeProject.buildDir,
+            "generated/datadog/buildId/$variantName/${GenerateBuildIdTask.BUILD_ID_FILE_NAME}"
+        )
     }
 }

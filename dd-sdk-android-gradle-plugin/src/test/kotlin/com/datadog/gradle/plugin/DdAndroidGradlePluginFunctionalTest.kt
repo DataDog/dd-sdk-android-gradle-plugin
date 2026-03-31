@@ -1005,6 +1005,73 @@ internal class DdAndroidGradlePluginFunctionalTest {
     }
 
     @Test
+    fun `M reuse configuration cache W assemble finalized by upload { warn mode }`(forge: Forge) {
+        // Given
+        // this test is targeting the specific behavior of Gradle 8
+        buildVersionConfig = BuildVersionConfig(
+            agpVersion = "8.13.2",
+            gradleVersion = "8.14.1",
+            buildToolsVersion = "36.1.0",
+            targetSdkVersion = "36",
+            kotlinVersion = "2.3.10",
+            jvmTarget = JavaVersion.VERSION_17.toString()
+        )
+        stubGradleBuildFromResourceFile(
+            "lib_module_build.gradle",
+            libModuleBuildGradleFile,
+            overwrite = true
+        )
+        stubGradlePropertiesFile(buildVersionConfig)
+        gradlePropertiesFile.appendText("\norg.gradle.configuration-cache.problems=warn\n")
+        stubGradleBuildFromResourceFile(
+            "build_with_datadog_dep.gradle",
+            appBuildGradleFile
+        )
+        val color = forge.anElementFrom(colors)
+        val version = forge.anElementFrom(versions)
+        val variant = "${version.lowercase()}$color"
+        val variantCapitalized = variant.capitalize()
+
+        appBuildGradleFile.appendText(
+            """
+                tasks.configureEach {
+                    if (name == "minify${variantCapitalized}ReleaseWithR8") {
+                        finalizedBy(tasks.getByName("uploadMapping${variantCapitalized}Release"))
+                    }
+                }
+            """.trimIndent()
+        )
+
+        val firstRun = gradleRunner(gradleVersion = buildVersionConfig.gradleVersion) {
+            withArguments(
+                "--info",
+                ":samples:app:assemble${variantCapitalized}Release",
+                "--stacktrace",
+                "-PDD_API_KEY=fakekey",
+                "-Pdd-emulate-upload-call",
+                "--configuration-cache"
+            )
+        }.build()
+
+        // When
+        val secondRun = gradleRunner(gradleVersion = buildVersionConfig.gradleVersion) {
+            withArguments(
+                "--info",
+                ":samples:app:assemble${variantCapitalized}Release",
+                "--stacktrace",
+                "-PDD_API_KEY=fakekey",
+                "-Pdd-emulate-upload-call",
+                "--configuration-cache"
+            )
+        }.build()
+
+        // Then
+        assertThat(firstRun).containsInOutput("Configuration cache entry stored.")
+        assertThat(secondRun).containsInOutput("Configuration cache entry reused.")
+        assertThat(secondRun.output).doesNotContain(FileUploadTask.MISSING_BUILD_ID_ERROR)
+    }
+
+    @Test
     fun `M not contain any uploadTasks W minifyNotEnabled`() {
         // Given
         stubGradleBuildFromResourceFile(

@@ -13,6 +13,7 @@ import com.datadog.gradle.plugin.internal.OkHttpUploader
 import com.datadog.gradle.plugin.internal.Uploader
 import com.datadog.gradle.plugin.internal.variant.AppVariant
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.logging.Logging
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
@@ -24,6 +25,8 @@ import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.json.JSONArray
 import org.json.JSONException
@@ -100,10 +103,16 @@ abstract class FileUploadTask @Inject constructor(
     var remoteRepositoryUrl: String = ""
 
     /**
-     * Build ID which will be used for mapping file matching.
+     * File containing the build ID used for mapping file matching.
+     *
+     * We intentionally use InputFiles instead of InputFile, because the build ID file may be
+     * absent during configuration for standalone upload invocations. The task validates this
+     * condition itself at execution time to keep the plugin-specific error message.
      */
-    @get:Input
-    abstract val buildId: Property<String>
+    @get:Optional
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.NONE)
+    abstract val buildIdFile: RegularFileProperty
 
     /**
      * datadog-ci.json file, if found or applicable for the particular task.
@@ -146,7 +155,8 @@ abstract class FileUploadTask @Inject constructor(
             INVALID_API_KEY_FORMAT_ERROR
         }
 
-        check(buildId.isPresent && buildId.get().isNotEmpty()) {
+        val buildId = readBuildId()
+        check(buildId.isNotEmpty()) {
             MISSING_BUILD_ID_ERROR
         }
 
@@ -188,7 +198,7 @@ abstract class FileUploadTask @Inject constructor(
                         version = versionName.get(),
                         versionCode = versionCode.get(),
                         variant = variantName,
-                        buildId = buildId.get()
+                        buildId = buildId
                     ),
                     repositories.firstOrNull(),
                     !disableGzipOption.isPresent,
@@ -242,6 +252,15 @@ abstract class FileUploadTask @Inject constructor(
     // endregion
 
     // region Private
+
+    private fun readBuildId(): String {
+        val file = buildIdFile.orNull?.asFile ?: return ""
+        return if (file.exists()) {
+            file.readText().trim()
+        } else {
+            ""
+        }
+    }
 
     private fun applySiteFromEnvironment() {
         val environmentSite = System.getenv(DATADOG_SITE)

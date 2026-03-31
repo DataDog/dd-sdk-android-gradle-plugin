@@ -124,7 +124,7 @@ internal class MappingFileUploadTaskTest {
         testedTask.versionCode.set(fakeVersionCode)
         testedTask.serviceName.set(fakeService)
         testedTask.site = fakeSite.name
-        testedTask.buildId.set(fakeBuildId)
+        writeBuildIdFile(fakeBuildId)
         testedTask.mappingFile.set(fakeProject.objects.fileProperty().fileValue(File(tempDir, fakeMappingFileName)))
         setEnv(FileUploadTask.DATADOG_SITE, "")
     }
@@ -473,7 +473,7 @@ internal class MappingFileUploadTaskTest {
         val fakeMappingFile = File(tempDir, fakeMappingFileName)
         fakeMappingFile.writeText(fakeMappingFileContent)
         testedTask.mappingFile.set(fakeProject.objects.fileProperty().fileValue(File(fakeMappingFile.path)))
-        testedTask.buildId.set(null as String?)
+        testedTask.buildIdFile.set(null as File?)
 
         // When
         val exception = assertThrows<IllegalStateException> {
@@ -491,7 +491,7 @@ internal class MappingFileUploadTaskTest {
         val fakeMappingFile = File(tempDir, fakeMappingFileName)
         fakeMappingFile.writeText(fakeMappingFileContent)
         testedTask.mappingFile.set(fakeProject.objects.fileProperty().fileValue(File(fakeMappingFile.path)))
-        testedTask.buildId.set("")
+        writeBuildIdFile("")
 
         // When
         val exception = assertThrows<IllegalStateException> {
@@ -773,6 +773,12 @@ internal class MappingFileUploadTaskTest {
 
     private fun fileFromResourcesPath(resourceFilePath: String): File {
         return File(javaClass.classLoader.getResource(resourceFilePath)!!.file)
+    }
+
+    private fun writeBuildIdFile(buildId: String) {
+        val buildIdFile = File(tempDir, GenerateBuildIdTask.BUILD_ID_FILE_NAME)
+        buildIdFile.writeText(buildId)
+        testedTask.buildIdFile.fileValue(buildIdFile)
     }
 
     // endregion

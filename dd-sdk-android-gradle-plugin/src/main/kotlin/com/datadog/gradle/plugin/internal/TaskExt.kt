@@ -7,7 +7,6 @@
 package com.datadog.gradle.plugin.internal
 
 import com.android.build.gradle.tasks.ExternalNativeBuildTask
-import com.datadog.gradle.plugin.GenerateBuildIdTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
@@ -30,25 +29,6 @@ internal fun ExternalNativeBuildTask.getSearchObjDirs(providerFactory: ProviderF
             is File -> providerFactory.provider { soFolder }
             is DirectoryProperty -> soFolder.map { it.asFile }
             else -> providerFactory.provider { null }
-        }
-    }
-}
-
-internal fun TaskProvider<GenerateBuildIdTask>.lazyBuildIdProvider(providerFactory: ProviderFactory): Provider<String> {
-    // upload task shouldn't depend on the build ID generation task, but only read its property,
-    // because upload task may be triggered after assemble task and we don't want to re-generate
-    // build ID, because it will be different then from the one which is already embedded in
-    // the application package
-    return flatMap {
-        it.buildIdFile.flatMap {
-            providerFactory.provider {
-                val file = it.asFile
-                if (file.exists()) {
-                    file.readText().trim()
-                } else {
-                    ""
-                }
-            }
         }
     }
 }
