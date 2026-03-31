@@ -20,11 +20,11 @@ import fr.xgouchet.elmyr.junit5.ForgeConfiguration
 import fr.xgouchet.elmyr.junit5.ForgeExtension
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
-import org.gradle.internal.impldep.org.junit.Assume.assumeTrue
 import org.gradle.testfixtures.ProjectBuilder
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -100,11 +100,11 @@ internal class NdkSymbolFileUploadTaskTest {
         whenever(mockVariant.versionName).thenReturn(fakeProject.provider { fakeVersion })
         whenever(mockVariant.versionCode).thenReturn(fakeProject.provider { fakeVersionCode })
 
-        testedTask = fakeProject.tasks.create(
+        testedTask = fakeProject.tasks.register(
             "SymbolFileUploadTask",
             NdkSymbolFileUploadTask::class.java,
             mockRepositoryDetector
-        )
+        ).get()
         testedTask.uploader = mockUploader
         fakeApiKey = ApiKey(
             value = forge.anHexadecimalString(),

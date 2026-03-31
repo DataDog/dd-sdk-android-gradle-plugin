@@ -6,8 +6,6 @@
 
 plugins {
     `kotlin-dsl`
-    id("java-gradle-plugin")
-    @Suppress("DSL_SCOPE_VIOLATION")
     alias(libs.plugins.versionsPluginGradle)
 }
 
@@ -16,8 +14,6 @@ buildscript {
         mavenCentral()
     }
 }
-
-apply(plugin = "kotlin")
 
 repositories {
     mavenCentral()
@@ -55,6 +51,10 @@ gradlePlugin {
         register("transitiveDependencies") {
             id = "transitiveDependencies" // the alias
             implementationClass = "com.datadog.gradle.plugin.transdeps.TransitiveDependenciesPlugin"
+        }
+        register("compilerMetadata") {
+            id = "compilerMetadata" // the alias
+            implementationClass = "com.datadog.gradle.plugin.compilermeta.CompilerMetaPlugin"
         }
     }
 }

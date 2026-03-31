@@ -42,7 +42,7 @@ internal class DdAndroidGradlePluginConfigureVariantForSdkCheckTest : DdAndroidG
         whenever(mockVariant.applicationId) doReturn packageName.asProvider()
         whenever(mockVariant.buildTypeName) doReturn fakeBuildTypeName
 
-        fakeProject.task("compile${variantName.replaceFirstChar { capitalizeChar(it) }}Sources")
+        fakeProject.tasks.register("compile${variantName.replaceFirstChar { capitalizeChar(it) }}Sources")
 
         val mockConfiguration = mock<Configuration>()
         whenever(mockConfiguration.name) doReturn configurationName
@@ -78,7 +78,7 @@ internal class DdAndroidGradlePluginConfigureVariantForSdkCheckTest : DdAndroidG
         whenever(mockVariant.applicationId) doReturn packageName.asProvider()
         whenever(mockVariant.buildTypeName) doReturn fakeBuildTypeName
 
-        fakeProject.task("compile${variantName.replaceFirstChar { capitalizeChar(it) }}Sources")
+        fakeProject.tasks.register("compile${variantName.replaceFirstChar { capitalizeChar(it) }}Sources")
 
         // When + Then
         assertThat(

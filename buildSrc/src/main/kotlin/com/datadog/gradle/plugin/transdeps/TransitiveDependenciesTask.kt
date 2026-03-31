@@ -8,8 +8,7 @@ package com.datadog.gradle.plugin.transdeps
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.artifacts.SelfResolvingDependency
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
@@ -48,11 +47,16 @@ open class TransitiveDependenciesTask : DefaultTask() {
     private fun listConfigurationDependencies(configuration: Configuration) {
         check(configuration.isCanBeResolved) { "$configuration cannot be resolved" }
 
-        val sortedArtifacts = if (sortByName) {
-            allFilesOfDependencies(configuration).sortedBy { it.absolutePath }
-        } else {
-            allFilesOfDependencies(configuration).sortedBy { -it.length() }
-        }
+        val sortedArtifacts = configuration.incoming
+            .artifactView {
+                componentFilter {
+                    it !is ProjectComponentIdentifier && it.displayName != "Gradle API"
+                }
+            }
+            .files
+            .apply {
+                if (sortByName) sortedBy { it.absolutePath } else sortedBy { -it.length() }
+            }
 
         var sum = 0L
         sortedArtifacts.forEach {
@@ -62,11 +66,6 @@ open class TransitiveDependenciesTask : DefaultTask() {
 
         outputFile.appendText("\n${TOTAL.padEnd(PADDING)}:${size(sum)}\n\n")
     }
-
-    private fun allFilesOfDependencies(configuration: Configuration): Set<File> =
-        // ProjectDependency (i.e. local modules) don't have a file associated
-        // SelfResolvingDependency is not from any repo and belongs to Gradle DSL
-        configuration.files { it !is ProjectDependency && it !is SelfResolvingDependency }
 
     private fun getDependencyFileDescription(it: File): String {
         val hash = it.parentFile

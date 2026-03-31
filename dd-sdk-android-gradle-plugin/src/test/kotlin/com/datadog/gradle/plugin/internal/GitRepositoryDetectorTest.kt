@@ -59,7 +59,6 @@ internal class GitRepositoryDetectorTest {
     @Mock
     lateinit var mockedUrlSanitizer: UrlSanitizer
 
-    @Suppress("UnstableApiUsage")
     @BeforeEach
     fun `set up`(forge: Forge) {
         fakeProject = ProjectBuilder.builder()

@@ -8,7 +8,7 @@ buildscript {
     repositories {
         google()
         mavenCentral()
-        maven { setUrl(com.datadog.gradle.Dependencies.Repositories.Gradle) }
+        maven(com.datadog.gradle.Dependencies.Repositories.Gradle)
         mavenLocal()
     }
 
@@ -25,14 +25,21 @@ allprojects {
     repositories {
         google()
         mavenCentral()
-        maven { setUrl(com.datadog.gradle.Dependencies.Repositories.Jitpack) }
+        maven(com.datadog.gradle.Dependencies.Repositories.Jitpack)
         maven("https://central.sonatype.com/repository/maven-snapshots/")
     }
 }
 
-task<Delete>("clean") {
+tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }
 
 // Empty task defined by one of our CI pipeline which does not apply here.
-tasks.register("checkGeneratedFiles") {}
+tasks.register("checkGeneratedFiles") {
+    childProjects.forEach { (name, _) ->
+        if (name.startsWith("dd-sdk-android")) {
+            dependsOn(":$name:checkTransitiveDependenciesList")
+            dependsOn(":$name:checkCompilerMetadataChanges")
+        }
+    }
+}

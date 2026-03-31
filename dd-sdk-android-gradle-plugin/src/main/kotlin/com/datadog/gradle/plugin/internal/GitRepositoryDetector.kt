@@ -30,7 +30,8 @@ internal class GitRepositoryDetector(
     ): List<RepositoryInfo> {
         try {
             execOperations.execShell("git", "rev-parse", "--is-inside-work-tree")
-        } catch (e: ExecException) {
+        } catch (@Suppress("DEPRECATION") e: ExecException) {
+            // Suppress deprecation above because replacement class is only available starting from Gradle 9.0
             LOGGER.error("Project is not a git repository", e)
             return emptyList()
         }

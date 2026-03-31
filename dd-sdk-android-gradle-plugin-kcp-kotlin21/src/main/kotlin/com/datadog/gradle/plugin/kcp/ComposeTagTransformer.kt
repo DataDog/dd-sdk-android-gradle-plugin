@@ -24,6 +24,7 @@ import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
+import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.classFqName
 import org.jetbrains.kotlin.ir.types.createType
 import org.jetbrains.kotlin.ir.types.defaultType
@@ -37,7 +38,9 @@ import org.jetbrains.kotlin.name.SpecialNames
  *
  * Internal use only.
  */
-class ComposeTagTransformer(
+class ComposeTagTransformer
+@OptIn(UnsafeDuringIrConstructionAPI::class)
+constructor(
     private val messageCollector: MessageCollector,
     private val pluginContext: IrPluginContext,
     private val annotationModeEnabled: Boolean,
@@ -104,6 +107,7 @@ class ComposeTagTransformer(
         return super.visitFunctionExpression(expression)
     }
 
+    @OptIn(UnsafeDuringIrConstructionAPI::class)
     @Suppress("ReturnCount")
     override fun visitCall(expression: IrCall): IrExpression {
         val builder = visitedBuilders.lastOrNull() ?: return super.visitCall(
@@ -129,6 +133,7 @@ class ComposeTagTransformer(
         return super.visitCall(expression)
     }
 
+    @OptIn(UnsafeDuringIrConstructionAPI::class)
     @Suppress("ReturnCount")
     private fun isImageComposableFunction(irExpression: IrExpression): Boolean {
         if (irExpression !is IrCall) {
@@ -151,6 +156,7 @@ class ComposeTagTransformer(
         }
     }
 
+    @OptIn(UnsafeDuringIrConstructionAPI::class)
     private fun buildIrExpression(
         expression: IrExpression?,
         builder: DeclarationIrBuilder,

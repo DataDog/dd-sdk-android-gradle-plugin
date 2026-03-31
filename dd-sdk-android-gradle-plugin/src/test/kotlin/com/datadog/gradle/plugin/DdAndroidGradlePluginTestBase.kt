@@ -101,7 +101,7 @@ internal abstract class DdAndroidGradlePluginTestBase {
         }
     }
 
-    protected fun <T> T.asProvider(): Provider<T> {
+    protected fun <T : Any> T.asProvider(): Provider<T> {
         return fakeProject.provider { this }
     }
 
