@@ -6,6 +6,7 @@
 
 package com.datadog.gradle.plugin
 
+import com.datadog.gradle.plugin.internal.utils.capitalizeChar
 import com.datadog.gradle.plugin.internal.variant.AppVariant
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
@@ -82,7 +83,7 @@ abstract class GenerateBuildIdTask : DefaultTask() {
         ): TaskProvider<GenerateBuildIdTask> {
             val buildIdDirectory = buildIdDirectory(target, variant.name)
             val generateBuildIdTask = target.tasks.register(
-                TASK_NAME + variant.name.capitalize(),
+                TASK_NAME + variant.name.replaceFirstChar { capitalizeChar(it) },
                 GenerateBuildIdTask::class.java
             ) {
                 it.buildIdDirectory.set(buildIdDirectory)

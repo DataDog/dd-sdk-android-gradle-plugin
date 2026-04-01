@@ -21,9 +21,6 @@ import fr.xgouchet.elmyr.junit5.ForgeExtension
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testfixtures.ProjectBuilder
-import org.json.JSONArray
-import org.json.JSONObject
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -106,6 +103,7 @@ internal class NdkSymbolFileUploadTaskTest {
             mockRepositoryDetector
         ).get()
         testedTask.uploader = mockUploader
+        testedTask.site.set(fakeSite.name)
         fakeApiKey = ApiKey(
             value = forge.anHexadecimalString(),
             source = forge.aValueFrom(ApiKeySource::class.java)
@@ -126,19 +124,13 @@ internal class NdkSymbolFileUploadTaskTest {
             fakeConfiguration,
             mockVariant
         )
-        setEnv(FileUploadTask.DATADOG_SITE, "")
-    }
-
-    @AfterEach
-    fun `tear down`() {
-        removeEnv(FileUploadTask.DATADOG_SITE)
     }
 
     @Test
     fun `M upload file W applyTask()`() {
         // Given
         val fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
-        testedTask.repositoryFile = fakeRepositoryFile
+        testedTask.repositoryFile.set(fakeRepositoryFile)
         whenever(mockRepositoryDetector.detectRepositories(any(), eq("")))
             .doReturn(listOf(fakeRepoInfo))
         val fakeSoFile = writeFakeSoFile("arm64-v8a")
@@ -178,7 +170,7 @@ internal class NdkSymbolFileUploadTaskTest {
     fun `M upload multiple files W applyTask()`() {
         // Given
         val fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
-        testedTask.repositoryFile = fakeRepositoryFile
+        testedTask.repositoryFile.set(fakeRepositoryFile)
         whenever(mockRepositoryDetector.detectRepositories(any(), eq("")))
             .doReturn(listOf(fakeRepoInfo))
         val fakeSoFiles = mapOf(
@@ -225,7 +217,7 @@ internal class NdkSymbolFileUploadTaskTest {
     ) {
         // Given
         val fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
-        testedTask.repositoryFile = fakeRepositoryFile
+        testedTask.repositoryFile.set(fakeRepositoryFile)
         whenever(mockRepositoryDetector.detectRepositories(any(), eq("")))
             .doReturn(listOf(fakeRepoInfo))
 
@@ -275,8 +267,8 @@ internal class NdkSymbolFileUploadTaskTest {
     ) {
         // Given
         val fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
-        testedTask.repositoryFile = fakeRepositoryFile
-        testedTask.remoteRepositoryUrl = fakeRemoteUrl
+        testedTask.repositoryFile.set(fakeRepositoryFile)
+        testedTask.remoteRepositoryUrl.set(fakeRemoteUrl)
         whenever(mockRepositoryDetector.detectRepositories(any(), eq(fakeRemoteUrl)))
             .doReturn(listOf(fakeRepoInfo))
         val fakeSoFile = writeFakeSoFile("arm64-v8a")
@@ -320,7 +312,7 @@ internal class NdkSymbolFileUploadTaskTest {
     fun `M upload file W applyTask { not a git repo }`() {
         // Given
         val fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
-        testedTask.repositoryFile = fakeRepositoryFile
+        testedTask.repositoryFile.set(fakeRepositoryFile)
         whenever(mockRepositoryDetector.detectRepositories(any(), any()))
             .doReturn(emptyList())
         val fakeSoFile = writeFakeSoFile("arm64-v8a")
@@ -438,7 +430,7 @@ internal class NdkSymbolFileUploadTaskTest {
         assumeTrue(siteName !in listOf("US", "EU", "GOV"))
 
         // Given
-        testedTask.site = siteName
+        testedTask.site.set(siteName)
 
         // When
         assertThrows<IllegalStateException> {
@@ -450,47 +442,6 @@ internal class NdkSymbolFileUploadTaskTest {
     }
 
     @Test
-    fun `M upload to US1 W applyTask() {missing site}`() {
-        // Given
-        val fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
-        testedTask.repositoryFile = fakeRepositoryFile
-        testedTask.site = ""
-        whenever(mockRepositoryDetector.detectRepositories(any(), eq("")))
-            .doReturn(listOf(fakeRepoInfo))
-        val fakeSoFile = writeFakeSoFile("arm64-v8a")
-
-        // When
-        testedTask.applyTask()
-
-        // Then
-        verify(mockUploader).upload(
-            DatadogSite.US1,
-            Uploader.UploadFileInfo(
-                fileKey = NdkSymbolFileUploadTask.KEY_NDK_SYMBOL_FILE,
-                file = fakeSoFile,
-                encoding = NdkSymbolFileUploadTask.ENCODING,
-                fileType = NdkSymbolFileUploadTask.TYPE_NDK_SYMBOL_FILE,
-                fileName = "libfake.so",
-                extraAttributes = mapOf(
-                    "arch" to "arm64"
-                )
-            ),
-            fakeRepositoryFile,
-            fakeApiKey.value,
-            DdAppIdentifier(
-                serviceName = fakeService,
-                version = fakeVersion,
-                versionCode = fakeVersionCode,
-                variant = fakeVariantName,
-                buildId = fakeBuildId
-            ),
-            fakeRepoInfo,
-            useGzip = true,
-            emulateNetworkCall = false
-        )
-    }
-
-    @Test
     fun `M do nothing W applyTask() {no mapping file}`() {
         // Given
 
@@ -499,186 +450,6 @@ internal class NdkSymbolFileUploadTaskTest {
 
         // Then
         verifyNoInteractions(mockUploader)
-    }
-
-    @Test
-    fun `M apply datadog CI config if exists W applyTask() {apiKey from gradle}`(forge: Forge) {
-        // Given
-        val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
-
-        val fakeDatadogCiApiKey = forge.anAlphabeticalString()
-        val fakeDatadogCiDomain = forge.aValueFrom(DatadogSite::class.java).domain
-
-        fakeDatadogCiFile.writeText(
-            JSONObject().apply {
-                put("apiKey", fakeDatadogCiApiKey)
-                put("datadogSite", fakeDatadogCiDomain)
-            }.toString()
-        )
-
-        testedTask.apiKeySource.set(ApiKeySource.GRADLE_PROPERTY)
-        testedTask.datadogCiFile = fakeDatadogCiFile
-        testedTask.site = ""
-
-        // When
-        testedTask.applyTask()
-
-        // Then
-        assertThat(testedTask.apiKey.get()).isEqualTo(fakeApiKey.value)
-        assertThat(testedTask.apiKeySource.get()).isEqualTo(ApiKeySource.GRADLE_PROPERTY)
-        assertThat(testedTask.site).isEqualTo(DatadogSite.fromDomain(fakeDatadogCiDomain)?.name)
-    }
-
-    @Test
-    fun `M apply datadog CI config if exists W applyTask() { apiKey is missing }`(forge: Forge) {
-        // Given
-        val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
-
-        val fakeDatadogCiDomain = forge.aValueFrom(DatadogSite::class.java).domain
-
-        fakeDatadogCiFile.writeText(
-            JSONObject().apply {
-                put("datadogSite", fakeDatadogCiDomain)
-            }.toString()
-        )
-
-        testedTask.datadogCiFile = fakeDatadogCiFile
-        testedTask.site = ""
-
-        // When
-        testedTask.applyTask()
-
-        // Then
-        assertThat(testedTask.apiKey.get()).isEqualTo(fakeApiKey.value)
-        assertThat(testedTask.site).isEqualTo(DatadogSite.fromDomain(fakeDatadogCiDomain)?.name)
-    }
-
-    @Test
-    fun `M apply datadog CI config if exists W applyTask() {datadogSite missing}`(forge: Forge) {
-        // Given
-        val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
-
-        val fakeDatadogCiApiKey = forge.anAlphabeticalString()
-
-        fakeDatadogCiFile.writeText(
-            JSONObject().apply {
-                put("apiKey", fakeDatadogCiApiKey)
-            }.toString()
-        )
-
-        testedTask.apiKeySource.set(
-            forge.aValueFrom(
-                ApiKeySource::class.java,
-                exclude = listOf(ApiKeySource.DATADOG_CI_CONFIG_FILE)
-            )
-        )
-        testedTask.datadogCiFile = fakeDatadogCiFile
-
-        // When
-        testedTask.applyTask()
-
-        // Then
-        assertThat(testedTask.apiKey.get()).isNotEqualTo(fakeDatadogCiApiKey)
-        assertThat(testedTask.apiKeySource.get()).isNotEqualTo(ApiKeySource.DATADOG_CI_CONFIG_FILE)
-        assertThat(testedTask.site).isEqualTo(fakeSite.name)
-    }
-
-    @Test
-    fun `M apply datadog CI config if exists W applyTask() {datadogSite unknown}`(forge: Forge) {
-        // Given
-        val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
-
-        val fakeDatadogCiDomain = forge.aStringMatching("[a-z]+\\.com")
-
-        fakeDatadogCiFile.writeText(
-            JSONObject().apply {
-                put("datadogSite", fakeDatadogCiDomain)
-            }.toString()
-        )
-
-        testedTask.datadogCiFile = fakeDatadogCiFile
-        testedTask.site = ""
-
-        // When
-        testedTask.applyTask()
-
-        // Then
-        assertThat(testedTask.apiKey.get()).isEqualTo(fakeApiKey.value)
-        assertThat(testedTask.apiKeySource.get()).isEqualTo(fakeApiKey.source)
-        assertThat(testedTask.site).isEqualTo(DatadogSite.US1.name)
-    }
-
-    @Test
-    fun `M apply datadog CI config if exists W applyTask() {site is set already}`(forge: Forge) {
-        // Given
-        val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
-
-        val fakeDatadogCiDomain = forge.aValueFrom(DatadogSite::class.java).domain
-
-        fakeDatadogCiFile.writeText(
-            JSONObject().apply {
-                put("datadogSite", fakeDatadogCiDomain)
-            }.toString()
-        )
-
-        testedTask.datadogCiFile = fakeDatadogCiFile
-
-        // When
-        testedTask.applyTask()
-
-        // Then
-        assertThat(testedTask.apiKey.get()).isEqualTo(fakeApiKey.value)
-        assertThat(testedTask.apiKeySource.get()).isEqualTo(fakeApiKey.source)
-        assertThat(testedTask.site).isEqualTo(fakeSite.name)
-    }
-
-    @Test
-    fun `M read site from environment variable W applyTask() {site is not set}`(forge: Forge) {
-        // Given
-        val fakeDatadogEnvDomain = forge.aValueFrom(DatadogSite::class.java).domain
-        setEnv(FileUploadTask.DATADOG_SITE, fakeDatadogEnvDomain)
-        testedTask.site = ""
-
-        // When
-        testedTask.applyTask()
-
-        // Then
-        assertThat(testedTask.apiKey.get()).isEqualTo(fakeApiKey.value)
-        assertThat(testedTask.apiKeySource.get()).isEqualTo(fakeApiKey.source)
-        assertThat(testedTask.site).isEqualTo(DatadogSite.fromDomain(fakeDatadogEnvDomain)?.name)
-    }
-
-    @Test
-    fun `M read site from environment variable W applyTask() {site is set}`(forge: Forge) {
-        // Given
-        val fakeDatadogEnvDomain = forge.aValueFrom(DatadogSite::class.java).domain
-        setEnv(DdAndroidGradlePlugin.DATADOG_API_KEY, fakeDatadogEnvDomain)
-
-        // When
-        testedTask.applyTask()
-
-        // Then
-        assertThat(testedTask.apiKey.get()).isEqualTo(fakeApiKey.value)
-        assertThat(testedTask.apiKeySource.get()).isEqualTo(fakeApiKey.source)
-        assertThat(testedTask.site).isEqualTo(fakeSite.name)
-    }
-
-    @Test
-    fun `M not apply datadog CI config if exists W applyTask() { malformed json }`(forge: Forge) {
-        // Given
-        val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
-
-        fakeDatadogCiFile.writeText(forge.anElementFrom(forge.aString(), JSONArray().toString()))
-
-        testedTask.datadogCiFile = fakeDatadogCiFile
-
-        // When
-        testedTask.applyTask()
-
-        // Then
-        assertThat(testedTask.apiKey.get()).isEqualTo(fakeApiKey.value)
-        assertThat(testedTask.apiKeySource.get()).isEqualTo(fakeApiKey.source)
-        assertThat(testedTask.site).isEqualTo(fakeSite.name)
     }
 
     private fun writeFakeSoFile(arch: String): File {

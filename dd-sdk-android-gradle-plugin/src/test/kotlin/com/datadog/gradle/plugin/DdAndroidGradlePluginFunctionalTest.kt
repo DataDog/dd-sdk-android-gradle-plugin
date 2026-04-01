@@ -6,6 +6,7 @@
 
 package com.datadog.gradle.plugin
 
+import com.datadog.gradle.plugin.internal.utils.capitalizeChar
 import com.datadog.gradle.plugin.utils.assertj.BuildResultAssert.Companion.assertThat
 import com.datadog.gradle.plugin.utils.forge.Configurator
 import com.datadog.gradle.plugin.utils.headHash
@@ -986,7 +987,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         val version = forge.anElementFrom(versions)
         val variantVersionName = version.lowercase()
         val variant = "${version.lowercase()}$color"
-        val variantCapitalized = variant.replaceFirstChar { it.uppercase(Locale.US) }
+        val variantCapitalized = variant.replaceFirstChar { capitalizeChar(it) }
 
         appBuildGradleFile.appendText(
             """
@@ -1066,7 +1067,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         val color = forge.anElementFrom(colors)
         val version = forge.anElementFrom(versions)
         val variant = "${version.lowercase()}$color"
-        val variantCapitalized = variant.replaceFirstChar { it.uppercase(Locale.US) }
+        val variantCapitalized = variant.replaceFirstChar { capitalizeChar(it) }
 
         appBuildGradleFile.appendText(
             """
@@ -1439,11 +1440,11 @@ internal class DdAndroidGradlePluginFunctionalTest {
 
     private fun resolveMappingUploadTask(
         variantName: String
-    ) = "uploadMapping${variantName.replaceFirstChar { it.uppercase(Locale.US) }}Release"
+    ) = "uploadMapping${variantName.replaceFirstChar { capitalizeChar(it) }}Release"
 
     private fun resolveNdkSymbolUploadTask(
         variantName: String
-    ) = "uploadNdkSymbolFiles${variantName.replaceFirstChar { it.uppercase(Locale.US) }}Release"
+    ) = "uploadNdkSymbolFiles${variantName.replaceFirstChar { capitalizeChar(it) }}Release"
 
     private fun stubFile(destination: File, content: String) {
         with(destination.outputStream()) {

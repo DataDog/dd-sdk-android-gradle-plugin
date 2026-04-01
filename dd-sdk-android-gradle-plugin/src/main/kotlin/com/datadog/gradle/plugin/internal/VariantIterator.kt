@@ -6,6 +6,8 @@
 
 package com.datadog.gradle.plugin.internal
 
+import com.datadog.gradle.plugin.internal.utils.capitalizeChar
+
 /**
  * This Iterator will take a list of flavor name and trailing build type and iterate over all
  * possible (partial) variants from those.
@@ -56,6 +58,7 @@ internal class VariantIterator(
     }
 
     private fun buildVariantName(flavorNames: List<String>): String {
-        return flavorNames.first() + flavorNames.drop(1).joinToString("") { it.capitalize() }
+        return flavorNames.first() + flavorNames.drop(1)
+            .joinToString("") { it.replaceFirstChar { capitalizeChar(it) } }
     }
 }

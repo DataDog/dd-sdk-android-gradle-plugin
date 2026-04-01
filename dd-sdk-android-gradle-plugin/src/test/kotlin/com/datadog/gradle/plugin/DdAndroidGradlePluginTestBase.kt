@@ -8,8 +8,8 @@ package com.datadog.gradle.plugin
 
 import com.datadog.gradle.plugin.internal.ApiKey
 import com.datadog.gradle.plugin.internal.ApiKeySource
+import com.datadog.gradle.plugin.internal.utils.capitalizeChar
 import com.datadog.gradle.plugin.internal.variant.AppVariant
-import com.datadog.gradle.plugin.utils.capitalizeChar
 import com.datadog.gradle.plugin.utils.forge.Configurator
 import fr.xgouchet.elmyr.Case
 import fr.xgouchet.elmyr.Forge
@@ -74,9 +74,6 @@ internal abstract class DdAndroidGradlePluginTestBase {
         fakeBuildId = forge.getForgery<UUID>().toString()
         fakeProject = ProjectBuilder.builder().build()
         testedPlugin = DdAndroidGradlePlugin(execOps = mock())
-
-        setEnv(DdAndroidGradlePlugin.DD_API_KEY, "")
-        setEnv(DdAndroidGradlePlugin.DATADOG_API_KEY, "")
     }
 
     // region Helper Methods

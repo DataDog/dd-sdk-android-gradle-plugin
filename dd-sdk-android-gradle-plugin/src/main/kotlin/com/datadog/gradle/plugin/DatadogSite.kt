@@ -77,10 +77,10 @@ enum class DatadogSite(internal val domain: String) {
     }
 
     companion object {
-        internal val validIds = DatadogSite.values().map { it.name }
+        internal val validIds = DatadogSite.entries.map { it.name }
 
         internal fun fromDomain(domain: String): DatadogSite? {
-            return DatadogSite.values().firstOrNull { it.domain == domain }
+            return DatadogSite.entries.firstOrNull { it.domain == domain }
         }
     }
 }
