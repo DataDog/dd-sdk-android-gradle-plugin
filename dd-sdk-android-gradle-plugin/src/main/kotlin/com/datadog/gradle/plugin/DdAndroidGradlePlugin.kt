@@ -16,7 +16,6 @@ import com.datadog.gradle.plugin.internal.ApiKeySource.GRADLE_PROPERTY
 import com.datadog.gradle.plugin.internal.CurrentAgpVersion
 import com.datadog.gradle.plugin.internal.GitRepositoryDetector
 import com.datadog.gradle.plugin.internal.VariantIterator
-import com.datadog.gradle.plugin.internal.lazyBuildIdProvider
 import com.datadog.gradle.plugin.internal.variant.AppVariant
 import com.datadog.gradle.plugin.internal.variant.NewApiAppVariant
 import com.datadog.gradle.plugin.kcp.DatadogKotlinCompilerPluginSupport
@@ -27,7 +26,6 @@ import org.gradle.api.file.RegularFile
 import org.gradle.api.logging.Logging
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
-import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.process.ExecOperations
@@ -36,15 +34,13 @@ import org.json.JSONObject
 import java.io.File
 import java.io.IOException
 import javax.inject.Inject
-import kotlin.io.path.Path
 
 /**
  * Plugin adding tasks for Android projects using Datadog's SDK for Android.
  */
 @Suppress("TooManyFunctions")
 class DdAndroidGradlePlugin @Inject constructor(
-    private val execOps: ExecOperations,
-    private val providerFactory: ProviderFactory
+    private val execOps: ExecOperations
 ) : Plugin<Project> {
 
     // region Plugin
@@ -227,7 +223,7 @@ class DdAndroidGradlePlugin @Inject constructor(
             target,
             variant,
             buildIdTask,
-            providerFactory,
+            GenerateBuildIdTask.buildIdFile(target, variant.name),
             apiKeyProvider,
             extensionConfiguration,
             GitRepositoryDetector(execOps)
@@ -241,9 +237,7 @@ class DdAndroidGradlePlugin @Inject constructor(
         target: Project,
         variant: AppVariant
     ): TaskProvider<GenerateBuildIdTask> {
-        val buildIdDirectory = target.layout.buildDirectory
-            .dir(Path("generated", "datadog", "buildId", variant.name).toString())
-        val buildIdGenerationTask = GenerateBuildIdTask.register(target, variant, buildIdDirectory)
+        val buildIdGenerationTask = GenerateBuildIdTask.register(target, variant)
 
         return buildIdGenerationTask
     }
@@ -263,13 +257,6 @@ class DdAndroidGradlePlugin @Inject constructor(
             GitRepositoryDetector(execOps)
         ).apply {
             configure { uploadTask ->
-                @Suppress("MagicNumber")
-                if (TaskUtils.isGradleEqualOrAbove(target, 7, 5)) {
-                    uploadTask.notCompatibleWithConfigurationCache(
-                        "Datadog Upload Mapping task is not" +
-                            " compatible with configuration cache yet."
-                    )
-                }
                 val extensionConfiguration = resolveExtensionConfiguration(extension, variant)
                 configureVariantTask(
                     target.objects,
@@ -279,7 +266,8 @@ class DdAndroidGradlePlugin @Inject constructor(
                     variant
                 )
 
-                uploadTask.buildId.set(buildIdGenerationTask.lazyBuildIdProvider(providerFactory))
+                uploadTask.buildIdFile.set(GenerateBuildIdTask.buildIdFile(target, variant.name))
+                uploadTask.mustRunAfter(buildIdGenerationTask)
                 uploadTask.mappingFilePackagesAliases = extensionConfiguration.mappingFilePackageAliases
                 uploadTask.mappingFileTrimIndents = extensionConfiguration.mappingFileTrimIndents
                 if (!extensionConfiguration.ignoreDatadogCiFileConfig) {

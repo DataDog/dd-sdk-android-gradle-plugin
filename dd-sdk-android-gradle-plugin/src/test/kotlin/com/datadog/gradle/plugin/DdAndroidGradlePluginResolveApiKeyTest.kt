@@ -184,10 +184,7 @@ internal class DdAndroidGradlePluginResolveApiKeyTest : DdAndroidGradlePluginTes
         fakeProject = ProjectBuilder.builder()
             .withProjectDir(subProject)
             .build()
-        testedPlugin = DdAndroidGradlePlugin(
-            execOps = mock(),
-            providerFactory = fakeProject.providers
-        )
+        testedPlugin = DdAndroidGradlePlugin(execOps = mock())
 
         // When
         val apiKey = testedPlugin.resolveApiKey(fakeProject).get()

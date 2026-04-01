@@ -8,10 +8,10 @@ package com.datadog.gradle.plugin
 
 import com.datadog.gradle.plugin.internal.ApiKey
 import com.datadog.gradle.plugin.internal.Uploader
-import com.datadog.gradle.plugin.internal.lazyBuildIdProvider
 import com.datadog.gradle.plugin.internal.variant.AppVariant
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.RegularFile
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
@@ -107,7 +107,7 @@ internal abstract class NdkSymbolFileUploadTask @Inject constructor(
             project: Project,
             variant: AppVariant,
             buildIdTask: TaskProvider<GenerateBuildIdTask>,
-            providerFactory: ProviderFactory,
+            buildIdFile: Provider<RegularFile>,
             apiKeyProvider: Provider<ApiKey>,
             extensionConfiguration: DdExtensionConfiguration,
             repositoryDetector: RepositoryDetector
@@ -133,7 +133,8 @@ internal abstract class NdkSymbolFileUploadTask @Inject constructor(
                         variant
                     )
 
-                    task.buildId.set(buildIdTask.lazyBuildIdProvider(providerFactory))
+                    task.buildIdFile.set(buildIdFile)
+                    task.mustRunAfter(buildIdTask)
                 }
             }
         }

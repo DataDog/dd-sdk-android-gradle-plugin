@@ -113,7 +113,7 @@ internal class NdkSymbolFileUploadTaskTest {
         fakeBuildId = forge.getForgery<UUID>().toString()
 
         testedTask.searchDirectories.from(tempDir)
-        testedTask.buildId.set(fakeBuildId)
+        writeBuildIdFile(fakeBuildId)
 
         val fakeConfiguration = with(DdExtensionConfiguration()) {
             versionName = fakeVersion
@@ -402,7 +402,7 @@ internal class NdkSymbolFileUploadTaskTest {
     @Test
     fun `M throw error W applyTask() {buildId is missing}`() {
         // Given
-        testedTask.buildId.set(null as String?)
+        testedTask.buildIdFile.set(null as File?)
         writeFakeSoFile("arm64-v8a")
 
         // When
@@ -418,7 +418,7 @@ internal class NdkSymbolFileUploadTaskTest {
     @Test
     fun `M throw error W applyTask() {buildId is empty string}`() {
         // Given
-        testedTask.buildId.set("")
+        writeBuildIdFile("")
         writeFakeSoFile("arm64-v8a")
 
         // When
@@ -689,5 +689,11 @@ internal class NdkSymbolFileUploadTaskTest {
         fakeSoFile.writeText("fake")
 
         return fakeSoFile
+    }
+
+    private fun writeBuildIdFile(buildId: String) {
+        val buildIdFile = File(tempDir, GenerateBuildIdTask.BUILD_ID_FILE_NAME)
+        buildIdFile.writeText(buildId)
+        testedTask.buildIdFile.fileValue(buildIdFile)
     }
 }
