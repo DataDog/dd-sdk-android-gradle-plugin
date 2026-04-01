@@ -11,6 +11,7 @@ import com.android.build.api.variant.ApplicationVariant
 import com.android.build.api.variant.VariantOutput
 import com.android.build.gradle.tasks.ExternalNativeBuildTask
 import com.datadog.gradle.plugin.GenerateBuildIdTask
+import com.datadog.gradle.plugin.InjectBuildIdToAssetsTask
 import com.datadog.gradle.plugin.MappingFileUploadTask
 import com.datadog.gradle.plugin.NdkSymbolFileUploadTask
 import com.datadog.gradle.plugin.internal.getSearchObjDirs
@@ -21,6 +22,7 @@ import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskProvider
 import java.io.File
+import java.util.Locale
 
 internal class NewApiAppVariant(
     private val variant: ApplicationVariant,
@@ -58,7 +60,6 @@ internal class NewApiAppVariant(
     override fun collectJavaAndKotlinSourceDirectories(): Provider<List<File>> {
         val allJava = variant.sources.java?.all
 
-        @Suppress("UnstableApiUsage")
         val allKotlin = variant.sources.kotlin?.all
         return if (allJava != null) {
             if (allKotlin != null) {
@@ -87,12 +88,33 @@ internal class NewApiAppVariant(
         generateBuildIdTask: TaskProvider<GenerateBuildIdTask>,
         buildIdDirectory: Provider<Directory>
     ) {
-        variant.sources.assets?.addGeneratedSourceDirectory(generateBuildIdTask) {
-            it.buildIdDirectory
+        val injectTask = target.tasks.register(
+            INJECT_BUILD_ID_TASK_NAME + variant.name.replaceFirstChar { it.uppercase(Locale.US) },
+            InjectBuildIdToAssetsTask::class.java
+        ) {
+            it.buildIdFile.set(
+                buildIdDirectory.map { dir ->
+                    dir.file(GenerateBuildIdTask.BUILD_ID_FILE_NAME)
+                }
+            )
+            it.dependsOn(generateBuildIdTask)
         }
+
+        @Suppress("UnstableApiUsage")
+        variant.artifacts
+            .use(injectTask)
+            .wiredWithDirectories(
+                InjectBuildIdToAssetsTask::inputAssets,
+                InjectBuildIdToAssetsTask::outputAssets
+            )
+            .toTransform(SingleArtifact.ASSETS)
     }
 
     // region Private
+
+    private companion object {
+        private const val INJECT_BUILD_ID_TASK_NAME = "injectBuildIdToAssets"
+    }
 
     private fun Provider<out Collection<Directory>>.asFileCollectionProvider() =
         map { collection -> collection.map { it.asFile } }
