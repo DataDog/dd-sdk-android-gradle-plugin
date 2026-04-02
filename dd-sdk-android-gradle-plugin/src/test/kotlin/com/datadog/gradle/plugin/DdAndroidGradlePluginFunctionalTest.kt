@@ -578,6 +578,41 @@ internal class DdAndroidGradlePluginFunctionalTest {
         assertThat(buildIds.toSet()).hasSize(bundles.size)
     }
 
+    @Test
+    fun `M preserve existing assets W inject buildId into apk`() {
+        // Given
+        stubGradleBuildFromResourceFile(
+            "build_with_datadog_dep.gradle",
+            appBuildGradleFile
+        )
+        val assetFile = File(appMainSrcDir, "assets/existing-asset.txt").apply {
+            parentFile.mkdirs()
+        }
+        val assetContent = "existing asset content"
+        stubFile(assetFile, assetContent)
+
+        // When
+        val result = gradleRunner { withArguments("--stacktrace", ":samples:app:assembleRelease") }
+            .build()
+
+        // Then
+        assertThat(result.task(":samples:app:assembleRelease")?.outcome)
+            .isEqualTo(TaskOutcome.SUCCESS)
+
+        val apks = testProjectDir.walk()
+            .filter { it.isFile && it.extension == "apk" }
+            .map { ZipFile(it) }
+            .toList()
+
+        assertThat(apks).isNotEmpty
+        apks.forEach {
+            assertThat(it.readTextFile("assets/existing-asset.txt")).isEqualTo(assetContent)
+            assertThat(it.readBuildId(BUILD_ID_FILE_PATH_APK)).isNotBlank()
+        }
+
+        assertThat(apks.map { it.readBuildId(BUILD_ID_FILE_PATH_APK) }.toSet().size).isEqualTo(apks.size)
+    }
+
     // region Mapping Upload
 
     @Test
@@ -951,12 +986,13 @@ internal class DdAndroidGradlePluginFunctionalTest {
         val version = forge.anElementFrom(versions)
         val variantVersionName = version.lowercase()
         val variant = "${version.lowercase()}$color"
+        val variantCapitalized = variant.replaceFirstChar { it.uppercase(Locale.US) }
 
         appBuildGradleFile.appendText(
             """
                 tasks.configureEach {
-                    if (name == "minify${variant.capitalize()}ReleaseWithR8") {
-                        finalizedBy(tasks.getByName("uploadMapping${variant.capitalize()}Release"))
+                    if (name == "minify${variantCapitalized}ReleaseWithR8") {
+                        finalizedBy(tasks.getByName("uploadMapping${variantCapitalized}Release"))
                     }
                 }
             """.trimIndent()
@@ -965,7 +1001,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         val result = gradleRunner(gradleVersion = LATEST_VERSIONS_TEST_CONFIGURATION.gradleVersion) {
             withArguments(
                 "--info",
-                ":samples:app:assemble${variant.capitalize()}Release",
+                ":samples:app:assemble${variantCapitalized}Release",
                 "--stacktrace",
                 "-PDD_API_KEY=fakekey",
                 "-Pdd-emulate-upload-call",
@@ -1030,7 +1066,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         val color = forge.anElementFrom(colors)
         val version = forge.anElementFrom(versions)
         val variant = "${version.lowercase()}$color"
-        val variantCapitalized = variant.capitalize()
+        val variantCapitalized = variant.replaceFirstChar { it.uppercase(Locale.US) }
 
         appBuildGradleFile.appendText(
             """
@@ -1401,11 +1437,13 @@ internal class DdAndroidGradlePluginFunctionalTest {
 
     // region Internal
 
-    private fun resolveMappingUploadTask(variantName: String) = "uploadMapping${variantName.capitalize()}Release"
+    private fun resolveMappingUploadTask(
+        variantName: String
+    ) = "uploadMapping${variantName.replaceFirstChar { it.uppercase(Locale.US) }}Release"
 
     private fun resolveNdkSymbolUploadTask(
         variantName: String
-    ) = "uploadNdkSymbolFiles${variantName.capitalize()}Release"
+    ) = "uploadNdkSymbolFiles${variantName.replaceFirstChar { it.uppercase(Locale.US) }}Release"
 
     private fun stubFile(destination: File, content: String) {
         with(destination.outputStream()) {
@@ -1493,10 +1531,13 @@ internal class DdAndroidGradlePluginFunctionalTest {
     }
 
     private fun ZipFile.readBuildId(path: String): String {
+        return readTextFile(path).trim()
+    }
+
+    private fun ZipFile.readTextFile(path: String): String {
         return getInputStream(getEntry(path))
             .bufferedReader()
             .readText()
-            .trim()
     }
 
     @Suppress("ReturnCount")
