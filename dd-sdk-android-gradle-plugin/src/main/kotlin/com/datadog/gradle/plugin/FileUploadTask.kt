@@ -20,7 +20,6 @@ import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
@@ -29,14 +28,13 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.json.JSONArray
-import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
 import javax.inject.Inject
 
 /**
  * A Gradle task to upload symbolication files to Datadog servers (NDK symbol files,
- * Proguard/R8 files, etc.)..
+ * Proguard/R8 files, etc.).
  */
 abstract class FileUploadTask @Inject constructor(
     providerFactory: ProviderFactory,
@@ -53,7 +51,7 @@ abstract class FileUploadTask @Inject constructor(
     abstract val apiKey: Property<String>
 
     /**
-     * Source of the API key set: environment, gradle property, etc.
+     * Source of the API key set: environment, Gradle property, etc.
      */
     @get:Input
     abstract val apiKeySource: Property<ApiKeySource>
@@ -69,7 +67,7 @@ abstract class FileUploadTask @Inject constructor(
      * The variant name of the application.
      */
     @get:Input
-    var variantName: String = ""
+    abstract val variantName: Property<String>
 
     /**
      * The version name of the application.
@@ -94,13 +92,13 @@ abstract class FileUploadTask @Inject constructor(
      * The Datadog site to upload to (one of "US1", "EU1", "US1_FED").
      */
     @get:Input
-    var site: String = ""
+    abstract val site: Property<String>
 
     /**
      * The url of the remote repository where the source code was deployed.
      */
     @get:Input
-    var remoteRepositoryUrl: String = ""
+    abstract val remoteRepositoryUrl: Property<String>
 
     /**
      * File containing the build ID used for mapping file matching.
@@ -115,13 +113,6 @@ abstract class FileUploadTask @Inject constructor(
     abstract val buildIdFile: RegularFileProperty
 
     /**
-     * datadog-ci.json file, if found or applicable for the particular task.
-     */
-    @Optional
-    @get:InputFile
-    var datadogCiFile: File? = null
-
-    /**
      * The sourceSet root folders.
      */
     @get:InputFiles
@@ -131,7 +122,7 @@ abstract class FileUploadTask @Inject constructor(
      * The file containing the repository description.
      */
     @get:OutputFile
-    var repositoryFile: File = File("")
+    abstract val repositoryFile: RegularFileProperty
 
     init {
         group = DdAndroidGradlePlugin.DATADOG_TASK_GROUP
@@ -145,10 +136,6 @@ abstract class FileUploadTask @Inject constructor(
     @TaskAction
     @Suppress("TooGenericExceptionCaught", "LongMethod")
     fun applyTask() {
-        datadogCiFile?.let {
-            applyDatadogCiConfig(it)
-        }
-        applySiteFromEnvironment()
         validateConfiguration()
 
         check(!(apiKey.get().contains("\"") || apiKey.get().contains("'"))) {
@@ -175,14 +162,14 @@ abstract class FileUploadTask @Inject constructor(
 
         val repositories = repositoryDetector.detectRepositories(
             uniqueSourceSetRoots,
-            remoteRepositoryUrl
+            remoteRepositoryUrl.get()
         )
 
         if (repositories.isNotEmpty()) {
             generateRepositoryFile(repositories)
         }
 
-        val site = DatadogSite.valueOf(site)
+        val site = DatadogSite.valueOf(site.get())
         val caughtErrors = mutableListOf<Exception>()
 
         for (mappingFile in mappingFiles) {
@@ -191,13 +178,13 @@ abstract class FileUploadTask @Inject constructor(
                 uploader.upload(
                     site,
                     mappingFile,
-                    if (repositories.isEmpty()) null else repositoryFile,
+                    if (repositories.isEmpty()) null else repositoryFile.get().asFile,
                     apiKey.get(),
                     DdAppIdentifier(
                         serviceName = serviceName.get(),
                         version = versionName.get(),
                         versionCode = versionCode.get(),
-                        variant = variantName,
+                        variant = variantName.get(),
                         buildId = buildId
                     ),
                     repositories.firstOrNull(),
@@ -232,9 +219,8 @@ abstract class FileUploadTask @Inject constructor(
         extensionConfiguration: DdExtensionConfiguration,
         variant: AppVariant
     ) {
-        this.apiKey.set(apiKeyProvider.map { it.value })
-        this.apiKeySource.set(apiKeyProvider.map { it.source })
-        site = extensionConfiguration.site ?: ""
+        apiKey.set(apiKeyProvider.map { it.value })
+        apiKeySource.set(apiKeyProvider.map { it.source })
 
         versionName.set(variant.versionName)
         versionCode.set(variant.versionCode)
@@ -245,8 +231,8 @@ abstract class FileUploadTask @Inject constructor(
             serviceName.set(variant.applicationId)
         }
 
-        variantName = variant.flavorName
-        remoteRepositoryUrl = extensionConfiguration.remoteRepositoryUrl ?: ""
+        variantName.set(variant.flavorName)
+        remoteRepositoryUrl.set(extensionConfiguration.remoteRepositoryUrl.orEmpty())
     }
 
     // endregion
@@ -262,67 +248,12 @@ abstract class FileUploadTask @Inject constructor(
         }
     }
 
-    private fun applySiteFromEnvironment() {
-        val environmentSite = System.getenv(DATADOG_SITE)
-        if (!environmentSite.isNullOrEmpty()) {
-            if (this.site.isNotEmpty()) {
-                DdAndroidGradlePlugin.LOGGER.info(
-                    "Site property found as DATADOG_SITE env variable, but it will be ignored," +
-                        " because also an explicit one was provided in extension."
-                )
-                return
-            }
-            val site = DatadogSite.fromDomain(environmentSite)
-            if (site == null) {
-                DdAndroidGradlePlugin.LOGGER.warn("Unknown Datadog domain provided: $environmentSite, ignoring it.")
-            } else {
-                DdAndroidGradlePlugin.LOGGER.info("Site property found in Datadog CI config file, using it.")
-                this.site = site.name
-            }
-        }
-    }
-
-    private fun applyDatadogCiConfig(datadogCiFile: File) {
-        try {
-            val config = JSONObject(datadogCiFile.readText())
-            // API key is now resolved via provider chain in resolveApiKey()
-            applySiteFromDatadogCiConfig(config)
-        } catch (e: JSONException) {
-            DdAndroidGradlePlugin.LOGGER.error("Failed to parse Datadog CI config file.", e)
-        }
-    }
-
-    private fun applySiteFromDatadogCiConfig(config: JSONObject) {
-        val siteAsDomain = config.optString(DATADOG_CI_SITE_PROPERTY, null)
-        if (!siteAsDomain.isNullOrEmpty()) {
-            if (this.site.isNotEmpty()) {
-                DdAndroidGradlePlugin.LOGGER.info(
-                    "Site property found in Datadog CI config file, but it will be ignored," +
-                        " because also an explicit one was provided in extension."
-                )
-            } else {
-                val site = DatadogSite.fromDomain(siteAsDomain)
-                if (site == null) {
-                    DdAndroidGradlePlugin.LOGGER.warn("Unknown Datadog domain provided: $siteAsDomain, ignoring it.")
-                } else {
-                    DdAndroidGradlePlugin.LOGGER.info("Site property found in Datadog CI config file, using it.")
-                    this.site = site.name
-                }
-            }
-        }
-    }
-
     @Suppress("CheckInternal")
     private fun validateConfiguration() {
         check(apiKey.get().isNotBlank()) { API_KEY_MISSING_ERROR }
-
-        if (site.isBlank()) {
-            site = DatadogSite.US1.name
-        } else {
-            val validSiteIds = DatadogSite.validIds
-            check(site in validSiteIds) {
-                "You need to provide a valid site (one of ${validSiteIds.joinToString()})"
-            }
+        val validSiteIds = DatadogSite.validIds
+        check(site.get() in validSiteIds) {
+            "You need to provide a valid site (one of ${validSiteIds.joinToString()})"
         }
     }
 
@@ -341,8 +272,10 @@ abstract class FileUploadTask @Inject constructor(
         jsonObject.put("version", REPOSITORY_FILE_VERSION)
         jsonObject.put("data", data)
 
-        repositoryFile.parentFile.mkdirs()
-        repositoryFile.writeText(jsonObject.toString(0))
+        repositoryFile.get().asFile.let {
+            it.parentFile.mkdirs()
+            it.writeText(jsonObject.toString(0))
+        }
     }
 
     // endregion
@@ -350,10 +283,6 @@ abstract class FileUploadTask @Inject constructor(
     internal companion object {
         private const val REPOSITORY_FILE_VERSION = 1
         private const val INDENT = 4
-
-        internal const val DATADOG_CI_API_KEY_PROPERTY = "apiKey"
-        private const val DATADOG_CI_SITE_PROPERTY = "datadogSite"
-        const val DATADOG_SITE = "DATADOG_SITE"
 
         internal val LOGGER = Logging.getLogger("DdFileUploadTask")
 

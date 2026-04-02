@@ -8,18 +8,20 @@ package com.datadog.gradle.plugin
 
 import com.android.builder.model.Version
 import org.gradle.api.Project
+import org.gradle.api.file.RegularFile
+import org.gradle.api.provider.Provider
 import java.io.File
+import kotlin.io.path.Path
 
 internal object TaskUtils {
 
     private const val MAX_DATADOG_CI_FILE_LOOKUP_LEVELS = 4
 
     @Suppress("StringLiteralDuplication")
-    fun resolveDatadogRepositoryFile(target: Project): File {
-        val outputsDir = target.layout.buildDirectory.dir("outputs").get().asFile
-        val reportsDir = File(outputsDir, "reports")
-        val datadogDir = File(reportsDir, "datadog")
-        return File(datadogDir, "repository.json")
+    fun resolveDatadogRepositoryFile(target: Project): Provider<RegularFile> {
+        return target.layout.buildDirectory.dir(
+            Path("outputs", "reports", "datadog").toString()
+        ).map { it.file("repository.json") }
     }
 
     fun findDatadogCiFile(projectDir: File): File? {

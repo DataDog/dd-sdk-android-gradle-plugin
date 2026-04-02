@@ -8,6 +8,7 @@ package com.datadog.gradle.plugin
 
 import com.datadog.gradle.plugin.internal.ApiKey
 import com.datadog.gradle.plugin.internal.Uploader
+import com.datadog.gradle.plugin.internal.utils.capitalizeChar
 import com.datadog.gradle.plugin.internal.variant.AppVariant
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
@@ -109,11 +110,12 @@ internal abstract class NdkSymbolFileUploadTask @Inject constructor(
             buildIdTask: TaskProvider<GenerateBuildIdTask>,
             buildIdFile: Provider<RegularFile>,
             apiKeyProvider: Provider<ApiKey>,
+            siteProvider: Provider<String>,
             extensionConfiguration: DdExtensionConfiguration,
             repositoryDetector: RepositoryDetector
         ): TaskProvider<NdkSymbolFileUploadTask> {
             return project.tasks.register(
-                TASK_NAME + variant.name.capitalize(),
+                TASK_NAME + variant.name.replaceFirstChar { capitalizeChar(it) },
                 NdkSymbolFileUploadTask::class.java,
                 repositoryDetector
             ).apply {
@@ -122,8 +124,10 @@ internal abstract class NdkSymbolFileUploadTask @Inject constructor(
 
                     variant.bindWith(task)
 
-                    task.datadogCiFile = TaskUtils.findDatadogCiFile(project.rootDir)
-                    task.repositoryFile = TaskUtils.resolveDatadogRepositoryFile(project)
+                    task.repositoryFile.set(TaskUtils.resolveDatadogRepositoryFile(project))
+                    task.site.set(siteProvider)
+                    task.variantName.set("")
+                    task.remoteRepositoryUrl.set("")
                     extensionConfiguration.additionalSymbolFilesLocations?.let {
                         task.searchDirectories.from(it.toTypedArray())
                     }

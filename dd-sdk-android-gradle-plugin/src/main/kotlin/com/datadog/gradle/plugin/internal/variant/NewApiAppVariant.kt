@@ -15,6 +15,7 @@ import com.datadog.gradle.plugin.InjectBuildIdToAssetsTask
 import com.datadog.gradle.plugin.MappingFileUploadTask
 import com.datadog.gradle.plugin.NdkSymbolFileUploadTask
 import com.datadog.gradle.plugin.internal.getSearchObjDirs
+import com.datadog.gradle.plugin.internal.utils.capitalizeChar
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.Directory
@@ -22,7 +23,6 @@ import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskProvider
 import java.io.File
-import java.util.Locale
 
 internal class NewApiAppVariant(
     private val variant: ApplicationVariant,
@@ -89,7 +89,7 @@ internal class NewApiAppVariant(
         buildIdDirectory: Provider<Directory>
     ) {
         val injectTask = target.tasks.register(
-            INJECT_BUILD_ID_TASK_NAME + variant.name.replaceFirstChar { it.uppercase(Locale.US) },
+            INJECT_BUILD_ID_TASK_NAME + variant.name.replaceFirstChar { capitalizeChar(it) },
             InjectBuildIdToAssetsTask::class.java
         ) {
             it.buildIdFile.set(
