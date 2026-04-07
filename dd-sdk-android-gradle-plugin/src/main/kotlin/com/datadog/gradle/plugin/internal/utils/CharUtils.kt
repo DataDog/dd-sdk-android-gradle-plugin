@@ -4,11 +4,11 @@
  * Copyright 2020-Present Datadog, Inc.
  */
 
-package com.datadog.gradle.plugin.utils
+package com.datadog.gradle.plugin.internal.utils
 
 import java.util.Locale
 
-fun capitalizeChar(char: Char): CharSequence {
+internal fun capitalizeChar(char: Char): String {
     return if (char.isLowerCase()) {
         char.titlecase(Locale.US)
     } else {

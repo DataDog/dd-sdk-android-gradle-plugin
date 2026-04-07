@@ -6,7 +6,7 @@
 
 package com.datadog.gradle.plugin.internal
 
-import com.datadog.gradle.plugin.utils.capitalizeChar
+import com.datadog.gradle.plugin.internal.utils.capitalizeChar
 import com.datadog.gradle.plugin.utils.forge.Configurator
 import fr.xgouchet.elmyr.Case
 import fr.xgouchet.elmyr.annotation.StringForgery

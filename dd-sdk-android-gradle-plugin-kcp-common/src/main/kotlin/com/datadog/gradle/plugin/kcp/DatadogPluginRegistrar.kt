@@ -4,7 +4,7 @@
  * Copyright 2020-Present Datadog, Inc.
  */
 
-@file:Suppress("Deprecation", "UnstableApiUsage")
+@file:Suppress("Deprecation")
 
 package com.datadog.gradle.plugin.kcp
 

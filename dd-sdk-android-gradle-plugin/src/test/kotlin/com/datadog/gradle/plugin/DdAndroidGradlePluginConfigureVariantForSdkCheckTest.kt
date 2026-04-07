@@ -6,7 +6,7 @@
 
 package com.datadog.gradle.plugin
 
-import com.datadog.gradle.plugin.utils.capitalizeChar
+import com.datadog.gradle.plugin.internal.utils.capitalizeChar
 import fr.xgouchet.elmyr.Case
 import fr.xgouchet.elmyr.annotation.IntForgery
 import fr.xgouchet.elmyr.annotation.StringForgery
@@ -42,7 +42,8 @@ internal class DdAndroidGradlePluginConfigureVariantForSdkCheckTest : DdAndroidG
         whenever(mockVariant.applicationId) doReturn packageName.asProvider()
         whenever(mockVariant.buildTypeName) doReturn fakeBuildTypeName
 
-        fakeProject.task("compile${variantName.replaceFirstChar { capitalizeChar(it) }}Sources")
+        fakeProject.tasks
+            .register("compile${variantName.replaceFirstChar { capitalizeChar(it) }}Sources")
 
         val mockConfiguration = mock<Configuration>()
         whenever(mockConfiguration.name) doReturn configurationName
@@ -78,7 +79,8 @@ internal class DdAndroidGradlePluginConfigureVariantForSdkCheckTest : DdAndroidG
         whenever(mockVariant.applicationId) doReturn packageName.asProvider()
         whenever(mockVariant.buildTypeName) doReturn fakeBuildTypeName
 
-        fakeProject.task("compile${variantName.replaceFirstChar { capitalizeChar(it) }}Sources")
+        fakeProject.tasks
+            .register("compile${variantName.replaceFirstChar { capitalizeChar(it) }}Sources")
 
         // When + Then
         assertThat(

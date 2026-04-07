@@ -21,7 +21,8 @@ internal fun ExecOperations.execShell(vararg command: String): String {
             it.standardOutput = outputStream
             it.errorOutput = errorStream
         }
-    } catch (e: ExecException) {
+    } catch (@Suppress("DEPRECATION") e: ExecException) {
+        // Suppress deprecation above because replacement class is only available starting from Gradle 9.0
         LOGGER.error(errorStream.toString("UTF-8"))
         throw e
     }

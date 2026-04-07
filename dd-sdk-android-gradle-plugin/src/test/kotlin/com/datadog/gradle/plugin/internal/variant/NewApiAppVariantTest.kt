@@ -362,10 +362,10 @@ internal class NewApiAppVariantTest {
 
     // region private
 
-    private inline fun <reified T> T.asProperty(): Property<T> =
+    private inline fun <reified T : Any> T.asProperty(): Property<T> =
         fakeProject.objects.property(T::class.java).value(this)
 
-    private inline fun <reified T> Collection<T>.asListProperty(): ListProperty<T> =
+    private inline fun <reified T : Any> Collection<T>.asListProperty(): ListProperty<T> =
         fakeProject.objects.listProperty(T::class.java).value(this)
 
     private fun File.asDirectory(): Directory =

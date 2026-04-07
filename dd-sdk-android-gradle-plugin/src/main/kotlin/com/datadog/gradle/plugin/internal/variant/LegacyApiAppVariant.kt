@@ -14,6 +14,7 @@ import com.datadog.gradle.plugin.MappingFileUploadTask
 import com.datadog.gradle.plugin.NdkSymbolFileUploadTask
 import com.datadog.gradle.plugin.internal.CurrentAgpVersion
 import com.datadog.gradle.plugin.internal.getSearchObjDirs
+import com.datadog.gradle.plugin.internal.utils.capitalizeChar
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.Directory
@@ -101,7 +102,8 @@ internal class LegacyApiAppVariant(
     }
 
     override fun bindWith(mappingFileUploadTask: MappingFileUploadTask) {
-        val minifyTask = target.tasks.findByName("minify${variant.name.capitalize()}WithR8") ?: return
+        val minifyTask = target.tasks
+            .findByName("minify${variant.name.replaceFirstChar { capitalizeChar(it) }}WithR8") ?: return
         mappingFileUploadTask.dependsOn(minifyTask)
     }
 
@@ -116,7 +118,7 @@ internal class LegacyApiAppVariant(
         // so applying such workaround
         appExtension.sourceSets.getByName(variant.name).assets.srcDir(buildIdDirectory)
 
-        val variantName = variant.name.capitalize()
+        val variantName = variant.name.replaceFirstChar { capitalizeChar(it) }
         listOf(
             "package${variantName}Bundle",
             "build${variantName}PreBundle",

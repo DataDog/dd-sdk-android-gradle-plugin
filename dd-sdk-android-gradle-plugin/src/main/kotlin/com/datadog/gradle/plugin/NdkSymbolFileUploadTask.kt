@@ -8,10 +8,11 @@ package com.datadog.gradle.plugin
 
 import com.datadog.gradle.plugin.internal.ApiKey
 import com.datadog.gradle.plugin.internal.Uploader
-import com.datadog.gradle.plugin.internal.lazyBuildIdProvider
+import com.datadog.gradle.plugin.internal.utils.capitalizeChar
 import com.datadog.gradle.plugin.internal.variant.AppVariant
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.RegularFile
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
@@ -107,13 +108,14 @@ internal abstract class NdkSymbolFileUploadTask @Inject constructor(
             project: Project,
             variant: AppVariant,
             buildIdTask: TaskProvider<GenerateBuildIdTask>,
-            providerFactory: ProviderFactory,
+            buildIdFile: Provider<RegularFile>,
             apiKeyProvider: Provider<ApiKey>,
+            siteProvider: Provider<String>,
             extensionConfiguration: DdExtensionConfiguration,
             repositoryDetector: RepositoryDetector
         ): TaskProvider<NdkSymbolFileUploadTask> {
             return project.tasks.register(
-                TASK_NAME + variant.name.capitalize(),
+                TASK_NAME + variant.name.replaceFirstChar { capitalizeChar(it) },
                 NdkSymbolFileUploadTask::class.java,
                 repositoryDetector
             ).apply {
@@ -122,8 +124,10 @@ internal abstract class NdkSymbolFileUploadTask @Inject constructor(
 
                     variant.bindWith(task)
 
-                    task.datadogCiFile = TaskUtils.findDatadogCiFile(project.rootDir)
-                    task.repositoryFile = TaskUtils.resolveDatadogRepositoryFile(project)
+                    task.repositoryFile.set(TaskUtils.resolveDatadogRepositoryFile(project))
+                    task.site.set(siteProvider)
+                    task.variantName.set("")
+                    task.remoteRepositoryUrl.set("")
                     extensionConfiguration.additionalSymbolFilesLocations?.let {
                         task.searchDirectories.from(it.toTypedArray())
                     }
@@ -133,7 +137,8 @@ internal abstract class NdkSymbolFileUploadTask @Inject constructor(
                         variant
                     )
 
-                    task.buildId.set(buildIdTask.lazyBuildIdProvider(providerFactory))
+                    task.buildIdFile.set(buildIdFile)
+                    task.mustRunAfter(buildIdTask)
                 }
             }
         }
