@@ -6,6 +6,7 @@
 
 package com.datadog.gradle.plugin
 
+import com.datadog.gradle.plugin.internal.utils.capitalizeChar
 import com.datadog.gradle.plugin.utils.assertj.BuildResultAssert.Companion.assertThat
 import com.datadog.gradle.plugin.utils.forge.Configurator
 import com.datadog.gradle.plugin.utils.headHash
@@ -578,6 +579,41 @@ internal class DdAndroidGradlePluginFunctionalTest {
         assertThat(buildIds.toSet()).hasSize(bundles.size)
     }
 
+    @Test
+    fun `M preserve existing assets W inject buildId into apk`() {
+        // Given
+        stubGradleBuildFromResourceFile(
+            "build_with_datadog_dep.gradle",
+            appBuildGradleFile
+        )
+        val assetFile = File(appMainSrcDir, "assets/existing-asset.txt").apply {
+            parentFile.mkdirs()
+        }
+        val assetContent = "existing asset content"
+        stubFile(assetFile, assetContent)
+
+        // When
+        val result = gradleRunner { withArguments("--stacktrace", ":samples:app:assembleRelease") }
+            .build()
+
+        // Then
+        assertThat(result.task(":samples:app:assembleRelease")?.outcome)
+            .isEqualTo(TaskOutcome.SUCCESS)
+
+        val apks = testProjectDir.walk()
+            .filter { it.isFile && it.extension == "apk" }
+            .map { ZipFile(it) }
+            .toList()
+
+        assertThat(apks).isNotEmpty
+        apks.forEach {
+            assertThat(it.readTextFile("assets/existing-asset.txt")).isEqualTo(assetContent)
+            assertThat(it.readBuildId(BUILD_ID_FILE_PATH_APK)).isNotBlank()
+        }
+
+        assertThat(apks.map { it.readBuildId(BUILD_ID_FILE_PATH_APK) }.toSet().size).isEqualTo(apks.size)
+    }
+
     // region Mapping Upload
 
     @Test
@@ -951,12 +987,13 @@ internal class DdAndroidGradlePluginFunctionalTest {
         val version = forge.anElementFrom(versions)
         val variantVersionName = version.lowercase()
         val variant = "${version.lowercase()}$color"
+        val variantCapitalized = variant.replaceFirstChar { capitalizeChar(it) }
 
         appBuildGradleFile.appendText(
             """
                 tasks.configureEach {
-                    if (name == "minify${variant.capitalize()}ReleaseWithR8") {
-                        finalizedBy(tasks.getByName("uploadMapping${variant.capitalize()}Release"))
+                    if (name == "minify${variantCapitalized}ReleaseWithR8") {
+                        finalizedBy(tasks.getByName("uploadMapping${variantCapitalized}Release"))
                     }
                 }
             """.trimIndent()
@@ -965,7 +1002,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         val result = gradleRunner(gradleVersion = LATEST_VERSIONS_TEST_CONFIGURATION.gradleVersion) {
             withArguments(
                 "--info",
-                ":samples:app:assemble${variant.capitalize()}Release",
+                ":samples:app:assemble${variantCapitalized}Release",
                 "--stacktrace",
                 "-PDD_API_KEY=fakekey",
                 "-Pdd-emulate-upload-call",
@@ -1002,6 +1039,73 @@ internal class DdAndroidGradlePluginFunctionalTest {
                 }
             """.trimIndent()
         )
+    }
+
+    @Test
+    fun `M reuse configuration cache W assemble finalized by upload { warn mode }`(forge: Forge) {
+        // Given
+        // this test is targeting the specific behavior of Gradle 8
+        buildVersionConfig = BuildVersionConfig(
+            agpVersion = "8.13.2",
+            gradleVersion = "8.14.1",
+            buildToolsVersion = "36.1.0",
+            targetSdkVersion = "36",
+            kotlinVersion = "2.3.10",
+            jvmTarget = JavaVersion.VERSION_17.toString()
+        )
+        stubGradleBuildFromResourceFile(
+            "lib_module_build.gradle",
+            libModuleBuildGradleFile,
+            overwrite = true
+        )
+        stubGradlePropertiesFile(buildVersionConfig)
+        gradlePropertiesFile.appendText("\norg.gradle.configuration-cache.problems=warn\n")
+        stubGradleBuildFromResourceFile(
+            "build_with_datadog_dep.gradle",
+            appBuildGradleFile
+        )
+        val color = forge.anElementFrom(colors)
+        val version = forge.anElementFrom(versions)
+        val variant = "${version.lowercase()}$color"
+        val variantCapitalized = variant.replaceFirstChar { capitalizeChar(it) }
+
+        appBuildGradleFile.appendText(
+            """
+                tasks.configureEach {
+                    if (name == "minify${variantCapitalized}ReleaseWithR8") {
+                        finalizedBy(tasks.getByName("uploadMapping${variantCapitalized}Release"))
+                    }
+                }
+            """.trimIndent()
+        )
+
+        val firstRun = gradleRunner(gradleVersion = buildVersionConfig.gradleVersion) {
+            withArguments(
+                "--info",
+                ":samples:app:assemble${variantCapitalized}Release",
+                "--stacktrace",
+                "-PDD_API_KEY=fakekey",
+                "-Pdd-emulate-upload-call",
+                "--configuration-cache"
+            )
+        }.build()
+
+        // When
+        val secondRun = gradleRunner(gradleVersion = buildVersionConfig.gradleVersion) {
+            withArguments(
+                "--info",
+                ":samples:app:assemble${variantCapitalized}Release",
+                "--stacktrace",
+                "-PDD_API_KEY=fakekey",
+                "-Pdd-emulate-upload-call",
+                "--configuration-cache"
+            )
+        }.build()
+
+        // Then
+        assertThat(firstRun).containsInOutput("Configuration cache entry stored.")
+        assertThat(secondRun).containsInOutput("Configuration cache entry reused.")
+        assertThat(secondRun.output).doesNotContain(FileUploadTask.MISSING_BUILD_ID_ERROR)
     }
 
     @Test
@@ -1334,11 +1438,13 @@ internal class DdAndroidGradlePluginFunctionalTest {
 
     // region Internal
 
-    private fun resolveMappingUploadTask(variantName: String) = "uploadMapping${variantName.capitalize()}Release"
+    private fun resolveMappingUploadTask(
+        variantName: String
+    ) = "uploadMapping${variantName.replaceFirstChar { capitalizeChar(it) }}Release"
 
     private fun resolveNdkSymbolUploadTask(
         variantName: String
-    ) = "uploadNdkSymbolFiles${variantName.capitalize()}Release"
+    ) = "uploadNdkSymbolFiles${variantName.replaceFirstChar { capitalizeChar(it) }}Release"
 
     private fun stubFile(destination: File, content: String) {
         with(destination.outputStream()) {
@@ -1426,10 +1532,13 @@ internal class DdAndroidGradlePluginFunctionalTest {
     }
 
     private fun ZipFile.readBuildId(path: String): String {
+        return readTextFile(path).trim()
+    }
+
+    private fun ZipFile.readTextFile(path: String): String {
         return getInputStream(getEntry(path))
             .bufferedReader()
             .readText()
-            .trim()
     }
 
     @Suppress("ReturnCount")

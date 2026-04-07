@@ -8,8 +8,8 @@ package com.datadog.gradle.plugin
 
 import com.datadog.gradle.plugin.internal.ApiKey
 import com.datadog.gradle.plugin.internal.ApiKeySource
+import com.datadog.gradle.plugin.internal.utils.capitalizeChar
 import com.datadog.gradle.plugin.internal.variant.AppVariant
-import com.datadog.gradle.plugin.utils.capitalizeChar
 import com.datadog.gradle.plugin.utils.forge.Configurator
 import fr.xgouchet.elmyr.Case
 import fr.xgouchet.elmyr.Forge
@@ -18,10 +18,8 @@ import fr.xgouchet.elmyr.annotation.StringForgery
 import fr.xgouchet.elmyr.junit5.ForgeConfiguration
 import fr.xgouchet.elmyr.junit5.ForgeExtension
 import org.gradle.api.Project
-import org.gradle.api.Transformer
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Provider
-import org.gradle.api.tasks.TaskProvider
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
@@ -29,10 +27,7 @@ import org.junit.jupiter.api.extension.Extensions
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.junit.jupiter.MockitoSettings
-import org.mockito.kotlin.any
-import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
 import java.io.File
 import java.util.UUID
@@ -78,13 +73,7 @@ internal abstract class DdAndroidGradlePluginTestBase {
         fakeFlavorNames = fakeFlavorNames.take(5) // A D F G A♭ A A♭ G F
         fakeBuildId = forge.getForgery<UUID>().toString()
         fakeProject = ProjectBuilder.builder().build()
-        testedPlugin = DdAndroidGradlePlugin(
-            execOps = mock(),
-            providerFactory = fakeProject.providers
-        )
-
-        setEnv(DdAndroidGradlePlugin.DD_API_KEY, "")
-        setEnv(DdAndroidGradlePlugin.DATADOG_API_KEY, "")
+        testedPlugin = DdAndroidGradlePlugin(execOps = mock())
     }
 
     // region Helper Methods
@@ -93,15 +82,7 @@ internal abstract class DdAndroidGradlePluginTestBase {
         return first() + drop(1).joinToString("") { it.replaceFirstChar { capitalizeChar(it) } }
     }
 
-    protected fun mockBuildIdGenerationTask(buildId: String): TaskProvider<GenerateBuildIdTask> {
-        return mock<TaskProvider<GenerateBuildIdTask>>().apply {
-            whenever(
-                flatMap(any<Transformer<Provider<String>, GenerateBuildIdTask>>())
-            ) doReturn buildId.asProvider()
-        }
-    }
-
-    protected fun <T> T.asProvider(): Provider<T> {
+    protected fun <T : Any> T.asProvider(): Provider<T> {
         return fakeProject.provider { this }
     }
 

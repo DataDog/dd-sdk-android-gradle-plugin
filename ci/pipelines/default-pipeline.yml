@@ -108,6 +108,11 @@ test:plugin:
     - export DD_AGENT_HOST="$BUILDENV_HOST_IP"
     - GRADLE_OPTS="-Xmx2560m" DD_TAGS="test.module:dd-sdk-android-gradle-plugin" ./gradlew :dd-sdk-android-gradle-plugin:test --stacktrace --no-daemon -Dorg.gradle.jvmargs=-javaagent:$(pwd)/libs/dd-java-agent-1.54.0.jar=$DD_COMMON_AGENT_CONFIG
     - bash <(cat ./ci/scripts/codecov.sh) -t $CODECOV_TOKEN
+    - |
+      if [ -n "$DD_API_KEY" ]; then
+        curl -L --fail "https://github.com/DataDog/datadog-ci/releases/latest/download/datadog-ci_linux-x64" --output "/usr/local/bin/datadog-ci" && chmod +x /usr/local/bin/datadog-ci
+        datadog-ci coverage upload --format=jacoco . || true
+      fi
   artifacts:
     reports:
       junit: dd-sdk-android-gradle-plugin/build/test-results/test/TEST-*.xml
@@ -123,6 +128,11 @@ test:common:
     - export DD_AGENT_HOST="$BUILDENV_HOST_IP"
     - GRADLE_OPTS="-Xmx2560m" DD_TAGS="test.module:dd-sdk-android-gradle-plugin-kcp-common" ./gradlew :dd-sdk-android-gradle-plugin-kcp-common:test --stacktrace --no-daemon -Dorg.gradle.jvmargs=-javaagent:$(pwd)/libs/dd-java-agent-1.54.0.jar=$DD_COMMON_AGENT_CONFIG
     - bash <(cat ./ci/scripts/codecov.sh) -t $CODECOV_TOKEN
+    - |
+      if [ -n "$DD_API_KEY" ]; then
+        curl -L --fail "https://github.com/DataDog/datadog-ci/releases/latest/download/datadog-ci_linux-x64" --output "/usr/local/bin/datadog-ci" && chmod +x /usr/local/bin/datadog-ci
+        datadog-ci coverage upload --format=jacoco . || true
+      fi
   artifacts:
     reports:
       junit: dd-sdk-android-gradle-plugin-kcp-common/build/test-results/test/TEST-*.xml
@@ -138,6 +148,11 @@ test:kotlin20:
     - export DD_AGENT_HOST="$BUILDENV_HOST_IP"
     - GRADLE_OPTS="-Xmx2560m" DD_TAGS="test.module:dd-sdk-android-gradle-plugin-kcp-kotlin20" ./gradlew :dd-sdk-android-gradle-plugin-kcp-kotlin20:test --stacktrace --no-daemon -Dorg.gradle.jvmargs=-javaagent:$(pwd)/libs/dd-java-agent-1.54.0.jar=$DD_COMMON_AGENT_CONFIG
     - bash <(cat ./ci/scripts/codecov.sh) -t $CODECOV_TOKEN
+    - |
+      if [ -n "$DD_API_KEY" ]; then
+        curl -L --fail "https://github.com/DataDog/datadog-ci/releases/latest/download/datadog-ci_linux-x64" --output "/usr/local/bin/datadog-ci" && chmod +x /usr/local/bin/datadog-ci
+        datadog-ci coverage upload --format=jacoco . || true
+      fi
   artifacts:
     reports:
       junit: dd-sdk-android-gradle-plugin-kcp-kotlin20/build/test-results/test/TEST-*.xml
@@ -153,6 +168,11 @@ test:kotlin21:
     - export DD_AGENT_HOST="$BUILDENV_HOST_IP"
     - GRADLE_OPTS="-Xmx2560m" DD_TAGS="test.module:dd-sdk-android-gradle-plugin-kcp-kotlin21" ./gradlew :dd-sdk-android-gradle-plugin-kcp-kotlin21:test --stacktrace --no-daemon -Dorg.gradle.jvmargs=-javaagent:$(pwd)/libs/dd-java-agent-1.54.0.jar=$DD_COMMON_AGENT_CONFIG
     - bash <(cat ./ci/scripts/codecov.sh) -t $CODECOV_TOKEN
+    - |
+      if [ -n "$DD_API_KEY" ]; then
+        curl -L --fail "https://github.com/DataDog/datadog-ci/releases/latest/download/datadog-ci_linux-x64" --output "/usr/local/bin/datadog-ci" && chmod +x /usr/local/bin/datadog-ci
+        datadog-ci coverage upload --format=jacoco . || true
+      fi
   artifacts:
     reports:
       junit: dd-sdk-android-gradle-plugin-kcp-kotlin21/build/test-results/test/TEST-*.xml
@@ -168,6 +188,11 @@ test:kotlin22:
     - export DD_AGENT_HOST="$BUILDENV_HOST_IP"
     - GRADLE_OPTS="-Xmx2560m" DD_TAGS="test.module:dd-sdk-android-gradle-plugin-kcp-kotlin22" ./gradlew :dd-sdk-android-gradle-plugin-kcp-kotlin22:test --stacktrace --no-daemon -Dorg.gradle.jvmargs=-javaagent:$(pwd)/libs/dd-java-agent-1.54.0.jar=$DD_COMMON_AGENT_CONFIG
     - bash <(cat ./ci/scripts/codecov.sh) -t $CODECOV_TOKEN
+    - |
+      if [ -n "$DD_API_KEY" ]; then
+        curl -L --fail "https://github.com/DataDog/datadog-ci/releases/latest/download/datadog-ci_linux-x64" --output "/usr/local/bin/datadog-ci" && chmod +x /usr/local/bin/datadog-ci
+        datadog-ci coverage upload --format=jacoco . || true
+      fi
   artifacts:
     reports:
       junit: dd-sdk-android-gradle-plugin-kcp-kotlin22/build/test-results/test/TEST-*.xml

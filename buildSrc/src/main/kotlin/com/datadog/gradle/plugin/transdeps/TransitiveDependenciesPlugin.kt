@@ -9,23 +9,32 @@ package com.datadog.gradle.plugin.transdeps
 import com.datadog.gradle.config.taskConfig
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.kotlin.dsl.register
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
 
 class TransitiveDependenciesPlugin : Plugin<Project> {
 
     override fun apply(target: Project) {
-        val task = target.tasks.create(TASK_NAME, TransitiveDependenciesTask::class.java)
-        task.outputFile = File(target.projectDir, FILE_NAME)
+        val listTransitiveDependenciesTask =
+            target.tasks.register(TASK_GEN_TRANSITIVE_DEPS, TransitiveDependenciesTask::class.java) {
+                outputFile = File(target.projectDir, FILE_NAME)
+            }
+
+        target.tasks.register<CheckTransitiveDependenciesTask>(TASK_CHECK_TRANSITIVE_DEPS) {
+            dependenciesFile.set(target.layout.projectDirectory.file(FILE_NAME))
+            dependsOn(TASK_GEN_TRANSITIVE_DEPS)
+        }
 
         target.taskConfig<KotlinCompile> {
-            finalizedBy(TASK_NAME)
+            finalizedBy(listTransitiveDependenciesTask)
         }
     }
 
     companion object {
 
-        const val TASK_NAME = "listTransitiveDependencies"
+        const val TASK_GEN_TRANSITIVE_DEPS = "listTransitiveDependencies"
+        const val TASK_CHECK_TRANSITIVE_DEPS = "checkTransitiveDependenciesList"
         const val FILE_NAME = "transitiveDependencies"
     }
 }

@@ -176,7 +176,6 @@ class DependenciesLicenseProvider {
         return licenses
     }
 
-    @Suppress("UnstableApiUsage")
     private fun ResolvedDependencyResult.isRoot(): Boolean {
         return from.selectionReason.descriptions.any {
             it.cause == ComponentSelectionCause.ROOT

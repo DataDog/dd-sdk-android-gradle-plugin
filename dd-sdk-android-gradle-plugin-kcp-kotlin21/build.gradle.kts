@@ -31,6 +31,7 @@ plugins {
     // Internal Generation
     id("thirdPartyLicences")
     id("transitiveDependencies")
+    id("compilerMetadata")
 }
 
 repositories {

@@ -6,7 +6,6 @@
 
 package com.datadog.gradle.plugin.checklicenses
 
-import com.android.build.gradle.internal.tasks.factory.dependsOn
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import java.io.File
@@ -21,15 +20,19 @@ class ThirdPartyLicensesPlugin : Plugin<Project> {
             ThirdPartyLicensesExtension.DEFAULT_TP_LICENCE_FILENAME
         )
 
-        val updateTask = target.tasks
-            .create(TASK_UPDATE_NAME, UpdateThirdPartyLicensesTask::class.java)
-        updateTask.extension = extension
+        target.tasks
+            .register(TASK_UPDATE_NAME, UpdateThirdPartyLicensesTask::class.java) {
+                this.extension = extension
+            }
 
         val checkTask = target.tasks
-            .create(TASK_CHECK_NAME, CheckThirdPartyLicensesTask::class.java)
-        checkTask.extension = extension
+            .register(TASK_CHECK_NAME, CheckThirdPartyLicensesTask::class.java) {
+                this.extension = extension
+            }
 
-        target.tasks.named("check").dependsOn(TASK_CHECK_NAME)
+        target.tasks.named("check").configure {
+            dependsOn(checkTask)
+        }
     }
 
     companion object {

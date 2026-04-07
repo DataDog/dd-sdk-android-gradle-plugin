@@ -16,7 +16,7 @@ import com.datadog.gradle.plugin.internal.ApiKeySource.GRADLE_PROPERTY
 import com.datadog.gradle.plugin.internal.CurrentAgpVersion
 import com.datadog.gradle.plugin.internal.GitRepositoryDetector
 import com.datadog.gradle.plugin.internal.VariantIterator
-import com.datadog.gradle.plugin.internal.lazyBuildIdProvider
+import com.datadog.gradle.plugin.internal.utils.capitalizeChar
 import com.datadog.gradle.plugin.internal.variant.AppVariant
 import com.datadog.gradle.plugin.internal.variant.NewApiAppVariant
 import com.datadog.gradle.plugin.kcp.DatadogKotlinCompilerPluginSupport
@@ -27,7 +27,6 @@ import org.gradle.api.file.RegularFile
 import org.gradle.api.logging.Logging
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
-import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.process.ExecOperations
@@ -36,15 +35,13 @@ import org.json.JSONObject
 import java.io.File
 import java.io.IOException
 import javax.inject.Inject
-import kotlin.io.path.Path
 
 /**
  * Plugin adding tasks for Android projects using Datadog's SDK for Android.
  */
 @Suppress("TooManyFunctions")
 class DdAndroidGradlePlugin @Inject constructor(
-    private val execOps: ExecOperations,
-    private val providerFactory: ProviderFactory
+    private val execOps: ExecOperations
 ) : Plugin<Project> {
 
     // region Plugin
@@ -183,24 +180,12 @@ class DdAndroidGradlePlugin @Inject constructor(
 
         val providers = target.providers
         val datadogCiFileProvider = providers.provider {
-            val ciFile = TaskUtils.findDatadogCiFile(target.projectDir)
-            if (ciFile != null) {
-                try {
-                    val config = JSONObject(ciFile.readText())
-                    val apiKey = config.optString(FileUploadTask.DATADOG_CI_API_KEY_PROPERTY, null)
-                    if (!apiKey.isNullOrEmpty()) {
-                        LOGGER.info("API key found in Datadog CI config file, using it.")
-                        ApiKey(apiKey, ApiKeySource.DATADOG_CI_CONFIG_FILE)
-                    } else {
-                        null
-                    }
-                } catch (jsonException: JSONException) {
-                    LOGGER.warn("Failed to parse API key from datadog-ci.json", jsonException)
-                    null
-                } catch (ioException: IOException) {
-                    LOGGER.warn("Failed to read datadog-ci.json file", ioException)
-                    null
-                }
+            TaskUtils.findDatadogCiFile(target.projectDir)
+        }.map {
+            val apiKey = it.parseAsDatadogCiConfig()?.apiKey
+            if (!apiKey.isNullOrEmpty()) {
+                LOGGER.info("API key found in Datadog CI config file, using it.")
+                ApiKey(apiKey, ApiKeySource.DATADOG_CI_CONFIG_FILE)
             } else {
                 null
             }
@@ -212,6 +197,61 @@ class DdAndroidGradlePlugin @Inject constructor(
             .orElse(resolve(key = DATADOG_API_KEY, provider = providers::environmentVariable, source = ENVIRONMENT))
             .orElse(datadogCiFileProvider)
             .orElse(target.providers.provider { ApiKey.NONE })
+    }
+
+    internal fun resolveSite(target: Project, extensionConfiguration: DdExtensionConfiguration): Provider<String> {
+        return target.providers
+            .provider {
+                val site = extensionConfiguration.site?.ifBlank { null }
+                if (site != null) {
+                    LOGGER.info("Site property found in the extension configuration.")
+                }
+                site
+            }
+            .run {
+                if (!extensionConfiguration.ignoreDatadogCiFileConfig) {
+                    orElse(siteFromDatadogCiConfig(target))
+                } else {
+                    this
+                }
+            }
+            .orElse(
+                target.providers
+                    .environmentVariable(DATADOG_SITE)
+                    .map {
+                        val site = DatadogSite.fromDomain(it)
+                        if (site == null) {
+                            LOGGER.warn("Unknown Datadog domain provided in environment variable: $it, ignoring it.")
+                            null
+                        } else {
+                            LOGGER.info("Site property found in environment variable, using it.")
+                            site.name
+                        }
+                    }
+            )
+            .orElse(DatadogSite.US1.name)
+    }
+
+    private fun siteFromDatadogCiConfig(target: Project): Provider<String> {
+        return target.providers.provider {
+            TaskUtils.findDatadogCiFile(target.projectDir)
+        }.map {
+            val siteAsDomain = it.parseAsDatadogCiConfig()?.site
+            if (!siteAsDomain.isNullOrEmpty()) {
+                val site = DatadogSite.fromDomain(siteAsDomain)
+                if (site == null) {
+                    LOGGER.warn(
+                        "Unknown Datadog domain provided in Datadog CI config file: $siteAsDomain, ignoring it."
+                    )
+                    null
+                } else {
+                    LOGGER.info("Site property found in Datadog CI config file, using it.")
+                    site.name
+                }
+            } else {
+                null
+            }
+        }
     }
 
     private fun configureNdkSymbolUploadTask(
@@ -227,8 +267,9 @@ class DdAndroidGradlePlugin @Inject constructor(
             target,
             variant,
             buildIdTask,
-            providerFactory,
+            GenerateBuildIdTask.buildIdFile(target, variant.name),
             apiKeyProvider,
+            resolveSite(target, extensionConfiguration),
             extensionConfiguration,
             GitRepositoryDetector(execOps)
         )
@@ -241,9 +282,7 @@ class DdAndroidGradlePlugin @Inject constructor(
         target: Project,
         variant: AppVariant
     ): TaskProvider<GenerateBuildIdTask> {
-        val buildIdDirectory = target.layout.buildDirectory
-            .dir(Path("generated", "datadog", "buildId", variant.name).toString())
-        val buildIdGenerationTask = GenerateBuildIdTask.register(target, variant, buildIdDirectory)
+        val buildIdGenerationTask = GenerateBuildIdTask.register(target, variant)
 
         return buildIdGenerationTask
     }
@@ -256,37 +295,30 @@ class DdAndroidGradlePlugin @Inject constructor(
         apiKeyProvider: Provider<ApiKey>,
         extension: DdExtension
     ): TaskProvider<MappingFileUploadTask> {
-        val uploadTaskName = UPLOAD_TASK_NAME + variant.name.capitalize()
+        val uploadTaskName = UPLOAD_TASK_NAME +
+            variant.name.replaceFirstChar { capitalizeChar(it) }
         val uploadTask = target.tasks.register(
             uploadTaskName,
             MappingFileUploadTask::class.java,
             GitRepositoryDetector(execOps)
         ).apply {
             configure { uploadTask ->
-                @Suppress("MagicNumber")
-                if (TaskUtils.isGradleEqualOrAbove(target, 7, 5)) {
-                    uploadTask.notCompatibleWithConfigurationCache(
-                        "Datadog Upload Mapping task is not" +
-                            " compatible with configuration cache yet."
-                    )
-                }
                 val extensionConfiguration = resolveExtensionConfiguration(extension, variant)
                 configureVariantTask(
                     target.objects,
                     uploadTask,
                     apiKeyProvider,
+                    resolveSite(target, extensionConfiguration),
                     extensionConfiguration,
                     variant
                 )
 
-                uploadTask.buildId.set(buildIdGenerationTask.lazyBuildIdProvider(providerFactory))
+                uploadTask.buildIdFile.set(GenerateBuildIdTask.buildIdFile(target, variant.name))
+                uploadTask.mustRunAfter(buildIdGenerationTask)
                 uploadTask.mappingFilePackagesAliases = extensionConfiguration.mappingFilePackageAliases
                 uploadTask.mappingFileTrimIndents = extensionConfiguration.mappingFileTrimIndents
-                if (!extensionConfiguration.ignoreDatadogCiFileConfig) {
-                    uploadTask.datadogCiFile = TaskUtils.findDatadogCiFile(target.projectDir)
-                }
 
-                uploadTask.repositoryFile = TaskUtils.resolveDatadogRepositoryFile(target)
+                uploadTask.repositoryFile.set(TaskUtils.resolveDatadogRepositoryFile(target))
             }
         }
 
@@ -323,7 +355,7 @@ class DdAndroidGradlePlugin @Inject constructor(
             ) {
                 return null
             }
-            val checkDepsTaskName = "checkSdkDeps${variant.name.capitalize()}"
+            val checkDepsTaskName = "checkSdkDeps${variant.name.replaceFirstChar { capitalizeChar(it) }}"
             val resolvedCheckDependencyFlag =
                 extensionConfiguration.checkProjectDependencies ?: SdkCheckLevel.FAIL
             val checkDepsTaskProvider = target.tasks.register(
@@ -344,6 +376,7 @@ class DdAndroidGradlePlugin @Inject constructor(
         taskContainer: TaskContainer,
         appVariant: AppVariant
     ): Task? {
+        val variantCapitalized = appVariant.name.replaceFirstChar { capitalizeChar(it) }
         // variants will have name like proDebug, but compile task will have a name like
         // compileProDebugSources. It can be other tasks like compileProDebugAndroidTestSources
         // or compileProDebugUnitTestSources, but we are not interested in these. This is fragile
@@ -353,8 +386,8 @@ class DdAndroidGradlePlugin @Inject constructor(
         // container, but doesn't participate in the build process (=> not called). On the other
         // hand compileXXXJavaWithJavac exists on AGP 7.1 and is part of the build process. So we
         // will try first to get newer task and if it is not there, then fallback to the old one.
-        return taskContainer.findByName("compile${appVariant.name.capitalize()}JavaWithJavac")
-            ?: taskContainer.findByName("compile${appVariant.name.capitalize()}Sources")
+        return taskContainer.findByName("compile${variantCapitalized}JavaWithJavac")
+            ?: taskContainer.findByName("compile${variantCapitalized}Sources")
     }
 
     private fun resolveMappingFile(
@@ -374,19 +407,20 @@ class DdAndroidGradlePlugin @Inject constructor(
         objectFactory: ObjectFactory,
         uploadTask: MappingFileUploadTask,
         apiKeyProvider: Provider<ApiKey>,
+        siteProvider: Provider<String>,
         extensionConfiguration: DdExtensionConfiguration,
         variant: AppVariant
     ) {
         uploadTask.apiKey.set(apiKeyProvider.map { it.value })
         uploadTask.apiKeySource.set(apiKeyProvider.map { it.source })
-        uploadTask.variantName = variant.flavorName
+        uploadTask.variantName.set(variant.flavorName)
 
         uploadTask.applicationId.set(variant.applicationId)
 
         uploadTask.mappingFile.set(resolveMappingFile(extensionConfiguration, objectFactory, variant))
         uploadTask.sourceSetRoots.set(variant.collectJavaAndKotlinSourceDirectories())
 
-        uploadTask.site = extensionConfiguration.site ?: ""
+        uploadTask.site.set(siteProvider)
         if (extensionConfiguration.versionName != null) {
             uploadTask.versionName.set(extensionConfiguration.versionName)
         } else {
@@ -398,7 +432,7 @@ class DdAndroidGradlePlugin @Inject constructor(
         } else {
             uploadTask.serviceName.set(variant.applicationId)
         }
-        uploadTask.remoteRepositoryUrl = extensionConfiguration.remoteRepositoryUrl ?: ""
+        uploadTask.remoteRepositoryUrl.set(extensionConfiguration.remoteRepositoryUrl.orEmpty())
 
         variant.bindWith(uploadTask)
     }
@@ -444,9 +478,31 @@ class DdAndroidGradlePlugin @Inject constructor(
     private val Project.androidApplicationComponentExtension: ApplicationAndroidComponentsExtension?
         get() = extensions.findByType(ApplicationAndroidComponentsExtension::class.java)
 
+    private fun File.parseAsDatadogCiConfig(): DatadogCiConfig? {
+        return try {
+            val config = JSONObject(readText())
+            DatadogCiConfig(
+                site = config.optString(DATADOG_CI_SITE_PROPERTY, null),
+                apiKey = config.optString(DATADOG_CI_API_KEY_PROPERTY, null)
+            )
+        } catch (jsonException: JSONException) {
+            LOGGER.warn("Failed to parse datadog-ci.json", jsonException)
+            null
+        } catch (ioException: IOException) {
+            LOGGER.warn("Failed to read datadog-ci.json file", ioException)
+            null
+        }
+    }
+
+    private data class DatadogCiConfig(val site: String?, val apiKey: String?)
+
     // endregion
 
     companion object {
+
+        internal const val DATADOG_CI_API_KEY_PROPERTY = "apiKey"
+        internal const val DATADOG_CI_SITE_PROPERTY = "datadogSite"
+        internal const val DATADOG_SITE = "DATADOG_SITE"
 
         private const val DD_FORCE_LEGACY_VARIANT_API = "dd-force-legacy-variant-api"
 

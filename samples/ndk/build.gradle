@@ -4,6 +4,7 @@ apply plugin: 'kotlin-android'
 import com.datadog.gradle.config.AndroidConfig
 
 android {
+    namespace = "com.datadog.example.ndk"
     compileSdkVersion = AndroidConfig.TARGET_SDK
     buildToolsVersion = AndroidConfig.BUILD_TOOLS_VERSION
 

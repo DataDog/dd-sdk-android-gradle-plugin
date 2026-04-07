@@ -11,10 +11,8 @@ import com.datadog.gradle.plugin.internal.ApiKeySource
 import fr.xgouchet.elmyr.Forge
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.provider.Provider
-import org.gradle.api.provider.ProviderFactory
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.spy
@@ -32,12 +30,15 @@ internal class DdAndroidGradlePluginResolveApiKeyTest : DdAndroidGradlePluginTes
         fakeProject = spy(ProjectBuilder.builder().build())
         val emptyProvider: Provider<String> = fakeProject.provider { null }
         val apiKeyProvider: Provider<String> = fakeProject.provider { fakeApiKey.value }
-        val fakeProviderFactory = mock<ProviderFactory>()
+        val fakeProviderFactory = spy(fakeProject.providers)
 
         whenever(fakeProject.providers) doReturn fakeProviderFactory
-        whenever(fakeProviderFactory.environmentVariable(any<String>())) doReturn emptyProvider
-        whenever(fakeProviderFactory.gradleProperty(any<String>())) doReturn emptyProvider
-        whenever(fakeProviderFactory.gradleProperty(DdAndroidGradlePlugin.DD_API_KEY)) doReturn apiKeyProvider
+        with(fakeProviderFactory) {
+            whenever(environmentVariable(DdAndroidGradlePlugin.DATADOG_API_KEY)) doReturn emptyProvider
+            whenever(environmentVariable(DdAndroidGradlePlugin.DD_API_KEY)) doReturn emptyProvider
+            whenever(gradleProperty(DdAndroidGradlePlugin.DATADOG_API_KEY)) doReturn emptyProvider
+            whenever(gradleProperty(DdAndroidGradlePlugin.DD_API_KEY)) doReturn apiKeyProvider
+        }
 
         // When
         val apiKey = testedPlugin.resolveApiKey(fakeProject).get()
@@ -53,12 +54,15 @@ internal class DdAndroidGradlePluginResolveApiKeyTest : DdAndroidGradlePluginTes
         fakeProject = spy(ProjectBuilder.builder().build())
         val emptyProvider: Provider<String> = fakeProject.provider { null }
         val apiKeyProvider: Provider<String> = fakeProject.provider { fakeApiKey.value }
-        val fakeProviderFactory = mock<ProviderFactory>()
+        val fakeProviderFactory = spy(fakeProject.providers)
 
         whenever(fakeProject.providers) doReturn fakeProviderFactory
-        whenever(fakeProviderFactory.environmentVariable(any<String>())) doReturn emptyProvider
-        whenever(fakeProviderFactory.gradleProperty(any<String>())) doReturn emptyProvider
-        whenever(fakeProviderFactory.environmentVariable(DdAndroidGradlePlugin.DD_API_KEY)) doReturn apiKeyProvider
+        with(fakeProviderFactory) {
+            whenever(environmentVariable(DdAndroidGradlePlugin.DATADOG_API_KEY)) doReturn emptyProvider
+            whenever(environmentVariable(DdAndroidGradlePlugin.DD_API_KEY)) doReturn apiKeyProvider
+            whenever(gradleProperty(DdAndroidGradlePlugin.DATADOG_API_KEY)) doReturn emptyProvider
+            whenever(gradleProperty(DdAndroidGradlePlugin.DD_API_KEY)) doReturn emptyProvider
+        }
 
         // When
         val apiKey = testedPlugin.resolveApiKey(fakeProject).get()
@@ -74,12 +78,15 @@ internal class DdAndroidGradlePluginResolveApiKeyTest : DdAndroidGradlePluginTes
         fakeProject = spy(ProjectBuilder.builder().build())
         val emptyProvider: Provider<String> = fakeProject.provider { null }
         val apiKeyProvider: Provider<String> = fakeProject.provider { fakeApiKey.value }
-        val fakeProviderFactory = mock<ProviderFactory>()
+        val fakeProviderFactory = spy(fakeProject.providers)
 
         whenever(fakeProject.providers) doReturn fakeProviderFactory
-        whenever(fakeProviderFactory.environmentVariable(any<String>())) doReturn emptyProvider
-        whenever(fakeProviderFactory.gradleProperty(any<String>())) doReturn emptyProvider
-        whenever(fakeProviderFactory.gradleProperty(DdAndroidGradlePlugin.DATADOG_API_KEY)) doReturn apiKeyProvider
+        with(fakeProviderFactory) {
+            whenever(environmentVariable(DdAndroidGradlePlugin.DATADOG_API_KEY)) doReturn emptyProvider
+            whenever(environmentVariable(DdAndroidGradlePlugin.DD_API_KEY)) doReturn emptyProvider
+            whenever(gradleProperty(DdAndroidGradlePlugin.DATADOG_API_KEY)) doReturn apiKeyProvider
+            whenever(gradleProperty(DdAndroidGradlePlugin.DD_API_KEY)) doReturn emptyProvider
+        }
 
         // When
         val apiKey = testedPlugin.resolveApiKey(fakeProject).get()
@@ -95,12 +102,15 @@ internal class DdAndroidGradlePluginResolveApiKeyTest : DdAndroidGradlePluginTes
         fakeProject = spy(ProjectBuilder.builder().build())
         val emptyProvider: Provider<String> = fakeProject.provider { null }
         val apiKeyProvider: Provider<String> = fakeProject.provider { fakeApiKey.value }
-        val fakeProviderFactory = mock<ProviderFactory>()
+        val fakeProviderFactory = spy(fakeProject.providers)
 
         whenever(fakeProject.providers) doReturn fakeProviderFactory
-        whenever(fakeProviderFactory.environmentVariable(any<String>())) doReturn emptyProvider
-        whenever(fakeProviderFactory.gradleProperty(any<String>())) doReturn emptyProvider
-        whenever(fakeProviderFactory.environmentVariable(DdAndroidGradlePlugin.DATADOG_API_KEY)) doReturn apiKeyProvider
+        with(fakeProviderFactory) {
+            whenever(environmentVariable(DdAndroidGradlePlugin.DATADOG_API_KEY)) doReturn apiKeyProvider
+            whenever(environmentVariable(DdAndroidGradlePlugin.DD_API_KEY)) doReturn emptyProvider
+            whenever(gradleProperty(DdAndroidGradlePlugin.DATADOG_API_KEY)) doReturn emptyProvider
+            whenever(gradleProperty(DdAndroidGradlePlugin.DD_API_KEY)) doReturn emptyProvider
+        }
 
         // When
         val apiKey = testedPlugin.resolveApiKey(fakeProject).get()
@@ -153,10 +163,7 @@ internal class DdAndroidGradlePluginResolveApiKeyTest : DdAndroidGradlePluginTes
         fakeProject = ProjectBuilder.builder()
             .withProjectDir(subProject)
             .build()
-        testedPlugin = DdAndroidGradlePlugin(
-            execOps = mock(),
-            providerFactory = fakeProject.providers
-        )
+        testedPlugin = DdAndroidGradlePlugin(execOps = mock())
 
         // When
         val apiKey = testedPlugin.resolveApiKey(fakeProject).get()
@@ -245,12 +252,15 @@ internal class DdAndroidGradlePluginResolveApiKeyTest : DdAndroidGradlePluginTes
         fakeProject = spy(ProjectBuilder.builder().build())
         val emptyProvider: Provider<String> = fakeProject.provider { null }
         val apiKeyProvider: Provider<String> = fakeProject.provider { gradleApiKey }
-        val fakeProviderFactory = mock<ProviderFactory>()
+        val fakeProviderFactory = spy(fakeProject.providers)
 
         whenever(fakeProject.providers) doReturn fakeProviderFactory
-        whenever(fakeProviderFactory.environmentVariable(any<String>())) doReturn emptyProvider
-        whenever(fakeProviderFactory.gradleProperty(any<String>())) doReturn emptyProvider
-        whenever(fakeProviderFactory.gradleProperty(DdAndroidGradlePlugin.DD_API_KEY)) doReturn apiKeyProvider
+        with(fakeProviderFactory) {
+            whenever(environmentVariable(DdAndroidGradlePlugin.DATADOG_API_KEY)) doReturn emptyProvider
+            whenever(environmentVariable(DdAndroidGradlePlugin.DD_API_KEY)) doReturn emptyProvider
+            whenever(gradleProperty(DdAndroidGradlePlugin.DATADOG_API_KEY)) doReturn emptyProvider
+            whenever(gradleProperty(DdAndroidGradlePlugin.DD_API_KEY)) doReturn apiKeyProvider
+        }
 
         val datadogCiFile = File(fakeProject.projectDir, "datadog-ci.json")
         datadogCiFile.writeText("""{"apiKey": "$fileApiKey"}""")
@@ -277,12 +287,15 @@ internal class DdAndroidGradlePluginResolveApiKeyTest : DdAndroidGradlePluginTes
         fakeProject = spy(ProjectBuilder.builder().build())
         val emptyProvider: Provider<String> = fakeProject.provider { null }
         val apiKeyProvider: Provider<String> = fakeProject.provider { envApiKey }
-        val fakeProviderFactory = mock<ProviderFactory>()
+        val fakeProviderFactory = spy(fakeProject.providers)
 
         whenever(fakeProject.providers) doReturn fakeProviderFactory
-        whenever(fakeProviderFactory.gradleProperty(any<String>())) doReturn emptyProvider
-        whenever(fakeProviderFactory.environmentVariable(any<String>())) doReturn emptyProvider
-        whenever(fakeProviderFactory.environmentVariable(DdAndroidGradlePlugin.DD_API_KEY)) doReturn apiKeyProvider
+        with(fakeProviderFactory) {
+            whenever(environmentVariable(DdAndroidGradlePlugin.DATADOG_API_KEY)) doReturn emptyProvider
+            whenever(environmentVariable(DdAndroidGradlePlugin.DD_API_KEY)) doReturn apiKeyProvider
+            whenever(gradleProperty(DdAndroidGradlePlugin.DATADOG_API_KEY)) doReturn emptyProvider
+            whenever(gradleProperty(DdAndroidGradlePlugin.DD_API_KEY)) doReturn emptyProvider
+        }
 
         val datadogCiFile = File(fakeProject.projectDir, "datadog-ci.json")
         datadogCiFile.writeText("""{"apiKey": "$fileApiKey"}""")
