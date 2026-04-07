@@ -1,3 +1,15 @@
+# 1.25.0 / 2026-04-07
+
+* [BUGFIX] Fix missing build ID error in case of configuration cache warn mode. See [#530](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/530)
+* [IMPROVEMENT] Use artifact transform API to bundle build ID asset. See [#531](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/531)
+* [IMPROVEMENT] Refactor to use lazy APIs more. See [#532](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/532)
+* [MAINTENANCE] Add Datadog code coverage upload. See [#521](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/521)
+* [MAINTENANCE] Next dev iteration. See [#525](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/525)
+* [MAINTENANCE] Merge `release/1.24.0` into `develop`. See [#526](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/526)
+* [MAINTENANCE] Update Datadog SDK to version 3.8.0. See [#528](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/528)
+* [MAINTENANCE] Update Datadog Gradle Plugin to version 1.24.0. See [#524](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/524)
+* [MAINTENANCE] Update Gradle to version 9.3.1. See [#529](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/529)
+
 # 1.24.0 / 2026-03-17
 
 * [BUGFIX] Fix Kotlin 2.3.20 breaking changes for Jetpack Compose instrumentation Plugin. See [#522](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/522)
