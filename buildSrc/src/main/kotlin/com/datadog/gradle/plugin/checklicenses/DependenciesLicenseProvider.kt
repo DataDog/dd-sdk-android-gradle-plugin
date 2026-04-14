@@ -72,7 +72,7 @@ class DependenciesLicenseProvider {
         listDependencyOnce: Boolean
     ): List<ThirdPartyDependency> {
         val sorted = dependencies.map {
-            listThridPartyLicensesInConfiguration(
+            listThirdPartyLicensesInConfiguration(
                 it.key,
                 it.value,
                 pomFilesList
@@ -99,7 +99,7 @@ class DependenciesLicenseProvider {
         }
     }
 
-    private fun listThridPartyLicensesInConfiguration(
+    private fun listThirdPartyLicensesInConfiguration(
         configuration: String,
         dependencies: List<ComponentIdentifier>,
         pomFilesList: Map<ComponentIdentifier, String>
@@ -124,7 +124,7 @@ class DependenciesLicenseProvider {
         val licenseString = readLicenseFromPomDocument(document)
 
         return if (groupId != null) {
-            return ThirdPartyDependency(
+            ThirdPartyDependency(
                 component = configurationToComponent(configuration),
                 origin = groupId,
                 license = License.from(

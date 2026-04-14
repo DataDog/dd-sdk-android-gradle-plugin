@@ -7,9 +7,9 @@ To propose improvements, feel free to submit a PR or open an Issue.
 
 ## Setup your developer Environment
 
-To setup your enviroment, make sure you installed [Android Studio](https://developer.android.com/studio).
+To set up your environment, make sure you installed [Android Studio](https://developer.android.com/studio).
 
-**Note**: you can also compile and develop using only the Android SDK and your IDE of choice, e.g.: IntelliJ Idea, Vim, etc.
+**Note**: you can also compile and develop using only the Android SDK and your IDE of choice, e.g.: IntelliJ IDEA, Vim, etc.
 
 ### Building the Plugin
 
@@ -45,7 +45,7 @@ with the details about what you'd like to see. At a minimum, please provide:
 
  - The goal of the new feature;
  - A description of how it might be used or behave;
- - Links to any important resources (e.g. Github repos, websites, screenshots,
+ - Links to any important resources (e.g. GitHub repos, websites, screenshots,
      specifications, diagrams).
 
 ## Found a bug?
@@ -55,7 +55,7 @@ or UI, contact our support team via https://docs.datadoghq.com/help/ for direct,
 faster assistance.
 
 You may submit bug reports concerning the Datadog SDK for Android by 
-[opening a Github issue](https://github.com/DataDog/dd-sdk-android-gradle-plugin/issues/new?labels=bug&template=bug_report.md).
+[opening a GitHub issue](https://github.com/DataDog/dd-sdk-android-gradle-plugin/issues/new?labels=bug&template=bug_report.md).
 At a minimum, please provide:
 
  - A description of the problem;
@@ -169,7 +169,7 @@ ktlint -F "**/*.kt" "**/*.kts" '!**/build/generated/**' '!**/build/kspCaches/**'
 ### #TestMatters
 
 It is important to be sure that our library work properly in any scenario. All
-non trivial code must be tested. If you're not used to writing tests, you can
+non-trivial code must be tested. If you're not used to writing tests, you can
 take a look at the `test` folder to get some ideas on how we write them at Datadog.
 
 We use a variety of tools to help us write tests easy to read and maintain:
@@ -248,8 +248,8 @@ Because we sometimes need to reuse some setup or assertions in our tests, we ten
 - `fun stubSomething(mock, [args])`: methods setting up a mock (or rarely a fake). These methods must be of Unit type, and only stub responses for the given mock;
 - `fun forgeSomething([args]): T`: methods setting up a forgery or an instance of a concrete class. These methods must return the forged instance;
 - `fun assertObjectMatchesCondition(object, [args])`: methods verifying that a given object matches a given condition. These methods must be of Unit type, and only call assertions with the AssertJ framework (or native assertions);
-- `fun verifyMockMatchesState(mock, [args])`: methods verifying that a mock’s interaction. These methods must be of Unit type, and only call verifications with the Mockito framework.
-- `fun setupSomething()`: method to setup a complex test (should only be used in the Given part of a test).
+- `fun verifyMockMatchesState(mock, [args])`: methods verifying that a mock interaction matches the expected state. These methods must be of Unit type, and only call verifications with the Mockito framework.
+- `fun setupSomething()`: method to set up a complex test (should only be used in the Given part of a test).
 
 
 
