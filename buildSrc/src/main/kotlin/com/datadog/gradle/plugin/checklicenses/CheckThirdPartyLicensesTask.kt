@@ -122,8 +122,6 @@ open class CheckThirdPartyLicensesTask : DefaultTask() {
     // endregion
 
     companion object {
-        private val componentMap = ThirdPartyDependency.Component.values()
-            .map { it.csvName to it }
-            .toMap()
+        private val componentMap = ThirdPartyDependency.Component.entries.associateBy { it.csvName }
     }
 }
