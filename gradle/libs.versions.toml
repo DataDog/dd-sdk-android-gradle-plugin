@@ -54,7 +54,6 @@ kotlinCompilerEmbeddable22 = "2.2.20"
 kotlinCompilerTesting20 = "0.7.0"
 kotlinCompilerTesting21 = "0.7.0"
 kotlinCompilerTesting22 = "0.8.0"
-autoService = "1.0.1"
 junitVersion = "1.2.1"
 espressoCoreVersion = "3.6.1"
 lifecycleRuntimeKtx = "2.8.7"
@@ -65,6 +64,9 @@ lifecycleRuntimeKtx = "2.8.7"
 # Gradle version catalog doesn't allow names to end with plugin, that is why strange names
 androidToolsPluginGradle = { module = "com.android.tools.build:gradle", version.ref = "androidToolsPlugin" }
 kotlinPluginGradle = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+kotlinPluginGradle20 = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlinCompilerEmbeddable20" }
+kotlinPluginGradle21 = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlinCompilerEmbeddable21" }
+kotlinPluginGradle22 = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlinCompilerEmbeddable22" }
 dokkaPluginGradle = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
 unmockPluginGradle = { module = "de.mobilej.unmock:UnMockPlugin", version.ref = "unmock" }
 
@@ -126,8 +128,6 @@ kotlinCompilerEmbeddable22 = { module = "org.jetbrains.kotlin:kotlin-compiler-em
 kotlinCompilerTesting20 = { module = "dev.zacsweers.kctfork:core", version.ref = "kotlinCompilerTesting20" }
 kotlinCompilerTesting21 = { module = "dev.zacsweers.kctfork:core", version.ref = "kotlinCompilerTesting21" }
 kotlinCompilerTesting22 = { module = "dev.zacsweers.kctfork:core", version.ref = "kotlinCompilerTesting22" }
-autoService = { module = "com.google.auto.service:auto-service", version.ref = "autoService" }
-autoServiceAnnotation = { module = "com.google.auto.service:auto-service-annotations", version.ref = "autoService" }
 
 # Compose
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
