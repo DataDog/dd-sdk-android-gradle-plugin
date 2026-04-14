@@ -17,7 +17,10 @@ internal class CommandLineProcessorServiceTest {
     @OptIn(ExperimentalCompilerApi::class)
     @Test
     fun `M discover DatadogKotlinCompilerPluginCommandLineProcessor W ServiceLoader loads`() {
-        val processors = ServiceLoader.load(CommandLineProcessor::class.java).toList()
-        assertThat(processors).anyMatch { it is DatadogKotlinCompilerPluginCommandLineProcessor }
+        val processors = ServiceLoader.load(CommandLineProcessor::class.java)
+            .filter { it.javaClass.name.startsWith("com.datadog") }
+        assertThat(processors)
+            .singleElement()
+            .isInstanceOf(DatadogKotlinCompilerPluginCommandLineProcessor::class.java)
     }
 }

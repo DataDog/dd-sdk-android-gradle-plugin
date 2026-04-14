@@ -19,7 +19,10 @@ internal class ComponentRegistrarServiceTest {
     @OptIn(ExperimentalCompilerApi::class)
     @Test
     fun `M discover DatadogPluginRegistrarImpl W ServiceLoader loads`() {
-        val registrars = ServiceLoader.load(ComponentRegistrar::class.java).toList()
-        assertThat(registrars).anyMatch { it is DatadogPluginRegistrarImpl }
+        val registrars = ServiceLoader.load(ComponentRegistrar::class.java)
+            .filter { it.javaClass.name.startsWith("com.datadog") }
+        assertThat(registrars)
+            .singleElement()
+            .isInstanceOf(DatadogPluginRegistrarImpl::class.java)
     }
 }
