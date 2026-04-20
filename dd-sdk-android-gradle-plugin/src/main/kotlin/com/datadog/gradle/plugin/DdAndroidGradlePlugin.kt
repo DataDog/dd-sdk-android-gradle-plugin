@@ -50,32 +50,42 @@ class DdAndroidGradlePlugin @Inject constructor(
     override fun apply(target: Project) {
         val extension = target.extensions.create(EXT_NAME, DdExtension::class.java)
         val apiKeyProvider = resolveApiKey(target)
-
         // need to use withPlugin instead of afterEvaluate, because otherwise generated assets
         // folder with buildId is not picked by AGP by some reason
         target.pluginManager.withPlugin("com.android.application") {
+            val knownVariants = mutableListOf<AppVariant>()
             val forceLegacyVariant = target.providers.gradleProperty(DD_FORCE_LEGACY_VARIANT_API)
             if (CurrentAgpVersion.CAN_ENABLE_NEW_VARIANT_API && !forceLegacyVariant.isPresent) {
                 val androidComponentsExtension = target.androidApplicationComponentExtension ?: return@withPlugin
                 androidComponentsExtension.onVariants { variant ->
+                    val appVariant = AppVariant.create(variant, target)
+                    knownVariants.add(appVariant)
                     configureTasksForVariant(
                         target,
                         extension,
-                        AppVariant.create(variant, target),
+                        appVariant,
                         apiKeyProvider
                     )
                 }
             } else {
                 val androidExtension = target.legacyAndroidApplicationExtension ?: return@withPlugin
                 androidExtension.applicationVariants.all { variant ->
+                    val appVariant = AppVariant.create(variant, androidExtension, target)
+                    knownVariants.add(appVariant)
                     if (extension.enabled) {
                         configureTasksForVariant(
                             target,
                             extension,
-                            AppVariant.create(variant, androidExtension, target),
+                            appVariant,
                             apiKeyProvider
                         )
                     }
+                }
+            }
+
+            target.afterEvaluate {
+                if (extension.enabled) {
+                    warnOnUnknownVariants(extension, knownVariants, target)
                 }
             }
         }
@@ -437,6 +447,41 @@ class DdAndroidGradlePlugin @Inject constructor(
         variant.bindWith(uploadTask)
     }
 
+    /**
+     * Returns the set of names registered in [extension.variants] that do not correspond to any
+     * real partial variant combination generated from [knownVariants].
+     *
+     * Uses [VariantIterator] to produce all valid partial names for each real variant (the same
+     * logic used during config resolution), then returns configured names not present in that set.
+     */
+    internal fun findUnknownVariantConfigNames(
+        extension: DdExtension,
+        knownVariants: Collection<AppVariant>
+    ): Set<String> {
+        val configuredNames = extension.variants.names
+        if (configuredNames.isEmpty()) return emptySet()
+
+        val validPartialNames = mutableSetOf<String>()
+        for (variant in knownVariants) {
+            VariantIterator(variant.flavors + variant.buildTypeName)
+                .forEach { validPartialNames.add(it) }
+        }
+
+        return configuredNames.filterTo(mutableSetOf()) { it !in validPartialNames }
+    }
+
+    internal fun warnOnUnknownVariants(
+        extension: DdExtension,
+        knownVariants: Collection<AppVariant>,
+        target: Project
+    ) {
+        val unknownNames = findUnknownVariantConfigNames(extension, knownVariants)
+        if (unknownNames.isEmpty()) return
+
+        val variantList = unknownNames.joinToString("\n") { "  - $it" }
+        LOGGER.warn(WARN_UNKNOWN_VARIANTS.format(target.path, variantList))
+    }
+
     internal fun resolveExtensionConfiguration(
         extension: DdExtension,
         variant: AppVariant
@@ -523,5 +568,13 @@ class DdAndroidGradlePlugin @Inject constructor(
 
         private const val MSG_PLUGIN_DISABLED =
             "Datadog extension disabled, no upload task created, no Compose instrumentation applied"
+
+        internal const val WARN_UNKNOWN_VARIANTS =
+            "============================================================\n" +
+                "Datadog plugin config mentions variant(s) that don't match\n" +
+                "any variant in module `%s`:\n" +
+                "%s\n" +
+                "Check for typos or remove obsolete entries.\n" +
+                "============================================================"
     }
 }
