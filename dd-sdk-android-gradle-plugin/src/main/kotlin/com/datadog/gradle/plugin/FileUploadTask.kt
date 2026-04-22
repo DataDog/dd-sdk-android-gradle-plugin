@@ -89,7 +89,7 @@ abstract class FileUploadTask @Inject constructor(
     abstract val serviceName: Property<String>
 
     /**
-     * The Datadog site to upload to (one of "US1", "EU1", "US1_FED").
+     * The Datadog site to upload to (one of "US1", "EU1", "US1_FED", "US2_FED", etc.).
      */
     @get:Input
     abstract val site: Property<String>
