@@ -41,6 +41,11 @@ enum class DatadogSite(internal val domain: String) {
     US1_FED("ddog-gov.com"),
 
     /**
+     *  The US2_FED site (FedRAMP compatible): [us2.ddog-gov.com](https://us2.ddog-gov.com).
+     */
+    US2_FED("us2.ddog-gov.com"),
+
+    /**
      *  The EU1 site: [app.datadoghq.eu](https://app.datadoghq.eu) (legacy name).
      */
     EU("datadoghq.eu"),
