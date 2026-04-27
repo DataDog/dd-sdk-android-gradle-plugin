@@ -24,7 +24,7 @@ This SDK lives in our customer’s applications, and is run on end users devices
 
 - **Zero crash caused by our code!**
     - Unless the crash is on top-level method, caused by identifiable developer mistake, and notified with an understandable error message;
-    - Even in top-level methods, prefer making the library non operating and logging the issue in the console logs, rather than throwing an exception
+    - Even in top-level methods, prefer making the library non-operating and logging the issue in the console logs, rather than throwing an exception
 - **Avoid major breaking changes** in SDK updates.
     - Updating to the latest version must be transparent (unless when changing major version).
     - Minor breaking change (single method signature change, renaming, deprecation…) can happen in minor updates but should be avoided when possible.
@@ -61,6 +61,6 @@ This SDK lives in our customer’s applications, and is run on end users devices
 
 ## Code architecture
 
-- Favor Object Oriented design, rather than procedural programing;
+- Favor Object-Oriented design, rather than procedural programing;
 - Favor code stability and maintainability;
 - Follow the SOLID principles;

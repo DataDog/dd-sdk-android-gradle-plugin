@@ -53,9 +53,7 @@ object SPDXLicenceConverter {
         return null
     }
 
-    private val identifierMap = SPDXLicense.values()
-        .map { it.csvName to it }
-        .toMap()
+    private val identifierMap = SPDXLicense.entries.associateBy { it.csvName }
 
     private val nameMap = mapOf(
         "BSD Zero Clause License" to SPDXLicense._0BSD,
