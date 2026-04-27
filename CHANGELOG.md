@@ -1,3 +1,18 @@
+# 1.26.0 / 2026-04-27
+
+* [FEATURE] RUM-15877: Add `US2_FED` datacenter support. See [#542](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/542)
+* [IMPROVEMENT] RUM-591: Warn user if a variant in the extension doesn't match any existing variant. See [#541](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/541)
+* [IMPROVEMENT] Minor improvements. See [#539](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/539)
+* [MAINTENANCE] Next dev iteration. See [#534](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/534)
+* [MAINTENANCE] Merge `release/1.25.0` into `develop` branch. See [#536](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/536)
+* [MAINTENANCE] Update Datadog Gradle Plugin to version 1.25.0. See [#537](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/537)
+* [MAINTENANCE] Update Datadog SDK to version 3.9.0. See [#540](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/540)
+* [MAINTENANCE] Update Datadog SDK to version 3.9.1. See [#548](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/548)
+* [MAINTENANCE] Update `actions/checkout` action to v6. See [#546](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/546)
+* [MAINTENANCE] Update `actions/setup-java` action to v5. See [#547](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/547)
+* [MAINTENANCE] Update `org.assertj:assertj-core` dependency to v3.27.7. See [#543](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/543)
+* [MAINTENANCE] Update GitHub Actions non-major dependencies. See [#544](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/544)
+
 # 1.25.0 / 2026-04-07
 
 * [BUGFIX] Fix missing build ID error in case of configuration cache warn mode. See [#530](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/530)
