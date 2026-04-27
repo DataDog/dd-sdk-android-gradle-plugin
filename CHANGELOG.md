@@ -1,7 +1,7 @@
 # 1.26.0 / 2026-04-27
 
-* [FEATURE] RUM-15877: Add `US2_FED` datacenter support. See [#542](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/542)
-* [IMPROVEMENT] RUM-591: Warn user if a variant in the extension doesn't match any existing variant. See [#541](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/541)
+* [FEATURE] Add `US2_FED` datacenter support. See [#542](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/542)
+* [IMPROVEMENT] Warn the user if a variant in the extension doesn't match any existing variant. See [#541](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/541)
 * [IMPROVEMENT] Minor improvements. See [#539](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/539)
 * [MAINTENANCE] Next dev iteration. See [#534](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/534)
 * [MAINTENANCE] Merge `release/1.25.0` into `develop` branch. See [#536](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/536)
