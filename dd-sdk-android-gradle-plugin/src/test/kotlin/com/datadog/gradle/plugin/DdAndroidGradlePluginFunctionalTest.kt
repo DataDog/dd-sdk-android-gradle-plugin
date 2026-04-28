@@ -1657,7 +1657,9 @@ internal class DdAndroidGradlePluginFunctionalTest {
             include(":samples:lib-module")
         """
         val GRADLE_PROPERTIES_FILE_CONTENT = """
-           org.gradle.jvmargs=-Xmx2560m
+           org.gradle.jvmargs=-Xmx1024m
+           org.gradle.daemon=false
+           org.gradle.workers.max=1
            android.useAndroidX=true
            agpVersion=%s
            buildToolsVersion=%s
