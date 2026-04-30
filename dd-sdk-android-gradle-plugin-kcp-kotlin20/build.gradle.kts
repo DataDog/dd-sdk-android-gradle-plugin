@@ -11,10 +11,14 @@ import com.datadog.gradle.config.junitConfig
 import com.datadog.gradle.config.kotlinConfig
 import com.datadog.gradle.config.publishingConfig
 
+buildscript {
+    dependencies {
+        classpath(libs.kotlinPluginGradle20)
+    }
+}
+
 plugins {
     id("java-library")
-    kotlin("jvm")
-    kotlin("kapt")
 
     // Publish
     `maven-publish`
@@ -34,21 +38,15 @@ plugins {
     id("compilerMetadata")
 }
 
-repositories {
-    mavenCentral()
-}
+apply(plugin = "org.jetbrains.kotlin.jvm")
 
 dependencies {
     implementation(project(":dd-sdk-android-gradle-plugin-kcp-common"))
     compileOnly(libs.kotlinCompilerEmbeddable20)
-    compileOnly(libs.kotlinPluginGradle)
-    compileOnly(libs.autoServiceAnnotation)
     compileOnly(libs.kotlinReflect)
-    kapt(libs.autoService)
 
     testImplementation(testFixtures(project(":dd-sdk-android-gradle-plugin-kcp-common")))
     testImplementation(libs.kotlinCompilerEmbeddable20)
-    testImplementation(libs.kotlinPluginGradle)
     testImplementation(libs.kotlinCompilerTesting20)
 }
 

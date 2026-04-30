@@ -6,7 +6,6 @@
 
 package com.datadog.gradle.plugin.kcp
 
-import com.google.auto.service.AutoService
 import org.jetbrains.kotlin.compiler.plugin.AbstractCliOption
 import org.jetbrains.kotlin.compiler.plugin.CliOption
 import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
@@ -14,7 +13,6 @@ import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.jetbrains.kotlin.config.CompilerConfiguration
 
 @OptIn(ExperimentalCompilerApi::class)
-@AutoService(CommandLineProcessor::class)
 internal class DatadogKotlinCompilerPluginCommandLineProcessor : CommandLineProcessor {
     override val pluginId: String = KOTLIN_COMPILER_PLUGIN_ID
     override val pluginOptions: Collection<CliOption> = listOf(

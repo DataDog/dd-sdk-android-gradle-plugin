@@ -67,6 +67,7 @@ abstract class KotlinCompilerTest {
 
         return KotlinCompilation().apply {
             sources = deps + target
+            @Suppress("deprecation")
             componentRegistrars = pluginRegistrars
             inheritClassPath = true
             messageOutputStream = System.out

@@ -7,18 +7,14 @@
 package com.datadog.gradle.plugin.kcp
 
 import com.datadog.gradle.plugin.InstrumentationMode
-import com.google.auto.service.AutoService
 import org.jetbrains.kotlin.backend.common.extensions.FirIncompatiblePluginAPI
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
-import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
-import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 
 /**
  * Implementation of [DatadogPluginRegistrar] with Kotlin 2.1.x support.
  */
-@OptIn(ExperimentalCompilerApi::class, FirIncompatiblePluginAPI::class)
-@AutoService(ComponentRegistrar::class)
+@OptIn(FirIncompatiblePluginAPI::class)
 class DatadogPluginRegistrarImpl(overrideInstrumentationMode: InstrumentationMode? = null) :
     DatadogPluginRegistrar(overrideInstrumentationMode) {
     override fun getCompatibleComposeNavHostExtension(

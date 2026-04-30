@@ -14,7 +14,6 @@ import com.datadog.gradle.config.publishingConfig
 plugins {
     id("java-library")
     kotlin("jvm")
-    kotlin("kapt")
     `java-test-fixtures`
 
     // Publish
@@ -35,25 +34,16 @@ plugins {
     id("compilerMetadata")
 }
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
     compileOnly(libs.kotlinCompilerEmbeddable20)
-    compileOnly(libs.kotlinPluginGradle)
-    compileOnly(libs.autoServiceAnnotation)
-    kapt(libs.autoService)
 
     testImplementation(libs.bundles.jUnit5)
     testImplementation(libs.bundles.testTools)
     testImplementation(libs.kotlinCompilerEmbeddable)
     testImplementation(libs.kotlinCompilerTesting20)
-    testImplementation(libs.kotlinPluginGradle)
 
     testFixturesImplementation(libs.kotlinCompilerEmbeddable20)
     testFixturesImplementation(libs.kotlinCompilerTesting20)
-    testFixturesApi(libs.kotlinPluginGradle)
     testFixturesApi(libs.bundles.jUnit5)
     testFixturesApi(libs.bundles.testTools)
     testFixturesApi(platform(libs.androidx.compose.bom))
