@@ -9,9 +9,11 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
-    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.androidApplicationPlugin)
+    kotlin("android")
+    alias(libs.plugins.kotlinComposePlugin)
+
+    id("noopBuildConfigClasspath") apply false // just bringing classpath to reference AndroidConfig
 }
 
 android {

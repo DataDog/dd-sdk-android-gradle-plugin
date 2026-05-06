@@ -4,13 +4,6 @@
  * Copyright 2020-Present Datadog, Inc.
  */
 
-import com.datadog.gradle.config.dependencyUpdateConfig
-import com.datadog.gradle.config.jacocoConfig
-import com.datadog.gradle.config.javadocConfig
-import com.datadog.gradle.config.junitConfig
-import com.datadog.gradle.config.kotlinConfig
-import com.datadog.gradle.config.publishingConfig
-
 plugins {
     id("java-library")
     kotlin("jvm")
@@ -32,6 +25,7 @@ plugins {
     id("thirdPartyLicences")
     id("transitiveDependencies")
     id("compilerMetadata")
+    id("datadogBuildConfig")
 }
 
 repositories {
@@ -41,14 +35,14 @@ repositories {
 dependencies {
     implementation(project(":dd-sdk-android-gradle-plugin-kcp-common"))
     compileOnly(libs.kotlinCompilerEmbeddable21)
-    compileOnly(libs.kotlinPluginGradle)
+    compileOnly(libs.kotlinGradlePlugin21)
     compileOnly(libs.autoServiceAnnotation)
     compileOnly(libs.kotlinReflect)
     kapt(libs.autoService)
 
     testImplementation(testFixtures(project(":dd-sdk-android-gradle-plugin-kcp-common")))
     testImplementation(libs.kotlinCompilerEmbeddable21)
-    testImplementation(libs.kotlinPluginGradle)
+    testImplementation(libs.kotlinGradlePlugin21)
     testImplementation(libs.kotlinCompilerTesting21)
 }
 
@@ -56,12 +50,11 @@ java {
     targetCompatibility = JavaVersion.VERSION_11
 }
 
-kotlinConfig()
-junitConfig()
-javadocConfig()
-jacocoConfig()
-dependencyUpdateConfig()
-publishingConfig(
-    "Module to support Datadog Compiler Plugin with kotlin 2.1.x",
-    false
-)
+datadogBuildConfig {
+    applyKotlinConfig()
+    applyJunitConfig()
+    applyJavadocConfig()
+    applyJacocoConfig()
+    applyDependencyUpdateConfig()
+    applyPublishingConfig("Module to support Datadog Compiler Plugin with kotlin 2.1.x")
+}
