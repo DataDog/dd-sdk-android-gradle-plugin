@@ -543,7 +543,7 @@ class DdAndroidGradlePlugin @Inject constructor(
 
     // endregion
 
-    companion object {
+    internal companion object {
 
         internal const val DATADOG_CI_API_KEY_PROPERTY = "apiKey"
         internal const val DATADOG_CI_SITE_PROPERTY = "datadogSite"

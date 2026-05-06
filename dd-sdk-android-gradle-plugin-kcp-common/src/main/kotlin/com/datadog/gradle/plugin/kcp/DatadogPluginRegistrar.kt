@@ -100,7 +100,7 @@ abstract class DatadogPluginRegistrar(
         return value?.let { InstrumentationMode.from(it) } ?: InstrumentationMode.DISABLE
     }
 
-    companion object {
+    internal companion object {
         private const val OPTION_KEY_INSTRUMENTATION_MODE = "INSTRUMENTATION_MODE"
         internal val CONFIG_INSTRUMENTATION_MODE =
             CompilerConfigurationKey.create<String>(OPTION_KEY_INSTRUMENTATION_MODE)

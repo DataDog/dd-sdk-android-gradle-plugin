@@ -76,7 +76,7 @@ static-analysis:
   variables:
     DETEKT_PUBLIC_API: "true"
   trigger:
-    include: "https://gitlab-templates.ddbuild.io/mobile/v25558398-8517309a/static-analysis.yml"
+    include: "https://gitlab-templates.ddbuild.io/mobile/v111758402-8a2c8287/static-analysis.yml"
     strategy: depend
 
 analysis:licenses:

@@ -90,7 +90,7 @@ class DatadogKotlinCompilerPluginSupport : KotlinCompilerPluginSupportPlugin {
         )
     }
 
-    companion object {
+    private companion object {
         private const val PLUGIN_ID = "com.datadoghq.kotlin.compiler"
         private const val GROUP_ID = "com.datadoghq"
         private const val PLUGIN_ARTIFACT_ID_PREFIX = "dd-sdk-android-gradle-plugin-kcp"

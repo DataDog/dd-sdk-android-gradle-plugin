@@ -37,7 +37,7 @@ enum class InstrumentationMode {
      */
     DISABLE;
 
-    companion object {
+    internal companion object {
         internal fun from(value: String): InstrumentationMode? {
             return entries.firstOrNull { it.name == value }
         }

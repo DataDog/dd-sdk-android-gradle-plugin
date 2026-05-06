@@ -33,7 +33,7 @@ data class RepositoryInfo(
         return repository
     }
 
-    companion object {
+    internal companion object {
         internal const val KEY_REMOTE_URL = "repository_url"
         internal const val KEY_COMMIT_HASH = "hash"
         internal const val KEY_TRACKED_FILES = "files"

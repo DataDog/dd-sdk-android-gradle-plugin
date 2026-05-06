@@ -115,10 +115,8 @@ class DefaultPluginContextUtils(
         irFunction: IrFunction,
         annotationModeEnabled: Boolean
     ): Boolean {
-        return isComposableFunction(irFunction) && (
-            !annotationModeEnabled ||
-                irFunction.hasAnnotation(ComposeInstrumentationAnnotationName)
-            )
+        return isComposableFunction(irFunction) &&
+            (!annotationModeEnabled || irFunction.hasAnnotation(ComposeInstrumentationAnnotationName))
     }
 
     private fun <T> logSingleMatchError(target: String, isCritical: Boolean): T? {
@@ -140,7 +138,7 @@ class DefaultPluginContextUtils(
     private fun hasComposableAnnotation(owner: IrFunction): Boolean =
         owner.hasAnnotation(composableFqName)
 
-    companion object {
+    private companion object {
         private const val ERROR_SINGLE_MATCH = "%s has none or several references."
         private const val ERROR_NOT_FOUND = "%s is not found."
         private const val MODIFIER_COMPANION_NAME = "Modifier.Companion"
