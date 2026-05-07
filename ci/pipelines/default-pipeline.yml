@@ -102,6 +102,9 @@ test:plugin:
   image: $CI_IMAGE_DOCKER
   stage: test
   timeout: 1h
+  variables:
+    # Functional test is very memory heavy due to spinning real Gradle runners, having daemons in memory
+    KUBERNETES_MEMORY_LIMIT: "25Gi"
   script:
     - rm -rf ~/.gradle/daemon/
     - CODECOV_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android-gradle-plugin.codecov-token --with-decryption --query "Parameter.Value" --out text)
