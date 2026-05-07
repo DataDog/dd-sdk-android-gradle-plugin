@@ -81,7 +81,7 @@ enum class DatadogSite(internal val domain: String) {
         return "https://api.$domain/api/v1/validate"
     }
 
-    companion object {
+    internal companion object {
         internal val validIds = DatadogSite.entries.map { it.name }
 
         internal fun fromDomain(domain: String): DatadogSite? {

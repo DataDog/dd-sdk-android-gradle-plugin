@@ -12,7 +12,7 @@ import org.gradle.api.tasks.TaskAction
 
 open class UpdateThirdPartyLicensesTask : DefaultTask() {
 
-    @get: Input
+    @get:Input
     internal var extension: ThirdPartyLicensesExtension =
         ThirdPartyLicensesExtension()
     private val provider: DependenciesLicenseProvider =

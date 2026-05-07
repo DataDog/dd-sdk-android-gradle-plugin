@@ -22,7 +22,7 @@ open class TransitiveDependenciesTask : DefaultTask() {
     @get:Input
     var sortByName: Boolean = true
 
-    @get: OutputFile
+    @get:OutputFile
     lateinit var outputFile: File
 
     init {

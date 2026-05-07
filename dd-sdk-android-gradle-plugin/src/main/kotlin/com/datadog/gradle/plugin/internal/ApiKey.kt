@@ -16,8 +16,23 @@ internal data class ApiKey(val value: String, val source: ApiKeySource) {
  * Source of API key.
  */
 enum class ApiKeySource {
+    /**
+     * API key is coming from Gradle property.
+     */
     GRADLE_PROPERTY,
+
+    /**
+     * API key is coming from environment property.
+     */
     ENVIRONMENT,
+
+    /**
+     * API key is coming from datadog-ci.json file.
+     */
     DATADOG_CI_CONFIG_FILE,
+
+    /**
+     * There is no API key.
+     */
     NONE
 }
