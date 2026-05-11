@@ -4,6 +4,21 @@
  * Copyright 2020-Present Datadog, Inc.
  */
 
+pluginManagement {
+    repositories {
+        google()
+        gradlePluginPortal()
+        mavenCentral()
+        maven {
+            setUrl("https://jitpack.io")
+            mavenContent {
+                includeGroupByRegex("com\\.github\\..*")
+            }
+        }
+    }
+    includeBuild("./tools/build-config")
+}
+
 include(":dd-sdk-android-gradle-plugin")
 
 include(":dd-sdk-android-gradle-plugin-kcp-common")

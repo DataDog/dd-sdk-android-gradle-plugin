@@ -8,24 +8,30 @@ buildscript {
     repositories {
         google()
         mavenCentral()
-        maven(com.datadog.gradle.Dependencies.Repositories.Gradle)
+        gradlePluginPortal()
         mavenLocal()
     }
 
     dependencies {
-        classpath(libs.androidToolsPluginGradle)
-        classpath(libs.kotlinPluginGradle)
-        classpath(libs.dokkaPluginGradle)
         // Uncomment to use the samples
         // classpath(libs.datadogPluginGradle)
     }
+}
+
+plugins {
+    alias(libs.plugins.kotlinPlugin21) apply false
+    alias(libs.plugins.dokkaJavadocPlugin) apply false
+    alias(libs.plugins.androidApplicationPlugin) apply false
+    alias(libs.plugins.androidLibraryPlugin) apply false
+    alias(libs.plugins.versionsPluginGradle) apply false
+    alias(libs.plugins.mavenPublishPlugin) apply false
 }
 
 allprojects {
     repositories {
         google()
         mavenCentral()
-        maven(com.datadog.gradle.Dependencies.Repositories.Jitpack)
+        maven("https://jitpack.io")
         maven("https://central.sonatype.com/repository/maven-snapshots/")
     }
 }
