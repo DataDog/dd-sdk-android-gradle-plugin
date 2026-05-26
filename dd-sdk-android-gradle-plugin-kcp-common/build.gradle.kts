@@ -29,10 +29,6 @@ plugins {
     id("datadogBuildConfig")
 }
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
     compileOnly(libs.kotlinCompilerEmbeddable20)
     compileOnly(libs.kotlinGradlePlugin20)

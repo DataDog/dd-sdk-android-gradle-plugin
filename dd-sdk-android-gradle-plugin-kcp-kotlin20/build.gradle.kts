@@ -28,10 +28,6 @@ plugins {
     id("datadogBuildConfig")
 }
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
     implementation(project(":dd-sdk-android-gradle-plugin-kcp-common"))
     compileOnly(libs.kotlinCompilerEmbeddable20)
