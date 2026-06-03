@@ -7,9 +7,15 @@
 package com.datadog.gradle.plugin.kcp
 
 import com.datadog.gradle.plugin.InstrumentationMode
+import com.tschuchort.compiletesting.KotlinCompilation
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 
+@OptIn(ExperimentalCompilerApi::class)
 class ComposeTagCompilation20Test : ComposeTagCompilationTest() {
-    override fun getDatadogPluginRegistrar(instrumentationMode: InstrumentationMode): DatadogPluginRegistrar {
-        return DatadogPluginRegistrarImpl(instrumentationMode)
+    override fun registerDatadogPluginRegistrar(
+        compilation: KotlinCompilation,
+        instrumentationMode: InstrumentationMode
+    ) {
+        compilation.componentRegistrars = listOf(DatadogPluginRegistrarImpl(instrumentationMode))
     }
 }
