@@ -52,6 +52,10 @@ abstract class KotlinCompilerTest {
             // Kotlin 2.4.0 made CommonCompilerArguments.setOptIn non-null; kctfork
             // defaults this property to null, which triggers a NPE in the setter.
             optIn = emptyList()
+            // The project modules are compiled with a newer Kotlin version than the embedded
+            // compiler used in kotlin20/21/22 test modules. Skip the metadata version check
+            // so the embedded compiler can read classes compiled with a newer metadata format.
+            kotlincArguments += "-Xskip-metadata-version-check"
         }.compile()
     }
 
