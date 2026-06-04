@@ -5,6 +5,7 @@ kotlin20 = "2.0.21"
 kotlin21 = "2.1.21"
 kotlin22 = "2.2.20"
 kotlin23 = "2.3.20"
+kotlin24 = "2.4.0"
 kotlinComposePlugin = "2.1.21"
 json = "20231013"
 okHttp = "4.12.0"
@@ -54,6 +55,7 @@ datadogPluginGradle = "1.26.0"
 kotlinCompilerTesting20 = "0.7.0"
 kotlinCompilerTesting21 = "0.7.0"
 kotlinCompilerTesting22 = "0.8.0"
+kotlinCompilerTesting24 = "0.12.1"
 autoService = "1.0.1"
 junitVersion = "1.2.1"
 espressoCoreVersion = "3.6.1"
@@ -67,6 +69,7 @@ androidToolsGradlePlugin = { module = "com.android.tools.build:gradle", version.
 kotlinGradlePlugin20 = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin20" }
 kotlinGradlePlugin21 = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin21" }
 kotlinGradlePlugin22 = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin22" }
+kotlinGradlePlugin24 = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin24" }
 dokkaGradlePlugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
 unmockGradlePlugin = { module = "de.mobilej.unmock:UnMockPlugin", version.ref = "unmock" }
 
@@ -126,9 +129,11 @@ kotlinCompilerEmbeddable = { group = "org.jetbrains.kotlin", name = "kotlin-comp
 kotlinCompilerEmbeddable20 = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlin20" }
 kotlinCompilerEmbeddable21 = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlin21" }
 kotlinCompilerEmbeddable22 = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlin22" }
+kotlinCompilerEmbeddable24 = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlin24" }
 kotlinCompilerTesting20 = { module = "dev.zacsweers.kctfork:core", version.ref = "kotlinCompilerTesting20" }
 kotlinCompilerTesting21 = { module = "dev.zacsweers.kctfork:core", version.ref = "kotlinCompilerTesting21" }
 kotlinCompilerTesting22 = { module = "dev.zacsweers.kctfork:core", version.ref = "kotlinCompilerTesting22" }
+kotlinCompilerTesting24 = { module = "dev.zacsweers.kctfork:core", version.ref = "kotlinCompilerTesting24" }
 autoService = { module = "com.google.auto.service:auto-service", version.ref = "autoService" }
 autoServiceAnnotation = { module = "com.google.auto.service:auto-service-annotations", version.ref = "autoService" }
 
@@ -172,7 +177,9 @@ testTools = [
 dokkaJavadocPlugin = { id = "org.jetbrains.dokka-javadoc", version.ref = "dokka" }
 androidApplicationPlugin = { id = "com.android.application", version.ref = "androidToolsPlugin" }
 androidLibraryPlugin = { id = "com.android.library", version.ref = "androidToolsPlugin" }
+kotlinPlugin21 = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin21" }
 kotlinPlugin23 = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin23" }
+kotlinPlugin24 = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin24" }
 mavenPublishPlugin = { id = "com.vanniktech.maven.publish.base", version.ref = "mavenPublishPlugin" }
 versionsPluginGradle = { id = "com.github.ben-manes.versions", version.ref = "versionsPluginGradle" }
 kotlinComposePlugin = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlinComposePlugin" }
