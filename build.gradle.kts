@@ -23,7 +23,7 @@ buildscript {
 }
 
 plugins {
-    alias(libs.plugins.kotlinPlugin21) apply false
+    alias(libs.plugins.kotlinPlugin23) apply false
     alias(libs.plugins.dokkaJavadocPlugin) apply false
     alias(libs.plugins.androidApplicationPlugin) apply false
     alias(libs.plugins.androidLibraryPlugin) apply false
