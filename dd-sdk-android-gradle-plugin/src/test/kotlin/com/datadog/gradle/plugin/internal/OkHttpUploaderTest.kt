@@ -150,6 +150,13 @@ internal class OkHttpUploaderTest {
     }
 
     @Test
+    fun `M set client readTimeout W init()`() {
+        assertThat(testedUploader.client.readTimeoutMillis).isEqualTo(
+            OkHttpUploader.NETWORK_TIMEOUT_MS.toInt()
+        )
+    }
+
+    @Test
     fun `M upload proper request W upload()`() {
         // Given
         mockUploadResponse = MockResponse()
