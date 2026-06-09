@@ -43,6 +43,7 @@ internal class OkHttpUploader : Uploader {
             .callTimeout(0, TimeUnit.MILLISECONDS) // unlimited
             .writeTimeout(NETWORK_TIMEOUT_MS, TimeUnit.MILLISECONDS)
             .connectTimeout(NETWORK_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+            .readTimeout(NETWORK_TIMEOUT_MS, TimeUnit.MILLISECONDS)
             .build()
 
     @Suppress("TooGenericExceptionCaught")
