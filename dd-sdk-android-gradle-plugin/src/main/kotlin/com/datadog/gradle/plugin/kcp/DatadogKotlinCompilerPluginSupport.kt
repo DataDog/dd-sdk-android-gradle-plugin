@@ -81,6 +81,7 @@ class DatadogKotlinCompilerPluginSupport : KotlinCompilerPluginSupportPlugin {
             KotlinVersion.KOTLIN19, KotlinVersion.KOTLIN20 -> "$PLUGIN_ARTIFACT_ID_PREFIX-kotlin20"
             KotlinVersion.KOTLIN21 -> "$PLUGIN_ARTIFACT_ID_PREFIX-kotlin21"
             KotlinVersion.KOTLIN22 -> "$PLUGIN_ARTIFACT_ID_PREFIX-kotlin22"
+            KotlinVersion.KOTLIN24 -> "$PLUGIN_ARTIFACT_ID_PREFIX-kotlin24"
             KotlinVersion.UNSUPPORTED -> error("Unsupported Kotlin version: $kgpVersion")
         }
         return SubpluginArtifact(
