@@ -9,6 +9,7 @@ package com.datadog.gradle.plugin.kcp
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrPackageFragment
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
+import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.name.CallableId
 
@@ -101,4 +102,22 @@ interface PluginContextUtils {
      * @suppress Internal use only.
      */
     fun isComposeInstrumentationTargetFunc(irFunction: IrFunction, annotationModeEnabled: Boolean): Boolean
+
+    /**
+     * Gets the primary constructor symbol of `AcceptAllNavDestinations`.
+     * @suppress Internal use only.
+     */
+    fun getAcceptAllNavDestinationsConstructorSymbol(): IrConstructorSymbol?
+
+    /**
+     * Gets the `Datadog.getInstance` function symbol.
+     * @suppress Internal use only.
+     */
+    fun getDatadogGetInstanceFunctionSymbol(): IrSimpleFunctionSymbol?
+
+    /**
+     * Gets the `Datadog` object class symbol.
+     * @suppress Internal use only.
+     */
+    fun getDatadogObjectClassSymbol(): IrClassSymbol?
 }
