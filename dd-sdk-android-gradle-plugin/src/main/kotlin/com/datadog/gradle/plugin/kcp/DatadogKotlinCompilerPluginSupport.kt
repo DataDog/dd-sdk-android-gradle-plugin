@@ -22,7 +22,7 @@ import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
  * This class implements [KotlinCompilerPluginSupportPlugin] to properly integrate with the
  * Kotlin Gradle Plugin and target the correct version-specific sub-plugin.
  *
- * The plugin points to different sub-plugin based on kotlin compiler version (kotlin20, kotlin21, kotlin22).
+ * The plugin points to different sub-plugin based on kotlin compiler version (kotlin20, kotlin21, kotlin22, kotlin24).
  *
  */
 class DatadogKotlinCompilerPluginSupport : KotlinCompilerPluginSupportPlugin {
@@ -64,6 +64,19 @@ class DatadogKotlinCompilerPluginSupport : KotlinCompilerPluginSupportPlugin {
         val project = kotlinCompilation.target.project
         val ddExtension = project.extensions.getByType(DdExtension::class.java)
         val composeInstrumentation = ddExtension.composeInstrumentation
+
+        // For Kotlin 2.4.0+, CompilerPluginRegistrar does not support LoadingOrder.FIRST,
+        // so we use -Xcompiler-plugin-order to guarantee Datadog runs before Compose.
+        // Use compileTaskProvider (KGP 2.0+ stable API) instead of the deprecated
+        // kotlinOptions.freeCompilerArgs which does not propagate reliably in KGP 2.4.0.
+        if (kotlinVersion == KotlinVersion.KOTLIN24) {
+            kotlinCompilation.compileTaskProvider.configure { task ->
+                task.compilerOptions.freeCompilerArgs.add(
+                    "-Xcompiler-plugin-order=$PLUGIN_ID>$COMPOSE_PLUGIN_ID"
+                )
+            }
+        }
+
         return project.provider {
             listOf(
                 SubpluginOption(
@@ -93,6 +106,7 @@ class DatadogKotlinCompilerPluginSupport : KotlinCompilerPluginSupportPlugin {
 
     private companion object {
         private const val PLUGIN_ID = "com.datadoghq.kotlin.compiler"
+        private const val COMPOSE_PLUGIN_ID = "androidx.compose.compiler.plugins.kotlin"
         private const val GROUP_ID = "com.datadoghq"
         private const val PLUGIN_ARTIFACT_ID_PREFIX = "dd-sdk-android-gradle-plugin-kcp"
         private const val INSTRUMENTATION_MODE = "INSTRUMENTATION_MODE"
