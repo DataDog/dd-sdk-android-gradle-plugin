@@ -1,8 +1,13 @@
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
-//apply plugin: 'com.datadoghq.dd-sdk-android-gradle-plugin'
-
 import com.datadog.gradle.config.AndroidConfig
+
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+    // you don't need this in your project, it is just to be able to reference AndroidConfig class
+    id 'noopBuildConfigClasspath' apply false
+
+    // id 'com.datadoghq.dd-sdk-android-gradle-plugin'
+}
 
 android {
     compileSdkVersion = AndroidConfig.TARGET_SDK

@@ -448,7 +448,7 @@ class DdAndroidGradlePlugin @Inject constructor(
     }
 
     /**
-     * Returns the set of names registered in [extension.variants] that do not correspond to any
+     * Returns the set of names registered in [DdExtension.variants] that do not correspond to any
      * real partial variant combination generated from [knownVariants].
      *
      * Uses [VariantIterator] to produce all valid partial names for each real variant (the same
@@ -543,7 +543,7 @@ class DdAndroidGradlePlugin @Inject constructor(
 
     // endregion
 
-    companion object {
+    internal companion object {
 
         internal const val DATADOG_CI_API_KEY_PROPERTY = "apiKey"
         internal const val DATADOG_CI_SITE_PROPERTY = "datadogSite"
@@ -564,7 +564,7 @@ class DdAndroidGradlePlugin @Inject constructor(
         internal const val UPLOAD_TASK_NAME = "uploadMapping"
 
         private const val ERROR_NOT_ANDROID = "The dd-android-gradle-plugin has been applied on " +
-            "a non android application project"
+            "a non-Android application project"
 
         private const val MSG_PLUGIN_DISABLED =
             "Datadog extension disabled, no upload task created, no Compose instrumentation applied"

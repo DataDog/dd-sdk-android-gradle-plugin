@@ -9,9 +9,11 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
-    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.androidApplicationPlugin)
+    kotlin("android")
+    alias(libs.plugins.kotlinComposePlugin)
+
+    id("noopBuildConfigClasspath") apply false // just bringing classpath to reference AndroidConfig
 }
 
 android {
@@ -70,8 +72,9 @@ tasks.withType<KotlinCompile>().configureEach {
 dependencies {
 
     kotlinCompilerPluginClasspath(project(":dd-sdk-android-gradle-plugin-kcp-common"))
-    kotlinCompilerPluginClasspath(project(":dd-sdk-android-gradle-plugin-kcp-kotlin21"))
-    // We use kotlin21 because the kotlin compiler for this project is kotlin 2.1.x
+    kotlinCompilerPluginClasspath(project(":dd-sdk-android-gradle-plugin-kcp-kotlin22"))
+    // We use kotlin22 because the kotlin compiler for this project is kotlin 2.3.x
+    // Kotlin Compiler 2.3.x can not read kotlin21 through classpath.
     implementation(project(":samples:lib-module"))
     implementation(libs.androidx.core)
     implementation(libs.androidx.lifecycle.runtime.ktx)

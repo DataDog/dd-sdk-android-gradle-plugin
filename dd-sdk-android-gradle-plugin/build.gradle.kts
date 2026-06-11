@@ -5,12 +5,6 @@
  */
 
 import com.datadog.gradle.config.MavenConfig
-import com.datadog.gradle.config.dependencyUpdateConfig
-import com.datadog.gradle.config.jacocoConfig
-import com.datadog.gradle.config.javadocConfig
-import com.datadog.gradle.config.junitConfig
-import com.datadog.gradle.config.kotlinConfig
-import com.datadog.gradle.config.publishingConfig
 
 plugins {
     // Build
@@ -34,6 +28,7 @@ plugins {
     id("thirdPartyLicences")
     id("transitiveDependencies")
     id("compilerMetadata")
+    id("datadogBuildConfig")
     alias(libs.plugins.buildConfig)
 }
 
@@ -44,31 +39,29 @@ buildConfig {
 
 dependencies {
     // Main implementation dependencies
-    implementation(libs.kotlin)
+    implementation(libs.kotlin21)
     implementation(libs.okHttp)
     implementation(libs.json)
+    // Compile-only dependencies
+    compileOnly(libs.androidToolsGradlePlugin) // for auto-wiring into Android projects
+    compileOnly(libs.kotlinGradlePlugin21)
 
     // Test dependencies
     testImplementation(libs.bundles.jUnit5)
     testImplementation(libs.bundles.testTools)
     testImplementation(libs.okHttpMock)
-    testImplementation(libs.androidToolsPluginGradle)
-    testImplementation(libs.kotlinCompilerEmbeddable)
-    testImplementation(libs.kotlinCompilerTesting20)
-    testImplementation(libs.kotlinPluginGradle)
-    testImplementation(platform(libs.androidx.compose.bom))
-    // Compile-only dependencies
-    compileOnly(libs.androidToolsPluginGradle) // for auto-wiring into Android projects
-    compileOnly(libs.kotlinCompilerEmbeddable)
-    compileOnly(libs.kotlinPluginGradle)
+    testImplementation(libs.androidToolsGradlePlugin)
+    testImplementation(libs.kotlinGradlePlugin21)
 }
 
-kotlinConfig()
-junitConfig()
-jacocoConfig()
-javadocConfig()
-dependencyUpdateConfig()
-publishingConfig("Plugin to upload Proguard/R8 mapping files to Datadog.")
+datadogBuildConfig {
+    applyKotlinConfig()
+    applyJunitConfig()
+    applyJacocoConfig()
+    applyJavadocConfig()
+    applyDependencyUpdateConfig()
+    applyPublishingConfig("Plugin to upload Proguard/R8 mapping files to Datadog.")
+}
 
 gradlePlugin {
 

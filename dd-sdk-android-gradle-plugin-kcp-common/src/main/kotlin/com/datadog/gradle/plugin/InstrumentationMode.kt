@@ -37,8 +37,12 @@ enum class InstrumentationMode {
      */
     DISABLE;
 
+    /** Factory methods for [InstrumentationMode]. */
     companion object {
-        internal fun from(value: String): InstrumentationMode? {
+        /**
+         * Returns the [InstrumentationMode] whose name matches [value], or null if none matches.
+         */
+        fun from(value: String): InstrumentationMode? {
             return entries.firstOrNull { it.name == value }
         }
     }

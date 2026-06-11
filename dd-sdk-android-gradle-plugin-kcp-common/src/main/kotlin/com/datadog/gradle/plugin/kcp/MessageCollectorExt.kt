@@ -70,3 +70,15 @@ const val ERROR_MISSING_COMPOSE_NAV =
  */
 const val ERROR_MISSING_KOTLIN_STDLIB =
     "Missing org.jetbrains.kotlin:kotlin-stdlib dependency."
+
+/**
+ * Error message of missing Datadog RUM tracking dependency (AcceptAllNavDestinations).
+ */
+const val ERROR_MISSING_DATADOG_RUM_TRACKING =
+    "Missing com.datadoghq:dd-sdk-android-rum dependency (AcceptAllNavDestinations not found)."
+
+/**
+ * Error message of missing Datadog core dependency (Datadog.getInstance).
+ */
+const val ERROR_MISSING_DATADOG_CORE =
+    "Missing com.datadoghq:dd-sdk-android dependency (Datadog.getInstance not found)."
