@@ -1,3 +1,22 @@
+# 1.27.0 / 2026-06-11
+
+* [FEATURE] Add Kotlin 2.4 support for Compose instrumentation. See [#568](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/568)
+* [BUGFIX] Limit Jetpack Compose instrumentation only to Android compilations. See [#555](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/555)
+* [BUGFIX] Set `readTimeout` on `OkHttpClient` to match `writeTimeout`. See [#567](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/567)
+* [IMPROVEMENT] Move from `buildSrc` to isolated build plugins module. See [#556](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/556)
+* [IMPROVEMENT] Remove Kotlin Compiler Embeddable from the dependencies of the main plugin module. See [#559](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/559)
+* [IMPROVEMENT] Refactor compiler test infrastructure to support pluggable registrar APIs. See [#563](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/563)
+* [MAINTENANCE] Fix OOM in `test:plugin`. See [#554](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/554)
+* [MAINTENANCE] Next dev iteration 1.27.0. See [#550](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/550)
+* [MAINTENANCE] Merge release 1.26.0 to develop. See [#552](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/552)
+* [MAINTENANCE] Update Datadog Gradle Plugin to version 1.26.0. See [#551](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/551)
+* [MAINTENANCE] Update static analysis template version. See [#557](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/557)
+* [MAINTENANCE] Update Datadog SDK to version 3.10.0. See [#558](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/558)
+* [MAINTENANCE] Sign automatically created commits. See [#561](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/561)
+* [MAINTENANCE] Resolve dependencies through Magic Mirror Depot in CI. See [#562](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/562)
+* [MAINTENANCE] Bump Kotlin version to 2.3.20. See [#565](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/565)
+* [MAINTENANCE] Merge `feature/kotlin24` into `develop`. See [#569](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/569)
+
 # 1.26.0 / 2026-04-27
 
 * [FEATURE] Add `US2_FED` datacenter support. See [#542](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/542)

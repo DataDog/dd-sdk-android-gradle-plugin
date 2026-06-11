@@ -24,7 +24,7 @@ class MainActivity : AppCompatActivity() {
 
     private external fun stringFromJNI(): String
 
-    companion object {
+    private companion object {
         init {
             System.loadLibrary("ndk")
         }

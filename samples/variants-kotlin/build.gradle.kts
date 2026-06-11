@@ -5,7 +5,10 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.application")
-    id("kotlin-android")
+    kotlin("android")
+    // you don't need this in your project, it is just to be able to reference AndroidConfig class
+    id("noopBuildConfigClasspath") apply false
+
 //    id("com.datadoghq.dd-sdk-android-gradle-plugin")
 }
 
@@ -27,6 +30,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }

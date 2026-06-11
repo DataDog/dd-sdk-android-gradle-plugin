@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrPackageFragment
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
+import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.util.companionObject
@@ -47,6 +48,12 @@ class DefaultPluginContextUtils(
         packageName = kotlinPackageName,
         callableName = applyFunctionIdentifier
     )
+    private val acceptAllNavDestinationsClassId = ClassId(
+        datadogRumTrackingPackageName,
+        acceptAllNavDestinationsIdentifier
+    )
+    private val datadogClassId = ClassId(datadogCorePackageName, datadogIdentifier)
+    private val datadogGetInstanceCallableId = CallableId(datadogClassId, getInstanceIdentifier)
 
     override fun getModifierCompanionClass(): IrClassSymbol? {
         return getModifierClassSymbol()?.owner?.companionObject()?.symbol ?: warnNotFound(
@@ -111,14 +118,24 @@ class DefaultPluginContextUtils(
             .singleOrNull() ?: logSingleMatchError(callableId.callableName.asString(), isCritical)
     }
 
+    override fun getAcceptAllNavDestinationsConstructorSymbol(): IrConstructorSymbol? {
+        return pluginContext.referenceConstructors(acceptAllNavDestinationsClassId).firstOrNull()
+    }
+
+    override fun getDatadogGetInstanceFunctionSymbol(): IrSimpleFunctionSymbol? {
+        return referenceSingleFunction(datadogGetInstanceCallableId)
+    }
+
+    override fun getDatadogObjectClassSymbol(): IrClassSymbol? {
+        return pluginContext.referenceClass(datadogClassId)
+    }
+
     override fun isComposeInstrumentationTargetFunc(
         irFunction: IrFunction,
         annotationModeEnabled: Boolean
     ): Boolean {
-        return isComposableFunction(irFunction) && (
-            !annotationModeEnabled ||
-                irFunction.hasAnnotation(ComposeInstrumentationAnnotationName)
-            )
+        return isComposableFunction(irFunction) &&
+            (!annotationModeEnabled || irFunction.hasAnnotation(ComposeInstrumentationAnnotationName))
     }
 
     private fun <T> logSingleMatchError(target: String, isCritical: Boolean): T? {
@@ -140,7 +157,7 @@ class DefaultPluginContextUtils(
     private fun hasComposableAnnotation(owner: IrFunction): Boolean =
         owner.hasAnnotation(composableFqName)
 
-    companion object {
+    private companion object {
         private const val ERROR_SINGLE_MATCH = "%s has none or several references."
         private const val ERROR_NOT_FOUND = "%s is not found."
         private const val MODIFIER_COMPANION_NAME = "Modifier.Companion"
@@ -166,5 +183,10 @@ class DefaultPluginContextUtils(
         private val AsyncImageIdentifier = Name.identifier("AsyncImage")
         private val ComposeInstrumentationAnnotationName =
             FqName("com.datadog.android.compose.ComposeInstrumentation")
+        private val datadogRumTrackingPackageName = FqName("com.datadog.android.rum.tracking")
+        private val acceptAllNavDestinationsIdentifier = Name.identifier("AcceptAllNavDestinations")
+        private val datadogCorePackageName = FqName("com.datadog.android")
+        private val datadogIdentifier = Name.identifier("Datadog")
+        private val getInstanceIdentifier = Name.identifier("getInstance")
     }
 }

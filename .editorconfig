@@ -4,11 +4,24 @@
 
 [*.{kt,kts}]
 ktlint_code_style = android_studio
+ktlint_experimental = disabled
 ij_kotlin_allow_trailing_comma_on_call_site = false
 ij_kotlin_allow_trailing_comma = false
 ij_kotlin_imports_layout=*,java.**,javax.**,kotlin.**,^
+ktlint_standard_class-signature = disabled
+ktlint_standard_function-signature = disabled
+ktlint_standard_function-expression-body = disabled
+ktlint_standard_function-naming = disabled
+ktlint_standard_property-naming = disabled
+ktlint_standard_trailing-comma-on-call-site = disabled
+ktlint_standard_trailing-comma-on-declaration-site = disabled
+ktlint_function_naming_ignore_when_annotated_with = Composable
 max_line_length = 120
 
 # SPDX License Names
 [buildSrc/src/main/kotlin/com/datadog/gradle/plugin/checklicenses/SPDXLicense.kt]
 ktlint_standard_enum-entry-name-case = disabled
+
+# by some reason not working via @Suppress anymore
+[samples/basic/src/main/java/com/datadog/example/basic/MainActivity.kt]
+ktlint_standard_no-unused-imports = disabled

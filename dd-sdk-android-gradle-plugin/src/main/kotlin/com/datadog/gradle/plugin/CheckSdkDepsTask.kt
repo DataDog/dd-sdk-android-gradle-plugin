@@ -127,7 +127,7 @@ abstract class CheckSdkDepsTask : DefaultTask() {
         return false
     }
 
-    companion object {
+    internal companion object {
         internal const val MISSING_DD_SDK_MESSAGE = "Following application variant doesn't" +
             " have Datadog SDK included: %s"
         internal const val CANNOT_FIND_CONFIGURATION_MESSAGE = "Cannot find configuration %s for" +
