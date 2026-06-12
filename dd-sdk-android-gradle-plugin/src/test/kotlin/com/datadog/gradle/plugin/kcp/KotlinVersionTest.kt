@@ -12,14 +12,19 @@ import org.junit.Test
 class KotlinVersionTest {
 
     @Test
-    fun `M return KOTLIN22 W give version 2_2_x and 2_3_x`() {
+    fun `M return KOTLIN22 W give version 2_2_x`() {
         assertEquals(KotlinVersion.KOTLIN22, KotlinVersion.from("2.2.0"))
         assertEquals(KotlinVersion.KOTLIN22, KotlinVersion.from("2.2.10"))
-        assertEquals(KotlinVersion.KOTLIN22, KotlinVersion.from("2.3.0"))
         assertEquals(
             KotlinVersion.KOTLIN22,
             KotlinVersion.from("2.2.0-alpha")
         ) // Suffixes should be handled
+    }
+
+    @Test
+    fun `M return UNSUPPORTED W give version 2_3_x`() {
+        assertEquals(KotlinVersion.UNSUPPORTED, KotlinVersion.from("2.3.0"))
+        assertEquals(KotlinVersion.UNSUPPORTED, KotlinVersion.from("2.3.20"))
     }
 
     @Test

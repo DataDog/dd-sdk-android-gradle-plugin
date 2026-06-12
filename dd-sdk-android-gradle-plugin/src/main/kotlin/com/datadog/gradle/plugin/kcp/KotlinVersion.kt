@@ -37,7 +37,7 @@ internal enum class KotlinVersion {
                 major == 1 && minor == 9 && patch >= 23 -> KOTLIN19
                 major == 2 && minor == 0 -> KOTLIN20
                 major == 2 && minor == 1 -> KOTLIN21
-                major == 2 && minor in 2..3 -> KOTLIN22
+                major == 2 && minor == 2 -> KOTLIN22
                 major > 2 || (major == 2 && minor >= 4) -> KOTLIN24
                 else -> UNSUPPORTED
             }
