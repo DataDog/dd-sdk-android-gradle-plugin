@@ -267,6 +267,87 @@ abstract class ComposeTagCompilationTest : KotlinCompilerTest() {
     }
 
     @Test
+    fun `M preserve callee default W modifier arg omitted and callee default is not bare Modifier`() {
+        // Given
+        val nullableModifierTestCaseSource = SourceFile.kotlin(
+            NULLABLE_MODIFIER_TEST_CASE_FILE_NAME,
+            NULLABLE_MODIFIER_SOURCE_FILE_CONTENT
+        )
+
+        // When
+        val result = compileFile(
+            target = nullableModifierTestCaseSource,
+            deps = dependencyFiles
+        )
+        executeClassFile(
+            result.classLoader,
+            "com.datadog.kcp.NullableModifierTestCase",
+            "NullableModifierTestCase",
+            listOf(mockCustomModifierCallback)
+        )
+
+        // Then
+        assertThat(result.exitCode).isEqualTo(KotlinCompilation.ExitCode.OK)
+        verify(mockCustomModifierCallback).invoke()
+    }
+
+    @Test
+    fun `M inject dd modifier W modifier omitted on dependency composable with deserialized default`() {
+        // Given
+        val dependencyDefaultModifierTestCaseSource = SourceFile.kotlin(
+            DEPENDENCY_DEFAULT_MODIFIER_TEST_CASE_FILE_NAME,
+            DEPENDENCY_DEFAULT_MODIFIER_SOURCE_FILE_CONTENT
+        )
+
+        // When
+        val result = compileFile(
+            target = dependencyDefaultModifierTestCaseSource,
+            deps = dependencyFiles
+        )
+        executeClassFile(
+            result.classLoader,
+            "com.datadog.kcp.DependencyDefaultModifierTestCase",
+            "DependencyDefaultModifierTestCase",
+            listOf()
+        )
+
+        // Then
+        // The callee comes from a dependency, so its `modifier: Modifier = Modifier` default deserializes
+        // as a placeholder (IrErrorExpression), not a bare companion. It must still be instrumented rather
+        // than wrongly preserved/skipped. See #575.
+        // `Image` is also an image-role composable, hence the callback is invoked with `true`.
+        assertThat(result.exitCode).isEqualTo(KotlinCompilation.ExitCode.OK)
+        verify(mockCallback).invoke(true)
+    }
+
+    @Test
+    fun `M preserve callee default W modifier arg omitted and callee default is a sizing Modifier`() {
+        // Given
+        val sizingDefaultModifierTestCaseSource = SourceFile.kotlin(
+            SIZING_DEFAULT_MODIFIER_TEST_CASE_FILE_NAME,
+            SIZING_DEFAULT_MODIFIER_SOURCE_FILE_CONTENT
+        )
+
+        // When
+        val result = compileFile(
+            target = sizingDefaultModifierTestCaseSource,
+            deps = dependencyFiles
+        )
+        executeClassFile(
+            result.classLoader,
+            "com.datadog.kcp.SizingDefaultModifierTestCase",
+            "SizingDefaultModifierTestCase",
+            listOf(mockCustomModifierCallback)
+        )
+
+        // Then
+        // The omitted `iconModifier` argument must keep its `Modifier.stubModifier(...)` default rather than
+        // being overwritten with `Modifier.instrumentedDatadog(...)`. See #575.
+        assertThat(result.exitCode).isEqualTo(KotlinCompilation.ExitCode.OK)
+        verify(mockCustomModifierCallback).invoke()
+    }
+
+    @Test
     fun `M match given instrumentation mode W instrument annotated function`(
         @Forgery instrumentationMode: InstrumentationMode
     ) {
@@ -341,6 +422,10 @@ abstract class ComposeTagCompilationTest : KotlinCompilerTest() {
         private const val DEFAULT_MODIFIER_WITH_ANNOTATION_TEST_CASE_FILE_NAME =
             "DefaultModifierWithAnnotationTestCase.kt"
         private const val NESTED_COMPOSABLE_TEST_CASE_FILE_NAME = "NestedComposableTestCase.kt"
+        private const val NULLABLE_MODIFIER_TEST_CASE_FILE_NAME = "NullableModifierTestCase.kt"
+        private const val DEPENDENCY_DEFAULT_MODIFIER_TEST_CASE_FILE_NAME =
+            "DependencyDefaultModifierTestCase.kt"
+        private const val SIZING_DEFAULT_MODIFIER_TEST_CASE_FILE_NAME = "SizingDefaultModifierTestCase.kt"
 
         @Language("kotlin")
         private val NO_MODIFIER_SOURCE_FILE_CONTENT =
@@ -530,6 +615,100 @@ abstract class ComposeTagCompilationTest : KotlinCompilerTest() {
 
             }
             
+        """.trimIndent()
+
+    @Language("kotlin")
+    private val NULLABLE_MODIFIER_SOURCE_FILE_CONTENT =
+        """
+            package com.datadog.kcp
+
+            import androidx.compose.runtime.Composable
+            import androidx.compose.ui.Modifier
+
+            class NullableModifierTestCase{
+                @Composable
+                fun NullableModifierTestCase(fallbackCallback : () -> Unit) {
+                    // iconModifier is omitted, so the callee relies on its `null` default.
+                    IconRow(fallbackCallback = fallbackCallback)
+                }
+
+                @Composable
+                fun IconRow(iconModifier : Modifier? = null, fallbackCallback : () -> Unit){
+                    CustomComposable(
+                        modifier = iconModifier ?: Modifier.stubModifier(fallbackCallback)
+                    )
+                }
+
+                @Composable
+                fun CustomComposable(modifier : Modifier = Modifier){
+                    // do nothing
+                }
+
+                @Composable
+                fun Modifier.stubModifier(customCallback: () -> Unit): Modifier{
+                    customCallback.invoke()
+                    return Modifier
+                }
+
+            }
+
+        """.trimIndent()
+
+    @Language("kotlin")
+    private val DEPENDENCY_DEFAULT_MODIFIER_SOURCE_FILE_CONTENT =
+        """
+            package com.datadog.kcp
+
+            import androidx.compose.runtime.Composable
+            import androidx.compose.foundation.Image
+
+            class DependencyDefaultModifierTestCase{
+                @Composable
+                fun DependencyDefaultModifierTestCase() {
+                    // Image is compiled in a dependency, so its `modifier: Modifier = Modifier` default is
+                    // deserialized as a placeholder rather than a bare companion. It must still be tagged.
+                    Image()
+                }
+            }
+
+        """.trimIndent()
+
+    @Language("kotlin")
+    private val SIZING_DEFAULT_MODIFIER_SOURCE_FILE_CONTENT =
+        """
+            package com.datadog.kcp
+
+            import androidx.compose.runtime.Composable
+            import androidx.compose.ui.Modifier
+
+            class SizingDefaultModifierTestCase{
+                @Composable
+                fun SizingDefaultModifierTestCase(fallbackCallback : () -> Unit) {
+                    // iconModifier is omitted, so the callee relies on its non-null default.
+                    IconRow(fallbackCallback = fallbackCallback)
+                }
+
+                @Composable
+                fun IconRow(
+                    fallbackCallback : () -> Unit,
+                    iconModifier : Modifier = Modifier.stubModifier(fallbackCallback)
+                ){
+                    CustomComposable(modifier = iconModifier)
+                }
+
+                @Composable
+                fun CustomComposable(modifier : Modifier = Modifier){
+                    // do nothing
+                }
+
+                @Composable
+                fun Modifier.stubModifier(customCallback: () -> Unit): Modifier{
+                    customCallback.invoke()
+                    return Modifier
+                }
+
+            }
+
         """.trimIndent()
 
     @Language("kotlin")

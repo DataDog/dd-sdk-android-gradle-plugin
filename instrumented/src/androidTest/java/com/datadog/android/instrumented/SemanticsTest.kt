@@ -3,6 +3,7 @@ package com.datadog.android.instrumented
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import fr.xgouchet.elmyr.junit5.ForgeExtension
 import org.junit.Rule
 import org.junit.Test
@@ -53,6 +54,33 @@ class SemanticsTest {
         composeTestRule.onAllNodes(textSemanticsMatcher).assertCountEquals(1)
         val columnSemanticsMatcher = hasSemanticsValue(DD_SEMANTICS_KEY_NAME, "Column")
         composeTestRule.onAllNodes(columnSemanticsMatcher).assertCountEquals(1)
+    }
+
+    @Test
+    fun `M preserve callee default W modifier omitted and default is nullable consumed via elvis`() {
+        composeTestRule.setContent {
+            ScreenWithNullableModifierDefault()
+        }
+
+        // The omitted nullable `iconModifier` keeps its `null` default, so the elvis fallback applies and the
+        // testTag survives. If the transform had overwritten the argument, this node would be absent. See #575.
+        composeTestRule.onAllNodesWithTag(NULLABLE_DEFAULT_TAG).assertCountEquals(1)
+        // The inner Box still receives the datadog tag (its modifier argument is present).
+        val boxSemanticsMatcher = hasSemanticsValue(DD_SEMANTICS_KEY_NAME, "Box")
+        composeTestRule.onAllNodes(boxSemanticsMatcher).assertCountEquals(1)
+    }
+
+    @Test
+    fun `M preserve callee default W modifier omitted and default is a behavior carrying Modifier`() {
+        composeTestRule.setContent {
+            ScreenWithSizingModifierDefault()
+        }
+
+        // The omitted `iconModifier` keeps its `Modifier.testTag(...).size(...)` default rather than being
+        // overwritten with the datadog modifier, so the testTag survives. See #575.
+        composeTestRule.onAllNodesWithTag(SIZING_DEFAULT_TAG).assertCountEquals(1)
+        val boxSemanticsMatcher = hasSemanticsValue(DD_SEMANTICS_KEY_NAME, "Box")
+        composeTestRule.onAllNodes(boxSemanticsMatcher).assertCountEquals(1)
     }
 
     private fun <T> hasSemanticsValue(
