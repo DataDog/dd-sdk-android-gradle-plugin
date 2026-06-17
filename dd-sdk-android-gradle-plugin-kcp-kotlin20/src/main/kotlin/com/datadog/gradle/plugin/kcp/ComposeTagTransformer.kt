@@ -18,8 +18,10 @@ import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrPackageFragment
+import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrComposite
+import org.jetbrains.kotlin.ir.expressions.IrConst
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
@@ -121,8 +123,15 @@ constructor(
         expression.symbol.owner.valueParameters.forEachIndexed { index, irValueParameter ->
             // Locate where Modifier is accepted in the parameter list and replace it with the new expression.
             if (irValueParameter.type.classFqName == modifierClassFqName) {
+                val argument = expression.getValueArgument(index)
+                // Skip instrumenting an omitted argument whose callee default carries behavior
+                // (e.g. `Modifier.size(...)` or `null` consumed via an elvis). Overwriting it would
+                // discard that default and corrupt the layout. See #575.
+                if (shouldPreserveCalleeDefault(irValueParameter, argument)) {
+                    return@forEachIndexed
+                }
                 val irExpression = buildIrExpression(
-                    expression = expression.getValueArgument(index),
+                    expression = argument,
                     builder = builder,
                     functionName = expression.symbol.owner.name.asString(),
                     isImageComposableFunction = isImageComposableFunction(expression)
@@ -215,6 +224,28 @@ constructor(
             it.putValueArgument(1, builder.irBoolean(isImageComposableFunction))
         }
         return datadogTagIrCall
+    }
+
+    private fun shouldPreserveCalleeDefault(
+        irValueParameter: IrValueParameter,
+        argument: IrExpression?
+    ): Boolean {
+        val isArgumentAbsent = argument == null ||
+            (argument is IrComposite && argument.type.classFqName == kotlinNothingFqName)
+        if (!isArgumentAbsent) {
+            return false
+        }
+        // Only preserve the callee default when we can positively identify it as a value that carries
+        // behavior. A bare `Modifier` companion (`= Modifier`) is an IrGetObjectValue and is safe to
+        // overwrite; defaults deserialized from dependencies arrive as IrErrorExpression placeholders and
+        // must also be instrumented. Both fall through to `false` here. See #575.
+        return when (irValueParameter.defaultValue?.expression) {
+            // e.g. `Modifier? = null`, consumed via an `iconModifier ?: <fallback>` elvis in the body.
+            is IrConst<*> -> true
+            // e.g. `Modifier.size(40.dp)`.
+            is IrCall -> true
+            else -> false
+        }
     }
 
     private fun isAnonymousFunction(name: Name): Boolean = name == SpecialNames.ANONYMOUS
