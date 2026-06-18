@@ -1,3 +1,12 @@
+# 1.28.0 / 2026-06-17
+
+* [BUGFIX] Preserve callee Modifier default when argument is omitted. See [#577](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/577)
+* [MAINTENANCE] Next dev iteration 1.28.0. See [#571](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/571)
+* [MAINTENANCE] Merge `release/1.27.0` into `develop`. See [#573](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/573)
+* [MAINTENANCE] Update Datadog Gradle Plugin to version 1.27.0. See [#570](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/570)
+* [MAINTENANCE] Update Datadog SDK to version 3.11.0. See [#578](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/578)
+* [MAINTENANCE] Bump Datadog SDK version in `DdAndroidGradlePluginFunctionalTest`. See [#579](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/579)
+
 # 1.27.0 / 2026-06-11
 
 * [FEATURE] Add Kotlin 2.4 support for Compose instrumentation. See [#568](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/568)
