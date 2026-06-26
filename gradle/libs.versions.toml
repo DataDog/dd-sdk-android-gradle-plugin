@@ -47,7 +47,7 @@ mavenPublishPlugin = "0.35.0"
 buildConfig = "5.6.8"
 
 # Datadog
-datadogSdk = "3.11.0"
+datadogSdk = "3.12.0-profiling-rc7-SNAPSHOT"
 datadogSdkSnapshot = "3.12.0-SNAPSHOT"
 datadogPluginGradle = "1.28.0"
 
