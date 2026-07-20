@@ -246,7 +246,7 @@ test:build-config:
       junit: tools/build-config/build/test-results/test/TEST-*.xml
 
 test:instrumented:
-  tags: [ "macos:sonoma" ]
+  tags: [ "macos:sonoma", "specific:true" ]
   stage: test
   timeout: 1h
   script:
