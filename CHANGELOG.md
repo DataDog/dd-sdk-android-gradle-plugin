@@ -1,3 +1,8 @@
+# 1.29.0 / 2026-07-21
+
+* [FEATURE] Add `UK1` site. See [#594](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/594)
+* [MAINTENANCE] Update Datadog SDK to version `3.12.1`. See [#592](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/592)
+
 # 1.28.0 / 2026-06-17
 
 * [BUGFIX] Preserve callee Modifier default when argument is omitted. See [#577](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/577)
