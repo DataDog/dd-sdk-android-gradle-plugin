@@ -66,12 +66,17 @@ enum class DatadogSite(internal val domain: String) {
     AP2("ap2.datadoghq.com"),
 
     /**
+     *  The UK1 site: [uk1.datadoghq.com](https://uk1.datadoghq.com).
+     */
+    UK1("uk1.datadoghq.com"),
+
+    /**
      *  The STAGING site (internal usage only): [app.datad0g.com](https://app.datad0g.com).
      */
     STAGING("datad0g.com");
 
     /**
-     * Returns the endpoint to use to upload sourcemap to this site.
+     * Returns the endpoint to use to upload the source map to this site.
      */
     internal fun uploadEndpoint(): String {
         return "https://sourcemap-intake.$domain/api/v2/srcmap"
