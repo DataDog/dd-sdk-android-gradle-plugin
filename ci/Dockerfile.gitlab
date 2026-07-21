@@ -98,3 +98,4 @@ RUN curl -L https://github.com/get-woke/woke/releases/download/v${WOKE_VERSION}/
 
 COPY --from=registry.ddbuild.io/dd-octo-sts:v1.8.2 /usr/local/bin/dd-octo-sts /usr/local/bin/dd-octo-sts
 COPY --from=registry.ddbuild.io/commit-headless:v2.0.1 /commit-headless /usr/local/bin/commit-headless
+COPY --from=registry.ddbuild.io/ddsign:v1.11.10@sha256:55784668a612ab22129bb15a665a847819bfa64b9a595c59a03a3a725534ce22 /usr/local/bin/ddsign /usr/local/bin/ddsign
