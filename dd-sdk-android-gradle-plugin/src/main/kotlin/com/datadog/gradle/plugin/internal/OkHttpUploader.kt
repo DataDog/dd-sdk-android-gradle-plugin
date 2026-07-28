@@ -107,32 +107,34 @@ internal class OkHttpUploader : Uploader {
 
     // region Internal
 
+    private fun createFileBody(fileInfo: Uploader.UploadFileInfo): RequestBody {
+        val fileBody = fileInfo.file.asRequestBody(fileInfo.encoding.toMediaTypeOrNull())
+        if (!fileInfo.compressed) return fileBody
+
+        val uncompressedSize = fileInfo.file.length()
+        LOGGER.info(
+            "Compressing ${fileInfo.fileName} content with GZIP ($uncompressedSize bytes uncompressed)."
+        )
+        // Independent of the transport-level `Content-Encoding: gzip` (see `useGzip`), which
+        // already compresses uploads in transit by default: this layer is what makes the mapping
+        // file reach the backend compressed. When both are on the part is gzipped twice, which is
+        // expected -- the second pass runs over the small compressed output.
+        // stream-compressed, so the whole file is never held in memory at once
+        return fileBody.gzip { compressedSize ->
+            LOGGER.info(
+                "Compressed ${fileInfo.fileName} content from $uncompressedSize" +
+                    " to $compressedSize bytes with GZIP."
+            )
+        }
+    }
+
     private fun createBody(
         identifier: DdAppIdentifier,
         fileInfo: Uploader.UploadFileInfo,
         repositoryFile: File?,
         repositoryInfo: RepositoryInfo?
     ): MultipartBody {
-        val fileBody = fileInfo.file.asRequestBody(fileInfo.encoding.toMediaTypeOrNull())
-        val mappingFileBody = if (fileInfo.compressed) {
-            val uncompressedSize = fileInfo.file.length()
-            LOGGER.info(
-                "Compressing ${fileInfo.fileName} content with GZIP ($uncompressedSize bytes uncompressed)."
-            )
-            // Independent of the transport-level `Content-Encoding: gzip` (see `useGzip`), which
-            // already compresses uploads in transit by default: this layer is what makes the
-            // mapping file reach the backend compressed. When both are on the part is gzipped
-            // twice, which is expected -- the second pass runs over the small compressed output.
-            // stream-compressed, so the whole file is never held in memory at once
-            fileBody.gzip { compressedSize ->
-                LOGGER.info(
-                    "Compressed ${fileInfo.fileName} content from $uncompressedSize" +
-                        " to $compressedSize bytes with GZIP."
-                )
-            }
-        } else {
-            fileBody
-        }
+        val mappingFileBody = createFileBody(fileInfo)
 
         val eventJson = JSONObject()
         eventJson.put("version", identifier.version)
