@@ -74,7 +74,7 @@ internal class NewApiAppVariant(
 
     override fun bindWith(ndkUploadTask: NdkSymbolFileUploadTask) {
         target.tasks.withType(ExternalNativeBuildTask::class.java).forEach {
-            val searchFiles = it.getSearchObjDirs(providerFactory)
+            val searchFiles = it.getSearchObjDirs()
             ndkUploadTask.searchDirectories.from(searchFiles)
             ndkUploadTask.dependsOn(it)
         }
