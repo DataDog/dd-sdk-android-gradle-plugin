@@ -329,6 +329,9 @@ internal class OkHttpUploader : Uploader {
         internal const val HEADER_EVP_ORIGIN_VERSION = "DD-EVP-ORIGIN-VERSION"
         internal const val HEADER_REQUEST_ID = "DD-REQUEST-ID"
         internal const val HEADER_CONTENT_ENCODING = "Content-Encoding"
+        // Deliberately two constants with the same value: ENCODING_GZIP is the HTTP
+        // `Content-Encoding` of the request, COMPRESSION_GZIP is the `compression` value in the
+        // event metadata. They are separate contracts and can change independently.
         internal const val ENCODING_GZIP = "gzip"
         internal const val COMPRESSION_GZIP = "gzip"
 
