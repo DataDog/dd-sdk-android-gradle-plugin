@@ -14,6 +14,7 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import java.io.File
+import java.util.Locale
 import javax.inject.Inject
 
 /**
@@ -54,9 +55,18 @@ abstract class MappingFileUploadTask
     private val compressMappingFileOption: Provider<String> =
         providerFactory.gradleProperty(COMPRESS_MAPPING_FILE_GRADLE_PROPERTY)
 
-    // whether the mapping file content should be gzip-compressed before upload
+    // whether the mapping file content should be gzip-compressed before upload. A bare
+    // `-Pdd-compress-mapping-file` means enabled; an explicit value has to parse as a boolean,
+    // so that `=false` disables instead of silently enabling.
     private val compressMappingFile: Boolean
-        get() = compressMappingFileOption.isPresent
+        get() {
+            val value = compressMappingFileOption.orNull ?: return false
+            if (value.isBlank()) return true
+            return value.toBooleanStrictOrNull() ?: run {
+                LOGGER.warn(INVALID_COMPRESS_MAPPING_FILE_VALUE_WARNING.format(Locale.US, value))
+                false
+            }
+        }
 
     init {
         group = DdAndroidGradlePlugin.DATADOG_TASK_GROUP
@@ -195,6 +205,9 @@ abstract class MappingFileUploadTask
 
     internal companion object {
         const val COMPRESS_MAPPING_FILE_GRADLE_PROPERTY = "dd-compress-mapping-file"
+        internal const val INVALID_COMPRESS_MAPPING_FILE_VALUE_WARNING =
+            "Unrecognized value \"%s\" for the $COMPRESS_MAPPING_FILE_GRADLE_PROPERTY Gradle" +
+                " property, expected \"true\" or \"false\"; mapping file compression stays disabled."
 
         internal const val TYPE_JVM_MAPPING_FILE = "jvm_mapping_file"
         internal const val KEY_JVM_MAPPING_FILE = "jvm_mapping_file"
