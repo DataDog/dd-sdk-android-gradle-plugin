@@ -283,6 +283,8 @@ internal class OkHttpUploader : Uploader {
         }
     }
 
+    // Prevents GzipSink#close() from closing the delegate sink, which would otherwise break the
+    // rest of a MultipartBody write when gzip wraps just one of its parts.
     private class NonClosingSink(delegate: Sink) : ForwardingSink(delegate) {
         override fun close() {
             // intentionally not propagated: the delegate's lifecycle is owned by the caller
