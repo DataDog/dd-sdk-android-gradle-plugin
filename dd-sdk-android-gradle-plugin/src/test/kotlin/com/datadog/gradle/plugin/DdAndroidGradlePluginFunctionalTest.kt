@@ -1706,12 +1706,12 @@ internal class DdAndroidGradlePluginFunctionalTest {
         // While work with Gradle with higher major version is possible, it is not guaranteed.
         val TESTED_CONFIGURATIONS = listOf(
             BuildVersionConfig(
-                agpVersion = "7.0.4",
-                gradleVersion = "7.4",
+                agpVersion = "8.0.0",
+                gradleVersion = "8.0",
                 buildToolsVersion = "31.0.0",
                 targetSdkVersion = "31",
-                kotlinVersion = "1.6.10",
-                jvmTarget = JavaVersion.VERSION_11.toString()
+                kotlinVersion = "1.7.20",
+                jvmTarget = JavaVersion.VERSION_17.toString()
             ),
             LATEST_VERSIONS_TEST_CONFIGURATION
         )

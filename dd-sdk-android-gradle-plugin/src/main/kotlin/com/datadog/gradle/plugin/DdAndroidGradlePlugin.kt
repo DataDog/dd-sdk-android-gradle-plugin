@@ -48,6 +48,11 @@ class DdAndroidGradlePlugin @Inject constructor(
 
     /** @inheritdoc */
     override fun apply(target: Project) {
+        if (!CurrentAgpVersion.CAN_USE_PLUGIN) {
+            LOGGER.warn("Minimum supported AGP version is 8.0.0, Datadog Gradle Plugin is not applied.")
+            return
+        }
+
         val extension = target.extensions.create(EXT_NAME, DdExtension::class.java)
         val apiKeyProvider = resolveApiKey(target)
         // need to use withPlugin instead of afterEvaluate, because otherwise generated assets
