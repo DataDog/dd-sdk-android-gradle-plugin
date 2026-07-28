@@ -12,7 +12,6 @@ import com.datadog.gradle.plugin.DdAndroidGradlePlugin
 import com.datadog.gradle.plugin.GenerateBuildIdTask
 import com.datadog.gradle.plugin.MappingFileUploadTask
 import com.datadog.gradle.plugin.NdkSymbolFileUploadTask
-import com.datadog.gradle.plugin.internal.CurrentAgpVersion
 import com.datadog.gradle.plugin.internal.getSearchObjDirs
 import com.datadog.gradle.plugin.internal.utils.capitalizeChar
 import org.gradle.api.Project
@@ -55,24 +54,20 @@ internal class LegacyApiAppVariant(
     override val flavors: List<String>
         get() = variant.productFlavors.map { it.name }
     override val mappingFile: Provider<RegularFile>
-        get() = if (CurrentAgpVersion.CAN_QUERY_MAPPING_FILE_PROVIDER) {
-            variant.mappingFileProvider
-                .flatMap {
-                    providerFactory.provider {
-                        try {
-                            projectLayout.projectDirectory.file(it.singleFile.absolutePath)
-                        } catch (e: IllegalStateException) {
-                            DdAndroidGradlePlugin.LOGGER.info(
-                                "Mapping FileCollection is empty or contains multiple files",
-                                e
-                            )
-                            null
-                        }
-                    }.orElse(legacyMappingFileProvider)
-                }
-        } else {
-            legacyMappingFileProvider
-        }
+        get() = variant.mappingFileProvider
+            .flatMap {
+                providerFactory.provider {
+                    try {
+                        projectLayout.projectDirectory.file(it.singleFile.absolutePath)
+                    } catch (e: IllegalStateException) {
+                        DdAndroidGradlePlugin.LOGGER.info(
+                            "Mapping FileCollection is empty or contains multiple files",
+                            e
+                        )
+                        null
+                    }
+                }.orElse(legacyMappingFileProvider)
+            }
 
     private val legacyMappingFileProvider: Provider<RegularFile>
         get() = projectLayout.buildDirectory.file(legacyMappingFilePath.toString())
@@ -84,9 +79,7 @@ internal class LegacyApiAppVariant(
         val roots = mutableListOf<File>()
         variant.sourceSets.forEach {
             roots.addAll(it.javaDirectories)
-            if (CurrentAgpVersion.SUPPORTS_KOTLIN_DIRECTORIES_SOURCE_PROVIDER) {
-                roots.addAll(it.kotlinDirectories)
-            }
+            roots.addAll(it.kotlinDirectories)
         }
         return providerFactory.provider { roots }
     }
@@ -94,7 +87,7 @@ internal class LegacyApiAppVariant(
     override fun bindWith(ndkUploadTask: NdkSymbolFileUploadTask) {
         val nativeBuildProviders = variant.externalNativeBuildProviders
         nativeBuildProviders.forEach { buildTask ->
-            val searchFiles = buildTask.getSearchObjDirs(providerFactory)
+            val searchFiles = buildTask.getSearchObjDirs()
 
             ndkUploadTask.searchDirectories.from(searchFiles)
             ndkUploadTask.dependsOn(buildTask)

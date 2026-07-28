@@ -490,18 +490,15 @@ internal class DdAndroidGradlePluginFunctionalTest {
             "build_with_datadog_dep.gradle",
             appBuildGradleFile
         )
-        val runArguments = mutableListOf(
-            "--stacktrace",
-            ":samples:app:assembleRelease"
-        ).apply {
-            // https://issuetracker.google.com/issues/231997838
-            if (buildVersionConfig.isAgpAboveOrEqual730()) {
-                add("--configuration-cache")
-            }
-        }
 
         // When
-        val result = gradleRunner { withArguments(runArguments) }
+        val result = gradleRunner {
+            withArguments(
+                "--stacktrace",
+                ":samples:app:assembleRelease",
+                "--configuration-cache"
+            )
+        }
             .build()
 
         // Then
@@ -536,18 +533,15 @@ internal class DdAndroidGradlePluginFunctionalTest {
             "build_with_datadog_dep.gradle",
             appBuildGradleFile
         )
-        val runArguments = mutableListOf(
-            "--stacktrace",
-            ":samples:app:bundleRelease"
-        ).apply {
-            // https://issuetracker.google.com/issues/231997838
-            if (buildVersionConfig.isAgpAboveOrEqual730()) {
-                add("--configuration-cache")
-            }
-        }
 
         // When
-        val result = gradleRunner { withArguments(runArguments) }
+        val result = gradleRunner {
+            withArguments(
+                "--stacktrace",
+                ":samples:app:bundleRelease",
+                "--configuration-cache"
+            )
+        }
             .build()
 
         // Then
@@ -1541,17 +1535,6 @@ internal class DdAndroidGradlePluginFunctionalTest {
             .readText()
     }
 
-    @Suppress("ReturnCount")
-    private fun BuildVersionConfig.isAgpAboveOrEqual730(): Boolean {
-        val groups = agpVersion.split(".")
-        if (groups.size < 3) return false
-        val major = groups[0].toIntOrNull()
-        val minor = groups[1].toIntOrNull()
-        val patch = groups[2].substringBefore("-").toIntOrNull()
-        if (major == null || minor == null || patch == null) return false
-        return major >= 7 && minor >= 3 && patch >= 0
-    }
-
     // endregion
 
     companion object {
@@ -1706,12 +1689,12 @@ internal class DdAndroidGradlePluginFunctionalTest {
         // While work with Gradle with higher major version is possible, it is not guaranteed.
         val TESTED_CONFIGURATIONS = listOf(
             BuildVersionConfig(
-                agpVersion = "7.0.4",
-                gradleVersion = "7.4",
+                agpVersion = "8.0.0",
+                gradleVersion = "8.0",
                 buildToolsVersion = "31.0.0",
                 targetSdkVersion = "31",
-                kotlinVersion = "1.6.10",
-                jvmTarget = JavaVersion.VERSION_11.toString()
+                kotlinVersion = "1.7.20",
+                jvmTarget = JavaVersion.VERSION_17.toString()
             ),
             LATEST_VERSIONS_TEST_CONFIGURATION
         )

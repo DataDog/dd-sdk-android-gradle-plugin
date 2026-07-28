@@ -7,28 +7,14 @@
 package com.datadog.gradle.plugin.internal
 
 import com.android.build.gradle.tasks.ExternalNativeBuildTask
-import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Provider
-import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.TaskProvider
 import java.io.File
-import kotlin.reflect.full.memberProperties
 
-internal fun TaskProvider<ExternalNativeBuildTask>.getSearchObjDirs(providerFactory: ProviderFactory): Provider<File> {
-    return flatMap { task -> task.getSearchObjDirs(providerFactory) }
+internal fun TaskProvider<ExternalNativeBuildTask>.getSearchObjDirs(): Provider<File> {
+    return flatMap { task -> task.getSearchObjDirs() }
 }
 
-internal fun ExternalNativeBuildTask.getSearchObjDirs(providerFactory: ProviderFactory): Provider<File> {
-    return if (CurrentAgpVersion.EXTERNAL_NATIVE_BUILD_SOFOLDER_IS_PUBLIC) {
-        soFolder.map { it.asFile }
-    } else {
-        val soFolder = ExternalNativeBuildTask::class.memberProperties.find {
-            it.name == "objFolder"
-        }?.get(this)
-        when (soFolder) {
-            is File -> providerFactory.provider { soFolder }
-            is DirectoryProperty -> soFolder.map { it.asFile }
-            else -> providerFactory.provider { null }
-        }
-    }
+internal fun ExternalNativeBuildTask.getSearchObjDirs(): Provider<File> {
+    return soFolder.map { it.asFile }
 }
