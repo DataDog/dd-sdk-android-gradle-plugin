@@ -19,11 +19,11 @@ import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
-import okio.Buffer
 import okio.BufferedSink
+import okio.ForwardingSink
 import okio.GzipSink
+import okio.Sink
 import okio.buffer
-import okio.use
 import org.json.JSONException
 import org.json.JSONObject
 import org.json.JSONTokener
@@ -112,10 +112,12 @@ internal class OkHttpUploader : Uploader {
         repositoryFile: File?,
         repositoryInfo: RepositoryInfo?
     ): MultipartBody {
+        val fileBody = fileInfo.file.asRequestBody(fileInfo.encoding.toMediaTypeOrNull())
         val mappingFileBody = if (fileInfo.compressed) {
-            gzip(fileInfo.file.readBytes()).toRequestBody(fileInfo.encoding.toMediaTypeOrNull())
+            // stream-compressed, so the whole file is never held in memory at once
+            fileBody.gzip()
         } else {
-            fileInfo.file.asRequestBody(fileInfo.encoding.toMediaTypeOrNull())
+            fileBody
         }
 
         val eventJson = JSONObject()
@@ -253,12 +255,6 @@ internal class OkHttpUploader : Uploader {
 
     // endregion
 
-    private fun gzip(bytes: ByteArray): ByteArray {
-        val buffer = Buffer()
-        GzipSink(buffer).buffer().use { it.write(bytes) }
-        return buffer.readByteArray()
-    }
-
     private fun RequestBody.gzip(): RequestBody {
         val uncompressedBody = this
         return object : RequestBody() {
@@ -272,7 +268,11 @@ internal class OkHttpUploader : Uploader {
 
             @Throws(IOException::class)
             override fun writeTo(sink: BufferedSink) {
-                val gzipSink = GzipSink(sink).buffer()
+                // GzipSink#close() finishes the gzip stream (writes the trailer) but also closes
+                // its delegate; when this body is just one part of a MultipartBody, the delegate
+                // sink is shared with the other parts, so closing it here would break the rest of
+                // the multipart write. Wrap it so only the gzip stream itself gets closed.
+                val gzipSink = GzipSink(NonClosingSink(sink)).buffer()
                 uncompressedBody.writeTo(gzipSink)
                 gzipSink.close()
             }
@@ -280,6 +280,12 @@ internal class OkHttpUploader : Uploader {
             override fun isOneShot(): Boolean {
                 return uncompressedBody.isOneShot()
             }
+        }
+    }
+
+    private class NonClosingSink(delegate: Sink) : ForwardingSink(delegate) {
+        override fun close() {
+            // intentionally not propagated: the delegate's lifecycle is owned by the caller
         }
     }
 
