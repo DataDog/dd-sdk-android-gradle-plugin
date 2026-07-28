@@ -1690,7 +1690,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
             }
         """.trimIndent()
 
-        private const val LATEST_GRADLE_VERSION = "9.4.0"
+        private const val LATEST_GRADLE_VERSION = "9.6.1"
         private const val LATEST_AGP_VERSION = "9.1.0"
 
         val LATEST_VERSIONS_TEST_CONFIGURATION = BuildVersionConfig(
