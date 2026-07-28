@@ -734,7 +734,10 @@ internal class DdAndroidGradlePluginFunctionalTest {
     }
 
     @Test
-    fun `M gzip-compress mapping file W upload { mapping file compression enabled }`(forge: Forge) {
+    // NB: runs with -Pdd-emulate-upload-call, so the request body is never written and no gzip
+    // actually happens here -- OkHttpUploaderTest covers the compression itself. This only checks
+    // that the Gradle property reaches the uploader.
+    fun `M declare gzip compression W upload { mapping file compression enabled }`(forge: Forge) {
         // Given
         stubGradleBuildFromResourceFile(
             "build_with_datadog_dep.gradle",
