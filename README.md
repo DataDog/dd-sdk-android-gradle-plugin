@@ -30,6 +30,24 @@ Similarly, to upload NDK symbols, run the `uploadNdkSymbolFiles[Variant]` task i
 ./gradlew uploadNdkSymbolFilesRelease
 ```
 
+#### Compressing the mapping file upload
+
+If your mapping file is large enough to hit the upload size limit, you can opt in to gzip-compressing
+it before upload by setting the `dd-compress-mapping-file` Gradle property, either in `gradle.properties`:
+
+```properties
+dd-compress-mapping-file=true
+```
+
+or on the command line when running the upload task:
+
+```bash
+./gradlew uploadMappingRelease -Pdd-compress-mapping-file
+```
+
+This is opt-in (not enabled by default) since it requires your Datadog site to support decompressing
+gzip-compressed mapping files.
+
 ### Configuration
 
 You can configure the plugin by adding the following block at the end of your `build.gradle` file.
