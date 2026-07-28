@@ -72,7 +72,8 @@ abstract class MappingFileUploadTask
                 file = mappingFile,
                 encoding = MEDIA_TYPE_TXT,
                 fileType = TYPE_JVM_MAPPING_FILE,
-                fileName = KEY_JVM_MAPPING_FILE_NAME
+                fileName = KEY_JVM_MAPPING_FILE_NAME,
+                compressed = compressMappingFile
             )
         )
     }

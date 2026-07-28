@@ -734,6 +734,41 @@ internal class DdAndroidGradlePluginFunctionalTest {
     }
 
     @Test
+    fun `M gzip-compress mapping file W upload { mapping file compression enabled }`(forge: Forge) {
+        // Given
+        stubGradleBuildFromResourceFile(
+            "build_with_datadog_dep.gradle",
+            appBuildGradleFile
+        )
+        val color = forge.anElementFrom(colors)
+        val version = forge.anElementFrom(versions)
+        val variant = "${version.lowercase()}$color"
+        val taskName = resolveMappingUploadTask(variant)
+
+        // When
+        // since there is no explicit dependency between assemble and upload tasks, Gradle may
+        // optimize the execution and run them in parallel, ignoring the order in the command
+        // line, so we do the explicit split
+        gradleRunner { withArguments("--info", ":samples:app:assembleRelease") }
+            .build()
+
+        val result = gradleRunner {
+            withArguments(
+                taskName,
+                "--info",
+                "--stacktrace",
+                "-PDD_API_KEY=fakekey",
+                "-Pdd-compress-mapping-file",
+                "-Pdd-emulate-upload-call"
+            )
+        }
+            .build()
+
+        // Then
+        assertThat(result).containsInOutput("\"compression\":\"gzip\"")
+    }
+
+    @Test
     fun `M try to upload the mapping file W upload { datadog-ci file, parent dir }`(forge: Forge) {
         // Given
         stubGradleBuildFromResourceFile(

@@ -43,7 +43,14 @@ internal interface Uploader {
         /**
          * Any extra attributes to provide to intake, such as the architecture of an NDK symbol file.
          */
-        val extraAttributes: Map<String, String> = emptyMap()
+        val extraAttributes: Map<String, String> = emptyMap(),
+
+        /**
+         * Whether the file content should be gzip-compressed before being attached to the
+         * upload request, with the compression declared to intake via the `compression` event
+         * attribute. Only supported by intake for JVM/Android mapping files.
+         */
+        val compressed: Boolean = false
     )
 
     // endregion

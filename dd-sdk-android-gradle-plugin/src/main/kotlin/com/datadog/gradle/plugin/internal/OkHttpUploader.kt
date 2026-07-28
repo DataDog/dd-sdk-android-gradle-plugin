@@ -19,6 +19,7 @@ import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import okio.Buffer
 import okio.BufferedSink
 import okio.GzipSink
 import okio.buffer
@@ -111,7 +112,11 @@ internal class OkHttpUploader : Uploader {
         repositoryFile: File?,
         repositoryInfo: RepositoryInfo?
     ): MultipartBody {
-        val mappingFileBody = fileInfo.file.asRequestBody(fileInfo.encoding.toMediaTypeOrNull())
+        val mappingFileBody = if (fileInfo.compressed) {
+            gzip(fileInfo.file.readBytes()).toRequestBody(fileInfo.encoding.toMediaTypeOrNull())
+        } else {
+            fileInfo.file.asRequestBody(fileInfo.encoding.toMediaTypeOrNull())
+        }
 
         val eventJson = JSONObject()
         eventJson.put("version", identifier.version)
@@ -120,6 +125,9 @@ internal class OkHttpUploader : Uploader {
         eventJson.put("build_id", identifier.buildId)
         eventJson.put("version_code", identifier.versionCode)
         eventJson.put("type", fileInfo.fileType)
+        if (fileInfo.compressed) {
+            eventJson.put("compression", COMPRESSION_GZIP)
+        }
         fileInfo.extraAttributes.forEach { (key, value) ->
             eventJson.put(key, value)
         }
@@ -245,6 +253,12 @@ internal class OkHttpUploader : Uploader {
 
     // endregion
 
+    private fun gzip(bytes: ByteArray): ByteArray {
+        val buffer = Buffer()
+        GzipSink(buffer).buffer().use { it.write(bytes) }
+        return buffer.readByteArray()
+    }
+
     private fun RequestBody.gzip(): RequestBody {
         val uncompressedBody = this
         return object : RequestBody() {
@@ -280,6 +294,7 @@ internal class OkHttpUploader : Uploader {
         internal const val HEADER_REQUEST_ID = "DD-REQUEST-ID"
         internal const val HEADER_CONTENT_ENCODING = "Content-Encoding"
         internal const val ENCODING_GZIP = "gzip"
+        internal const val COMPRESSION_GZIP = "gzip"
 
         internal const val KEY_EVENT = "event"
         internal const val KEY_REPOSITORY = "repository"

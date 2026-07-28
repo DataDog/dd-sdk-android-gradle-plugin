@@ -59,6 +59,19 @@ abstract class FileUploadTask @Inject constructor(
     private val disableGzipOption: Provider<String> =
         providerFactory.gradleProperty(DISABLE_GZIP_GRADLE_PROPERTY)
 
+    // TODO RUM-16312 Remove this opt-in gate and enable by default once all Datadog sites support
+    //  decompressing gzip-compressed JVM mapping files.
+    private val compressMappingFileOption: Provider<String> =
+        providerFactory.gradleProperty(COMPRESS_MAPPING_FILE_GRADLE_PROPERTY)
+
+    /**
+     * Whether the JVM/Android mapping file content should be gzip-compressed before upload.
+     * Opt-in via the [COMPRESS_MAPPING_FILE_GRADLE_PROPERTY] Gradle property.
+     */
+    @get:Internal
+    protected val compressMappingFile: Boolean
+        get() = compressMappingFileOption.isPresent
+
     // needed for functional tests, because we don't have real API key
     private val emulateNetworkCall: Provider<String> =
         providerFactory.gradleProperty(EMULATE_UPLOAD_NETWORK_CALL)
@@ -287,6 +300,7 @@ abstract class FileUploadTask @Inject constructor(
         internal val LOGGER = Logging.getLogger("DdFileUploadTask")
 
         const val DISABLE_GZIP_GRADLE_PROPERTY = "dd-disable-gzip"
+        const val COMPRESS_MAPPING_FILE_GRADLE_PROPERTY = "dd-compress-mapping-file"
         const val EMULATE_UPLOAD_NETWORK_CALL = "dd-emulate-upload-call"
 
         const val API_KEY_MISSING_ERROR = "Make sure you define an API KEY to upload your mapping files to Datadog. " +
