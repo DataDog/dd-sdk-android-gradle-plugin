@@ -59,8 +59,6 @@ abstract class FileUploadTask @Inject constructor(
     private val disableGzipOption: Provider<String> =
         providerFactory.gradleProperty(DISABLE_GZIP_GRADLE_PROPERTY)
 
-    // TODO RUM-16312 Remove this opt-in gate and enable by default once all Datadog sites support
-    //  decompressing gzip-compressed JVM mapping files.
     private val compressMappingFileOption: Provider<String> =
         providerFactory.gradleProperty(COMPRESS_MAPPING_FILE_GRADLE_PROPERTY)
 
