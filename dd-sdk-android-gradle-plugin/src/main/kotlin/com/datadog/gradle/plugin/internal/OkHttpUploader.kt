@@ -19,6 +19,7 @@ import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import okio.Buffer
 import okio.BufferedSink
 import okio.ForwardingSink
 import okio.GzipSink
@@ -114,8 +115,17 @@ internal class OkHttpUploader : Uploader {
     ): MultipartBody {
         val fileBody = fileInfo.file.asRequestBody(fileInfo.encoding.toMediaTypeOrNull())
         val mappingFileBody = if (fileInfo.compressed) {
+            val uncompressedSize = fileInfo.file.length()
+            LOGGER.info(
+                "Compressing ${fileInfo.fileName} content with GZIP ($uncompressedSize bytes uncompressed)."
+            )
             // stream-compressed, so the whole file is never held in memory at once
-            fileBody.gzip()
+            fileBody.gzip { compressedSize ->
+                LOGGER.info(
+                    "Compressed ${fileInfo.fileName} content from $uncompressedSize" +
+                        " to $compressedSize bytes with GZIP."
+                )
+            }
         } else {
             fileBody
         }
@@ -255,7 +265,7 @@ internal class OkHttpUploader : Uploader {
 
     // endregion
 
-    private fun RequestBody.gzip(): RequestBody {
+    private fun RequestBody.gzip(onCompressedSize: ((Long) -> Unit)? = null): RequestBody {
         val uncompressedBody = this
         return object : RequestBody() {
             override fun contentType(): MediaType? {
@@ -272,9 +282,11 @@ internal class OkHttpUploader : Uploader {
                 // its delegate; when this body is just one part of a MultipartBody, the delegate
                 // sink is shared with the other parts, so closing it here would break the rest of
                 // the multipart write. Wrap it so only the gzip stream itself gets closed.
-                val gzipSink = GzipSink(NonClosingSink(sink)).buffer()
+                val countingSink = ByteCountingSink(NonClosingSink(sink))
+                val gzipSink = GzipSink(countingSink).buffer()
                 uncompressedBody.writeTo(gzipSink)
                 gzipSink.close()
+                onCompressedSize?.invoke(countingSink.byteCount)
             }
 
             override fun isOneShot(): Boolean {
@@ -288,6 +300,18 @@ internal class OkHttpUploader : Uploader {
     private class NonClosingSink(delegate: Sink) : ForwardingSink(delegate) {
         override fun close() {
             // intentionally not propagated: the delegate's lifecycle is owned by the caller
+        }
+    }
+
+    // Counts the bytes actually handed to the delegate, so the compressed size can be reported
+    // without buffering the compressed output.
+    private class ByteCountingSink(delegate: Sink) : ForwardingSink(delegate) {
+        var byteCount: Long = 0
+            private set
+
+        override fun write(source: Buffer, byteCount: Long) {
+            super.write(source, byteCount)
+            this.byteCount += byteCount
         }
     }
 

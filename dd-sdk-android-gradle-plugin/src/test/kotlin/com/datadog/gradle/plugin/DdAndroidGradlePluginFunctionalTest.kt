@@ -766,6 +766,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
 
         // Then
         assertThat(result).containsInOutput("\"compression\":\"gzip\"")
+        assertThat(result).containsInOutput("Compressing jvm_mapping content with GZIP (")
     }
 
     @Test
