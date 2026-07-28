@@ -9,6 +9,7 @@ package com.datadog.gradle.plugin
 import com.datadog.gradle.plugin.internal.Uploader
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
@@ -49,6 +50,13 @@ abstract class MappingFileUploadTask
      */
     @get:Input
     abstract val applicationId: Property<String>
+
+    private val compressMappingFileOption: Provider<String> =
+        providerFactory.gradleProperty(COMPRESS_MAPPING_FILE_GRADLE_PROPERTY)
+
+    // whether the mapping file content should be gzip-compressed before upload
+    private val compressMappingFile: Boolean
+        get() = compressMappingFileOption.isPresent
 
     init {
         group = DdAndroidGradlePlugin.DATADOG_TASK_GROUP
@@ -186,6 +194,8 @@ abstract class MappingFileUploadTask
     // endregion
 
     internal companion object {
+        const val COMPRESS_MAPPING_FILE_GRADLE_PROPERTY = "dd-compress-mapping-file"
+
         internal const val TYPE_JVM_MAPPING_FILE = "jvm_mapping_file"
         internal const val KEY_JVM_MAPPING_FILE = "jvm_mapping_file"
         internal const val KEY_JVM_MAPPING_FILE_NAME = "jvm_mapping"
