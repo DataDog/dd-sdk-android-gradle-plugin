@@ -21,7 +21,7 @@ internal fun Project.junitConfig() {
             "--add-opens=java.base/java.util=ALL-UNNAMED"
         )
         useJUnitPlatform {
-            includeEngines("spek", "junit-jupiter", "junit-vintage")
+            includeEngines("junit-jupiter", "junit-vintage")
         }
         reports {
             junitXml.required.set(true)

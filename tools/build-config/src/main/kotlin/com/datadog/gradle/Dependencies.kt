@@ -10,6 +10,6 @@ object Dependencies {
 
     object Versions {
         // Tests Tools
-        const val Jacoco = "0.8.7"
+        const val Jacoco = "0.8.15"
     }
 }
