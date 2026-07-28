@@ -48,6 +48,11 @@ or on the command line when running the upload task:
 This is opt-in (not enabled by default) since it requires your Datadog site to support decompressing
 gzip-compressed mapping files.
 
+This property is independent of the transport-level compression that uploads already use by default
+(`Content-Encoding: gzip`, turned off with `dd-disable-gzip`). Uploads are therefore already
+compressed in transit without it; what this property changes is that the mapping file itself arrives
+compressed, rather than only the connection carrying it being compressed.
+
 ### Configuration
 
 You can configure the plugin by adding the following block at the end of your `build.gradle` file.

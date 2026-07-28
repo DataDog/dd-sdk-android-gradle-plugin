@@ -119,6 +119,10 @@ internal class OkHttpUploader : Uploader {
             LOGGER.info(
                 "Compressing ${fileInfo.fileName} content with GZIP ($uncompressedSize bytes uncompressed)."
             )
+            // Independent of the transport-level `Content-Encoding: gzip` (see `useGzip`), which
+            // already compresses uploads in transit by default: this layer is what makes the
+            // mapping file reach the backend compressed. When both are on the part is gzipped
+            // twice, which is expected -- the second pass runs over the small compressed output.
             // stream-compressed, so the whole file is never held in memory at once
             fileBody.gzip { compressedSize ->
                 LOGGER.info(
