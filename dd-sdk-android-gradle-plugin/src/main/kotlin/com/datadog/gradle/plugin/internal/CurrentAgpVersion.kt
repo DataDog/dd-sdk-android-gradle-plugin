@@ -20,4 +20,9 @@ internal object CurrentAgpVersion {
 
     val IMPLEMENTS_BUILT_IN_KOTLIN: Boolean
         get() = TaskUtils.isAgpEqualOrAbove(major = 9, minor = 0, patch = 0)
+
+    // AGP 9.0 introduced Optimization.enable, the flag backing the `optimization { enable = true }`
+    // DSL block, which replaces the legacy isMinifyEnabled/isShrinkResources flags.
+    val SUPPORTS_OPTIMIZATION_DSL: Boolean
+        get() = TaskUtils.isAgpEqualOrAbove(major = 9, minor = 0, patch = 0)
 }

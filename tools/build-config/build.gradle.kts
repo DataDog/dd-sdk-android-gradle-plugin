@@ -35,7 +35,6 @@ dependencies {
 
     // Dependencies used to configure the Gradle plugins
     compileOnly(libs.kotlinGradlePlugin21)
-    compileOnly(libs.androidToolsGradlePlugin)
     compileOnly(libs.versionsGradlePlugin)
     compileOnly(libs.dokkaGradlePlugin)
     compileOnly(libs.mavenPublishPlugin)

@@ -1121,6 +1121,87 @@ internal class DdAndroidGradlePluginFunctionalTest {
         assertThat(uploadTask).isNull()
     }
 
+    @Test
+    fun `M contain uploadTasks W minifyEnabled via new optimization DSL`() {
+        // Given
+        buildVersionConfig = LATEST_VERSIONS_TEST_CONFIGURATION
+        stubGradlePropertiesFile(buildVersionConfig)
+        stubGradleBuildFromResourceFile(
+            "lib_module_build.gradle",
+            libModuleBuildGradleFile,
+            overwrite = true
+        )
+        stubGradleBuildFromResourceFile(
+            "build_with_optimization_dsl.gradle",
+            appBuildGradleFile
+        )
+
+        // When
+        val result = gradleRunner { withArguments("--stacktrace", ":samples:app:tasks", "--all") }
+            .build()
+
+        // Then
+        val uploadTask = result.output
+            .split("\n")
+            .firstOrNull { it.startsWith(DdAndroidGradlePlugin.UPLOAD_TASK_NAME) }
+        assertThat(uploadTask).isNotNull()
+    }
+
+    @Test
+    fun `M try to upload the mapping file W upload { minifyEnabled via new optimization DSL }`(
+        forge: Forge
+    ) {
+        // Given
+        buildVersionConfig = LATEST_VERSIONS_TEST_CONFIGURATION
+        stubGradlePropertiesFile(buildVersionConfig)
+        stubGradleBuildFromResourceFile(
+            "lib_module_build.gradle",
+            libModuleBuildGradleFile,
+            overwrite = true
+        )
+        stubGradleBuildFromResourceFile(
+            "build_with_optimization_dsl.gradle",
+            appBuildGradleFile
+        )
+        val color = forge.anElementFrom(colors)
+        val version = forge.anElementFrom(versions)
+        val variantVersionName = version.lowercase()
+        val variant = "${version.lowercase()}$color"
+        val taskName = resolveMappingUploadTask(variant)
+
+        // When
+        // since there is no explicit dependency between assemble and upload tasks, Gradle may
+        // optimize the execution and run them in parallel, ignoring the order in the command
+        // line, so we do the explicit split
+        gradleRunner { withArguments("--info", ":samples:app:assembleRelease") }
+            .build()
+
+        val result = gradleRunner {
+            withArguments(
+                taskName,
+                "--info",
+                "--stacktrace",
+                "-PDD_API_KEY=fakekey",
+                "-Pdd-emulate-upload-call"
+            )
+        }
+            .build()
+
+        // Then
+        val buildIdInOriginFile = testProjectDir.findBuildIdInOriginFile(variant)
+        val buildIdInApk = testProjectDir.findBuildIdInApk(variant)
+        assertThat(buildIdInApk).isEqualTo(buildIdInOriginFile)
+
+        assertThat(result).containsInOutput(
+            "Uploading file jvm_mapping with tags " +
+                "`service:com.example.variants.$variantVersionName`, " +
+                "`version:1.0-$variantVersionName`, " +
+                "`version_code:1`, " +
+                "`variant:$variant`, " +
+                "`build_id:$buildIdInOriginFile` (site=datadoghq.com):"
+        )
+    }
+
     // endregion
 
     // region NDK Symbol Upload
@@ -1673,8 +1754,8 @@ internal class DdAndroidGradlePluginFunctionalTest {
             }
         """.trimIndent()
 
-        private const val LATEST_GRADLE_VERSION = "9.4.0"
-        private const val LATEST_AGP_VERSION = "9.1.0"
+        private const val LATEST_GRADLE_VERSION = "9.6.1"
+        private const val LATEST_AGP_VERSION = "9.3.1"
 
         val LATEST_VERSIONS_TEST_CONFIGURATION = BuildVersionConfig(
             agpVersion = LATEST_AGP_VERSION,
