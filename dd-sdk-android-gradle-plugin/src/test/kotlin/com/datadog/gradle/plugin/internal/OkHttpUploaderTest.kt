@@ -741,18 +741,19 @@ internal class OkHttpUploaderTest {
     // region Internal
 
     private fun DdAppIdentifier.toMappingFileEvent(type: String, compression: String? = null): String {
-        val compressionField = if (compression != null) "\"compression\":\"$compression\"," else ""
+        val compressionField = if (compression != null) "\"mapping_compression\":\"$compression\"," else ""
         return "{\"build_id\":\"${buildId}\"," +
             "\"service\":\"${serviceName}\"," +
             "\"variant\":\"${variant}\"," +
             "\"version_code\":$versionCode," +
-            "\"type\":\"${type}\"," +
             compressionField +
+            "\"type\":\"${type}\"," +
             "\"version\":\"${version}\"}"
     }
 
-    // JSONObject preserves insertion order, and "compression" is put right after "type" and
-    // before "version" in OkHttpUploader#createBody.
+    // JSONObject serializes keys in java.util.HashMap bucket order, not insertion order -- for
+    // this fixed key set, that happens to put "mapping_compression" right after "version_code"
+    // and before "type".
     private fun readGzippedMultipartFileContent(request: RecordedRequest, partName: String): String {
         val contentType = requireNotNull(request.getHeader("Content-Type")) {
             "Missing Content-Type header on upload request"

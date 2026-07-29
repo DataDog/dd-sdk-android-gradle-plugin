@@ -144,7 +144,9 @@ internal class OkHttpUploader : Uploader {
         eventJson.put("version_code", identifier.versionCode)
         eventJson.put("type", fileInfo.fileType)
         if (fileInfo.compressed) {
-            eventJson.put("compression", COMPRESSION_GZIP)
+            // Named specifically for the mapping file, not the request as a whole: the `event`
+            // metadata and `repository` git info parts are never compressed by this flag.
+            eventJson.put("mapping_compression", COMPRESSION_GZIP)
         }
         fileInfo.extraAttributes.forEach { (key, value) ->
             eventJson.put(key, value)
@@ -333,8 +335,8 @@ internal class OkHttpUploader : Uploader {
         internal const val HEADER_CONTENT_ENCODING = "Content-Encoding"
 
         // Deliberately two constants with the same value: ENCODING_GZIP is the HTTP
-        // `Content-Encoding` of the request, COMPRESSION_GZIP is the `compression` value in the
-        // event metadata. They are separate contracts and can change independently.
+        // `Content-Encoding` of the request, COMPRESSION_GZIP is the `mapping_compression` value
+        // in the event metadata. They are separate contracts and can change independently.
         internal const val ENCODING_GZIP = "gzip"
         internal const val COMPRESSION_GZIP = "gzip"
 
