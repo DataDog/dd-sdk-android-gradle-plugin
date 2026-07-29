@@ -292,8 +292,11 @@ internal class OkHttpUploader : Uploader {
                 // the multipart write. Wrap it so only the gzip stream itself gets closed.
                 val countingSink = ByteCountingSink(NonClosingSink(sink))
                 val gzipSink = GzipSink(countingSink).buffer()
-                uncompressedBody.writeTo(gzipSink)
-                gzipSink.close()
+                try {
+                    uncompressedBody.writeTo(gzipSink)
+                } finally {
+                    gzipSink.close()
+                }
                 onCompressedSize?.invoke(countingSink.byteCount)
             }
 
