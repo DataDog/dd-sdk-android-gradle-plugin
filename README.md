@@ -33,13 +33,15 @@ Similarly, to upload NDK symbols, run the `uploadNdkSymbolFiles[Variant]` task i
 #### Compressing the mapping file upload
 
 If your mapping file is large enough to hit the upload size limit, you can opt in to gzip-compressing
-it before upload by setting the `dd-compress-mapping-file` Gradle property, either in `gradle.properties`:
+it before upload by setting the `dd-compress-mapping-file` Gradle property.
+
+Set it in `gradle.properties`:
 
 ```properties
 dd-compress-mapping-file=true
 ```
 
-or on the command line when running the upload task:
+Alternatively, set it on the command line when running the upload task:
 
 ```bash
 ./gradlew uploadMappingRelease -Pdd-compress-mapping-file
