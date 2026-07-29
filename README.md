@@ -45,8 +45,7 @@ or on the command line when running the upload task:
 ./gradlew uploadMappingRelease -Pdd-compress-mapping-file
 ```
 
-This is opt-in (not enabled by default) since it requires your Datadog site to support decompressing
-gzip-compressed mapping files.
+This is opt-in, not enabled by default.
 
 This property is independent of the transport-level compression that uploads already use by default
 (`Content-Encoding: gzip`, turned off with `dd-disable-gzip`). Uploads are therefore already
