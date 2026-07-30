@@ -733,6 +733,80 @@ internal class DdAndroidGradlePluginFunctionalTest {
         )
     }
 
+    // NB: runs with -Pdd-emulate-upload-call, so the request body is never written and no gzip
+    // actually happens here -- OkHttpUploaderTest covers the compression itself. This only checks
+    // that the Gradle property reaches the uploader.
+    @Test
+    fun `M declare gzip compression W upload { mapping file compression enabled }`(forge: Forge) {
+        // Given
+        stubGradleBuildFromResourceFile(
+            "build_with_datadog_dep.gradle",
+            appBuildGradleFile
+        )
+        val color = forge.anElementFrom(colors)
+        val version = forge.anElementFrom(versions)
+        val variant = "${version.lowercase()}$color"
+        val taskName = resolveMappingUploadTask(variant)
+
+        // When
+        // since there is no explicit dependency between assemble and upload tasks, Gradle may
+        // optimize the execution and run them in parallel, ignoring the order in the command
+        // line, so we do the explicit split
+        gradleRunner { withArguments("--info", ":samples:app:assembleRelease") }
+            .build()
+
+        val result = gradleRunner {
+            withArguments(
+                taskName,
+                "--info",
+                "--stacktrace",
+                "-PDD_API_KEY=fakekey",
+                "-Pdd-compress-mapping-file",
+                "-Pdd-emulate-upload-call"
+            )
+        }
+            .build()
+
+        // Then
+        assertThat(result).containsInOutput("\"mapping_compression\":\"gzip\"")
+        assertThat(result).containsInOutput("Compressing jvm_mapping content with GZIP (")
+    }
+
+    @Test
+    fun `M not compress mapping file W upload { mapping file compression set to false }`(forge: Forge) {
+        // Given
+        stubGradleBuildFromResourceFile(
+            "build_with_datadog_dep.gradle",
+            appBuildGradleFile
+        )
+        val color = forge.anElementFrom(colors)
+        val version = forge.anElementFrom(versions)
+        val variant = "${version.lowercase()}$color"
+        val taskName = resolveMappingUploadTask(variant)
+
+        // When
+        // since there is no explicit dependency between assemble and upload tasks, Gradle may
+        // optimize the execution and run them in parallel, ignoring the order in the command
+        // line, so we do the explicit split
+        gradleRunner { withArguments("--info", ":samples:app:assembleRelease") }
+            .build()
+
+        val result = gradleRunner {
+            withArguments(
+                taskName,
+                "--info",
+                "--stacktrace",
+                "-PDD_API_KEY=fakekey",
+                "-Pdd-compress-mapping-file=false",
+                "-Pdd-emulate-upload-call"
+            )
+        }
+            .build()
+
+        // Then
+        assertThat(result).doesNotContainInOutput("\"mapping_compression\":\"gzip\"")
+    }
+
     @Test
     fun `M try to upload the mapping file W upload { datadog-ci file, parent dir }`(forge: Forge) {
         // Given
