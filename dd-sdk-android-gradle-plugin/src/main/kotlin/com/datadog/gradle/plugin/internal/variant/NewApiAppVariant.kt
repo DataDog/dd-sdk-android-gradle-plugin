@@ -7,6 +7,7 @@
 package com.datadog.gradle.plugin.internal.variant
 
 import com.android.build.api.artifact.SingleArtifact
+import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.variant.ApplicationVariant
 import com.android.build.api.variant.VariantOutput
 import com.android.build.gradle.tasks.ExternalNativeBuildTask
@@ -14,6 +15,7 @@ import com.datadog.gradle.plugin.GenerateBuildIdTask
 import com.datadog.gradle.plugin.InjectBuildIdToAssetsTask
 import com.datadog.gradle.plugin.MappingFileUploadTask
 import com.datadog.gradle.plugin.NdkSymbolFileUploadTask
+import com.datadog.gradle.plugin.internal.CurrentAgpVersion
 import com.datadog.gradle.plugin.internal.getSearchObjDirs
 import com.datadog.gradle.plugin.internal.utils.capitalizeChar
 import org.gradle.api.Project
@@ -48,7 +50,7 @@ internal class NewApiAppVariant(
 
     @Suppress("UnstableApiUsage")
     override val isMinifyEnabled: Boolean
-        get() = variant.isMinifyEnabled
+        get() = variant.isMinifyEnabled || isMinifyEnabledViaOptimizationDsl()
     override val buildTypeName: String
         get() = variant.buildType.orEmpty()
     override val flavors: List<String>
@@ -118,6 +120,16 @@ internal class NewApiAppVariant(
 
     private fun Provider<out Collection<Directory>>.asFileCollectionProvider() =
         map { collection -> collection.map { it.asFile } }
+
+    private fun isMinifyEnabledViaOptimizationDsl(): Boolean {
+        if (!CurrentAgpVersion.SUPPORTS_OPTIMIZATION_DSL) return false
+        return target.extensions.findByType(ApplicationExtension::class.java)
+            ?.buildTypes
+            ?.findByName(buildTypeName)
+            ?.optimization
+            ?.enable
+            ?: false
+    }
 
     // may not be precise, but we need this info only for metadata anyway
     private val ApplicationVariant.mainOutput: VariantOutput?
