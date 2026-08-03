@@ -490,18 +490,15 @@ internal class DdAndroidGradlePluginFunctionalTest {
             "build_with_datadog_dep.gradle",
             appBuildGradleFile
         )
-        val runArguments = mutableListOf(
-            "--stacktrace",
-            ":samples:app:assembleRelease"
-        ).apply {
-            // https://issuetracker.google.com/issues/231997838
-            if (buildVersionConfig.isAgpAboveOrEqual730()) {
-                add("--configuration-cache")
-            }
-        }
 
         // When
-        val result = gradleRunner { withArguments(runArguments) }
+        val result = gradleRunner {
+            withArguments(
+                "--stacktrace",
+                ":samples:app:assembleRelease",
+                "--configuration-cache"
+            )
+        }
             .build()
 
         // Then
@@ -536,18 +533,15 @@ internal class DdAndroidGradlePluginFunctionalTest {
             "build_with_datadog_dep.gradle",
             appBuildGradleFile
         )
-        val runArguments = mutableListOf(
-            "--stacktrace",
-            ":samples:app:bundleRelease"
-        ).apply {
-            // https://issuetracker.google.com/issues/231997838
-            if (buildVersionConfig.isAgpAboveOrEqual730()) {
-                add("--configuration-cache")
-            }
-        }
 
         // When
-        val result = gradleRunner { withArguments(runArguments) }
+        val result = gradleRunner {
+            withArguments(
+                "--stacktrace",
+                ":samples:app:bundleRelease",
+                "--configuration-cache"
+            )
+        }
             .build()
 
         // Then
@@ -737,6 +731,80 @@ internal class DdAndroidGradlePluginFunctionalTest {
                 }
             """.trimIndent()
         )
+    }
+
+    // NB: runs with -Pdd-emulate-upload-call, so the request body is never written and no gzip
+    // actually happens here -- OkHttpUploaderTest covers the compression itself. This only checks
+    // that the Gradle property reaches the uploader.
+    @Test
+    fun `M declare gzip compression W upload { mapping file compression enabled }`(forge: Forge) {
+        // Given
+        stubGradleBuildFromResourceFile(
+            "build_with_datadog_dep.gradle",
+            appBuildGradleFile
+        )
+        val color = forge.anElementFrom(colors)
+        val version = forge.anElementFrom(versions)
+        val variant = "${version.lowercase()}$color"
+        val taskName = resolveMappingUploadTask(variant)
+
+        // When
+        // since there is no explicit dependency between assemble and upload tasks, Gradle may
+        // optimize the execution and run them in parallel, ignoring the order in the command
+        // line, so we do the explicit split
+        gradleRunner { withArguments("--info", ":samples:app:assembleRelease") }
+            .build()
+
+        val result = gradleRunner {
+            withArguments(
+                taskName,
+                "--info",
+                "--stacktrace",
+                "-PDD_API_KEY=fakekey",
+                "-Pdd-compress-mapping-file",
+                "-Pdd-emulate-upload-call"
+            )
+        }
+            .build()
+
+        // Then
+        assertThat(result).containsInOutput("\"mapping_compression\":\"gzip\"")
+        assertThat(result).containsInOutput("Compressing jvm_mapping content with GZIP (")
+    }
+
+    @Test
+    fun `M not compress mapping file W upload { mapping file compression set to false }`(forge: Forge) {
+        // Given
+        stubGradleBuildFromResourceFile(
+            "build_with_datadog_dep.gradle",
+            appBuildGradleFile
+        )
+        val color = forge.anElementFrom(colors)
+        val version = forge.anElementFrom(versions)
+        val variant = "${version.lowercase()}$color"
+        val taskName = resolveMappingUploadTask(variant)
+
+        // When
+        // since there is no explicit dependency between assemble and upload tasks, Gradle may
+        // optimize the execution and run them in parallel, ignoring the order in the command
+        // line, so we do the explicit split
+        gradleRunner { withArguments("--info", ":samples:app:assembleRelease") }
+            .build()
+
+        val result = gradleRunner {
+            withArguments(
+                taskName,
+                "--info",
+                "--stacktrace",
+                "-PDD_API_KEY=fakekey",
+                "-Pdd-compress-mapping-file=false",
+                "-Pdd-emulate-upload-call"
+            )
+        }
+            .build()
+
+        // Then
+        assertThat(result).doesNotContainInOutput("\"mapping_compression\":\"gzip\"")
     }
 
     @Test
@@ -1125,6 +1193,87 @@ internal class DdAndroidGradlePluginFunctionalTest {
             .split("\n")
             .firstOrNull { it.startsWith(DdAndroidGradlePlugin.UPLOAD_TASK_NAME) }
         assertThat(uploadTask).isNull()
+    }
+
+    @Test
+    fun `M contain uploadTasks W minifyEnabled via new optimization DSL`() {
+        // Given
+        buildVersionConfig = LATEST_VERSIONS_TEST_CONFIGURATION
+        stubGradlePropertiesFile(buildVersionConfig)
+        stubGradleBuildFromResourceFile(
+            "lib_module_build.gradle",
+            libModuleBuildGradleFile,
+            overwrite = true
+        )
+        stubGradleBuildFromResourceFile(
+            "build_with_optimization_dsl.gradle",
+            appBuildGradleFile
+        )
+
+        // When
+        val result = gradleRunner { withArguments("--stacktrace", ":samples:app:tasks", "--all") }
+            .build()
+
+        // Then
+        val uploadTask = result.output
+            .split("\n")
+            .firstOrNull { it.startsWith(DdAndroidGradlePlugin.UPLOAD_TASK_NAME) }
+        assertThat(uploadTask).isNotNull()
+    }
+
+    @Test
+    fun `M try to upload the mapping file W upload { minifyEnabled via new optimization DSL }`(
+        forge: Forge
+    ) {
+        // Given
+        buildVersionConfig = LATEST_VERSIONS_TEST_CONFIGURATION
+        stubGradlePropertiesFile(buildVersionConfig)
+        stubGradleBuildFromResourceFile(
+            "lib_module_build.gradle",
+            libModuleBuildGradleFile,
+            overwrite = true
+        )
+        stubGradleBuildFromResourceFile(
+            "build_with_optimization_dsl.gradle",
+            appBuildGradleFile
+        )
+        val color = forge.anElementFrom(colors)
+        val version = forge.anElementFrom(versions)
+        val variantVersionName = version.lowercase()
+        val variant = "${version.lowercase()}$color"
+        val taskName = resolveMappingUploadTask(variant)
+
+        // When
+        // since there is no explicit dependency between assemble and upload tasks, Gradle may
+        // optimize the execution and run them in parallel, ignoring the order in the command
+        // line, so we do the explicit split
+        gradleRunner { withArguments("--info", ":samples:app:assembleRelease") }
+            .build()
+
+        val result = gradleRunner {
+            withArguments(
+                taskName,
+                "--info",
+                "--stacktrace",
+                "-PDD_API_KEY=fakekey",
+                "-Pdd-emulate-upload-call"
+            )
+        }
+            .build()
+
+        // Then
+        val buildIdInOriginFile = testProjectDir.findBuildIdInOriginFile(variant)
+        val buildIdInApk = testProjectDir.findBuildIdInApk(variant)
+        assertThat(buildIdInApk).isEqualTo(buildIdInOriginFile)
+
+        assertThat(result).containsInOutput(
+            "Uploading file jvm_mapping with tags " +
+                "`service:com.example.variants.$variantVersionName`, " +
+                "`version:1.0-$variantVersionName`, " +
+                "`version_code:1`, " +
+                "`variant:$variant`, " +
+                "`build_id:$buildIdInOriginFile` (site=datadoghq.com):"
+        )
     }
 
     // endregion
@@ -1541,17 +1690,6 @@ internal class DdAndroidGradlePluginFunctionalTest {
             .readText()
     }
 
-    @Suppress("ReturnCount")
-    private fun BuildVersionConfig.isAgpAboveOrEqual730(): Boolean {
-        val groups = agpVersion.split(".")
-        if (groups.size < 3) return false
-        val major = groups[0].toIntOrNull()
-        val minor = groups[1].toIntOrNull()
-        val patch = groups[2].substringBefore("-").toIntOrNull()
-        if (major == null || minor == null || patch == null) return false
-        return major >= 7 && minor >= 3 && patch >= 0
-    }
-
     // endregion
 
     companion object {
@@ -1690,8 +1828,8 @@ internal class DdAndroidGradlePluginFunctionalTest {
             }
         """.trimIndent()
 
-        private const val LATEST_GRADLE_VERSION = "9.4.0"
-        private const val LATEST_AGP_VERSION = "9.1.0"
+        private const val LATEST_GRADLE_VERSION = "9.6.1"
+        private const val LATEST_AGP_VERSION = "9.3.1"
 
         val LATEST_VERSIONS_TEST_CONFIGURATION = BuildVersionConfig(
             agpVersion = LATEST_AGP_VERSION,
@@ -1706,12 +1844,12 @@ internal class DdAndroidGradlePluginFunctionalTest {
         // While work with Gradle with higher major version is possible, it is not guaranteed.
         val TESTED_CONFIGURATIONS = listOf(
             BuildVersionConfig(
-                agpVersion = "7.0.4",
-                gradleVersion = "7.4",
+                agpVersion = "8.0.0",
+                gradleVersion = "8.0",
                 buildToolsVersion = "31.0.0",
                 targetSdkVersion = "31",
-                kotlinVersion = "1.6.10",
-                jvmTarget = JavaVersion.VERSION_11.toString()
+                kotlinVersion = "1.7.20",
+                jvmTarget = JavaVersion.VERSION_17.toString()
             ),
             LATEST_VERSIONS_TEST_CONFIGURATION
         )

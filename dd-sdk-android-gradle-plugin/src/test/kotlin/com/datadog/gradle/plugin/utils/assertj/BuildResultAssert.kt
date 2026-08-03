@@ -21,6 +21,11 @@ internal class BuildResultAssert(actual: BuildResult) :
         return this
     }
 
+    fun doesNotContainInOutput(text: String): BuildResultAssert {
+        assertThat(actual.output).doesNotContain(text)
+        return this
+    }
+
     fun hasSuccessfulTaskOutcome(taskName: String): BuildResultAssert {
         val task = actual.task(taskName)
         assertThat(task)
