@@ -17,10 +17,15 @@ import fr.xgouchet.elmyr.annotation.StringForgery
 import fr.xgouchet.elmyr.annotation.StringForgeryType
 import fr.xgouchet.elmyr.junit5.ForgeConfiguration
 import fr.xgouchet.elmyr.junit5.ForgeExtension
+import okhttp3.MultipartReader
 import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
+import okio.Buffer
+import okio.BufferedSource
+import okio.GzipSource
+import okio.buffer
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assumptions.assumeTrue
@@ -200,6 +205,93 @@ internal class OkHttpUploaderTest {
                 fakeRepositoryFileContent,
                 "application/json"
             )
+    }
+
+    @Test
+    fun `M gzip-compress mapping file content and declare compression W upload() { compressed file }`() {
+        // Given
+        mockUploadResponse = MockResponse()
+            .setResponseCode(HttpURLConnection.HTTP_OK)
+            .setBody("{}")
+        val fakeCompressedMappingFileInfo = fakeMappingFileInfo.copy(compressed = true)
+
+        // When
+        testedUploader.upload(
+            mockSite,
+            fakeCompressedMappingFileInfo,
+            fakeRepositoryFile,
+            fakeApiKey,
+            fakeIdentifier,
+            fakeRepositoryInfo,
+            useGzip = false,
+            emulateNetworkCall = false
+        )
+
+        // Then
+        assertThat(mockWebServer.requestCount).isEqualTo(1)
+        val request = dispatchedUploadRequest
+        checkNotNull(request)
+        val decompressedFilePartContent = readGzippedMultipartFileContent(
+            request,
+            fakeCompressedMappingFileInfo.fileKey
+        )
+        assertThat(decompressedFilePartContent).isEqualTo(fakeMappingFileContent)
+        assertThat(request)
+            .doesNotHaveHeader("Content-Encoding")
+            .containsMultipartFile(
+                "event",
+                "event",
+                fakeIdentifier.toMappingFileEvent(fakeCompressedMappingFileInfo.fileType, compression = "gzip"),
+                "application/json; charset=utf-8"
+            )
+    }
+
+    @Test
+    fun `M double-compress mapping file W upload() { compressed file, transport gzip }`() {
+        // Given
+        mockUploadResponse = MockResponse()
+            .setResponseCode(HttpURLConnection.HTTP_OK)
+            .setBody("{}")
+        val fakeCompressedMappingFileInfo = fakeMappingFileInfo.copy(compressed = true)
+
+        // When
+        testedUploader.upload(
+            mockSite,
+            fakeCompressedMappingFileInfo,
+            fakeRepositoryFile,
+            fakeApiKey,
+            fakeIdentifier,
+            fakeRepositoryInfo,
+            useGzip = true,
+            emulateNetworkCall = false
+        )
+
+        // Then
+        assertThat(mockWebServer.requestCount).isEqualTo(1)
+        val request = dispatchedUploadRequest
+        checkNotNull(request)
+        // NB: don't use the custom assertThat(RecordedRequest) helper here (or anywhere before the
+        // raw reads below) -- its constructor eagerly drains request.body as a side effect.
+        assertThat(request.getHeader("Content-Encoding")).isEqualTo("gzip")
+
+        // un-gzip the whole request (transport-level Content-Encoding) to get the raw multipart body
+        val decompressedMultipartBody = GzipSource(request.body.clone()).buffer()
+        val parts = readMultipartParts(decompressedMultipartBody, requireNotNull(request.getHeader("Content-Type")))
+
+        // metadata is plain text once the transport-level gzip is undone
+        val eventJsonText = requireNotNull(parts["event"]).toString(Charsets.UTF_8)
+        assertThat(eventJsonText).isEqualTo(
+            fakeIdentifier.toMappingFileEvent(fakeCompressedMappingFileInfo.fileType, compression = "gzip")
+        )
+
+        // the mapping file part is still gzip-compressed: undoing only the transport-level gzip
+        // is not enough to read it back, it carries its own, independent gzip layer
+        val filePartBytes = requireNotNull(parts[fakeCompressedMappingFileInfo.fileKey])
+        assertThat(filePartBytes.copyOfRange(0, 2)).isEqualTo(byteArrayOf(0x1F, 0x8B.toByte()))
+
+        // un-gzip the mapping file part itself, on top of the already-undone transport gzip
+        val decompressedFileContent = GzipSource(Buffer().write(filePartBytes)).buffer().readUtf8()
+        assertThat(decompressedFileContent).isEqualTo(fakeMappingFileContent)
     }
 
     @Test
@@ -648,13 +740,51 @@ internal class OkHttpUploaderTest {
 
     // region Internal
 
-    private fun DdAppIdentifier.toMappingFileEvent(type: String): String {
+    private fun DdAppIdentifier.toMappingFileEvent(type: String, compression: String? = null): String {
+        val compressionField = if (compression != null) "\"mapping_compression\":\"$compression\"," else ""
         return "{\"build_id\":\"${buildId}\"," +
             "\"service\":\"${serviceName}\"," +
             "\"variant\":\"${variant}\"," +
             "\"version_code\":$versionCode," +
+            compressionField +
             "\"type\":\"${type}\"," +
             "\"version\":\"${version}\"}"
+    }
+
+    // JSONObject serializes keys in java.util.HashMap bucket order, not insertion order -- for
+    // this fixed key set, that happens to put "mapping_compression" right after "version_code"
+    // and before "type".
+    private fun readGzippedMultipartFileContent(request: RecordedRequest, partName: String): String {
+        val contentType = requireNotNull(request.getHeader("Content-Type")) {
+            "Missing Content-Type header on upload request"
+        }
+        // clone(): RecordedRequest#body is a single mutable Buffer that other assertions in this
+        // test also read from; readMultipartParts would otherwise drain it as a side effect.
+        val gzippedBytes = requireNotNull(
+            readMultipartParts(request.body.clone(), contentType)[partName]
+        ) {
+            "Multipart part named \"$partName\" not found in request body"
+        }
+        return GzipSource(Buffer().write(gzippedBytes)).buffer().readUtf8()
+    }
+
+    private fun readMultipartParts(source: BufferedSource, contentTypeHeader: String): Map<String, ByteArray> {
+        val boundary = requireNotNull(Regex("boundary=([^;]+)").find(contentTypeHeader)) {
+            "Missing multipart boundary in Content-Type header: $contentTypeHeader"
+        }.groupValues[1]
+
+        val parts = mutableMapOf<String, ByteArray>()
+        MultipartReader(source, boundary).use { reader ->
+            while (true) {
+                val part = reader.nextPart() ?: break
+                val disposition = part.headers["Content-Disposition"].orEmpty()
+                val name = requireNotNull(Regex("name=\"([^\"]+)\"").find(disposition)) {
+                    "Missing name in Content-Disposition: $disposition"
+                }.groupValues[1]
+                parts[name] = part.body.readByteArray()
+            }
+        }
+        return parts
     }
 
     inner class MockDispatcher : Dispatcher() {

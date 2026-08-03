@@ -1,0 +1,70 @@
+plugins {
+    id("com.android.application")
+    id("kotlin-android")
+    id("com.datadoghq.dd-sdk-android-gradle-plugin")
+}
+
+repositories {
+    google()
+    mavenCentral()
+}
+
+android {
+    compileSdkVersion = rootProject.ext.targetSdkVersion
+    buildToolsVersion = rootProject.ext.buildToolsVersion
+
+    defaultConfig {
+        applicationId "com.example.variants"
+        minSdkVersion 23
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 1
+        versionName "1.0"
+        multiDexEnabled = true
+    }
+
+    buildTypes {
+        release {
+            optimization {
+                enable = true
+            }
+        }
+    }
+
+    namespace = "com.example.variants"
+
+    compileOptions {
+        sourceCompatibility = rootProject.ext.jvmTarget
+        targetCompatibility = rootProject.ext.jvmTarget
+    }
+
+    flavorDimensions("version", "colour")
+    productFlavors {
+        demo {
+            dimension "version"
+            applicationIdSuffix ".demo"
+            versionNameSuffix "-demo"
+        }
+        full {
+            dimension "version"
+            applicationIdSuffix ".full"
+            versionNameSuffix "-full"
+        }
+
+        green {
+            dimension "colour"
+        }
+        blue {
+            dimension "colour"
+        }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.fromTarget(rootProject.ext.jvmTarget)
+    }
+}
+
+dependencies {
+    implementation(rootProject.ext.datadogSdkDependency)
+}

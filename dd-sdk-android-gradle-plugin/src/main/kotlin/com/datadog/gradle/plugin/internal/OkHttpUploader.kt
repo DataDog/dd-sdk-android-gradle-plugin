@@ -19,10 +19,12 @@ import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import okio.Buffer
 import okio.BufferedSink
+import okio.ForwardingSink
 import okio.GzipSink
+import okio.Sink
 import okio.buffer
-import okio.use
 import org.json.JSONException
 import org.json.JSONObject
 import org.json.JSONTokener
@@ -105,13 +107,34 @@ internal class OkHttpUploader : Uploader {
 
     // region Internal
 
+    private fun createFileBody(fileInfo: Uploader.UploadFileInfo): RequestBody {
+        val fileBody = fileInfo.file.asRequestBody(fileInfo.encoding.toMediaTypeOrNull())
+        if (!fileInfo.compressed) return fileBody
+
+        val uncompressedSize = fileInfo.file.length()
+        LOGGER.info(
+            "Compressing ${fileInfo.fileName} content with GZIP ($uncompressedSize bytes uncompressed)."
+        )
+        // Independent of the transport-level `Content-Encoding: gzip` (see `useGzip`), which
+        // already compresses uploads in transit by default: this layer is what makes the mapping
+        // file reach the backend compressed. When both are on the part is gzipped twice, which is
+        // expected -- the second pass runs over the small compressed output.
+        // stream-compressed, so the whole file is never held in memory at once
+        return fileBody.gzip { compressedSize ->
+            LOGGER.info(
+                "Compressed ${fileInfo.fileName} content from $uncompressedSize" +
+                    " to $compressedSize bytes with GZIP."
+            )
+        }
+    }
+
     private fun createBody(
         identifier: DdAppIdentifier,
         fileInfo: Uploader.UploadFileInfo,
         repositoryFile: File?,
         repositoryInfo: RepositoryInfo?
     ): MultipartBody {
-        val mappingFileBody = fileInfo.file.asRequestBody(fileInfo.encoding.toMediaTypeOrNull())
+        val mappingFileBody = createFileBody(fileInfo)
 
         val eventJson = JSONObject()
         eventJson.put("version", identifier.version)
@@ -120,6 +143,11 @@ internal class OkHttpUploader : Uploader {
         eventJson.put("build_id", identifier.buildId)
         eventJson.put("version_code", identifier.versionCode)
         eventJson.put("type", fileInfo.fileType)
+        if (fileInfo.compressed) {
+            // Named specifically for the mapping file, not the request as a whole: the `event`
+            // metadata and `repository` git info parts are never compressed by this flag.
+            eventJson.put("mapping_compression", COMPRESSION_GZIP)
+        }
         fileInfo.extraAttributes.forEach { (key, value) ->
             eventJson.put(key, value)
         }
@@ -245,7 +273,7 @@ internal class OkHttpUploader : Uploader {
 
     // endregion
 
-    private fun RequestBody.gzip(): RequestBody {
+    private fun RequestBody.gzip(onCompressedSize: ((Long) -> Unit)? = null): RequestBody {
         val uncompressedBody = this
         return object : RequestBody() {
             override fun contentType(): MediaType? {
@@ -258,14 +286,43 @@ internal class OkHttpUploader : Uploader {
 
             @Throws(IOException::class)
             override fun writeTo(sink: BufferedSink) {
-                val gzipSink = GzipSink(sink).buffer()
-                uncompressedBody.writeTo(gzipSink)
-                gzipSink.close()
+                // GzipSink#close() finishes the gzip stream (writes the trailer) but also closes
+                // its delegate; when this body is just one part of a MultipartBody, the delegate
+                // sink is shared with the other parts, so closing it here would break the rest of
+                // the multipart write. Wrap it so only the gzip stream itself gets closed.
+                val countingSink = ByteCountingSink(NonClosingSink(sink))
+                val gzipSink = GzipSink(countingSink).buffer()
+                try {
+                    uncompressedBody.writeTo(gzipSink)
+                } finally {
+                    gzipSink.close()
+                }
+                onCompressedSize?.invoke(countingSink.byteCount)
             }
 
             override fun isOneShot(): Boolean {
                 return uncompressedBody.isOneShot()
             }
+        }
+    }
+
+    // Prevents GzipSink#close() from closing the delegate sink, which would otherwise break the
+    // rest of a MultipartBody write when gzip wraps just one of its parts.
+    private class NonClosingSink(delegate: Sink) : ForwardingSink(delegate) {
+        override fun close() {
+            // intentionally not propagated: the delegate's lifecycle is owned by the caller
+        }
+    }
+
+    // Counts the bytes actually handed to the delegate, so the compressed size can be reported
+    // without buffering the compressed output.
+    private class ByteCountingSink(delegate: Sink) : ForwardingSink(delegate) {
+        var byteCount: Long = 0
+            private set
+
+        override fun write(source: Buffer, byteCount: Long) {
+            super.write(source, byteCount)
+            this.byteCount += byteCount
         }
     }
 
@@ -279,7 +336,12 @@ internal class OkHttpUploader : Uploader {
         internal const val HEADER_EVP_ORIGIN_VERSION = "DD-EVP-ORIGIN-VERSION"
         internal const val HEADER_REQUEST_ID = "DD-REQUEST-ID"
         internal const val HEADER_CONTENT_ENCODING = "Content-Encoding"
+
+        // Deliberately two constants with the same value: ENCODING_GZIP is the HTTP
+        // `Content-Encoding` of the request, COMPRESSION_GZIP is the `mapping_compression` value
+        // in the event metadata. They are separate contracts and can change independently.
         internal const val ENCODING_GZIP = "gzip"
+        internal const val COMPRESSION_GZIP = "gzip"
 
         internal const val KEY_EVENT = "event"
         internal const val KEY_REPOSITORY = "repository"

@@ -1,3 +1,11 @@
+# 1.30.0 / 2026-08-03
+
+* [IMPROVEMENT] Support `gzip`-compressed JVM mapping file uploads. See [#607](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/607)
+* [IMPROVEMENT] Support new AGP `optimization` DSL. See [#604](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/604)
+* [MAINTENANCE] Update the sample `DatadogModifier` with the recomposition fix. See [#601](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/601)
+* [MAINTENANCE] Drop support of AGP versions below 8. See [#602](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/602)
+* [MAINTENANCE] Update dependencies. See [#606](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/606)
+
 # 1.29.0 / 2026-07-21
 
 * [FEATURE] Add `UK1` site. See [#594](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/594)

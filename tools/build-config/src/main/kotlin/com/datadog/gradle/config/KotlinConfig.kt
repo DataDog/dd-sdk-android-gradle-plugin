@@ -13,8 +13,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 internal fun Project.kotlinConfig() {
     taskConfig<KotlinCompile> {
         compilerOptions {
-            // TODO RUMM-3257 Target Java 17 bytecode at some point
-            jvmTarget.set(JvmTarget.JVM_11)
+            jvmTarget.set(JvmTarget.JVM_17)
         }
     }
 }
