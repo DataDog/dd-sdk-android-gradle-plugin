@@ -95,5 +95,17 @@ RUN curl -L https://github.com/get-woke/woke/releases/download/v${WOKE_VERSION}/
  && rm -Rf woke-${WOKE_VERSION}-linux-amd64 woke-${WOKE_VERSION}-linux-amd64.tar.gz
 
 COPY --from=registry.ddbuild.io/dd-octo-sts:v1.8.2 /usr/local/bin/dd-octo-sts /usr/local/bin/dd-octo-sts
+COPY --from=registry.ddbuild.io/dd-sts:v0.1.7@sha256:dea74bd68e19075b6001a02a2f6121001fbcd84b2512c7f398f7b39bf22f04a8 /usr/local/bin/dd-sts /usr/local/bin/dd-sts
 COPY --from=registry.ddbuild.io/commit-headless:v2.0.1 /commit-headless /usr/local/bin/commit-headless
 COPY --from=registry.ddbuild.io/ddsign:v1.11.10@sha256:55784668a612ab22129bb15a665a847819bfa64b9a595c59a03a3a725534ce22 /usr/local/bin/ddsign /usr/local/bin/ddsign
+
+# Install Datadog CI
+ARG GITHUB_RELEASES_BASE=https://depot-read-api-github-releases.us1.ddbuild.io/internal/mirror/github-releases
+ENV DATADOG_CI_VERSION=5.21.2
+ENV DATADOG_CI_SHA256_amd64=b163d332679b677410e05389700874a7e73b8fcb4d29dbc94c904637a9665b79
+RUN set -x \
+ && curl -fsSLo /usr/local/bin/datadog-ci \
+      "${GITHUB_RELEASES_BASE}/DataDog/datadog-ci/releases/download/v${DATADOG_CI_VERSION}/datadog-ci_linux-x64" \
+ && echo "${DATADOG_CI_SHA256_amd64}  /usr/local/bin/datadog-ci" | sha256sum -c \
+ && chmod +x /usr/local/bin/datadog-ci \
+ && datadog-ci version
