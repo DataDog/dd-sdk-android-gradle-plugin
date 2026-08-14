@@ -3,3 +3,5 @@ ignore:
   - "build/"
   - "**/build/"
   - "**/src/test/"
+  - "samples/"
+  - "instrumented/"
