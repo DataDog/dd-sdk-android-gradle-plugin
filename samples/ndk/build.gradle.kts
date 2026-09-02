@@ -25,6 +25,7 @@ android {
     namespace = "com.datadog.example.ndk"
     compileSdk = AndroidConfig.TARGET_SDK
     buildToolsVersion = AndroidConfig.BUILD_TOOLS_VERSION
+    ndkVersion = AndroidConfig.NDK_VERSION
 
     defaultConfig {
         applicationId = "com.datadog.example.ndk"

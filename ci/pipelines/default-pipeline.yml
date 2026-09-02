@@ -99,7 +99,7 @@ create_key:
 analysis:generated-files-check:
   extends: .verification-job
   script:
-    - ./gradlew checkGeneratedFiles --stacktrace --no-daemon --no-configuration-cache
+    - ./gradlew checkGeneratedFiles --stacktrace --no-daemon
 
 analysis:ktlint:
   extends: .verification-job
@@ -114,7 +114,7 @@ analysis:detekt:
 analysis:android-lint:
   extends: .verification-job
   script:
-    - ./gradlew lintRelease --continue --stacktrace --no-daemon
+    - ./gradlew lint --continue --stacktrace --no-daemon
 
 analysis:licenses:
   extends: .verification-job
