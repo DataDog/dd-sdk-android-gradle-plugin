@@ -1,56 +1,35 @@
+# syntax=docker/dockerfile:1
+
 # This base image is based on a GBI image
 FROM registry.ddbuild.io/images/docker:24.0.4-jammy
 
-ENV DEBIAN_FRONTEND=noninteractive
+ARG DEBIAN_FRONTEND=noninteractive
+ARG TARGETARCH
 
 # Set timezone to UTC by default
 RUN ln -sf /usr/share/zoneinfo/Etc/UTC /etc/localtime
 
-RUN apt-get update \
-    && apt-get -y install openjdk-17-jdk \
-    && rm -rf /var/lib/apt/lists/*
-
 RUN set -x \
  && apt-get update \
- && apt-get -y upgrade \
- && apt-get -y install --no-install-recommends \
+ && apt-get install -y openjdk-17-jdk \
+ && apt-get install -y --no-install-recommends \
     curl \
     git \
+    python3 \
+    python3-pip \
     unzip \
-    wget \
-    openssh-client \
-    expect \
-    python3-distutils \
-    python3-apt \
- && apt-get -y clean \
  && rm -rf /var/lib/apt/lists/*
 
-ENV GRADLE_VERSION 9.6.1
-ENV ANDROID_COMPILE_SDK 36
-ENV ANDROID_BUILD_TOOLS 36.1.0
-ENV ANDROID_SDK_TOOLS 11076708
-ENV NDK_VERSION 26.1.10909125
-ENV CMAKE_VERSION 3.22.1
+ENV ANDROID_COMPILE_SDK=36 \
+    ANDROID_BUILD_TOOLS=36.1.0 \
+    ANDROID_SDK_TOOLS=13114758 \
+    CMAKE_VERSION=3.22.1 \
+    NDK_VERSION=26.1.10909125
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-${TARGETARCH}
 
-RUN apt update && apt install -y python3 python3-distutils
-
-#  Install pip for aws
-RUN set -x \
- && curl -OL https://bootstrap.pypa.io/get-pip.py \
- && python3 get-pip.py \
- && rm get-pip.py
-
-RUN python3 --version
-
-RUN set -x \
- && pip install awscli
-
-# Gradle
-RUN \
-    cd /usr/local && \
-    curl -L https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip -o gradle-${GRADLE_VERSION}-bin.zip && \
-    unzip gradle-${GRADLE_VERSION}-bin.zip && \
-    rm gradle-${GRADLE_VERSION}-bin.zip
+RUN python3 --version \
+ && python3 -m pip install --no-cache-dir awscli \
+ && aws --version
 
 # Workaround for
 # Warning: File /root/.android/repositories.cfg could not be loaded.
@@ -60,39 +39,31 @@ RUN mkdir /root/.android \
 
 # Android SDK
 RUN \
-    wget --quiet --output-document=android-sdk.zip https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_SDK_TOOLS}_latest.zip && \
-    mkdir -p android-sdk-linux/cmdline-tools && \
-    unzip -d android-sdk-linux/cmdline-tools android-sdk.zip && \
-    mv android-sdk-linux/cmdline-tools/cmdline-tools android-sdk-linux/cmdline-tools/latest && \
-    echo y | android-sdk-linux/cmdline-tools/latest/bin/sdkmanager "platforms;android-${ANDROID_COMPILE_SDK}" >/dev/null && \
-    echo y | android-sdk-linux/cmdline-tools/latest/bin/sdkmanager "platform-tools" >/dev/null && \
-    echo y | android-sdk-linux/cmdline-tools/latest/bin/sdkmanager "build-tools;${ANDROID_BUILD_TOOLS}" >/dev/null && \
-    echo y | android-sdk-linux/cmdline-tools/latest/bin/sdkmanager --install "ndk;${NDK_VERSION}" >/dev/null && \
-    echo y | android-sdk-linux/cmdline-tools/latest/bin/sdkmanager --install "cmake;${CMAKE_VERSION}" >/dev/null && \
-    (yes || true) | android-sdk-linux/cmdline-tools/latest/bin/sdkmanager --licenses
+    curl -fsSLo /tmp/android-sdk.zip https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_SDK_TOOLS}_latest.zip && \
+    mkdir -p /android-sdk-linux/cmdline-tools && \
+    unzip -q -d /android-sdk-linux/cmdline-tools /tmp/android-sdk.zip && \
+    rm /tmp/android-sdk.zip && \
+    mv /android-sdk-linux/cmdline-tools/cmdline-tools /android-sdk-linux/cmdline-tools/latest && \
+    echo y | /android-sdk-linux/cmdline-tools/latest/bin/sdkmanager "platforms;android-${ANDROID_COMPILE_SDK}" >/dev/null && \
+    echo y | /android-sdk-linux/cmdline-tools/latest/bin/sdkmanager "platform-tools" >/dev/null && \
+    echo y | /android-sdk-linux/cmdline-tools/latest/bin/sdkmanager "build-tools;${ANDROID_BUILD_TOOLS}" >/dev/null && \
+    echo y | /android-sdk-linux/cmdline-tools/latest/bin/sdkmanager --install "ndk;${NDK_VERSION}" >/dev/null && \
+    echo y | /android-sdk-linux/cmdline-tools/latest/bin/sdkmanager --install "cmake;${CMAKE_VERSION}" >/dev/null && \
+    (yes || true) | /android-sdk-linux/cmdline-tools/latest/bin/sdkmanager --licenses
 
-RUN set -x \
- && curl -OL https://s3.amazonaws.com/dd-package-public/dd-package.deb && dpkg -i dd-package.deb && rm dd-package.deb \
- && apt-get update \
- && apt-get -y clean \
- && rm -rf /var/lib/apt/lists/*
+ENV ANDROID_SDK_ROOT=/android-sdk-linux \
+    ANDROID_HOME=/android-sdk-linux \
+    ANDROID_NDK=/android-sdk-linux/ndk/${NDK_VERSION}
+ENV PATH=${PATH}:${ANDROID_HOME}/platform-tools:${ANDROID_SDK_ROOT}/build-tools/${ANDROID_BUILD_TOOLS}:${ANDROID_NDK}
 
-ENV ANDROID_SDK_ROOT $PWD/android-sdk-linux
-ENV ANDROID_HOME $PWD/android-sdk-linux
-ENV GRADLE_HOME /usr/local/gradle-${GRADLE_VERSION}
-ENV PATH $PATH:$GRADLE_HOME/bin
-ENV PATH $PATH:$ANDROID_HOME/platform-tools
-ENV PATH $PATH:$ANDROID_SDK_ROOT/build-tools/${ANDROID_BUILD_TOOLS}:$ANDROID_NDK
-
-# Woke
-ENV WOKE_VERSION "0.6.0"
-ENV WOKE_SHA256 "ea5605d4242b93d9586a21878264dd8abcf64ed92f0f6538ea831d9d3215b883"
-
-RUN curl -L https://github.com/get-woke/woke/releases/download/v${WOKE_VERSION}/woke-${WOKE_VERSION}-linux-amd64.tar.gz -o woke-linux-amd64.tar.gz \
- && echo "${WOKE_SHA256} woke-linux-amd64.tar.gz" | sha256sum -c  \
- && tar -xf woke-linux-amd64.tar.gz \
- && mv woke-${WOKE_VERSION}-linux-amd64/woke /usr/bin/woke \
- && rm -Rf woke-${WOKE_VERSION}-linux-amd64 woke-${WOKE_VERSION}-linux-amd64.tar.gz
+# Install Datadog Java tracer
+ENV DD_TRACER_VERSION=1.54.0 \
+    DD_TRACER_SHA256=43fbf21d75e7a701a665efd3db6b5c4cb4165d190a030dd8b1d46f9ca6e86b71 \
+    DD_TRACER_FOLDER=/opt/dd-java-agent
+RUN mkdir -p "${DD_TRACER_FOLDER}" \
+ && curl -fsSLo "${DD_TRACER_FOLDER}/dd-java-agent.jar" \
+      "https://repo1.maven.org/maven2/com/datadoghq/dd-java-agent/${DD_TRACER_VERSION}/dd-java-agent-${DD_TRACER_VERSION}.jar" \
+ && echo "${DD_TRACER_SHA256}  ${DD_TRACER_FOLDER}/dd-java-agent.jar" | sha256sum -c
 
 COPY --from=registry.ddbuild.io/dd-octo-sts:v1.8.2 /usr/local/bin/dd-octo-sts /usr/local/bin/dd-octo-sts
 COPY --from=registry.ddbuild.io/dd-sts:v0.1.7@sha256:dea74bd68e19075b6001a02a2f6121001fbcd84b2512c7f398f7b39bf22f04a8 /usr/local/bin/dd-sts /usr/local/bin/dd-sts
@@ -103,9 +74,15 @@ COPY --from=registry.ddbuild.io/ddsign:v1.11.10@sha256:55784668a612ab22129bb15a6
 ARG GITHUB_RELEASES_BASE=https://depot-read-api-github-releases.us1.ddbuild.io/internal/mirror/github-releases
 ENV DATADOG_CI_VERSION=5.21.2
 ENV DATADOG_CI_SHA256_amd64=b163d332679b677410e05389700874a7e73b8fcb4d29dbc94c904637a9665b79
+ENV DATADOG_CI_SHA256_arm64=526d92541ef6990211f9da96d828394db956a3b12bdadc68a687b114f21918f7
 RUN set -x \
+ && case "${TARGETARCH}" in \
+      amd64) sha256="${DATADOG_CI_SHA256_amd64}"; arch=x64 ;; \
+      arm64) sha256="${DATADOG_CI_SHA256_arm64}"; arch=arm64 ;; \
+      *) echo "Unsupported architecture: ${TARGETARCH}" >&2; exit 1 ;; \
+    esac \
  && curl -fsSLo /usr/local/bin/datadog-ci \
-      "${GITHUB_RELEASES_BASE}/DataDog/datadog-ci/releases/download/v${DATADOG_CI_VERSION}/datadog-ci_linux-x64" \
- && echo "${DATADOG_CI_SHA256_amd64}  /usr/local/bin/datadog-ci" | sha256sum -c \
+      "${GITHUB_RELEASES_BASE}/DataDog/datadog-ci/releases/download/v${DATADOG_CI_VERSION}/datadog-ci_linux-${arch}" \
+ && echo "${sha256}  /usr/local/bin/datadog-ci" | sha256sum -c \
  && chmod +x /usr/local/bin/datadog-ci \
  && datadog-ci version
