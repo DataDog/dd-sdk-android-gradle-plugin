@@ -4,6 +4,8 @@
  * Copyright 2020-Present Datadog, Inc.
  */
 
+import io.gitlab.arturbosch.detekt.Detekt
+
 buildscript {
     repositories {
         // Magic Mirror Depot proxy (only set in CI via `.gitlab-ci.yml`).
@@ -23,7 +25,11 @@ buildscript {
 }
 
 plugins {
+    alias(libs.plugins.detektGradlePlugin)
     alias(libs.plugins.kotlinPlugin23) apply false
+    alias(libs.plugins.ktlintGradlePlugin) apply false
+    alias(libs.plugins.koverPlugin) apply false
+    id("ktlint")
     alias(libs.plugins.dokkaJavadocPlugin) apply false
     alias(libs.plugins.androidApplicationPlugin) apply false
     alias(libs.plugins.androidLibraryPlugin) apply false
@@ -42,6 +48,28 @@ allprojects {
         maven("https://jitpack.io")
         maven("https://central.sonatype.com/repository/maven-snapshots/")
     }
+}
+
+val detektSources = files(rootDir)
+val detektExcludes = listOf("**/build/**", "**/.gradle/**")
+
+tasks.withType<Detekt>().configureEach {
+    setSource(detektSources)
+    include("**/*.kt", "**/*.kts")
+    exclude(detektExcludes)
+    jvmTarget = "17"
+    reports {
+        sarif.required = false
+        html.required = false
+        xml.required = false
+        txt.required = false
+        md.required = false
+    }
+}
+
+tasks.named<Detekt>("detekt") {
+    description = "Runs the Detekt checks."
+    config.setFrom(rootProject.file("detekt.yml"))
 }
 
 tasks.register<Delete>("clean") {

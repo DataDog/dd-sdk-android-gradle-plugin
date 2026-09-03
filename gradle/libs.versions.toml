@@ -36,7 +36,11 @@ elmyr = "1.3.1"
 mockitoKotlin = "6.3.0"
 
 # Tools
+detekt = "1.23.8"
 dokka = "2.0.0"
+ktlint = "1.5.0"
+ktlintGradlePlugin = "14.2.0"
+kover = "0.9.8"
 unmock = "0.7.5"
 
 fuzzyWuzzy = "1.4.0"
@@ -71,6 +75,7 @@ kotlinGradlePlugin21 = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", v
 kotlinGradlePlugin22 = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin22" }
 kotlinGradlePlugin24 = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin24" }
 dokkaGradlePlugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
+ktlintGradlePlugin = { module = "org.jlleitschuh.gradle.ktlint:org.jlleitschuh.gradle.ktlint.gradle.plugin", version.ref = "ktlintGradlePlugin" }
 unmockGradlePlugin = { module = "de.mobilej.unmock:UnMockPlugin", version.ref = "unmock" }
 
 versionsGradlePlugin = { module = "com.github.ben-manes:gradle-versions-plugin", version.ref = "versionsPluginGradle" }
@@ -150,6 +155,7 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCoreVersion" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycleRuntimeKtx" }
 androidx-compose-navigation = { module = "androidx.navigation:navigation-compose", version.ref = "androidXComposeNavigation" }
 
 [bundles]
@@ -174,12 +180,15 @@ testTools = [
 ]
 
 [plugins]
+detektGradlePlugin = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 dokkaJavadocPlugin = { id = "org.jetbrains.dokka-javadoc", version.ref = "dokka" }
 androidApplicationPlugin = { id = "com.android.application", version.ref = "androidToolsPlugin" }
 androidLibraryPlugin = { id = "com.android.library", version.ref = "androidToolsPlugin" }
 kotlinPlugin21 = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin21" }
 kotlinPlugin23 = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin23" }
 kotlinPlugin24 = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin24" }
+ktlintGradlePlugin = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlintGradlePlugin" }
+koverPlugin = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 mavenPublishPlugin = { id = "com.vanniktech.maven.publish.base", version.ref = "mavenPublishPlugin" }
 versionsPluginGradle = { id = "com.github.ben-manes.versions", version.ref = "versionsPluginGradle" }
 kotlinComposePlugin = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlinComposePlugin" }

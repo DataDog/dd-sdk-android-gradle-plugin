@@ -7,7 +7,6 @@
 package com.datadog.gradle.plugin.config
 
 import com.datadog.gradle.config.dependencyUpdateConfig
-import com.datadog.gradle.config.jacocoConfig
 import com.datadog.gradle.config.javadocConfig
 import com.datadog.gradle.config.junitConfig
 import com.datadog.gradle.config.kotlinConfig
@@ -25,10 +24,6 @@ abstract class BuildConfigExtension @Inject constructor(
 
     fun applyJunitConfig() {
         project.junitConfig()
-    }
-
-    fun applyJacocoConfig() {
-        project.jacocoConfig()
     }
 
     fun applyJavadocConfig() {

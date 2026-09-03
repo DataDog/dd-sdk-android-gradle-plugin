@@ -7,10 +7,10 @@
 package com.datadog.gradle.plugin.transdeps
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
@@ -23,6 +23,9 @@ abstract class TransitiveDependenciesTask : DefaultTask() {
 
     @get:Input
     abstract val sortByName: Property<Boolean>
+
+    @get:Classpath
+    abstract val runtimeClasspath: ConfigurableFileCollection
 
     @get:OutputFile
     abstract val outputFile: RegularFileProperty
@@ -39,8 +42,7 @@ abstract class TransitiveDependenciesTask : DefaultTask() {
         outputFile.get().asFile.let {
             it.writeText("Dependencies List\n\n")
 
-            val implementation = project.configurations.getByName("runtimeClasspath")
-            listConfigurationDependencies(implementation, it)
+            listConfigurationDependencies(it)
         }
     }
 
@@ -48,16 +50,8 @@ abstract class TransitiveDependenciesTask : DefaultTask() {
 
     // region Internal
 
-    private fun listConfigurationDependencies(configuration: Configuration, outputFile: File) {
-        check(configuration.isCanBeResolved) { "$configuration cannot be resolved" }
-
-        val sortedArtifacts = configuration.incoming
-            .artifactView {
-                componentFilter {
-                    it !is ProjectComponentIdentifier && it.displayName != "Gradle API"
-                }
-            }
-            .files
+    private fun listConfigurationDependencies(outputFile: File) {
+        val sortedArtifacts = runtimeClasspath.files
             .apply {
                 if (sortByName.get()) sortedBy { it.absolutePath } else sortedBy { -it.length() }
             }
