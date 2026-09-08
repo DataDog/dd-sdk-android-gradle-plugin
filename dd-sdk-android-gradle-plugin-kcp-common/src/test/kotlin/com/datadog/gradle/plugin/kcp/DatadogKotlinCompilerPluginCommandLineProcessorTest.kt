@@ -48,6 +48,7 @@ internal class DatadogKotlinCompilerPluginCommandLineProcessorTest {
         testedProcessor.processOption(fakeCliOption, fakeValue, mockCompilerConfiguration)
 
         // Then
-        verify(mockCompilerConfiguration).put(DatadogPluginRegistrar.CONFIG_INSTRUMENTATION_MODE, fakeValue)
+        verify(mockCompilerConfiguration)
+            .put(DatadogCompilerConfigurationKeys.CONFIG_INSTRUMENTATION_MODE, fakeValue)
     }
 }

@@ -93,19 +93,31 @@ abstract class DatadogPluginRegistrar(
     ): IrGenerationExtension
 
     private fun resolveConfiguration(configuration: CompilerConfiguration): InstrumentationMode {
-        return resolveOptionValue(configuration.get(CONFIG_INSTRUMENTATION_MODE))
+        return resolveOptionValue(
+            configuration.get(DatadogCompilerConfigurationKeys.CONFIG_INSTRUMENTATION_MODE)
+        )
     }
 
     private fun resolveOptionValue(value: String?): InstrumentationMode {
         return value?.let { InstrumentationMode.from(it) } ?: InstrumentationMode.DISABLE
     }
 
-    /** Compiler configuration keys shared across all versioned plugin registrar implementations. */
     companion object {
-        private const val OPTION_KEY_INSTRUMENTATION_MODE = "INSTRUMENTATION_MODE"
 
-        /** Configuration key used to pass the instrumentation mode string to the compiler plugin. */
-        val CONFIG_INSTRUMENTATION_MODE =
-            CompilerConfigurationKey.create<String>(OPTION_KEY_INSTRUMENTATION_MODE)
+        /**
+         * Configuration key used to pass the instrumentation mode string to the compiler plugin.
+         *
+         * Reading it through this class links the legacy `ComponentRegistrar` supertype, which does not
+         * exist on Kotlin 2.4.20 and above. Use [DatadogCompilerConfigurationKeys] instead.
+         */
+        @Deprecated(
+            message = "Moved to DatadogCompilerConfigurationKeys to stay loadable on Kotlin 2.4.20+.",
+            replaceWith = ReplaceWith(
+                expression = "DatadogCompilerConfigurationKeys.CONFIG_INSTRUMENTATION_MODE",
+                imports = ["com.datadog.gradle.plugin.kcp.DatadogCompilerConfigurationKeys"]
+            )
+        )
+        val CONFIG_INSTRUMENTATION_MODE: CompilerConfigurationKey<String> =
+            DatadogCompilerConfigurationKeys.CONFIG_INSTRUMENTATION_MODE
     }
 }
