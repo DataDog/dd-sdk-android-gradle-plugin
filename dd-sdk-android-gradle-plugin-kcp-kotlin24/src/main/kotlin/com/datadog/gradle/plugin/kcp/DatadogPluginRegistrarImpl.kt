@@ -14,16 +14,20 @@ import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.config.MessageCollectorAccess
 
 /**
  * Implementation of [CompilerPluginRegistrar] with Kotlin 2.4.x support.
  *
- * Uses [CompilerPluginRegistrar] instead of [ComponentRegistrar] because
- * [IrGenerationExtension.extensionPointName] was removed in Kotlin 2.4.0.
- * Plugin ordering (Datadog before Compose) is enforced via -Xcompiler-plugin-order,
- * injected by [DatadogKotlinCompilerPluginSupport].
+ * Uses [CompilerPluginRegistrar] instead of the legacy `ComponentRegistrar` because
+ * `IrGenerationExtension.extensionPointName` was removed in Kotlin 2.4.0, and `ComponentRegistrar`
+ * itself was removed in Kotlin 2.4.20. Plugin ordering (Datadog before Compose) is enforced via
+ * -Xcompiler-plugin-order, injected by `DatadogKotlinCompilerPluginSupport`.
+ *
+ * Because the legacy class is gone, nothing on this code path may touch [DatadogPluginRegistrar]:
+ * configuration keys are read from [DatadogCompilerConfigurationKeys] instead.
  */
-@OptIn(ExperimentalCompilerApi::class)
+@OptIn(ExperimentalCompilerApi::class, MessageCollectorAccess::class)
 @AutoService(CompilerPluginRegistrar::class)
 class DatadogPluginRegistrarImpl(
     private val overrideInstrumentationMode: InstrumentationMode? = null
@@ -36,6 +40,9 @@ class DatadogPluginRegistrarImpl(
     override val pluginId: String = "com.datadoghq.kotlin.compiler"
 
     override fun ExtensionStorage.registerExtensions(configuration: CompilerConfiguration) {
+        // Kotlin 2.4.20 gates MESSAGE_COLLECTOR_KEY behind the MessageCollectorAccess opt-in marker.
+        // We keep reading the collector directly because the shared IR extensions in kcp-common are
+        // built around a MessageCollector instance, which CompilerConfiguration.report cannot supply.
         val messageCollector =
             configuration[CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY, MessageCollector.NONE]
         val instrumentationMode =
@@ -58,7 +65,7 @@ class DatadogPluginRegistrarImpl(
     }
 
     private fun resolveConfiguration(configuration: CompilerConfiguration): InstrumentationMode {
-        return configuration[DatadogPluginRegistrar.CONFIG_INSTRUMENTATION_MODE]
+        return configuration[DatadogCompilerConfigurationKeys.CONFIG_INSTRUMENTATION_MODE]
             ?.let { InstrumentationMode.from(it) }
             ?: InstrumentationMode.DISABLE
     }
