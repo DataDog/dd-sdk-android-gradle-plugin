@@ -27,8 +27,11 @@ The whole project is covered by a set of static analysis tools, linters and test
 # launches the unit tests
 ./gradlew :dd-sdk-android-gradle-plugin:test
 
-# launches the ktlint check and formatter for all Kotlin files (the ktlint client needs to be installed on your machine)
-ktlint -F "**/*.kt" "**/*.kts" '!**/build/generated/**' '!**/build/kspCaches/**'
+# launches the ktlint check for all Kotlin files
+./gradlew ktlintCheck :build-config:ktlintCheck
+
+# launches the detekt checks
+./gradlew detekt
 
 
 # launches all the tests described above
@@ -159,11 +162,11 @@ class Foo :Observable(), Runnable {
 }
 
 ```
-There is also a command that you can use to automatically format the code following the
-required styling rules (require ktlint installed on your machine):
+There is also a Gradle command that you can use to automatically format the code following the
+required styling rules:
 
 ```console
-ktlint -F "**/*.kt" "**/*.kts" '!**/build/generated/**' '!**/build/kspCaches/**'
+./gradlew ktlintFormat :build-config:ktlintFormat
 ```
 
 ### #TestMatters
@@ -250,6 +253,5 @@ Because we sometimes need to reuse some setup or assertions in our tests, we ten
 - `fun assertObjectMatchesCondition(object, [args])`: methods verifying that a given object matches a given condition. These methods must be of Unit type, and only call assertions with the AssertJ framework (or native assertions);
 - `fun verifyMockMatchesState(mock, [args])`: methods verifying that a mock interaction matches the expected state. These methods must be of Unit type, and only call verifications with the Mockito framework.
 - `fun setupSomething()`: method to set up a complex test (should only be used in the Given part of a test).
-
 
 

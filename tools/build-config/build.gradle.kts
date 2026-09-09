@@ -6,7 +6,16 @@
 
 plugins {
     `kotlin-dsl`
+    alias(libs.plugins.ktlintGradlePlugin)
     alias(libs.plugins.versionsPluginGradle)
+}
+
+ktlint {
+    version = provider { libs.versions.ktlint.get() }
+    filter {
+        exclude { it.file.invariantSeparatorsPath.contains("/build/generated") }
+        exclude { it.file.invariantSeparatorsPath.contains("/build/kspCaches/") }
+    }
 }
 
 buildscript {
@@ -35,6 +44,7 @@ dependencies {
 
     // Dependencies used to configure the Gradle plugins
     compileOnly(libs.kotlinGradlePlugin21)
+    compileOnly(libs.ktlintGradlePlugin)
     compileOnly(libs.versionsGradlePlugin)
     compileOnly(libs.dokkaGradlePlugin)
     compileOnly(libs.mavenPublishPlugin)

@@ -19,10 +19,11 @@ plugins {
     id("com.vanniktech.maven.publish.base")
 
     // Analysis tools
+    id("ktlint")
     id("com.github.ben-manes.versions")
 
     // Tests
-    jacoco
+    id("org.jetbrains.kotlinx.kover")
 
     // Internal Generation
     id("thirdPartyLicences")
@@ -57,7 +58,6 @@ dependencies {
 datadogBuildConfig {
     applyKotlinConfig()
     applyJunitConfig()
-    applyJacocoConfig()
     applyJavadocConfig()
     applyDependencyUpdateConfig()
     applyPublishingConfig("Plugin to upload Proguard/R8 mapping files to Datadog.")
