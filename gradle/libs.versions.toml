@@ -53,7 +53,7 @@ buildConfig = "6.0.10"
 # Datadog
 datadogSdk = "3.13.1"
 datadogSdkSnapshot = "3.14.0-SNAPSHOT"
-datadogPluginGradle = "1.30.0"
+datadogPluginGradle = "1.31.0"
 
 # Kotlin Compiler Plugin
 kotlinCompilerTesting20 = "0.7.0"
