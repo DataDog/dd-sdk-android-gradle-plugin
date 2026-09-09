@@ -19,7 +19,7 @@ import org.gradle.plugins.signing.SigningExtension
 object MavenConfig {
 
     @Suppress("MagicNumber")
-    val VERSION = Version(1, 30, 0, Version.Type.Release)
+    val VERSION = Version(1, 31, 0, Version.Type.Release)
     const val GROUP_ID = "com.datadoghq"
     const val PLUGIN_PUBLICATION = "pluginMaven"
 

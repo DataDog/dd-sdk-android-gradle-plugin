@@ -1,3 +1,10 @@
+# 1.31.0 / 2026-09-09
+
+* [FEATURE] Support Kotlin 2.4.20 in the Compose instrumentation compiler plugin. See [#622](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/622)
+* [MAINTENANCE] Migrate to Datadog CI coverage, drop codecov. See [#613](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/613)
+* [MAINTENANCE] Update Datadog SDK to version 3.13.1. See [#615](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/615)
+* [MAINTENANCE] Improve CI pipeline and image maintenance. See [#619](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/619)
+
 # 1.30.0 / 2026-08-03
 
 * [IMPROVEMENT] Support `gzip`-compressed JVM mapping file uploads. See [#607](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/607)

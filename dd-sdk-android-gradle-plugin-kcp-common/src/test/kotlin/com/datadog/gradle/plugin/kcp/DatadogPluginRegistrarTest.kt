@@ -76,7 +76,7 @@ internal class DatadogPluginRegistrarTest {
         // Given
         val instrumentationMode = InstrumentationMode.AUTO
         compilerConfiguration.put(
-            DatadogPluginRegistrar.CONFIG_INSTRUMENTATION_MODE,
+            DatadogCompilerConfigurationKeys.CONFIG_INSTRUMENTATION_MODE,
             instrumentationMode.name
         )
 
@@ -102,7 +102,7 @@ internal class DatadogPluginRegistrarTest {
         // Given
         val instrumentationMode = InstrumentationMode.ANNOTATION
         compilerConfiguration.put(
-            DatadogPluginRegistrar.CONFIG_INSTRUMENTATION_MODE,
+            DatadogCompilerConfigurationKeys.CONFIG_INSTRUMENTATION_MODE,
             instrumentationMode.name
         )
 
@@ -127,7 +127,7 @@ internal class DatadogPluginRegistrarTest {
     fun `M not register extensions W registerProjectComponents() { mode = DISABLE }`() {
         // Given
         compilerConfiguration.put(
-            DatadogPluginRegistrar.CONFIG_INSTRUMENTATION_MODE,
+            DatadogCompilerConfigurationKeys.CONFIG_INSTRUMENTATION_MODE,
             InstrumentationMode.DISABLE.name
         )
         val testedRegistrar = StubDatadogPluginRegistrar()
@@ -148,7 +148,7 @@ internal class DatadogPluginRegistrarTest {
         // Given
         val overrideMode = InstrumentationMode.ANNOTATION
         compilerConfiguration.put(
-            DatadogPluginRegistrar.CONFIG_INSTRUMENTATION_MODE,
+            DatadogCompilerConfigurationKeys.CONFIG_INSTRUMENTATION_MODE,
             InstrumentationMode.AUTO.name
         )
         val testedRegistrar = StubDatadogPluginRegistrar(overrideMode)

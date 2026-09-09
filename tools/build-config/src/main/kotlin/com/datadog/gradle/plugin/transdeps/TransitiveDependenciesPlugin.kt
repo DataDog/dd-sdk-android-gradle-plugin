@@ -9,16 +9,30 @@ package com.datadog.gradle.plugin.transdeps
 import com.datadog.gradle.config.taskConfig
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.kotlin.dsl.register
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 class TransitiveDependenciesPlugin : Plugin<Project> {
 
     override fun apply(target: Project) {
+        val externalRuntimeClasspath = target.configurations.named("runtimeClasspath").map { configuration ->
+            check(configuration.isCanBeResolved) { "$configuration cannot be resolved" }
+
+            configuration.incoming
+                .artifactView {
+                    componentFilter {
+                        it !is ProjectComponentIdentifier && it.displayName != "Gradle API"
+                    }
+                }
+                .files
+        }
+
         val listTransitiveDependenciesTask =
             target.tasks.register<TransitiveDependenciesTask>(TASK_GEN_TRANSITIVE_DEPS) {
                 humanReadableSize.value(true)
                 sortByName.value(true)
+                runtimeClasspath.from(externalRuntimeClasspath)
                 outputFile.set(target.layout.projectDirectory.file(FILE_NAME))
             }
 

@@ -17,9 +17,10 @@ plugins {
     id("com.vanniktech.maven.publish.base")
 
     // Tests
-    jacoco
+    id("org.jetbrains.kotlinx.kover")
 
     // Analysis tools
+    id("ktlint")
     id("com.github.ben-manes.versions")
 
     // Internal Generation
@@ -57,7 +58,6 @@ datadogBuildConfig {
     applyJavadocConfig()
     applyKotlinConfig()
     applyJunitConfig()
-    applyJacocoConfig()
     applyDependencyUpdateConfig()
     applyPublishingConfig("Common module for Datadog Kotlin Compiler Plugin")
 }

@@ -3,11 +3,23 @@ include:
 
 # SETUP
 
+default:
+  interruptible: true # default all jobs to be interruptible
+
+workflow:
+  rules:
+    - if: '$CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH !~ /^(develop|main)$|^feature\//'
+      auto_cancel:
+        on_new_commit: interruptible # short-lived branches cancel on new commits
+    - when: always # develop, main, feature/*, and tags are never auto-canceled
+      auto_cancel:
+        on_new_commit: none
+
 stages:
   - ci-image
   - security
-  - analysis
-  - test
+  - verify
+  - test-pyramid
   - publish
   - notify
 
@@ -23,7 +35,7 @@ stages:
     - pkill -f adb || true
     - exit "$exit_code"
   install-android-sdk:
-    - curl -sSL -o commandlinetools.zip https://dl.google.com/android/repository/commandlinetools-mac-11076708_latest.zip
+    - curl -fsSLo commandlinetools.zip https://dl.google.com/android/repository/commandlinetools-mac-${ANDROID_SDK_TOOLS}_latest.zip
     - rm -rf ~/android_sdk
     - rm -rf ~/cmdline-tools
     - unzip -q commandlinetools -d ~/
@@ -48,13 +60,14 @@ ci-image:
   when: manual
   except: [ tags, schedules ]
   tags: [ "arch:amd64" ]
+  interruptible: false
   id_tokens:
     DDSIGN_ID_TOKEN:
       aud: image-integrity
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/docker:24.0.4-jammy
   script:
     - METADATA_FILE=$(mktemp)
-    - docker buildx build --tag $CI_IMAGE_DOCKER -f ./ci/Dockerfile.gitlab --push --metadata-file ${METADATA_FILE} .
+    - docker buildx build --pull --tag $CI_IMAGE_DOCKER -f ./ci/Dockerfile.gitlab --push --metadata-file ${METADATA_FILE} ./ci
     - ddsign sign $CI_IMAGE_DOCKER --docker-metadata-file ${METADATA_FILE}
 
 # SECURITY
@@ -63,6 +76,7 @@ create_key:
   stage: security
   when: manual
   tags: [ "arch:amd64" ]
+  interruptible: false
   variables:
     PROJECT_NAME: "dd-sdk-android-gradle-plugin"
     EXPORT_TO_KEYSERVER: "true"
@@ -74,53 +88,57 @@ create_key:
     paths:
       - pubkeys
 
-# STATIC ANALYSIS
+# VERIFICATION
 
-static-analysis:
-  stage: analysis
-  variables:
-    DETEKT_PUBLIC_API: "true"
-  trigger:
-    include: "https://gitlab-templates.ddbuild.io/mobile/v123745390-227cb48b/static-analysis.yml"
-    strategy: depend
+.verification-job:
+  tags: [ "arch:amd64" ]
+  image: $CI_IMAGE_DOCKER
+  stage: verify
+  timeout: 30m
+
+analysis:generated-files-check:
+  extends: .verification-job
+  script:
+    - ./gradlew checkGeneratedFiles --stacktrace --no-daemon
+
+analysis:ktlint:
+  extends: .verification-job
+  script:
+    - ./gradlew ktlintCheck :build-config:ktlintCheck --stacktrace --no-daemon
+
+analysis:detekt:
+  extends: .verification-job
+  script:
+    - ./gradlew detekt --continue --stacktrace --no-daemon
+
+analysis:android-lint:
+  extends: .verification-job
+  script:
+    - ./gradlew lint --continue --stacktrace --no-daemon
 
 analysis:licenses:
-  tags: [ "arch:amd64" ]
-  image: $CI_IMAGE_DOCKER
-  stage: analysis
-  timeout: 30m
+  extends: .verification-job
   script:
-    - GRADLE_OPTS="-Xmx2560m" ./gradlew :dd-sdk-android-gradle-plugin:checkThirdPartyLicences --stacktrace --no-daemon
-
-analysis:woke:
-  tags: [ "arch:amd64" ]
-  image: $CI_IMAGE_DOCKER
-  stage: analysis
-  timeout: 30m
-  script:
-    - /usr/bin/woke --exit-1-on-failure
+    - ./gradlew :dd-sdk-android-gradle-plugin:checkThirdPartyLicences --stacktrace --no-daemon
 
 # TESTS
 
 test:plugin:
   tags: [ "arch:amd64" ]
   image: $CI_IMAGE_DOCKER
-  stage: test
+  stage: verify
   timeout: 1h
   variables:
     # Functional test is very memory heavy due to spinning real Gradle runners, having daemons in memory
     KUBERNETES_MEMORY_LIMIT: "25Gi"
+  id_tokens:
+    DD_STS_OIDC_TOKEN:
+      aud: dd-sts
   script:
     - rm -rf ~/.gradle/daemon/
-    - CODECOV_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android-gradle-plugin.codecov-token --with-decryption --query "Parameter.Value" --out text)
     - export DD_AGENT_HOST="$BUILDENV_HOST_IP"
-    - GRADLE_OPTS="-Xmx2560m" DD_TAGS="test.module:dd-sdk-android-gradle-plugin" ./gradlew :dd-sdk-android-gradle-plugin:test --stacktrace --no-daemon -Dorg.gradle.jvmargs=-javaagent:$(pwd)/libs/dd-java-agent-1.54.0.jar=$DD_COMMON_AGENT_CONFIG
-    - bash <(cat ./ci/scripts/codecov.sh) -t $CODECOV_TOKEN
-    - |
-      if [ -n "$DD_API_KEY" ]; then
-        curl -L --fail "https://github.com/DataDog/datadog-ci/releases/latest/download/datadog-ci_linux-x64" --output "/usr/local/bin/datadog-ci" && chmod +x /usr/local/bin/datadog-ci
-        datadog-ci coverage upload --format=jacoco . || true
-      fi
+    - GRADLE_OPTS="-Xmx2560m" DD_TAGS="test.module:dd-sdk-android-gradle-plugin" ./gradlew :dd-sdk-android-gradle-plugin:koverXmlReport --stacktrace --no-daemon -Dorg.gradle.jvmargs=-javaagent:$DD_TRACER_FOLDER/dd-java-agent.jar=$DD_COMMON_AGENT_CONFIG
+    - dd-sts exchange --policy dd-sdk-android-gradle-plugin -- datadog-ci coverage upload --flags plugin "**/build/reports/kover/report.xml" || true
   artifacts:
     reports:
       junit: dd-sdk-android-gradle-plugin/build/test-results/test/TEST-*.xml
@@ -128,19 +146,16 @@ test:plugin:
 test:common:
   tags: [ "arch:amd64" ]
   image: $CI_IMAGE_DOCKER
-  stage: test
+  stage: verify
   timeout: 1h
+  id_tokens:
+    DD_STS_OIDC_TOKEN:
+      aud: dd-sts
   script:
     - rm -rf ~/.gradle/daemon/
-    - CODECOV_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android-gradle-plugin.codecov-token --with-decryption --query "Parameter.Value" --out text)
     - export DD_AGENT_HOST="$BUILDENV_HOST_IP"
-    - GRADLE_OPTS="-Xmx2560m" DD_TAGS="test.module:dd-sdk-android-gradle-plugin-kcp-common" ./gradlew :dd-sdk-android-gradle-plugin-kcp-common:test --stacktrace --no-daemon -Dorg.gradle.jvmargs=-javaagent:$(pwd)/libs/dd-java-agent-1.54.0.jar=$DD_COMMON_AGENT_CONFIG
-    - bash <(cat ./ci/scripts/codecov.sh) -t $CODECOV_TOKEN
-    - |
-      if [ -n "$DD_API_KEY" ]; then
-        curl -L --fail "https://github.com/DataDog/datadog-ci/releases/latest/download/datadog-ci_linux-x64" --output "/usr/local/bin/datadog-ci" && chmod +x /usr/local/bin/datadog-ci
-        datadog-ci coverage upload --format=jacoco . || true
-      fi
+    - GRADLE_OPTS="-Xmx2560m" DD_TAGS="test.module:dd-sdk-android-gradle-plugin-kcp-common" ./gradlew :dd-sdk-android-gradle-plugin-kcp-common:koverXmlReport --stacktrace --no-daemon -Dorg.gradle.jvmargs=-javaagent:$DD_TRACER_FOLDER/dd-java-agent.jar=$DD_COMMON_AGENT_CONFIG
+    - dd-sts exchange --policy dd-sdk-android-gradle-plugin -- datadog-ci coverage upload --flags kcp-common "**/build/reports/kover/report.xml" || true
   artifacts:
     reports:
       junit: dd-sdk-android-gradle-plugin-kcp-common/build/test-results/test/TEST-*.xml
@@ -148,19 +163,16 @@ test:common:
 test:kotlin20:
   tags: [ "arch:amd64" ]
   image: $CI_IMAGE_DOCKER
-  stage: test
+  stage: verify
   timeout: 1h
+  id_tokens:
+    DD_STS_OIDC_TOKEN:
+      aud: dd-sts
   script:
     - rm -rf ~/.gradle/daemon/
-    - CODECOV_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android-gradle-plugin.codecov-token --with-decryption --query "Parameter.Value" --out text)
     - export DD_AGENT_HOST="$BUILDENV_HOST_IP"
-    - GRADLE_OPTS="-Xmx2560m" DD_TAGS="test.module:dd-sdk-android-gradle-plugin-kcp-kotlin20" ./gradlew :dd-sdk-android-gradle-plugin-kcp-kotlin20:test --stacktrace --no-daemon -Dorg.gradle.jvmargs=-javaagent:$(pwd)/libs/dd-java-agent-1.54.0.jar=$DD_COMMON_AGENT_CONFIG
-    - bash <(cat ./ci/scripts/codecov.sh) -t $CODECOV_TOKEN
-    - |
-      if [ -n "$DD_API_KEY" ]; then
-        curl -L --fail "https://github.com/DataDog/datadog-ci/releases/latest/download/datadog-ci_linux-x64" --output "/usr/local/bin/datadog-ci" && chmod +x /usr/local/bin/datadog-ci
-        datadog-ci coverage upload --format=jacoco . || true
-      fi
+    - GRADLE_OPTS="-Xmx2560m" DD_TAGS="test.module:dd-sdk-android-gradle-plugin-kcp-kotlin20" ./gradlew :dd-sdk-android-gradle-plugin-kcp-kotlin20:koverXmlReport --stacktrace --no-daemon -Dorg.gradle.jvmargs=-javaagent:$DD_TRACER_FOLDER/dd-java-agent.jar=$DD_COMMON_AGENT_CONFIG
+    - dd-sts exchange --policy dd-sdk-android-gradle-plugin -- datadog-ci coverage upload --flags kcp-kotlin20 "**/build/reports/kover/report.xml" || true
   artifacts:
     reports:
       junit: dd-sdk-android-gradle-plugin-kcp-kotlin20/build/test-results/test/TEST-*.xml
@@ -168,19 +180,16 @@ test:kotlin20:
 test:kotlin21:
   tags: [ "arch:amd64" ]
   image: $CI_IMAGE_DOCKER
-  stage: test
+  stage: verify
   timeout: 1h
+  id_tokens:
+    DD_STS_OIDC_TOKEN:
+      aud: dd-sts
   script:
     - rm -rf ~/.gradle/daemon/
-    - CODECOV_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android-gradle-plugin.codecov-token --with-decryption --query "Parameter.Value" --out text)
     - export DD_AGENT_HOST="$BUILDENV_HOST_IP"
-    - GRADLE_OPTS="-Xmx2560m" DD_TAGS="test.module:dd-sdk-android-gradle-plugin-kcp-kotlin21" ./gradlew :dd-sdk-android-gradle-plugin-kcp-kotlin21:test --stacktrace --no-daemon -Dorg.gradle.jvmargs=-javaagent:$(pwd)/libs/dd-java-agent-1.54.0.jar=$DD_COMMON_AGENT_CONFIG
-    - bash <(cat ./ci/scripts/codecov.sh) -t $CODECOV_TOKEN
-    - |
-      if [ -n "$DD_API_KEY" ]; then
-        curl -L --fail "https://github.com/DataDog/datadog-ci/releases/latest/download/datadog-ci_linux-x64" --output "/usr/local/bin/datadog-ci" && chmod +x /usr/local/bin/datadog-ci
-        datadog-ci coverage upload --format=jacoco . || true
-      fi
+    - GRADLE_OPTS="-Xmx2560m" DD_TAGS="test.module:dd-sdk-android-gradle-plugin-kcp-kotlin21" ./gradlew :dd-sdk-android-gradle-plugin-kcp-kotlin21:koverXmlReport --stacktrace --no-daemon -Dorg.gradle.jvmargs=-javaagent:$DD_TRACER_FOLDER/dd-java-agent.jar=$DD_COMMON_AGENT_CONFIG
+    - dd-sts exchange --policy dd-sdk-android-gradle-plugin -- datadog-ci coverage upload --flags kcp-kotlin21 "**/build/reports/kover/report.xml" || true
   artifacts:
     reports:
       junit: dd-sdk-android-gradle-plugin-kcp-kotlin21/build/test-results/test/TEST-*.xml
@@ -188,19 +197,16 @@ test:kotlin21:
 test:kotlin22:
   tags: [ "arch:amd64" ]
   image: $CI_IMAGE_DOCKER
-  stage: test
+  stage: verify
   timeout: 1h
+  id_tokens:
+    DD_STS_OIDC_TOKEN:
+      aud: dd-sts
   script:
     - rm -rf ~/.gradle/daemon/
-    - CODECOV_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android-gradle-plugin.codecov-token --with-decryption --query "Parameter.Value" --out text)
     - export DD_AGENT_HOST="$BUILDENV_HOST_IP"
-    - GRADLE_OPTS="-Xmx2560m" DD_TAGS="test.module:dd-sdk-android-gradle-plugin-kcp-kotlin22" ./gradlew :dd-sdk-android-gradle-plugin-kcp-kotlin22:test --stacktrace --no-daemon -Dorg.gradle.jvmargs=-javaagent:$(pwd)/libs/dd-java-agent-1.54.0.jar=$DD_COMMON_AGENT_CONFIG
-    - bash <(cat ./ci/scripts/codecov.sh) -t $CODECOV_TOKEN
-    - |
-      if [ -n "$DD_API_KEY" ]; then
-        curl -L --fail "https://github.com/DataDog/datadog-ci/releases/latest/download/datadog-ci_linux-x64" --output "/usr/local/bin/datadog-ci" && chmod +x /usr/local/bin/datadog-ci
-        datadog-ci coverage upload --format=jacoco . || true
-      fi
+    - GRADLE_OPTS="-Xmx2560m" DD_TAGS="test.module:dd-sdk-android-gradle-plugin-kcp-kotlin22" ./gradlew :dd-sdk-android-gradle-plugin-kcp-kotlin22:koverXmlReport --stacktrace --no-daemon -Dorg.gradle.jvmargs=-javaagent:$DD_TRACER_FOLDER/dd-java-agent.jar=$DD_COMMON_AGENT_CONFIG
+    - dd-sts exchange --policy dd-sdk-android-gradle-plugin -- datadog-ci coverage upload --flags kcp-kotlin22 "**/build/reports/kover/report.xml" || true
   artifacts:
     reports:
       junit: dd-sdk-android-gradle-plugin-kcp-kotlin22/build/test-results/test/TEST-*.xml
@@ -208,19 +214,16 @@ test:kotlin22:
 test:kotlin24:
   tags: [ "arch:amd64" ]
   image: $CI_IMAGE_DOCKER
-  stage: test
+  stage: verify
   timeout: 1h
+  id_tokens:
+    DD_STS_OIDC_TOKEN:
+      aud: dd-sts
   script:
     - rm -rf ~/.gradle/daemon/
-    - CODECOV_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android-gradle-plugin.codecov-token --with-decryption --query "Parameter.Value" --out text)
     - export DD_AGENT_HOST="$BUILDENV_HOST_IP"
-    - GRADLE_OPTS="-Xmx2560m" DD_TAGS="test.module:dd-sdk-android-gradle-plugin-kcp-kotlin24" ./gradlew :dd-sdk-android-gradle-plugin-kcp-kotlin24:test --stacktrace --no-daemon -Dorg.gradle.jvmargs=-javaagent:$(pwd)/libs/dd-java-agent-1.54.0.jar=$DD_COMMON_AGENT_CONFIG
-    - bash <(cat ./ci/scripts/codecov.sh) -t $CODECOV_TOKEN
-    - |
-      if [ -n "$DD_API_KEY" ]; then
-        curl -L --fail "https://github.com/DataDog/datadog-ci/releases/latest/download/datadog-ci_linux-x64" --output "/usr/local/bin/datadog-ci" && chmod +x /usr/local/bin/datadog-ci
-        datadog-ci coverage upload --format=jacoco . || true
-      fi
+    - GRADLE_OPTS="-Xmx2560m" DD_TAGS="test.module:dd-sdk-android-gradle-plugin-kcp-kotlin24" ./gradlew :dd-sdk-android-gradle-plugin-kcp-kotlin24:koverXmlReport --stacktrace --no-daemon -Dorg.gradle.jvmargs=-javaagent:$DD_TRACER_FOLDER/dd-java-agent.jar=$DD_COMMON_AGENT_CONFIG
+    - dd-sts exchange --policy dd-sdk-android-gradle-plugin -- datadog-ci coverage upload --flags kcp-kotlin24 "**/build/reports/kover/report.xml" || true
   artifacts:
     reports:
       junit: dd-sdk-android-gradle-plugin-kcp-kotlin24/build/test-results/test/TEST-*.xml
@@ -228,26 +231,19 @@ test:kotlin24:
 test:build-config:
   tags: [ "arch:amd64" ]
   image: $CI_IMAGE_DOCKER
-  stage: test
+  stage: verify
   timeout: 1h
   script:
     - rm -rf ~/.gradle/daemon/
-    - CODECOV_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android-gradle-plugin.codecov-token --with-decryption --query "Parameter.Value" --out text)
     - export DD_AGENT_HOST="$BUILDENV_HOST_IP"
-    - GRADLE_OPTS="-Xmx2560m" DD_TAGS="test.module:dd-sdk-android-gradle-plugin-build-config" ./gradlew :build-config:test --stacktrace --no-daemon -Dorg.gradle.jvmargs=-javaagent:$(pwd)/libs/dd-java-agent-1.54.0.jar=$DD_COMMON_AGENT_CONFIG
-    - bash <(cat ./ci/scripts/codecov.sh) -t $CODECOV_TOKEN
-    - |
-      if [ -n "$DD_API_KEY" ]; then
-        curl -L --fail "https://github.com/DataDog/datadog-ci/releases/latest/download/datadog-ci_linux-x64" --output "/usr/local/bin/datadog-ci" && chmod +x /usr/local/bin/datadog-ci
-        datadog-ci coverage upload --format=jacoco . || true
-      fi
+    - GRADLE_OPTS="-Xmx2560m" DD_TAGS="test.module:dd-sdk-android-gradle-plugin-build-config" ./gradlew :build-config:test --stacktrace --no-daemon -Dorg.gradle.jvmargs=-javaagent:$DD_TRACER_FOLDER/dd-java-agent.jar=$DD_COMMON_AGENT_CONFIG
   artifacts:
     reports:
       junit: tools/build-config/build/test-results/test/TEST-*.xml
 
 test:instrumented:
   tags: [ "macos:sonoma", "specific:true" ]
-  stage: test
+  stage: test-pyramid
   timeout: 1h
   script:
     - !reference [.snippets, install-android-sdk ]
@@ -300,7 +296,7 @@ notify:publish-develop-success:
     - develop
   script:
     - 'MESSAGE_TEXT=":package: $CI_PROJECT_NAME develop $CI_COMMIT_TAG: Snapshot published on :maven:"'
-    - postmessage "#mobile-sdk-ops" "$MESSAGE_TEXT"
+    - postmessage "$SLACK_OPS_CHANNEL" "$MESSAGE_TEXT"
 
 notify:publish-develop-failure:
   extends: .slack-notifier-base
@@ -311,7 +307,7 @@ notify:publish-develop-failure:
   script:
     - BUILD_URL="$CI_PROJECT_URL/pipelines/$CI_PIPELINE_ID"
     - 'MESSAGE_TEXT=":status_alert: $CI_PROJECT_NAME $CI_COMMIT_TAG develop pipeline <$BUILD_URL|$COMMIT_MESSAGE> failed."'
-    - postmessage "#mobile-sdk-ops" "$MESSAGE_TEXT"
+    - postmessage "$SLACK_OPS_CHANNEL" "$MESSAGE_TEXT"
 
 notify:release:
   extends: .slack-notifier-base
@@ -322,7 +318,7 @@ notify:release:
   script:
     - MAVEN_URL="https://search.maven.org/artifact/com.datadoghq/dd-sdk-android-gradle-plugin/$CI_COMMIT_TAG/aar"
     - 'MESSAGE_TEXT=":package: $CI_PROJECT_NAME $CI_COMMIT_TAG published on :maven: $MAVEN_URL"'
-    - postmessage "#mobile-sdk-ops" "$MESSAGE_TEXT"
+    - postmessage "$SLACK_OPS_CHANNEL" "$MESSAGE_TEXT"
 
 notify:failure:
   extends: .slack-notifier-base
@@ -333,7 +329,7 @@ notify:failure:
   script:
     - BUILD_URL="$CI_PROJECT_URL/pipelines/$CI_PIPELINE_ID"
     - 'MESSAGE_TEXT=":status_alert: $CI_PROJECT_NAME $CI_COMMIT_TAG publish pipeline <$BUILD_URL|$COMMIT_MESSAGE> failed."'
-    - postmessage "#mobile-sdk-ops" "$MESSAGE_TEXT"
+    - postmessage "$SLACK_OPS_CHANNEL" "$MESSAGE_TEXT"
 
 # DOGFOOD
 

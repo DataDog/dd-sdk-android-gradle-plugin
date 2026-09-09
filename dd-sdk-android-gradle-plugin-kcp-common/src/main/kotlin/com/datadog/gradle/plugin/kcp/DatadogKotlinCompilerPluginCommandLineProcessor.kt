@@ -29,7 +29,7 @@ internal class DatadogKotlinCompilerPluginCommandLineProcessor : CommandLineProc
     override fun processOption(option: AbstractCliOption, value: String, configuration: CompilerConfiguration) {
         if (option.optionName == INSTRUMENTATION_MODE) {
             configuration.put(
-                DatadogPluginRegistrar.CONFIG_INSTRUMENTATION_MODE,
+                DatadogCompilerConfigurationKeys.CONFIG_INSTRUMENTATION_MODE,
                 value
             )
         }
