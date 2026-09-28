@@ -1,7 +1,7 @@
 [versions]
 
 # Commons
-kotlin20 = "2.0.21"
+kotlin20 = "2.4.20"
 kotlin21 = "2.1.21"
 kotlin22 = "2.2.20"
 kotlin23 = "2.3.20"
