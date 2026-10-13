@@ -27,11 +27,8 @@ class TransitiveDependenciesPlugin : Plugin<Project> {
                 sortByName.value(true)
                 runtimeClasspath.from(externalRuntimeArtifacts.map { it.artifactFiles })
                 runtimeArtifacts.set(externalRuntimeArtifacts.flatMap { it.resolvedArtifacts })
-                compileClasspathCoordinates.set(
-                    externalCompileArtifacts.flatMap { it.resolvedArtifacts }.map { artifacts ->
-                        artifacts.map { it.id.componentIdentifier.coordinates() }
-                    }
-                )
+                runtimeClasspathCoordinates.set(externalRuntimeArtifacts.coordinates())
+                compileClasspathCoordinates.set(externalCompileArtifacts.coordinates())
                 outputFile.set(target.layout.projectDirectory.file(FILE_NAME))
             }
 
@@ -55,6 +52,12 @@ class TransitiveDependenciesPlugin : Plugin<Project> {
                     }
                 }
                 .artifacts
+        }
+    }
+
+    private fun Provider<ArtifactCollection>.coordinates(): Provider<List<String>> {
+        return flatMap { it.resolvedArtifacts }.map { artifacts ->
+            artifacts.map { it.id.componentIdentifier.coordinates() }
         }
     }
 

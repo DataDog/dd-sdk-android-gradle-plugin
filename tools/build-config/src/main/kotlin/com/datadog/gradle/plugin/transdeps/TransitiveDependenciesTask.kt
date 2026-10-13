@@ -38,6 +38,10 @@ abstract class TransitiveDependenciesTask : DefaultTask() {
     @get:Internal
     abstract val runtimeArtifacts: SetProperty<ResolvedArtifactResult>
 
+    // Classpath normalization ignores jar names, so coordinates are tracked separately
+    @get:Input
+    abstract val runtimeClasspathCoordinates: ListProperty<String>
+
     // Only coordinates are needed for the compile classpath, so jars content is not fingerprinted
     @get:Input
     abstract val compileClasspathCoordinates: ListProperty<String>
