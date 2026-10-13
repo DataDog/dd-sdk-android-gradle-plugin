@@ -34,6 +34,7 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
 import java.io.IOException
+import java.util.Locale
 import javax.inject.Inject
 
 /**
@@ -483,7 +484,7 @@ class DdAndroidGradlePlugin @Inject constructor(
         if (unknownNames.isEmpty()) return
 
         val variantList = unknownNames.joinToString("\n") { "  - $it" }
-        LOGGER.warn(WARN_UNKNOWN_VARIANTS.format(target.path, variantList))
+        LOGGER.warn(WARN_UNKNOWN_VARIANTS.format(Locale.US, target.path, variantList))
     }
 
     internal fun resolveExtensionConfiguration(

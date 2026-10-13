@@ -15,8 +15,11 @@ plugins {
     // when it is applied after the Kotlin plugin.
     id("ktlint")
     kotlin("android")
-    // you don't need this in your project, it is just to be able to reference AndroidConfig class
-    id("noopBuildConfigClasspath") apply false
+
+    // Analysis tools
+    alias(libs.plugins.detektGradlePlugin)
+
+    id("datadogBuildConfig")
 
 //    id("com.datadoghq.dd-sdk-android-gradle-plugin")
 }
@@ -82,6 +85,14 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+}
+
+datadogBuildConfig {
+    // Colours don't have dedicated sources, analyzing one variant per version flavor is enough
+    // (Detekt matches the combined flavor name of each variant)
+    applyDetektConfig(
+        ignoredFlavors = listOf("demoGreen", "demoBlue", "fullGreen", "fullBlue", "proGreen", "proBlue")
+    )
 }
 
 kotlin {

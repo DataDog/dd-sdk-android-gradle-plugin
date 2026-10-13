@@ -4,7 +4,7 @@
  * Copyright 2020-Present Datadog, Inc.
  */
 
-@file:Suppress("UnusedImports", "ktlint:standard:no-unused-imports")
+@file:Suppress("UnusedImport", "ktlint:standard:no-unused-imports")
 
 package com.datadog.example.basic
 

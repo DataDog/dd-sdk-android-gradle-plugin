@@ -79,7 +79,7 @@ internal abstract class DdAndroidGradlePluginTestBase {
     // region Helper Methods
 
     protected fun List<String>.variantName(): String {
-        return first() + drop(1).joinToString("") { it.replaceFirstChar { capitalizeChar(it) } }
+        return first() + drop(1).joinToString("") { name -> name.replaceFirstChar { capitalizeChar(it) } }
     }
 
     protected fun <T : Any> T.asProvider(): Provider<T> {

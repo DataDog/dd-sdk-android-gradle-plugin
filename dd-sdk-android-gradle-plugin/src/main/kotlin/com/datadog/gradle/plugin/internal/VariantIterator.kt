@@ -59,6 +59,6 @@ internal class VariantIterator(
 
     private fun buildVariantName(flavorNames: List<String>): String {
         return flavorNames.first() + flavorNames.drop(1)
-            .joinToString("") { it.replaceFirstChar { capitalizeChar(it) } }
+            .joinToString("") { name -> name.replaceFirstChar { capitalizeChar(it) } }
     }
 }

@@ -56,14 +56,15 @@ allprojects {
     }
 }
 
-val detektSources = files(rootDir)
-val detektExcludes = listOf("**/build/**", "**/.gradle/**", "**/.gradle-user-home/**")
-
-tasks.withType<Detekt>().configureEach {
-    setSource(detektSources)
-    include("**/*.kt", "**/*.kts")
-    exclude(detektExcludes)
-    jvmTarget = "17"
+// Detekt can't resolve types in Gradle scripts, so they are analyzed without type resolution.
+// Module sources are configured with `applyDetektConfig` in each module.
+val detektScripts = tasks.register<Detekt>("detektScripts") {
+    description = "Runs the Detekt checks on the Gradle scripts."
+    config.setFrom(file("detekt.yml"))
+    setSource(files(rootDir))
+    include("**/*.kts")
+    // precompiled script plugins are part of the build-config sources
+    exclude("**/build/**", "**/.gradle/**", "tools/build-config/src/**", "**/.gradle-user-home/**")
     reports {
         sarif.required = false
         html.required = false
@@ -72,9 +73,17 @@ tasks.withType<Detekt>().configureEach {
     }
 }
 
+// The root project doesn't have sources, so the plain task is just an umbrella
 tasks.named<Detekt>("detekt") {
-    description = "Runs the Detekt checks."
-    config.setFrom(rootProject.file("detekt.yml"))
+    enabled = false
+    dependsOn(detektScripts)
+}
+
+tasks.register("detektAll") {
+    group = "datadog"
+    description = "Runs the Detekt checks on all modules and Gradle scripts."
+    dependsOn(allprojects.map { project -> project.tasks.named { it == "detekt" } })
+    dependsOn(gradle.includedBuild("build-config").task(":detekt"))
 }
 
 tasks.register<Delete>("clean") {

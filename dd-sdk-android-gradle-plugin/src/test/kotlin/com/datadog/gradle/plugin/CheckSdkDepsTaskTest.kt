@@ -47,6 +47,7 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.UncheckedIOException
+import java.util.Locale
 
 @Extensions(
     ExtendWith(MockitoExtension::class),
@@ -134,7 +135,7 @@ internal class CheckSdkDepsTaskTest {
         // THEN
         verify(mockLogger).info(
             CheckSdkDepsTask.CANNOT_FIND_CONFIGURATION_MESSAGE
-                .format(fakeConfigurationName, fakeVariantName)
+                .format(Locale.US, fakeConfigurationName, fakeVariantName)
         )
     }
 
@@ -217,7 +218,7 @@ internal class CheckSdkDepsTaskTest {
         testedTask.applyTask()
 
         // THEN
-        verify(mockLogger).warn(CheckSdkDepsTask.MISSING_DD_SDK_MESSAGE.format(fakeVariantName))
+        verify(mockLogger).warn(CheckSdkDepsTask.MISSING_DD_SDK_MESSAGE.format(Locale.US, fakeVariantName))
         assertThat(testedTask.isLastRunSuccessful).isFalse()
     }
 

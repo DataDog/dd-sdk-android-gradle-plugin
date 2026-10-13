@@ -153,12 +153,10 @@ abstract class FileUploadTask @Inject constructor(
             return
         }
 
-        // it can be an overlap between java and kotlin directories and since File doesn't override
-        // equals for set comparison, we will remove duplicates manually
+        // java and kotlin directories can overlap, so remove the duplicates
         val uniqueSourceSetRoots = sourceSetRoots.get()
-            .map { it.absolutePath }
+            .map { it.absoluteFile }
             .distinct()
-            .map { File(it) }
 
         val repositories = repositoryDetector.detectRepositories(
             uniqueSourceSetRoots,

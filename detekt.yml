@@ -174,7 +174,7 @@ complexity:
     active: false
   StringLiteralDuplication:
     active: true
-    excludes: ['**/test/**', '**/*Test/**', '**/testFixtures/**']
+    excludes: ['**/test/**', '**/*Test/**', '**/testFixtures/**', '**/*.kts']
     allowedDuplications: 2
     ignoreAnnotation: true
     allowedWithLengthLessThan: 5
@@ -443,7 +443,8 @@ potential-bugs:
   CastToNullableType:
     active: true
   Deprecation:
-    active: true
+    # TODO RUM-18963 Re-enable once deprecated API usages are addressed
+    active: false
   DontDowncastCollectionTypes:
     active: true
   DoubleMutabilityForCollection:

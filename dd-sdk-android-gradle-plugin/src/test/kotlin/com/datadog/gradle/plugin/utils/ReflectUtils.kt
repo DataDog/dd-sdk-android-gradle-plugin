@@ -227,7 +227,7 @@ private fun <T : Any> T.getDeclaredMethodRecursively(
     return method
 }
 
-@SuppressWarnings("PrintStackTrace")
+@Suppress("PrintStackTrace")
 private fun <R> setFieldValue(instance: Any?, field: Field, fieldValue: R): Boolean {
     field.isAccessible = true
     // Make it non final

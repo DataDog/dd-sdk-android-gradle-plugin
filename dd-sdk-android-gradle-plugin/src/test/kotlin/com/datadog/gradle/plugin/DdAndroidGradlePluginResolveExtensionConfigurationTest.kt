@@ -366,7 +366,7 @@ internal class DdAndroidGradlePluginResolveExtensionConfigurationTest : DdAndroi
             serviceName = null
             checkProjectDependencies = null
         }
-        variantConfigC.apply { site = null }
+        variantConfigC.site = null
         whenever(mockVariant.buildTypeName) doReturn fakeBuildTypeName
         whenever(mockVariant.flavors) doReturn flavorNames
         whenever(fakeExtension.variants.findByName(flavorA)) doReturn variantConfigA
@@ -403,10 +403,10 @@ internal class DdAndroidGradlePluginResolveExtensionConfigurationTest : DdAndroi
     ) {
         // Given
         val flavorNames = listOf(flavorA, flavorB, flavorC)
-        variantConfigAB.apply { versionName = null }
-        variantConfigAC.apply { serviceName = null }
-        variantConfigBC.apply { site = null }
-        variantConfigBC.apply { checkProjectDependencies = null }
+        variantConfigAB.versionName = null
+        variantConfigAC.serviceName = null
+        variantConfigBC.site = null
+        variantConfigBC.checkProjectDependencies = null
         whenever(mockVariant.buildTypeName) doReturn fakeBuildTypeName
         whenever(mockVariant.flavors) doReturn flavorNames
         whenever(

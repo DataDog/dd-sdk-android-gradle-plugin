@@ -129,7 +129,7 @@ analysis:ktlint:
 analysis:detekt:
   extends: .verification-job
   script:
-    - ./gradlew detekt --continue --stacktrace --no-daemon
+    - ./gradlew detektAll --continue --stacktrace --no-daemon
 
 analysis:android-lint:
   extends: .verification-job

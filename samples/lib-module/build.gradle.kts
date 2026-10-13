@@ -13,8 +13,11 @@ plugins {
     // when it is applied after the Kotlin plugin.
     id("ktlint")
     kotlin("android")
-    // you don't need this in your project, it is just to be able to reference AndroidConfig class
-    id("noopBuildConfigClasspath") apply false
+
+    // Analysis tools
+    alias(libs.plugins.detektGradlePlugin)
+
+    id("datadogBuildConfig")
 }
 
 android {
@@ -30,6 +33,10 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+}
+
+datadogBuildConfig {
+    applyDetektConfig()
 }
 
 kotlin {

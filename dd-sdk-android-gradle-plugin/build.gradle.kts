@@ -21,6 +21,7 @@ plugins {
 
     // Analysis tools
     id("ktlint")
+    alias(libs.plugins.detektGradlePlugin)
 
     // Tests
     id("org.jetbrains.kotlinx.kover")
@@ -63,6 +64,7 @@ datadogBuildConfig {
     applyJunitConfig()
     applyJavadocConfig()
     applyPublishingConfig("Plugin to upload Proguard/R8 mapping files to Datadog.")
+    applyDetektConfig()
 }
 
 gradlePlugin {

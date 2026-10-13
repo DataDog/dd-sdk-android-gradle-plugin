@@ -19,6 +19,7 @@ plugins {
 
     // Analysis tools
     id("ktlint")
+    alias(libs.plugins.detektGradlePlugin)
 
     // Tests
     id("org.jetbrains.kotlinx.kover")
@@ -59,4 +60,5 @@ datadogBuildConfig {
     applyJunitConfig()
     applyJavadocConfig()
     applyPublishingConfig("Module to support Datadog Compiler Plugin with kotlin 2.4.x or above")
+    applyDetektConfig()
 }

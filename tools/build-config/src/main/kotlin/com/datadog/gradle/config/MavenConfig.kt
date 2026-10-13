@@ -47,8 +47,8 @@ internal fun Project.publishingConfig(projectDescription: String) {
             // com.gradle.plugin-publish plugin will automatically add signing task "signPluginMavenPublication"
             // for KCP modules we need to do it manually
             if (!hasGradlePluginPublishPlugin) {
-                extensions.findByType<PublishingExtension>()?.apply {
-                    sign(publications.getByName(MavenConfig.KCP_PUBLICATION))
+                extensions.findByType<PublishingExtension>()?.let { publishing ->
+                    sign(publishing.publications.getByName(MavenConfig.KCP_PUBLICATION))
                 }
             }
         }
@@ -60,9 +60,7 @@ internal fun Project.publishingConfig(projectDescription: String) {
         return
     }
 
-    mavenPublishing.apply {
-        configureBasedOnAppliedPlugins()
-    }
+    mavenPublishing.configureBasedOnAppliedPlugins()
 
     afterEvaluate {
         if (hasGradlePluginPublishPlugin) {

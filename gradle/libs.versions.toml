@@ -71,6 +71,7 @@ kotlinGradlePlugin21 = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", v
 kotlinGradlePlugin22 = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin22" }
 kotlinGradlePlugin24 = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin24" }
 dokkaGradlePlugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
+detektGradlePlugin = { module = "dev.detekt:detekt-gradle-plugin", version.ref = "detekt" }
 ktlintGradlePlugin = { module = "org.jlleitschuh.gradle.ktlint:org.jlleitschuh.gradle.ktlint.gradle.plugin", version.ref = "ktlintGradlePlugin" }
 unmockGradlePlugin = { module = "de.mobilej.unmock:UnMockPlugin", version.ref = "unmock" }
 

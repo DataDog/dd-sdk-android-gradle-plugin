@@ -132,8 +132,8 @@ internal class VariantIteratorTest {
         val lastFlavorCapitalized = lastFlavor.replaceFirstChar { capitalizeChar(it) }
         assertThat(output.first()).isEqualTo(lastFlavor)
         assertThat(output.last()).isEqualTo(
-            firstFlavor + limitedNames.drop(1).joinToString("") {
-                it.replaceFirstChar { capitalizeChar(it) }
+            firstFlavor + limitedNames.drop(1).joinToString("") { name ->
+                name.replaceFirstChar { capitalizeChar(it) }
             }
         )
         assertThat(output).allMatch {

@@ -28,12 +28,12 @@ internal class GitRemoteUrlSanitizer(
     }
 ) : UrlSanitizer {
 
-    @SuppressWarnings("TooGenericExceptionCaught")
+    @Suppress("TooGenericExceptionCaught")
     override fun sanitize(url: String): String {
         try {
             return sanitizerResolver(url).sanitize(url)
         } catch (e: Exception) {
-            throw UriParsingException(WRONG_URL_FORMAT_ERROR_MESSAGE.format(url, Locale.US), e)
+            throw UriParsingException(WRONG_URL_FORMAT_ERROR_MESSAGE.format(Locale.US, url), e)
         }
     }
 

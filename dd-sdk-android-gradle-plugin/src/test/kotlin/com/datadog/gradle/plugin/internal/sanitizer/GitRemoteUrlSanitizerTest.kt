@@ -388,8 +388,8 @@ internal class GitRemoteUrlSanitizerTest {
         // Then
         assertThat(caughtException).isInstanceOf(UriParsingException::class.java)
         val expectedErrorMessage = GitRemoteUrlSanitizer.WRONG_URL_FORMAT_ERROR_MESSAGE.format(
-            fakeRemoteUrl,
-            Locale.US
+            Locale.US,
+            fakeRemoteUrl
         )
         assertThat(caughtException.message).startsWith(expectedErrorMessage)
         assertThat(caughtException.cause).isEqualTo(fakeException)
