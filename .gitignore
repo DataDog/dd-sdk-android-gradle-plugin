@@ -11,6 +11,8 @@ captures/
 
 # Gradle files
 .gradle/
+# Gradle user home used by CI jobs
+.gradle-user-home/
 build/
 
 # CMake
