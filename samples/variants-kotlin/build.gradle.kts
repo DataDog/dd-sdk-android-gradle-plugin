@@ -7,7 +7,6 @@
 @file:Suppress("StringLiteralDuplication")
 
 import com.datadog.gradle.config.AndroidConfig
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.application")
@@ -88,17 +87,12 @@ android {
 }
 
 datadogBuildConfig {
+    applyKotlinConfig()
     // Colours don't have dedicated sources, analyzing one variant per version flavor is enough
     // (Detekt matches the combined flavor name of each variant)
     applyDetektConfig(
         ignoredFlavors = listOf("demoGreen", "demoBlue", "fullGreen", "fullBlue", "proGreen", "proBlue")
     )
-}
-
-kotlin {
-    compilerOptions {
-        jvmTarget = JvmTarget.JVM_17
-    }
 }
 
 dependencies {

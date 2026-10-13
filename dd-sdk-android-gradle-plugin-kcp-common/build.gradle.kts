@@ -53,10 +53,6 @@ dependencies {
     testFixturesApi(libs.androidx.ui)
 }
 
-java {
-    targetCompatibility = JavaVersion.VERSION_17
-}
-
 datadogBuildConfig {
     applyJavadocConfig()
     applyKotlinConfig(

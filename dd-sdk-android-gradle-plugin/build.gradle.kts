@@ -84,10 +84,6 @@ gradlePlugin {
     }
 }
 
-java {
-    targetCompatibility = JavaVersion.VERSION_17
-}
-
 tasks.withType<Test> {
     dependsOn("pluginUnderTestMetadata")
 }

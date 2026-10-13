@@ -46,10 +46,6 @@ dependencies {
     testImplementation(libs.kotlinReflect22)
 }
 
-java {
-    targetCompatibility = JavaVersion.VERSION_17
-}
-
 datadogBuildConfig {
     applyKotlinConfig(
         languageVersion = KotlinVersion.KOTLIN_2_2,
