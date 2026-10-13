@@ -85,3 +85,17 @@ tasks.register("checkGeneratedFiles") {
         }
     }
 }
+
+tasks.register("ktlintCheckAll") {
+    group = "datadog"
+    description = "Runs code format check with ktlint for both main and included (`:build-config`) builds."
+    dependsOn(allprojects.mapNotNull { it.tasks.named { it == "ktlintCheck" } })
+    dependsOn(gradle.includedBuild("build-config").task(":ktlintCheck"))
+}
+
+tasks.register("ktlintFormatAll") {
+    group = "datadog"
+    description = "Runs code formatting with ktlint for both main and included (`:build-config`) builds."
+    dependsOn(allprojects.mapNotNull { it.tasks.named { it == "ktlintFormat" } })
+    dependsOn(gradle.includedBuild("build-config").task(":ktlintFormat"))
+}

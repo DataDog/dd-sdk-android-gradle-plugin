@@ -104,7 +104,7 @@ analysis:generated-files-check:
 analysis:ktlint:
   extends: .verification-job
   script:
-    - ./gradlew ktlintCheck :build-config:ktlintCheck --stacktrace --no-daemon
+    - ./gradlew ktlintCheckAll --stacktrace --no-daemon
 
 analysis:detekt:
   extends: .verification-job
