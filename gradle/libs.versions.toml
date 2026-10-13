@@ -51,8 +51,8 @@ mavenPublishPlugin = "0.37.0"
 buildConfig = "6.0.10"
 
 # Datadog
-datadogSdk = "3.14.1"
-datadogSdkSnapshot = "3.14.0-SNAPSHOT"
+datadogSdk = "3.15.0"
+datadogSdkSnapshot = "3.16.0-SNAPSHOT"
 datadogPluginGradle = "1.31.0"
 
 # Kotlin Compiler Plugin
