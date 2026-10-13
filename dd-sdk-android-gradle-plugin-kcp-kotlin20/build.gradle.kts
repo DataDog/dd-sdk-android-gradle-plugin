@@ -17,7 +17,6 @@ plugins {
 
     // Analysis tools
     id("ktlint")
-    id("com.github.ben-manes.versions")
 
     // Tests
     id("org.jetbrains.kotlinx.kover")
@@ -51,6 +50,5 @@ datadogBuildConfig {
     applyKotlinConfig()
     applyJunitConfig()
     applyJavadocConfig()
-    applyDependencyUpdateConfig()
     applyPublishingConfig("Module to support Datadog Compiler Plugin with kotlin 2.0.x or below")
 }

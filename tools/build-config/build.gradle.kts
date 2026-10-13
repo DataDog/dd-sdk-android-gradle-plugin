@@ -7,7 +7,6 @@
 plugins {
     `kotlin-dsl`
     alias(libs.plugins.ktlintGradlePlugin)
-    alias(libs.plugins.versionsPluginGradle)
 }
 
 ktlint {
@@ -45,7 +44,6 @@ dependencies {
     // Dependencies used to configure the Gradle plugins
     compileOnly(libs.kotlinGradlePlugin21)
     compileOnly(libs.ktlintGradlePlugin)
-    compileOnly(libs.versionsGradlePlugin)
     compileOnly(libs.dokkaGradlePlugin)
     compileOnly(libs.mavenPublishPlugin)
     implementation(libs.fuzzyWuzzy)

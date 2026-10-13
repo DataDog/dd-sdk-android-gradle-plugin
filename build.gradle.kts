@@ -33,7 +33,6 @@ plugins {
     alias(libs.plugins.dokkaJavadocPlugin) apply false
     alias(libs.plugins.androidApplicationPlugin) apply false
     alias(libs.plugins.androidLibraryPlugin) apply false
-    alias(libs.plugins.versionsPluginGradle) apply false
     alias(libs.plugins.mavenPublishPlugin) apply false
 }
 

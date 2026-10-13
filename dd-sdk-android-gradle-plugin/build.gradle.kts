@@ -20,7 +20,6 @@ plugins {
 
     // Analysis tools
     id("ktlint")
-    id("com.github.ben-manes.versions")
 
     // Tests
     id("org.jetbrains.kotlinx.kover")
@@ -59,7 +58,6 @@ datadogBuildConfig {
     applyKotlinConfig()
     applyJunitConfig()
     applyJavadocConfig()
-    applyDependencyUpdateConfig()
     applyPublishingConfig("Plugin to upload Proguard/R8 mapping files to Datadog.")
 }
 
