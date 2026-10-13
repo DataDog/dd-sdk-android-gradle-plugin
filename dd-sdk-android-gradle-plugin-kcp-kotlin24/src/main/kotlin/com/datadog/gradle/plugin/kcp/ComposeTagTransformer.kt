@@ -6,7 +6,6 @@
 
 package com.datadog.gradle.plugin.kcp
 
-import org.jetbrains.kotlin.DeprecatedForRemovalCompilerApi
 import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
@@ -41,7 +40,7 @@ import org.jetbrains.kotlin.name.SpecialNames
  *
  * Internal use only
  */
-@OptIn(DeprecatedForRemovalCompilerApi::class, UnsafeDuringIrConstructionAPI::class)
+@OptIn(UnsafeDuringIrConstructionAPI::class)
 class ComposeTagTransformer(
     private val messageCollector: MessageCollector,
     private val pluginContext: IrPluginContext,
@@ -62,7 +61,6 @@ class ComposeTagTransformer(
     /**
      * Initializes references to required symbols for the transformer.
      */
-    @OptIn(UnsafeDuringIrConstructionAPI::class)
     @Suppress("ReturnCount")
     fun initReferences(): Boolean {
         datadogTagFunctionSymbol = pluginContextUtils.getDatadogModifierSymbol() ?: run {

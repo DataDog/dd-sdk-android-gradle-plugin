@@ -27,7 +27,7 @@ buildscript {
 plugins {
     alias(libs.plugins.detektGradlePlugin)
     alias(libs.plugins.dependencyLicenseGradlePlugin)
-    alias(libs.plugins.kotlinPlugin23) apply false
+    alias(libs.plugins.kotlinGradlePlugin) apply false
     alias(libs.plugins.ktlintGradlePlugin) apply false
     alias(libs.plugins.koverPlugin) apply false
     id("ktlint")

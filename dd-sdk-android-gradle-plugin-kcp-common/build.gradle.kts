@@ -4,6 +4,8 @@
  * Copyright 2020-Present Datadog, Inc.
  */
 
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+
 plugins {
     id("java-library")
     kotlin("jvm")
@@ -29,6 +31,7 @@ plugins {
 }
 
 dependencies {
+    compileOnly(kotlin("stdlib"))
     compileOnly(libs.kotlinCompilerEmbeddable20)
     compileOnly(libs.kotlinGradlePlugin20)
     compileOnly(libs.autoServiceAnnotation)
@@ -39,9 +42,10 @@ dependencies {
     testImplementation(libs.kotlinCompilerEmbeddable20)
     testImplementation(libs.kotlinGradlePlugin20)
 
-    testFixturesImplementation(libs.kotlinCompilerEmbeddable20)
-    testFixturesImplementation(libs.kotlinCompilerTesting20)
-    testFixturesApi(libs.kotlinGradlePlugin20)
+    testFixturesCompileOnly(libs.kotlinCompilerEmbeddable20)
+    testFixturesCompileOnly(libs.kotlinCompilerTesting20)
+    testFixturesCompileOnly(libs.kotlinGradlePlugin20)
+    testFixturesCompileOnly(libs.kotlinReflect20)
     testFixturesApi(libs.bundles.jUnit5)
     testFixturesApi(libs.bundles.testTools)
     testFixturesApi(platform(libs.androidx.compose.bom))
@@ -54,7 +58,11 @@ java {
 
 datadogBuildConfig {
     applyJavadocConfig()
-    applyKotlinConfig()
+    applyKotlinConfig(
+        languageVersion = KotlinVersion.KOTLIN_2_0,
+        apiVersion = KotlinVersion.KOTLIN_2_0,
+        coreLibrariesVersion = libs.versions.kotlin20.get()
+    )
     applyJunitConfig()
     applyPublishingConfig("Common module for Datadog Kotlin Compiler Plugin")
 }

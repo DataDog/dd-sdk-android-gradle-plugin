@@ -10,7 +10,7 @@ import org.jetbrains.kotlin.backend.common.extensions.FirIncompatiblePluginAPI
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
-import org.mockito.kotlin.eq
+import org.mockito.kotlin.isNull
 import org.mockito.kotlin.verify
 
 @OptIn(FirIncompatiblePluginAPI::class, UnsafeDuringIrConstructionAPI::class)
@@ -24,7 +24,7 @@ internal class ComposeNavHostExtension22Test : ComposeNavHostExtensionTest() {
 
         composeNavHostExtension.generate(mockModuleFragment, mockPluginContext)
 
-        verify(mockModuleFragment).accept(any<ComposeNavHostTransformer>(), eq(null))
+        verify(mockModuleFragment).accept(any<ComposeNavHostTransformer>(), isNull())
     }
 
     @Test

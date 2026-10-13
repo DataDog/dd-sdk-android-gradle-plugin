@@ -152,7 +152,7 @@ private fun getCompatLambdaStateOrigin(): IrStatementOriginImpl {
         val lambdaClass = IrStatementOrigin::class.nestedClasses
             .firstOrNull { it.simpleName == "LAMBDA" }
         val instance = lambdaClass?.objectInstance
-        return instance as IrStatementOriginImpl
+        instance as IrStatementOriginImpl
     } else {
         IrStatementOrigin.LAMBDA
     }

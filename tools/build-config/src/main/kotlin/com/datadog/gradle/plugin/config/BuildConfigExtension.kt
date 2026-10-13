@@ -11,14 +11,19 @@ import com.datadog.gradle.config.junitConfig
 import com.datadog.gradle.config.kotlinConfig
 import com.datadog.gradle.config.publishingConfig
 import org.gradle.api.Project
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import javax.inject.Inject
 
 abstract class BuildConfigExtension @Inject constructor(
     private val project: Project
 ) {
 
-    fun applyKotlinConfig() {
-        project.kotlinConfig()
+    fun applyKotlinConfig(
+        languageVersion: KotlinVersion,
+        apiVersion: KotlinVersion,
+        coreLibrariesVersion: String
+    ) {
+        project.kotlinConfig(languageVersion, apiVersion, coreLibrariesVersion)
     }
 
     fun applyJunitConfig() {

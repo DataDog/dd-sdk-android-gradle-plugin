@@ -6,7 +6,6 @@
 
 package com.datadog.gradle.plugin.kcp
 
-import org.jetbrains.kotlin.backend.common.extensions.FirIncompatiblePluginAPI
 import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.name.ClassId
@@ -15,11 +14,11 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mock
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.eq
+import org.mockito.kotlin.isNull
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
-@OptIn(FirIncompatiblePluginAPI::class, UnsafeDuringIrConstructionAPI::class)
+@OptIn(UnsafeDuringIrConstructionAPI::class)
 internal class ComposeNavHostExtension24Test : ComposeNavHostExtensionTest() {
 
     @Mock
@@ -38,7 +37,7 @@ internal class ComposeNavHostExtension24Test : ComposeNavHostExtensionTest() {
 
         composeNavHostExtension.generate(mockModuleFragment, mockPluginContext)
 
-        verify(mockModuleFragment).accept(any<ComposeNavHostTransformer>(), eq(null))
+        verify(mockModuleFragment).accept(any<ComposeNavHostTransformer>(), isNull())
     }
 
     @Test

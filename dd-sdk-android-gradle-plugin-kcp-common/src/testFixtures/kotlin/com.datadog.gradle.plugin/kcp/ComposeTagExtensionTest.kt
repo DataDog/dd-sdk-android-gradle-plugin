@@ -6,7 +6,6 @@
 
 package com.datadog.gradle.plugin.kcp
 
-import org.jetbrains.kotlin.backend.common.extensions.FirIncompatiblePluginAPI
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.ir.declarations.IrClass
@@ -25,7 +24,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
-@OptIn(FirIncompatiblePluginAPI::class, UnsafeDuringIrConstructionAPI::class)
+@OptIn(UnsafeDuringIrConstructionAPI::class)
 @ExtendWith(MockitoExtension::class)
 abstract class ComposeTagExtensionTest {
 

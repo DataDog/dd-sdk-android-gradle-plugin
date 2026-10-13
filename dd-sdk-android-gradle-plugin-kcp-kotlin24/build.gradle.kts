@@ -4,6 +4,8 @@
  * Copyright 2020-Present Datadog, Inc.
  */
 
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+
 plugins {
     id("java-library")
     kotlin("jvm")
@@ -29,16 +31,17 @@ plugins {
 
 dependencies {
     implementation(project(":dd-sdk-android-gradle-plugin-kcp-common"))
+    compileOnly(kotlin("stdlib"))
     compileOnly(libs.kotlinCompilerEmbeddable24)
     compileOnly(libs.kotlinGradlePlugin24)
     compileOnly(libs.autoServiceAnnotation)
-    compileOnly(libs.kotlinReflect)
     kapt(libs.autoService)
 
     testImplementation(testFixtures(project(":dd-sdk-android-gradle-plugin-kcp-common")))
     testImplementation(libs.kotlinCompilerEmbeddable24)
     testImplementation(libs.kotlinGradlePlugin24)
     testImplementation(libs.kotlinCompilerTesting24)
+    testImplementation(libs.kotlinReflect24)
 }
 
 java {
@@ -46,7 +49,13 @@ java {
 }
 
 datadogBuildConfig {
-    applyKotlinConfig()
+    // Use 2.3, because KGP plugin is 2.3; 2.4 language/api version is marked as experimental there.
+    // Needs to be updated when KGP version moves forward.
+    applyKotlinConfig(
+        languageVersion = KotlinVersion.KOTLIN_2_3,
+        apiVersion = KotlinVersion.KOTLIN_2_3,
+        coreLibrariesVersion = libs.versions.kotlin24.get()
+    )
     applyJunitConfig()
     applyJavadocConfig()
     applyPublishingConfig("Module to support Datadog Compiler Plugin with kotlin 2.4.x or above")

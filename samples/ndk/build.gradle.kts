@@ -73,7 +73,7 @@ kotlin {
 
 dependencies {
     implementation(project(":samples:lib-module"))
-    implementation(libs.kotlin)
+    implementation(libs.kotlinRuntime23)
 
     implementation(libs.androidx.core)
     implementation(libs.androidx.appcompat)

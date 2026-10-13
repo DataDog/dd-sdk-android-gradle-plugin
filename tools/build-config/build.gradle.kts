@@ -42,18 +42,14 @@ repositories {
 dependencies {
 
     // Dependencies used to configure the Gradle plugins
-    compileOnly(libs.kotlinGradlePlugin21)
+    compileOnly(libs.kotlinGradlePluginApi)
     compileOnly(libs.ktlintGradlePlugin)
     compileOnly(libs.dokkaGradlePlugin)
     compileOnly(libs.mavenPublishPlugin)
 
     // Tests
-    testImplementation(libs.jUnit4)
-    testImplementation(libs.mockitoKotlin)
-    testImplementation(libs.elmyr.core)
-    testImplementation(libs.elmyr.inject)
-    testImplementation(libs.elmyr.jUnit4)
-    testImplementation(libs.elmyr.jvm)
+    testImplementation(libs.bundles.jUnit5)
+    testImplementation(libs.bundles.testTools)
 }
 
 gradlePlugin {
@@ -74,5 +70,15 @@ gradlePlugin {
             id = "noopBuildConfigClasspath" // the alias
             implementationClass = "com.datadog.gradle.plugin.noop.BuildConfigClasspathPlugin"
         }
+    }
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform {
+        includeEngines("junit-jupiter")
+    }
+    reports {
+        junitXml.required.set(true)
+        html.required.set(true)
     }
 }

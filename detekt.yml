@@ -31,8 +31,6 @@ comments:
     excludes:
       # Gradle build outputs and generated artifacts.
       - '**/build/generated/**'
-      # Vendored test files ported from the upstream dd-trace-java library.
-      - '**/features/dd-sdk-android-trace-internal/src/test/kotlin/com/datadog/trace/**'
   CommentOverPrivateFunction:
     active: false
   CommentOverPrivateProperty:
@@ -46,7 +44,6 @@ comments:
       - '**/build/generated/**'
       - '**/dd-sdk-android-gradle-plugin/tools/**'
       - '**/dd-sdk-android-gradle-plugin/samples/**'
-      - '**/dd-sdk-android/reliability/**'
       - '**/dd-sdk-android-gradle-plugin/instrumented/**'
     endOfSentenceFormat: '([.?!][ \t\n\r\f<])|([.?!:]$)'
   KDocReferencesNonPublicProperty:
@@ -54,7 +51,6 @@ comments:
     excludes:
       - '**/dd-sdk-android-gradle-plugin/tools/**'
       - '**/dd-sdk-android-gradle-plugin/samples/**'
-      - '**/dd-sdk-android/reliability/**'
       - '**/dd-sdk-android-gradle-plugin/instrumented/**'
   OutdatedDocumentation:
     active: true
@@ -76,7 +72,6 @@ comments:
       - '**/build/generated/**'
       - '**/dd-sdk-android-gradle-plugin/tools/**'
       - '**/dd-sdk-android-gradle-plugin/samples/**'
-      - '**/dd-sdk-android/reliability/**'
       - '**/dd-sdk-android-gradle-plugin/instrumented/**'
     searchInNestedClass: true
     searchInInnerClass: true
@@ -92,7 +87,6 @@ comments:
       - '**/build/generated/**'
       - '**/dd-sdk-android-gradle-plugin/tools/**'
       - '**/dd-sdk-android-gradle-plugin/samples/**'
-      - '**/dd-sdk-android/reliability/**'
       - '**/dd-sdk-android-gradle-plugin/instrumented/**'
     searchProtectedFunction: true
   UndocumentedPublicProperty:
@@ -104,7 +98,6 @@ comments:
       - '**/build/generated/**'
       - '**/dd-sdk-android-gradle-plugin/tools/**'
       - '**/dd-sdk-android-gradle-plugin/samples/**'
-      - '**/dd-sdk-android/reliability/**'
       - '**/dd-sdk-android-gradle-plugin/instrumented/**'
     searchProtectedProperty: true
 
