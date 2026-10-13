@@ -46,7 +46,6 @@ dependencies {
     compileOnly(libs.ktlintGradlePlugin)
     compileOnly(libs.dokkaGradlePlugin)
     compileOnly(libs.mavenPublishPlugin)
-    implementation(libs.fuzzyWuzzy)
 
     // Tests
     testImplementation(libs.jUnit4)
@@ -59,10 +58,6 @@ dependencies {
 
 gradlePlugin {
     plugins {
-        register("thirdPartyLicences") {
-            id = "thirdPartyLicences" // the alias
-            implementationClass = "com.datadog.gradle.plugin.checklicenses.ThirdPartyLicensesPlugin"
-        }
         register("transitiveDependencies") {
             id = "transitiveDependencies" // the alias
             implementationClass = "com.datadog.gradle.plugin.transdeps.TransitiveDependenciesPlugin"
