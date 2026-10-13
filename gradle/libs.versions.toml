@@ -43,11 +43,10 @@ ktlintGradlePlugin = "14.2.0"
 kover = "0.9.8"
 unmock = "0.7.5"
 
-fuzzyWuzzy = "1.4.0"
-
 gradlePluginPublishPlugin = "2.1.1"
 mavenPublishPlugin = "0.37.0"
 buildConfig = "6.0.10"
+dependencyLicense="0.7.0"
 
 # Datadog
 datadogSdk = "3.15.0"
@@ -115,8 +114,6 @@ kotlinReflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = 
 
 # Tools
 okHttpMock = { module = "com.squareup.okhttp3:mockwebserver", version.ref = "okHttp" }
-
-fuzzyWuzzy = { module = "me.xdrop:fuzzywuzzy", version.ref = "fuzzyWuzzy" }
 
 # Datadog
 datadogSdkRum = { module = "com.datadoghq:dd-sdk-android-rum", version.ref = "datadogSdk" }
@@ -191,3 +188,4 @@ mavenPublishPlugin = { id = "com.vanniktech.maven.publish.base", version.ref = "
 kotlinComposePlugin = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlinComposePlugin" }
 gradlePluginPublish = { id = "com.gradle.plugin-publish", version.ref = "gradlePluginPublishPlugin" }
 buildConfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildConfig" }
+dependencyLicenseGradlePlugin = { id = "com.datadoghq.dependency-license", version.ref = "dependencyLicense" }

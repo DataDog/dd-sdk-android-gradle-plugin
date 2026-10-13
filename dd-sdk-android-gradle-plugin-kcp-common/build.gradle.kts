@@ -23,7 +23,6 @@ plugins {
     id("ktlint")
 
     // Internal Generation
-    id("thirdPartyLicences")
     id("transitiveDependencies")
     id("compilerMetadata")
     id("datadogBuildConfig")

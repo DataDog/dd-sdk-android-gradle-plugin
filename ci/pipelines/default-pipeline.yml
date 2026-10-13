@@ -119,7 +119,7 @@ analysis:android-lint:
 analysis:licenses:
   extends: .verification-job
   script:
-    - ./gradlew :dd-sdk-android-gradle-plugin:checkThirdPartyLicences --stacktrace --no-daemon
+    - ./gradlew checkDependencyLicenses --stacktrace --no-daemon
 
 # TESTS
 
