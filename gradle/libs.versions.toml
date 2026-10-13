@@ -45,7 +45,6 @@ unmock = "0.7.5"
 
 fuzzyWuzzy = "1.4.0"
 
-versionsPluginGradle = "0.33.0"
 gradlePluginPublishPlugin = "2.1.1"
 mavenPublishPlugin = "0.37.0"
 buildConfig = "6.0.10"
@@ -78,7 +77,6 @@ dokkaGradlePlugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", versio
 ktlintGradlePlugin = { module = "org.jlleitschuh.gradle.ktlint:org.jlleitschuh.gradle.ktlint.gradle.plugin", version.ref = "ktlintGradlePlugin" }
 unmockGradlePlugin = { module = "de.mobilej.unmock:UnMockPlugin", version.ref = "unmock" }
 
-versionsGradlePlugin = { module = "com.github.ben-manes:gradle-versions-plugin", version.ref = "versionsPluginGradle" }
 mavenPublishPlugin = { module = "com.vanniktech.maven.publish:com.vanniktech.maven.publish.gradle.plugin", version.ref = "mavenPublishPlugin" }
 
 kotlin21 = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin21" }
@@ -190,7 +188,6 @@ kotlinPlugin24 = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin24" }
 ktlintGradlePlugin = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlintGradlePlugin" }
 koverPlugin = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 mavenPublishPlugin = { id = "com.vanniktech.maven.publish.base", version.ref = "mavenPublishPlugin" }
-versionsPluginGradle = { id = "com.github.ben-manes.versions", version.ref = "versionsPluginGradle" }
 kotlinComposePlugin = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlinComposePlugin" }
 gradlePluginPublish = { id = "com.gradle.plugin-publish", version.ref = "gradlePluginPublishPlugin" }
 buildConfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildConfig" }

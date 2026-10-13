@@ -21,7 +21,6 @@ plugins {
 
     // Analysis tools
     id("ktlint")
-    id("com.github.ben-manes.versions")
 
     // Internal Generation
     id("thirdPartyLicences")
@@ -58,6 +57,5 @@ datadogBuildConfig {
     applyJavadocConfig()
     applyKotlinConfig()
     applyJunitConfig()
-    applyDependencyUpdateConfig()
     applyPublishingConfig("Common module for Datadog Kotlin Compiler Plugin")
 }
