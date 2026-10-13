@@ -28,7 +28,7 @@ The whole project is covered by a set of static analysis tools, linters and test
 ./gradlew :dd-sdk-android-gradle-plugin:test
 
 # launches the ktlint check for all Kotlin files
-./gradlew ktlintCheck :build-config:ktlintCheck
+./gradlew ktlintCheckAll
 
 # launches the detekt checks
 ./gradlew detekt
@@ -166,7 +166,7 @@ There is also a Gradle command that you can use to automatically format the code
 required styling rules:
 
 ```console
-./gradlew ktlintFormat :build-config:ktlintFormat
+./gradlew ktlintFormatAll
 ```
 
 ### #TestMatters
