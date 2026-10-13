@@ -5,7 +5,7 @@
  */
 
 import com.datadog.gradle.plugin.licenses.tasks.CheckDependencyLicensesTask
-import io.gitlab.arturbosch.detekt.Detekt
+import dev.detekt.gradle.Detekt
 
 buildscript {
     repositories {
@@ -67,9 +67,8 @@ tasks.withType<Detekt>().configureEach {
     reports {
         sarif.required = false
         html.required = false
-        xml.required = false
-        txt.required = false
-        md.required = false
+        checkstyle.required = false
+        markdown.required = false
     }
 }
 
