@@ -1,12 +1,29 @@
 Dependencies List
 
-com.squareup.okhttp3:okhttp:4.12.0                              :  771 Kb
-com.squareup.okio:okio-jvm:3.6.0                                :  351 Kb
-org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.10                  :  965 b 
-org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.10                  :  959 b 
-org.jetbrains.kotlin:kotlin-stdlib:2.1.21                       : 1683 Kb
-org.json:json:20231013                                          :   72 Kb
-org.jetbrains:annotations:13.0                                  :   17 Kb
+com.android.tools.build:apksig:9.3.1 (compileOnly)                              :    0 b 
+com.android.tools.build:apkzlib:9.3.1 (compileOnly)                             :    0 b 
+com.android.tools.build:builder-model:9.3.1 (compileOnly)                       :    0 b 
+com.android.tools.build:builder:9.3.1 (compileOnly)                             :    0 b 
+com.android.tools.build:gradle-api:9.3.1 (compileOnly)                          :    0 b 
+com.android.tools.build:gradle-common-api:9.3.1 (compileOnly)                   :    0 b 
+com.android.tools.build:gradle:9.3.1 (compileOnly)                              :    0 b 
+com.android.tools.build:manifest-merger:32.3.1 (compileOnly)                    :    0 b 
+com.android:zipflinger:9.3.1 (compileOnly)                                      :    0 b 
+com.squareup.okhttp3:okhttp:4.12.0                                              :  771 Kb
+com.squareup.okio:okio-jvm:3.6.0                                                :  351 Kb
+com.squareup:javawriter:2.5.0 (compileOnly)                                     :    0 b 
+org.jetbrains.kotlin:kotlin-build-tools-api:2.2.10 (compileOnly)                :    0 b 
+org.jetbrains.kotlin:kotlin-gradle-plugin-annotations:2.2.10 (compileOnly)      :    0 b 
+org.jetbrains.kotlin:kotlin-gradle-plugin-api:2.2.10 (compileOnly)              :    0 b 
+org.jetbrains.kotlin:kotlin-native-utils:2.2.10 (compileOnly)                   :    0 b 
+org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.10                                  :  959 b 
+org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.10                                  :  965 b 
+org.jetbrains.kotlin:kotlin-stdlib:2.1.21                                       : 1683 Kb
+org.jetbrains.kotlin:kotlin-tooling-core:2.2.10 (compileOnly)                   :    0 b 
+org.jetbrains.kotlin:kotlin-util-io:2.2.10 (compileOnly)                        :    0 b 
+org.jetbrains:annotations:13.0                                                  :   17 Kb
+org.json:json:20231013                                                          :   72 Kb
+org.ow2.asm:asm:9.9 (compileOnly)                                               :    0 b 
 
-Total transitive dependencies size                              :    2 Mb
+Total transitive dependencies size                                              :    2 Mb
 

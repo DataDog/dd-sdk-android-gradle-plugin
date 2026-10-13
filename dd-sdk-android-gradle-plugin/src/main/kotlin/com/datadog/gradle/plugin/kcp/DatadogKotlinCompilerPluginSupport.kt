@@ -10,12 +10,12 @@ import com.datadog.gradle.plugin.DdExtension
 import com.datadog.gradle.plugin.InstrumentationMode
 import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Provider
+import org.jetbrains.kotlin.gradle.plugin.KotlinBasePlugin
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.plugin.SubpluginArtifact
 import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
-import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
 
 /**
  * Support class for configuring the Datadog Kotlin Compiler Plugin based on the Kotlin version.
@@ -42,10 +42,10 @@ class DatadogKotlinCompilerPluginSupport : KotlinCompilerPluginSupportPlugin {
             return false
         }
         val project = kotlinTarget.project
-        kgpVersion = project.getKotlinPluginVersion()
+        kgpVersion = project.plugins.withType(KotlinBasePlugin::class.java).first().pluginVersion
         kotlinVersion = KotlinVersion.from(kgpVersion)
         if (kotlinVersion == KotlinVersion.UNSUPPORTED) {
-            LOGGER.info("Unsupported Kotlin version for the Datadog Jetpack Compose instrumentation: \$kgpVersion\"")
+            LOGGER.info("Unsupported Kotlin version for the Datadog Jetpack Compose instrumentation: $kgpVersion")
             return false
         }
         val ddExtension = project.extensions.findByType(DdExtension::class.java) ?: return false

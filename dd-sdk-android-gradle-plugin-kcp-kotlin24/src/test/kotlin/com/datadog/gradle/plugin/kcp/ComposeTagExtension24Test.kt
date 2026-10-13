@@ -6,14 +6,11 @@
 
 package com.datadog.gradle.plugin.kcp
 
-import org.jetbrains.kotlin.backend.common.extensions.FirIncompatiblePluginAPI
-import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
-import org.mockito.kotlin.eq
+import org.mockito.kotlin.isNull
 import org.mockito.kotlin.verify
 
-@OptIn(FirIncompatiblePluginAPI::class, UnsafeDuringIrConstructionAPI::class)
 internal class ComposeTagExtension24Test : ComposeTagExtensionTest() {
 
     override fun verifyTransformerAccepted(annotationModeEnabled: Boolean) {
@@ -24,7 +21,7 @@ internal class ComposeTagExtension24Test : ComposeTagExtensionTest() {
 
         composeTagExtension.generate(mockModuleFragment, mockPluginContext)
 
-        verify(mockModuleFragment).accept(any<ComposeTagTransformer>(), eq(null))
+        verify(mockModuleFragment).accept(any<ComposeTagTransformer>(), isNull())
     }
 
     @Test

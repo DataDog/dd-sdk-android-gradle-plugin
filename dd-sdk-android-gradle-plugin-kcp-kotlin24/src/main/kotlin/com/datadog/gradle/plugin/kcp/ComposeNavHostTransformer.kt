@@ -6,7 +6,6 @@
 
 package com.datadog.gradle.plugin.kcp
 
-import org.jetbrains.kotlin.DeprecatedForRemovalCompilerApi
 import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
@@ -39,7 +38,6 @@ import org.jetbrains.kotlin.name.SpecialNames
  * Internal use only.
  */
 @UnsafeDuringIrConstructionAPI
-@OptIn(DeprecatedForRemovalCompilerApi::class)
 class ComposeNavHostTransformer(
     private val messageCollector: MessageCollector,
     private val pluginContext: IrPluginContext,

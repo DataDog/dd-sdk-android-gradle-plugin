@@ -12,25 +12,6 @@ import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.util.LinkedList
-import kotlin.reflect.jvm.isAccessible
-
-/**
- * Creates an instance of the given class name.
- * @param className the full name of the class to instantiate
- * @param params the parameters to provide the constructor
- * @return the created instance
- */
-@Suppress("SpreadOperator")
-fun createInstance(
-    className: String,
-    vararg params: Any?
-): Any {
-    return Class.forName(className)
-        .kotlin
-        .constructors.first()
-        .apply { isAccessible = true }
-        .call(*params)
-}
 
 /**
  * Sets a static value on the target class.
