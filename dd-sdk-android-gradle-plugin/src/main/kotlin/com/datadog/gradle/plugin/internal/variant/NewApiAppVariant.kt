@@ -75,11 +75,18 @@ internal class NewApiAppVariant(
     }
 
     override fun bindWith(ndkUploadTask: NdkSymbolFileUploadTask) {
-        target.tasks.withType(ExternalNativeBuildTask::class.java).forEach {
-            val searchFiles = it.getSearchObjDirs()
-            ndkUploadTask.searchDirectories.from(searchFiles)
-            ndkUploadTask.dependsOn(it)
-        }
+        // New Variant API doesn't expose native build tasks. AGP builds each distinct native configuration
+        // once (`buildCMake<Config>[<abi>]`, attributed to a single representative variant), and the
+        // `externalNativeBuild<Variant>` task of each variant depends on the ones it uses, so we follow it.
+        // Its own output folder is not used: it is either empty or holds copies of the same libraries.
+        target.tasks.withType(ExternalNativeBuildTask::class.java)
+            .filter { it.variantName == variant.name }
+            .forEach { variantNativeBuildTask ->
+                ndkUploadTask.dependsOn(variantNativeBuildTask)
+                variantNativeBuildTask.taskDependencies.getDependencies(variantNativeBuildTask)
+                    .filterIsInstance<ExternalNativeBuildTask>()
+                    .forEach { ndkUploadTask.searchDirectories.from(it.getSearchObjDirs()) }
+            }
     }
 
     override fun bindWith(mappingFileUploadTask: MappingFileUploadTask) {

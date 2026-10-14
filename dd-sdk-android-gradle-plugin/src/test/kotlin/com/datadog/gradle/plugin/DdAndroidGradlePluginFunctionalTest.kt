@@ -1458,6 +1458,51 @@ internal class DdAndroidGradlePluginFunctionalTest {
         }
     }
 
+    @Test
+    fun `M upload only the variant native libraries W upload symbol file { all variants }`() {
+        // Given
+        // new Variant API is only used starting from AGP 8.4
+        buildVersionConfig = LATEST_VERSIONS_TEST_CONFIGURATION
+        stubGradlePropertiesFile(buildVersionConfig)
+        stubGradleBuildFromResourceFile(
+            "lib_module_build.gradle",
+            libModuleBuildGradleFile,
+            overwrite = true
+        )
+        stubGradleBuildFromResourceFile(
+            "native_gradle_files/build_with_native_and_datadog_dep.gradle",
+            appBuildGradleFile
+        )
+        stubNativeFiles()
+        // AGP builds a native configuration once and attributes it to a single representative variant, so
+        // uploading for every variant makes sure non-representative variants are covered as well
+        val uploadTaskNames = variants.map { resolveNdkSymbolUploadTask(it) }
+
+        gradleRunner { withArguments(":samples:app:assembleRelease") }
+            .build()
+
+        // When
+        val result = gradleRunner {
+            withArguments(
+                *uploadTaskNames.toTypedArray(),
+                "--info",
+                "-PDD_API_KEY=fakekey",
+                "-Pdd-emulate-upload-call"
+            )
+        }
+            .build()
+
+        // Then
+        val uploadedFilesPerTask = uploadedNdkSymbolFilesPerTask(result.output)
+        assertThat(uploadedFilesPerTask.keys).containsExactlyInAnyOrderElementsOf(uploadTaskNames)
+        uploadedFilesPerTask.forEach { (taskName, uploadedFiles) ->
+            assertThat(uploadedFiles)
+                .describedAs("files uploaded by $taskName")
+                .hasSize(SUPPORTED_ABIS.size)
+                .allMatch { it.contains("/RelWithDebInfo/") && it.endsWith("/libplaceholder.so") }
+        }
+    }
+
     fun `M try to upload the symbol file W upload { using a fake API_KEY, gzip disabled }`(forge: Forge) {
         // Given
         stubGradleBuildFromResourceFile(
@@ -1591,6 +1636,24 @@ internal class DdAndroidGradlePluginFunctionalTest {
         variantName: String
     ) = "uploadMapping${variantName.replaceFirstChar { capitalizeChar(it) }}Release"
 
+    private fun uploadedNdkSymbolFilesPerTask(output: String): Map<String, List<String>> {
+        val filesPerTask = mutableMapOf<String, MutableList<String>>()
+        var currentTask: String? = null
+        output.lines().forEach { line ->
+            if (line.startsWith("> Task ")) {
+                currentTask = line.removePrefix("> Task :samples:app:")
+                    .substringBefore(" ")
+                    .takeIf { it.startsWith("uploadNdkSymbolFiles") }
+                currentTask?.let { filesPerTask.getOrPut(it) { mutableListOf() } }
+            }
+            val task = currentTask
+            if (task != null && line.startsWith(NDK_SYMBOL_FILE_UPLOAD_LOG_PREFIX)) {
+                filesPerTask.getValue(task).add(line.removePrefix(NDK_SYMBOL_FILE_UPLOAD_LOG_PREFIX))
+            }
+        }
+        return filesPerTask
+    }
+
     private fun resolveNdkSymbolUploadTask(
         variantName: String
     ) = "uploadNdkSymbolFiles${variantName.replaceFirstChar { capitalizeChar(it) }}Release"
@@ -1702,6 +1765,8 @@ internal class DdAndroidGradlePluginFunctionalTest {
             val kotlinVersion: String,
             val jvmTarget: String
         )
+
+        private const val NDK_SYMBOL_FILE_UPLOAD_LOG_PREFIX = "Uploading ndk_symbol_file file: "
 
         val SUPPORTED_ABIS = mapOf(
             "armeabi-v7a" to "arm",
