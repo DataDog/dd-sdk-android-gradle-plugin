@@ -121,14 +121,19 @@ abstract class MappingFileUploadTask
         )
 
         val replacements = mappingFilePackagesAliases
+            // normalize first, so that "com.example.*" is checked against the application package
+            // the same way as "com.example"
+            .mapKeys { it.key.removeSuffix(".*") }
             .filter {
                 // not necessarily applicationId == package attribute from the Manifest, but it is
-                // best and cheapest effort to avoid wrong renaming (otherwise we may loose Git
-                // integration feature).
-                if (applicationId.get().startsWith(it.key)) {
+                // best and cheapest effort to avoid wrong renaming (otherwise we may lose Git
+                // integration feature). Skip both prefixes of the application package and
+                // anything inside of it (sub-packages, classes).
+                val appId = applicationId.get()
+                if (appId.startsWith(it.key) || it.key.startsWith("$appId.")) {
                     DdAndroidGradlePlugin.LOGGER.warn(
                         "Renaming of package prefix=${it.key} will be skipped, because" +
-                            " it belongs to the application package."
+                            " it overlaps with the application package."
                     )
                     false
                 } else {
@@ -143,9 +148,9 @@ abstract class MappingFileUploadTask
             // after that any possible prefix (which has a smaller length).
             .sortedByDescending { it.key.length }
             .map {
-                val lookup = it.key.replace(".*", "")
-                    .replace(".", "\\.")
-                Regex("(?<=^|\\W)$lookup(?=\\W)") to it.value
+                // prefix must start a fully-qualified name: not preceded by an identifier char or
+                // a dot, otherwise "androidx.work" would also match "com.example.androidx.work"
+                Regex("(?<![\\w.])${Regex.escape(it.key)}(?=\\W)") to it.value
             }
 
         val shrinkedFile = File(mappingFile.parent, MAPPING_OPTIMIZED_FILE_NAME)

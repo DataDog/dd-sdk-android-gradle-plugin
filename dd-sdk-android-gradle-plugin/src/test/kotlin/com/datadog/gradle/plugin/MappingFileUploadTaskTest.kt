@@ -223,6 +223,139 @@ internal class MappingFileUploadTaskTest {
     }
 
     @Test
+    fun `M not rename package in the middle W applyTask() { short aliases requested }`() {
+        // Given
+        testedTask.applicationId.set("com.example.app")
+        testedTask.mappingFilePackagesAliases = mapOf(
+            "androidx.work" to "axw"
+        )
+        val fakeMappingFile = File(tempDir, fakeMappingFileName)
+        fakeMappingFile.writeText(
+            listOf(
+                "androidx.work.Worker -> a.a:",
+                "com.thirdparty.androidx.work.Worker -> a.b:",
+                "    void run(androidx.work.Data,org.androidx.work.Data) -> a"
+            ).joinToString(separator = "\n")
+        )
+        testedTask.mappingFile.set(fakeProject.objects.fileProperty().fileValue(File(fakeMappingFile.path)))
+        val fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
+        testedTask.repositoryFile.set(fakeRepositoryFile)
+        whenever(mockRepositoryDetector.detectRepositories(any(), eq("")))
+            .doReturn(listOf(fakeRepoInfo))
+
+        // When
+        testedTask.applyTask()
+
+        // Then
+        argumentCaptor<Uploader.UploadFileInfo> {
+            verify(mockUploader).upload(
+                eq(fakeSite),
+                capture(),
+                eq(fakeRepositoryFile),
+                eq(fakeApiKey.value),
+                any(),
+                eq(fakeRepoInfo),
+                useGzip = eq(true),
+                emulateNetworkCall = eq(false)
+            )
+            assertThat(lastValue.file.readLines()).containsExactly(
+                "axw.Worker -> a.a:",
+                "com.thirdparty.androidx.work.Worker -> a.b:",
+                "    void run(axw.Data,org.androidx.work.Data) -> a"
+            )
+        }
+    }
+
+    @Test
+    fun `M skip alias inside application package W applyTask() { sub-package or class key }`() {
+        // Given
+        testedTask.applicationId.set("com.example.app")
+        testedTask.mappingFilePackagesAliases = mapOf(
+            "com.example.app.feature" to "caf",
+            "com.example.app.MainActivity" to "cam",
+            "com.example.application" to "cea"
+        )
+        val fakeMappingFile = File(tempDir, fakeMappingFileName)
+        fakeMappingFile.writeText(
+            listOf(
+                "com.example.app.feature.FeatureActivity -> a.a:",
+                "com.example.app.MainActivity -> a.b:",
+                "com.example.application.Foo -> a.c:"
+            ).joinToString(separator = "\n")
+        )
+        testedTask.mappingFile.set(fakeProject.objects.fileProperty().fileValue(File(fakeMappingFile.path)))
+        val fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
+        testedTask.repositoryFile.set(fakeRepositoryFile)
+        whenever(mockRepositoryDetector.detectRepositories(any(), eq("")))
+            .doReturn(listOf(fakeRepoInfo))
+
+        // When
+        testedTask.applyTask()
+
+        // Then
+        argumentCaptor<Uploader.UploadFileInfo> {
+            verify(mockUploader).upload(
+                eq(fakeSite),
+                capture(),
+                eq(fakeRepositoryFile),
+                eq(fakeApiKey.value),
+                any(),
+                eq(fakeRepoInfo),
+                useGzip = eq(true),
+                emulateNetworkCall = eq(false)
+            )
+            assertThat(lastValue.file.readLines()).containsExactly(
+                "com.example.app.feature.FeatureActivity -> a.a:",
+                "com.example.app.MainActivity -> a.b:",
+                "cea.Foo -> a.c:"
+            )
+        }
+    }
+
+    @Test
+    fun `M skip alias of application package W applyTask() { alias key with wildcard }`() {
+        // Given
+        testedTask.applicationId.set("com.example.app")
+        testedTask.mappingFilePackagesAliases = mapOf(
+            "com.example.*" to "ce",
+            "androidx.work.*" to "axw"
+        )
+        val fakeMappingFile = File(tempDir, fakeMappingFileName)
+        fakeMappingFile.writeText(
+            listOf(
+                "com.example.app.MainActivity -> a.a:",
+                "androidx.work.Worker -> a.b:"
+            ).joinToString(separator = "\n")
+        )
+        testedTask.mappingFile.set(fakeProject.objects.fileProperty().fileValue(File(fakeMappingFile.path)))
+        val fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
+        testedTask.repositoryFile.set(fakeRepositoryFile)
+        whenever(mockRepositoryDetector.detectRepositories(any(), eq("")))
+            .doReturn(listOf(fakeRepoInfo))
+
+        // When
+        testedTask.applyTask()
+
+        // Then
+        argumentCaptor<Uploader.UploadFileInfo> {
+            verify(mockUploader).upload(
+                eq(fakeSite),
+                capture(),
+                eq(fakeRepositoryFile),
+                eq(fakeApiKey.value),
+                any(),
+                eq(fakeRepoInfo),
+                useGzip = eq(true),
+                emulateNetworkCall = eq(false)
+            )
+            assertThat(lastValue.file.readLines()).containsExactly(
+                "com.example.app.MainActivity -> a.a:",
+                "axw.Worker -> a.b:"
+            )
+        }
+    }
+
+    @Test
     fun `M upload file W applyTask() { trim starting indents }`(
         forge: Forge
     ) {
