@@ -10,13 +10,11 @@ import com.android.build.api.artifact.SingleArtifact
 import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.variant.ApplicationVariant
 import com.android.build.api.variant.VariantOutput
-import com.android.build.gradle.tasks.ExternalNativeBuildTask
 import com.datadog.gradle.plugin.GenerateBuildIdTask
 import com.datadog.gradle.plugin.InjectBuildIdToAssetsTask
 import com.datadog.gradle.plugin.MappingFileUploadTask
 import com.datadog.gradle.plugin.NdkSymbolFileUploadTask
 import com.datadog.gradle.plugin.internal.CurrentAgpVersion
-import com.datadog.gradle.plugin.internal.getSearchObjDirs
 import com.datadog.gradle.plugin.internal.utils.capitalizeChar
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -75,11 +73,9 @@ internal class NewApiAppVariant(
     }
 
     override fun bindWith(ndkUploadTask: NdkSymbolFileUploadTask) {
-        target.tasks.withType(ExternalNativeBuildTask::class.java).forEach {
-            val searchFiles = it.getSearchObjDirs()
-            ndkUploadTask.searchDirectories.from(searchFiles)
-            ndkUploadTask.dependsOn(it)
-        }
+        // unstripped native libraries of this variant only; the artifact also brings the dependency on the
+        // tasks producing it
+        ndkUploadTask.searchDirectories.from(variant.artifacts.get(SingleArtifact.MERGED_NATIVE_LIBS))
     }
 
     override fun bindWith(mappingFileUploadTask: MappingFileUploadTask) {
