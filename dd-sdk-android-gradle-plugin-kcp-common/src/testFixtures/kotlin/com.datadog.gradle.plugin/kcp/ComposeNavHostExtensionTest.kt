@@ -6,13 +6,11 @@
 
 package com.datadog.gradle.plugin.kcp
 
-import org.jetbrains.kotlin.backend.common.extensions.FirIncompatiblePluginAPI
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
-import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.ClassId
 import org.junit.jupiter.api.BeforeEach
@@ -29,7 +27,6 @@ import org.mockito.kotlin.whenever
  * Provides common mock setup for Kotlin compiler plugin context and IR symbols
  * required for testing NavHost-related IR transformations.
  */
-@OptIn(FirIncompatiblePluginAPI::class, UnsafeDuringIrConstructionAPI::class)
 @ExtendWith(MockitoExtension::class)
 abstract class ComposeNavHostExtensionTest {
 

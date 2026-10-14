@@ -62,7 +62,6 @@ class ComposeTagTransformer(
     /**
      * Initializes references to required symbols for the transformer.
      */
-    @OptIn(UnsafeDuringIrConstructionAPI::class)
     @Suppress("ReturnCount")
     fun initReferences(): Boolean {
         datadogTagFunctionSymbol = pluginContextUtils.getDatadogModifierSymbol() ?: run {

@@ -21,7 +21,7 @@ internal fun Project.junitConfig() {
             "--add-opens=java.base/java.util=ALL-UNNAMED"
         )
         useJUnitPlatform {
-            includeEngines("junit-jupiter", "junit-vintage")
+            includeEngines("junit-jupiter")
         }
         reports {
             junitXml.required.set(true)

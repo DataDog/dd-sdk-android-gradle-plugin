@@ -6,93 +6,122 @@
 
 package com.datadog.gradle.utils
 
-import org.junit.Test
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 
 class VersionTest {
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun checkMajorInRange() {
-        Version(Version.MAX_MAJOR, 0, 0)
+        assertThrows<IllegalArgumentException> {
+            Version(Version.MAX_MAJOR, 0, 0)
+        }
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun checkMinorInRange() {
-        Version(0, Version.MAX_MINOR, 0)
+        assertThrows<IllegalArgumentException> {
+            Version(0, Version.MAX_MINOR, 0)
+        }
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun checkHotfixInRange() {
-        Version(0, 0, Version.MAX_HOTFIX)
+        assertThrows<IllegalArgumentException> {
+            Version(0, 0, Version.MAX_HOTFIX)
+        }
     }
 
     @Test
     fun computesName() {
+        // When
         val name = Version(3, 12, 7).name
-        assert(name == "3.12.7")
+
+        // Then
+        assertThat(name).isEqualTo("3.12.7")
     }
 
     @Test
     fun computesCode() {
+        // When
         val code = Version(3, 12, 7).code
 
-        assert(code == 3127) { "expected code to be 3127 but was $code" }
+        // Then
+        assertThat(code).isEqualTo(3127)
     }
 
     @Test
     fun ensureCodeSequenceHotfix() {
+        // When
         val code = Version(3, 12, Version.MAX_HOTFIX - 1).code
         val next = Version(3, 13, 0).code
 
-        assert(code == next - 1) { "expected code to be next - 1 = ${next - 1} but was $code (@next:$next)" }
+        // Then
+        assertThat(code).isEqualTo(next - 1)
     }
 
     @Test
     fun ensureCodeSequenceMinor() {
+        // When
         val code = Version(3, Version.MAX_MINOR - 1, Version.MAX_HOTFIX - 1).code
         val next = Version(4, 0, 0).code
 
-        assert(code == next - 1) { "expected code to be next - 1 = ${next - 1} but was $code (@next:$next)" }
+        // Then
+        assertThat(code).isEqualTo(next - 1)
     }
 
     @Test
     fun addNoSuffixForRelease() {
+        // When
         val name = Version(3, 12, 7, Version.Type.Release).name
-        val expected = "3.12.7"
-        assert(name == expected) { " expected name to be $expected but was $name" }
+
+        // Then
+        assertThat(name).isEqualTo("3.12.7")
     }
 
     @Test
     fun addSuffixForRC() {
+        // When
         val name = Version(3, 12, 7, Version.Type.ReleaseCandidate(1)).name
-        val expected = "3.12.7-rc1"
-        assert(name == expected) { " expected name to be $expected but was $name" }
+
+        // Then
+        assertThat(name).isEqualTo("3.12.7-rc1")
     }
 
     @Test
     fun addSuffixForBeta() {
+        // When
         val name = Version(3, 12, 7, Version.Type.Beta(5)).name
-        val expected = "3.12.7-beta5"
-        assert(name == expected) { " expected name to be $expected but was $name" }
+
+        // Then
+        assertThat(name).isEqualTo("3.12.7-beta5")
     }
 
     @Test
     fun addSuffixForAlpha() {
+        // When
         val name = Version(3, 12, 7, Version.Type.Alpha(3)).name
-        val expected = "3.12.7-alpha3"
-        assert(name == expected) { " expected name to be $expected but was $name" }
+
+        // Then
+        assertThat(name).isEqualTo("3.12.7-alpha3")
     }
 
     @Test
     fun addSuffixForDev() {
+        // When
         val name = Version(3, 12, 7, Version.Type.Dev).name
-        val expected = "3.12.7-dev"
-        assert(name == expected) { " expected name to be $expected but was $name" }
+
+        // Then
+        assertThat(name).isEqualTo("3.12.7-dev")
     }
 
     @Test
     fun addSuffixForSnapshot() {
+        // When
         val name = Version(3, 12, 7, Version.Type.Snapshot).name
-        val expected = "3.12.7-SNAPSHOT"
-        assert(name == expected) { " expected name to be $expected but was $name" }
+
+        // Then
+        assertThat(name).isEqualTo("3.12.7-SNAPSHOT")
     }
 }

@@ -4,6 +4,8 @@
  * Copyright 2020-Present Datadog, Inc.
  */
 
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+
 plugins {
     id("java-library")
     kotlin("jvm")
@@ -29,16 +31,18 @@ plugins {
 
 dependencies {
     implementation(project(":dd-sdk-android-gradle-plugin-kcp-common"))
+    compileOnly(kotlin("stdlib"))
     compileOnly(libs.kotlinCompilerEmbeddable22)
     compileOnly(libs.kotlinGradlePlugin22)
     compileOnly(libs.autoServiceAnnotation)
-    compileOnly(libs.kotlinReflect)
+    compileOnly(libs.kotlinReflect22)
     kapt(libs.autoService)
 
     testImplementation(testFixtures(project(":dd-sdk-android-gradle-plugin-kcp-common")))
     testImplementation(libs.kotlinCompilerEmbeddable22)
     testImplementation(libs.kotlinGradlePlugin22)
     testImplementation(libs.kotlinCompilerTesting22)
+    testImplementation(libs.kotlinReflect22)
 }
 
 java {
@@ -46,7 +50,11 @@ java {
 }
 
 datadogBuildConfig {
-    applyKotlinConfig()
+    applyKotlinConfig(
+        languageVersion = KotlinVersion.KOTLIN_2_2,
+        apiVersion = KotlinVersion.KOTLIN_2_2,
+        coreLibrariesVersion = libs.versions.kotlin22.get()
+    )
     applyJunitConfig()
     applyJavadocConfig()
     applyPublishingConfig("Module to support Datadog Compiler Plugin with kotlin 2.2.x or above")

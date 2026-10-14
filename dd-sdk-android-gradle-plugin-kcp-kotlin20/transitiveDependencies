@@ -1,7 +1,18 @@
 Dependencies List
 
-org.jetbrains.kotlin:kotlin-stdlib:2.3.20                       : 1762 Kb
-org.jetbrains:annotations:13.0                                  :   17 Kb
+com.google.auto.service:auto-service-annotations:1.0.1 (compileOnly)            :    0 b 
+org.jetbrains.kotlin:kotlin-compiler-embeddable:2.0.21 (compileOnly)            :    0 b 
+org.jetbrains.kotlin:kotlin-gradle-plugin-annotations:2.0.21 (compileOnly)      :    0 b 
+org.jetbrains.kotlin:kotlin-gradle-plugin-api:2.0.21 (compileOnly)              :    0 b 
+org.jetbrains.kotlin:kotlin-gradle-plugin-model:2.0.21 (compileOnly)            :    0 b 
+org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.21 (compileOnly)                  :    0 b 
+org.jetbrains.kotlin:kotlin-native-utils:2.0.21 (compileOnly)                   :    0 b 
+org.jetbrains.kotlin:kotlin-reflect:2.0.21 (compileOnly)                        :    0 b 
+org.jetbrains.kotlin:kotlin-stdlib:2.0.21 (compileOnly)                         :    0 b 
+org.jetbrains.kotlin:kotlin-tooling-core:2.0.21 (compileOnly)                   :    0 b 
+org.jetbrains.kotlin:kotlin-util-io:2.0.21 (compileOnly)                        :    0 b 
+org.jetbrains.kotlin:kotlin-util-klib:2.0.21 (compileOnly)                      :    0 b 
+org.jetbrains:annotations:13.0 (compileOnly)                                    :    0 b 
 
-Total transitive dependencies size                              : 1779 Kb
+Total transitive dependencies size                                              :    0 b 
 

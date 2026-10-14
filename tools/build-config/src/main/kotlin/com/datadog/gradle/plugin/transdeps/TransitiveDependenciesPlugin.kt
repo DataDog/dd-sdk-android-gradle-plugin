@@ -9,14 +9,40 @@ package com.datadog.gradle.plugin.transdeps
 import com.datadog.gradle.config.taskConfig
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.ArtifactCollection
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
+import org.gradle.api.provider.Provider
 import org.gradle.kotlin.dsl.register
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
 class TransitiveDependenciesPlugin : Plugin<Project> {
 
     override fun apply(target: Project) {
-        val externalRuntimeClasspath = target.configurations.named("runtimeClasspath").map { configuration ->
+        val externalRuntimeArtifacts = target.externalArtifacts("runtimeClasspath")
+        val externalCompileArtifacts = target.externalArtifacts("compileClasspath")
+
+        val listTransitiveDependenciesTask =
+            target.tasks.register<TransitiveDependenciesTask>(TASK_GEN_TRANSITIVE_DEPS) {
+                humanReadableSize.value(true)
+                sortByName.value(true)
+                runtimeClasspath.from(externalRuntimeArtifacts.map { it.artifactFiles })
+                runtimeArtifacts.set(externalRuntimeArtifacts.flatMap { it.resolvedArtifacts })
+                runtimeClasspathCoordinates.set(externalRuntimeArtifacts.coordinates())
+                compileClasspathCoordinates.set(externalCompileArtifacts.coordinates())
+                outputFile.set(target.layout.projectDirectory.file(FILE_NAME))
+            }
+
+        target.tasks.register<CheckTransitiveDependenciesTask>(TASK_CHECK_TRANSITIVE_DEPS) {
+            dependenciesFile.set(listTransitiveDependenciesTask.flatMap { it.outputFile })
+        }
+
+        target.taskConfig<KotlinJvmCompile> {
+            finalizedBy(listTransitiveDependenciesTask)
+        }
+    }
+
+    private fun Project.externalArtifacts(configurationName: String): Provider<ArtifactCollection> {
+        return configurations.named(configurationName).map { configuration ->
             check(configuration.isCanBeResolved) { "$configuration cannot be resolved" }
 
             configuration.incoming
@@ -25,23 +51,13 @@ class TransitiveDependenciesPlugin : Plugin<Project> {
                         it !is ProjectComponentIdentifier && it.displayName != "Gradle API"
                     }
                 }
-                .files
+                .artifacts
         }
+    }
 
-        val listTransitiveDependenciesTask =
-            target.tasks.register<TransitiveDependenciesTask>(TASK_GEN_TRANSITIVE_DEPS) {
-                humanReadableSize.value(true)
-                sortByName.value(true)
-                runtimeClasspath.from(externalRuntimeClasspath)
-                outputFile.set(target.layout.projectDirectory.file(FILE_NAME))
-            }
-
-        target.tasks.register<CheckTransitiveDependenciesTask>(TASK_CHECK_TRANSITIVE_DEPS) {
-            dependenciesFile.set(listTransitiveDependenciesTask.flatMap { it.outputFile })
-        }
-
-        target.taskConfig<KotlinCompile> {
-            finalizedBy(listTransitiveDependenciesTask)
+    private fun Provider<ArtifactCollection>.coordinates(): Provider<List<String>> {
+        return flatMap { it.resolvedArtifacts }.map { artifacts ->
+            artifacts.map { it.id.componentIdentifier.coordinates() }
         }
     }
 

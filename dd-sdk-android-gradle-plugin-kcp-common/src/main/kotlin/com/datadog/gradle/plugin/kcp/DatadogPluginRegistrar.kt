@@ -9,7 +9,6 @@
 package com.datadog.gradle.plugin.kcp
 
 import com.datadog.gradle.plugin.InstrumentationMode
-import org.jetbrains.kotlin.backend.common.extensions.FirIncompatiblePluginAPI
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
@@ -75,7 +74,6 @@ abstract class DatadogPluginRegistrar(
      * @param messageCollector message collector to report errors
      * @param instrumentationMode instrumentation mode
      */
-    @OptIn(FirIncompatiblePluginAPI::class)
     abstract fun getCompatibleComposeNavHostExtension(
         messageCollector: MessageCollector,
         instrumentationMode: InstrumentationMode
@@ -86,7 +84,6 @@ abstract class DatadogPluginRegistrar(
      * @param messageCollector message collector to report errors
      * @param instrumentationMode instrumentation mode
      */
-    @OptIn(FirIncompatiblePluginAPI::class)
     abstract fun getCompatibleComposeTagExtension(
         messageCollector: MessageCollector,
         instrumentationMode: InstrumentationMode

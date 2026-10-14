@@ -5,6 +5,7 @@
  */
 
 import com.datadog.gradle.config.MavenConfig
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 plugins {
     // Build
@@ -38,12 +39,12 @@ buildConfig {
 
 dependencies {
     // Main implementation dependencies
-    implementation(libs.kotlin21)
+    implementation(kotlin("stdlib"))
     implementation(libs.okHttp)
     implementation(libs.json)
     // Compile-only dependencies
     compileOnly(libs.androidToolsGradlePlugin) // for auto-wiring into Android projects
-    compileOnly(libs.kotlinGradlePlugin21)
+    compileOnly(libs.kotlinGradlePluginApi21)
 
     // Test dependencies
     testImplementation(libs.bundles.jUnit5)
@@ -54,7 +55,11 @@ dependencies {
 }
 
 datadogBuildConfig {
-    applyKotlinConfig()
+    applyKotlinConfig(
+        languageVersion = KotlinVersion.KOTLIN_2_1,
+        apiVersion = KotlinVersion.KOTLIN_2_1,
+        coreLibrariesVersion = libs.versions.kotlin21.get()
+    )
     applyJunitConfig()
     applyJavadocConfig()
     applyPublishingConfig("Plugin to upload Proguard/R8 mapping files to Datadog.")
