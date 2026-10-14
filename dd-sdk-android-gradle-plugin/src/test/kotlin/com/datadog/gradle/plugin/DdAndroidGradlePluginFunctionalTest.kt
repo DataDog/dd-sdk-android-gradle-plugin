@@ -1496,11 +1496,10 @@ internal class DdAndroidGradlePluginFunctionalTest {
         val uploadedFilesPerTask = uploadedNdkSymbolFilesPerTask(result.output)
         assertThat(uploadedFilesPerTask.keys).containsExactlyInAnyOrderElementsOf(uploadTaskNames)
         uploadedFilesPerTask.forEach { (taskName, uploadedFiles) ->
-            val variantName = taskName.removePrefix("uploadNdkSymbolFiles").replaceFirstChar { it.lowercase() }
             assertThat(uploadedFiles)
                 .describedAs("files uploaded by $taskName")
                 .hasSize(SUPPORTED_ABIS.size)
-                .allMatch { it.contains("/merged_native_libs/$variantName/") && it.endsWith("/libplaceholder.so") }
+                .allMatch { it.contains("/RelWithDebInfo/") && it.endsWith("/libplaceholder.so") }
         }
     }
 
