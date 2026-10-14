@@ -12,6 +12,11 @@ plugins {
     // when it is applied after the Kotlin plugin.
     id 'ktlint'
     id 'kotlin-android'
+
+    // Analysis tools
+    id('dev.detekt')
+    id 'datadogBuildConfig'
+
     // you don't need this in your project, it is just to be able to reference AndroidConfig class
     id 'noopBuildConfigClasspath' apply false
 
@@ -82,6 +87,12 @@ android {
     kotlinOptions {
         jvmTarget = '17'
     }
+}
+
+datadogBuildConfig {
+    // Colours don't have dedicated sources, analyzing one variant per version flavor is enough
+    // (Detekt matches the combined flavor name of each variant)
+    applyDetektConfig(["demoGreen", "demoBlue", "fullGreen", "fullBlue", "proGreen", "proBlue"])
 }
 
 dependencies {

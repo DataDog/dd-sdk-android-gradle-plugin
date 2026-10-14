@@ -519,7 +519,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
 
         val buildIds = apks.map {
             it.readBuildId(BUILD_ID_FILE_PATH_APK)
-                .let { UUID.fromString(it) }
+                .let { buildId -> UUID.fromString(buildId) }
         }
 
         // all build IDs should be unique
@@ -566,7 +566,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
 
         val buildIds = bundles.map {
             it.readBuildId(BUILD_ID_FILE_PATH_AAB)
-                .let { UUID.fromString(it) }
+                .let { buildId -> UUID.fromString(buildId) }
         }
 
         // all build IDs should be unique
@@ -1609,8 +1609,8 @@ internal class DdAndroidGradlePluginFunctionalTest {
         javaClass.classLoader.getResource(resourceFilePath)?.file?.let {
             File(it).copyTo(gradleFile, overwrite)
             if (buildVersionConfig.agpVersion.split(".").first().toInt() >= 9) {
-                gradleFile.readText().let {
-                    gradleFile.writeText(it.replace("id(\"kotlin-android\")", ""))
+                gradleFile.readText().let { content ->
+                    gradleFile.writeText(content.replace("id(\"kotlin-android\")", ""))
                 }
             }
         }

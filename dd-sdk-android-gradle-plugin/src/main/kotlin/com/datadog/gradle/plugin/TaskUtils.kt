@@ -58,15 +58,15 @@ internal object TaskUtils {
         return SemVer(currentMajor, currentMinor, currentPatch) >= SemVer(major, minor, patch)
     }
 
-    private class SemVer(val major: Int, val minor: Int, val patch: Int)
-
-    private operator fun SemVer.compareTo(other: SemVer): Int {
-        return if (this.major != other.major) {
-            this.major - other.major
-        } else if (this.minor != other.minor) {
-            this.minor - other.minor
-        } else {
-            this.patch - other.patch
+    private class SemVer(val major: Int, val minor: Int, val patch: Int) : Comparable<SemVer> {
+        override fun compareTo(other: SemVer): Int {
+            return if (this.major != other.major) {
+                this.major - other.major
+            } else if (this.minor != other.minor) {
+                this.minor - other.minor
+            } else {
+                this.patch - other.patch
+            }
         }
     }
 }

@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
+import java.util.Locale
 
 /**
  * Utility class to provide access to various symbols and functions used in the plugin.
@@ -140,12 +141,12 @@ class DefaultPluginContextUtils(
 
     private fun <T> logSingleMatchError(target: String, isCritical: Boolean): T? {
         val level = if (isCritical) CompilerMessageSeverity.ERROR else CompilerMessageSeverity.STRONG_WARNING
-        messageCollector.report(level, ERROR_SINGLE_MATCH.format(target))
+        messageCollector.report(level, ERROR_SINGLE_MATCH.format(Locale.US, target))
         return null
     }
 
     private fun <T> warnNotFound(target: String): T? {
-        messageCollector.report(CompilerMessageSeverity.WARNING, ERROR_NOT_FOUND.format(target))
+        messageCollector.report(CompilerMessageSeverity.WARNING, ERROR_NOT_FOUND.format(Locale.US, target))
         return null
     }
 

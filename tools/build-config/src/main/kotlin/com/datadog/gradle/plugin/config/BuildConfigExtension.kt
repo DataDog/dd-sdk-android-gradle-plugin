@@ -6,6 +6,7 @@
 
 package com.datadog.gradle.plugin.config
 
+import com.datadog.gradle.config.detektConfig
 import com.datadog.gradle.config.javadocConfig
 import com.datadog.gradle.config.junitConfig
 import com.datadog.gradle.config.kotlinConfig
@@ -36,5 +37,9 @@ abstract class BuildConfigExtension @Inject constructor(
 
     fun applyPublishingConfig(description: String) {
         project.publishingConfig(description)
+    }
+
+    fun applyDetektConfig(ignoredFlavors: List<String> = emptyList()) {
+        project.detektConfig(ignoredFlavors)
     }
 }

@@ -31,7 +31,7 @@ The whole project is covered by a set of static analysis tools, linters and test
 ./gradlew ktlintCheckAll
 
 # launches the detekt checks
-./gradlew detekt
+./gradlew detektAll
 
 
 # launches all the tests described above

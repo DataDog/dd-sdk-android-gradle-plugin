@@ -16,7 +16,10 @@ plugins {
     kotlin("android")
     alias(libs.plugins.kotlinComposePlugin)
 
-    id("noopBuildConfigClasspath") apply false // just bringing classpath to reference AndroidConfig
+    // Analysis tools
+    alias(libs.plugins.detektGradlePlugin)
+
+    id("datadogBuildConfig")
 }
 
 android {
@@ -58,6 +61,10 @@ android {
             merges += "META-INF/LICENSE-notice.md"
         }
     }
+}
+
+datadogBuildConfig {
+    applyDetektConfig()
 }
 
 tasks.withType<KotlinCompile>().configureEach {

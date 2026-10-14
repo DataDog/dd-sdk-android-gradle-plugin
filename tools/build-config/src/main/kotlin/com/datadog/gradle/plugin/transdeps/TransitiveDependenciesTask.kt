@@ -76,9 +76,7 @@ abstract class TransitiveDependenciesTask : DefaultTask() {
         val runtimeCoordinates = runtimeArtifacts.map { it.coordinates }.toSet()
         // a module can contribute several jars (e.g. Gradle variants), so dedupe by coordinates
         // compile-only artifacts are not shipped, so they don't add to the size
-        val compileOnlyArtifacts = compileClasspathCoordinates.get()
-            .distinct()
-            .filter { it !in runtimeCoordinates }
+        val compileOnlyArtifacts = (compileClasspathCoordinates.get().toSet() - runtimeCoordinates)
             .map { Artifact(it, 0L, isCompileOnly = true) }
         val artifacts = runtimeArtifacts + compileOnlyArtifacts
 

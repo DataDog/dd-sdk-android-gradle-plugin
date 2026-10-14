@@ -4,9 +4,35 @@
  * Copyright 2020-Present Datadog, Inc.
  */
 
+import dev.detekt.gradle.Detekt
+
 plugins {
     `kotlin-dsl`
     alias(libs.plugins.ktlintGradlePlugin)
+    alias(libs.plugins.detektGradlePlugin)
+}
+
+detekt {
+    config.setFrom(file("../../detekt.yml"))
+    basePath = layout.projectDirectory.dir("../..")
+}
+
+tasks.withType<Detekt>().configureEach {
+    val buildDirectory = layout.buildDirectory
+    exclude { it.file.startsWith(buildDirectory.get().asFile) }
+    reports {
+        sarif.required = false
+        html.required = false
+        checkstyle.required = false
+        markdown.required = false
+    }
+}
+
+// Mirrors `applyDetektConfig`, which can't be used in the build script of this build:
+// sources are only analyzed with type resolution, so the plain task is just an umbrella
+tasks.named<Detekt>("detekt") {
+    enabled = false
+    dependsOn(tasks.named { it in setOf("detektMain", "detektTest") })
 }
 
 ktlint {
@@ -44,6 +70,7 @@ dependencies {
     // Dependencies used to configure the Gradle plugins
     compileOnly(libs.kotlinGradlePluginApi)
     compileOnly(libs.ktlintGradlePlugin)
+    compileOnly(libs.detektGradlePlugin)
     compileOnly(libs.dokkaGradlePlugin)
     compileOnly(libs.mavenPublishPlugin)
 

@@ -16,6 +16,10 @@ plugins {
     // you don't need this in your project, it is just to be able to reference AndroidConfig class
     id("noopBuildConfigClasspath") apply false
 
+    // Analysis tools
+    alias(libs.plugins.detektGradlePlugin)
+    id("datadogBuildConfig")
+
     // id("com.datadoghq.dd-sdk-android-gradle-plugin")
 }
 
@@ -47,6 +51,10 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+}
+
+datadogBuildConfig {
+    applyDetektConfig()
 }
 
 kotlin {

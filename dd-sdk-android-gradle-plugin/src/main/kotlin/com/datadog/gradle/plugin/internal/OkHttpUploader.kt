@@ -353,7 +353,7 @@ internal class OkHttpUploader : Uploader {
             "Unable to upload mapping file for %s because mapping file is too" +
                 " large; please refer to documentation regarding the limits"
 
-        internal val successfulCodes = arrayOf(
+        internal val successfulCodes = intArrayOf(
             HttpURLConnection.HTTP_OK,
             HttpURLConnection.HTTP_CREATED,
             HttpURLConnection.HTTP_ACCEPTED

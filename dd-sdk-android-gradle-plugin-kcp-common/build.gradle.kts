@@ -23,6 +23,7 @@ plugins {
 
     // Analysis tools
     id("ktlint")
+    alias(libs.plugins.detektGradlePlugin)
 
     // Internal Generation
     id("transitiveDependencies")
@@ -65,4 +66,5 @@ datadogBuildConfig {
     )
     applyJunitConfig()
     applyPublishingConfig("Common module for Datadog Kotlin Compiler Plugin")
+    applyDetektConfig()
 }
