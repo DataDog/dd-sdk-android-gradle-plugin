@@ -25,10 +25,12 @@ internal class DdExtensionConfigurationForgeryFactory : ForgeryFactory<DdExtensi
             mappingFilePath = forge.aStringMatching(
                 "([a-z]+)/([a-z]+)/([a-z]+)/mapping.txt"
             )
+            @Suppress("DEPRECATION")
             mappingFilePackageAliases = forge.aMap {
                 forge.aStringMatching("[a-z]{3}(\\.[a-z]{5,10}){2,4}") to
                     forge.anAlphabeticalString()
             }
+            @Suppress("DEPRECATION")
             mappingFileTrimIndents = forge.aBool()
             ignoreDatadogCiFileConfig = forge.aBool()
         }

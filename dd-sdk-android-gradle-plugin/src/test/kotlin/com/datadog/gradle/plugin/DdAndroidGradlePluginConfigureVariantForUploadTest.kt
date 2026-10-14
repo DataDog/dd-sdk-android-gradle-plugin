@@ -72,6 +72,7 @@ internal class DdAndroidGradlePluginConfigureVariantForUploadTest : DdAndroidGra
         assertThat(task.remoteRepositoryUrl.get()).isEqualTo(fakeExtension.remoteRepositoryUrl)
         assertThat(task.mappingFile.get().asFile)
             .isEqualTo(File(fakeProject.projectDir, checkNotNull(fakeExtension.mappingFilePath)))
+        @Suppress("DEPRECATION")
         assertThat(task.mappingFilePackagesAliases)
             .isEqualTo(fakeExtension.mappingFilePackageAliases)
         assertThat(task.buildIdFile.get().asFile).isEqualTo(expectedBuildIdFile(variantName))
@@ -119,8 +120,10 @@ internal class DdAndroidGradlePluginConfigureVariantForUploadTest : DdAndroidGra
         assertThat(task.remoteRepositoryUrl.get()).isEqualTo(fakeExtension.remoteRepositoryUrl)
         assertThat(task.mappingFile.get().asFile)
             .isEqualTo(File(fakeProject.projectDir, checkNotNull(fakeExtension.mappingFilePath)))
+        @Suppress("DEPRECATION")
         assertThat(task.mappingFilePackagesAliases)
             .isEqualTo(fakeExtension.mappingFilePackageAliases)
+        @Suppress("DEPRECATION")
         assertThat(task.mappingFileTrimIndents)
             .isEqualTo(fakeExtension.mappingFileTrimIndents)
         assertThat(task.buildIdFile.get().asFile).isEqualTo(expectedBuildIdFile(variantName))
@@ -150,6 +153,7 @@ internal class DdAndroidGradlePluginConfigureVariantForUploadTest : DdAndroidGra
             packageName.substring(0, forge.anInt(min = 1, max = packageName.length + 1)) to
                 forge.anAlphabeticalString()
 
+        @Suppress("DEPRECATION")
         fakeExtension.mappingFilePackageAliases = mutableMapOf<String, String>().apply {
             putAll(fakeExtension.mappingFilePackageAliases)
             plus(aliasToFilterOut)
@@ -178,8 +182,10 @@ internal class DdAndroidGradlePluginConfigureVariantForUploadTest : DdAndroidGra
         assertThat(task.remoteRepositoryUrl.get()).isEqualTo(fakeExtension.remoteRepositoryUrl)
         assertThat(task.mappingFile.get().asFile)
             .isEqualTo(File(fakeProject.projectDir, checkNotNull(fakeExtension.mappingFilePath)))
+        @Suppress("DEPRECATION")
         assertThat(task.mappingFilePackagesAliases)
             .isEqualTo(fakeExtension.mappingFilePackageAliases.minus(aliasToFilterOut.first))
+        @Suppress("DEPRECATION")
         assertThat(task.mappingFileTrimIndents)
             .isEqualTo(fakeExtension.mappingFileTrimIndents)
         assertThat(task.buildIdFile.get().asFile).isEqualTo(expectedBuildIdFile(variantName))
@@ -199,7 +205,9 @@ internal class DdAndroidGradlePluginConfigureVariantForUploadTest : DdAndroidGra
         fakeExtension.site = null
         fakeExtension.remoteRepositoryUrl = null
         fakeExtension.mappingFilePath = null
+        @Suppress("DEPRECATION")
         fakeExtension.mappingFilePackageAliases = emptyMap()
+        @Suppress("DEPRECATION")
         fakeExtension.mappingFileTrimIndents = false
         val variantName = "$flavorName${buildTypeName.replaceFirstChar { capitalizeChar(it) }}"
         val fakeMappingFilePath = "${fakeProject.buildDir}/outputs/mapping/$variantName/mapping.txt"
@@ -254,7 +262,9 @@ internal class DdAndroidGradlePluginConfigureVariantForUploadTest : DdAndroidGra
         fakeExtension.site = null
         fakeExtension.remoteRepositoryUrl = null
         fakeExtension.mappingFilePath = null
+        @Suppress("DEPRECATION")
         fakeExtension.mappingFilePackageAliases = emptyMap()
+        @Suppress("DEPRECATION")
         fakeExtension.mappingFileTrimIndents = false
         fakeExtension.ignoreDatadogCiFileConfig = true
         val variantName = "$flavorName${buildTypeName.replaceFirstChar { capitalizeChar(it) }}"
@@ -471,8 +481,10 @@ internal class DdAndroidGradlePluginConfigureVariantForUploadTest : DdAndroidGra
         assertThat(task.remoteRepositoryUrl.get()).isEqualTo(fakeExtension.remoteRepositoryUrl)
         assertThat(task.mappingFile.get().asFile)
             .isEqualTo(File(fakeProject.projectDir, checkNotNull(fakeExtension.mappingFilePath)))
+        @Suppress("DEPRECATION")
         assertThat(task.mappingFilePackagesAliases)
             .isEqualTo(fakeExtension.mappingFilePackageAliases)
+        @Suppress("DEPRECATION")
         assertThat(task.mappingFileTrimIndents)
             .isEqualTo(fakeExtension.mappingFileTrimIndents)
         assertThat(task.buildIdFile.get().asFile).isEqualTo(expectedBuildIdFile(variantName))
