@@ -22,6 +22,7 @@ import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
+import okhttp3.mockwebserver.SocketPolicy
 import okio.Buffer
 import okio.BufferedSource
 import okio.GzipSource
@@ -427,6 +428,37 @@ internal class OkHttpUploaderTest {
                 fakeRepositoryFileContent,
                 "application/json"
             )
+    }
+
+    @Test
+    fun `M throw exception with status code W upload() {response 500-599, body read fails}`(
+        @IntForgery(500, 600) statusCode: Int,
+        @StringForgery(size = 1024) fakeBody: String
+    ) {
+        // Given
+        mockUploadResponse = MockResponse()
+            .setResponseCode(statusCode)
+            .setBody(fakeBody)
+            .setSocketPolicy(SocketPolicy.DISCONNECT_DURING_RESPONSE_BODY)
+
+        // When
+        val exception = assertThrows<IllegalStateException> {
+            testedUploader.upload(
+                mockSite,
+                fakeMappingFileInfo,
+                fakeRepositoryFile,
+                fakeApiKey,
+                fakeIdentifier,
+                fakeRepositoryInfo,
+                useGzip = true,
+                emulateNetworkCall = false
+            )
+        }
+
+        // Then
+        assertThat(exception.message)
+            .contains(fakeIdentifier.toString())
+            .contains("($statusCode)")
     }
 
     @Test

@@ -19,6 +19,7 @@ import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import okhttp3.ResponseBody.Companion.toResponseBody
 import okio.Buffer
 import okio.BufferedSink
 import okio.ForwardingSink
@@ -91,6 +92,7 @@ internal class OkHttpUploader : Uploader {
                     .protocol(Protocol.HTTP_2)
                     .message("fake-response")
                     .code(HttpURLConnection.HTTP_ACCEPTED)
+                    .body("".toResponseBody())
                     .build()
             } else {
                 client.newCall(request).execute()
@@ -100,7 +102,10 @@ internal class OkHttpUploader : Uploader {
             null
         }
 
-        handleResponse(response, site, apiKey, identifier)
+        // close the body (not the response itself: it throws when there is no body) on every path
+        response?.body.use {
+            handleResponse(response, site, apiKey, identifier)
+        }
     }
 
     // endregion
@@ -213,20 +218,29 @@ internal class OkHttpUploader : Uploader {
                     MAX_MAP_SIZE_EXCEEDED_ERROR.format(Locale.US, identifier)
                 )
             statusCode >= HttpURLConnection.HTTP_BAD_REQUEST -> {
+                // read (and so release) the body before the API key check makes another call
+                val errorBody = readErrorBody(response)
                 if (statusCode == HttpURLConnection.HTTP_BAD_REQUEST &&
                     validateApiKey(site, apiKey) == false
                 ) {
                     throw InvalidApiKeyException(identifier, site)
                 }
-                response.body.use {
-                    throw IllegalStateException(
-                        "Unable to upload mapping file with tags $identifier ($statusCode);\n" +
-                            "${it?.string()}"
-                    )
-                }
+                error(
+                    "Unable to upload mapping file with tags $identifier ($statusCode);\n" +
+                        "$errorBody"
+                )
             }
         }
-        response.body?.close()
+    }
+
+    // the body is read lazily from the network, so a failure there shouldn't hide the upload error
+    private fun readErrorBody(response: Response): String? {
+        return try {
+            response.body?.string()
+        } catch (e: IOException) {
+            LOGGER.warn("Unable to read the upload error response body", e)
+            null
+        }
     }
 
     private fun validateApiKey(site: DatadogSite, apiKey: String): Boolean? {
@@ -243,23 +257,21 @@ internal class OkHttpUploader : Uploader {
             null
         } ?: return null
 
-        return when (response.code) {
-            HttpURLConnection.HTTP_OK -> {
-                val body = response.body?.string()
-                if (body != null) {
-                    try {
-                        val json = JSONObject(JSONTokener(body))
-                        json.getBoolean("valid")
-                    } catch (jse: JSONException) {
-                        LOGGER.error("Unexpected format of API key validity check response", jse)
-                        null
-                    }
-                } else {
-                    null
-                }
+        return response.body.use { responseBody ->
+            when (response.code) {
+                HttpURLConnection.HTTP_OK -> responseBody?.string()?.let { parseApiKeyValidity(it) }
+                HttpURLConnection.HTTP_FORBIDDEN -> false
+                else -> null
             }
-            HttpURLConnection.HTTP_FORBIDDEN -> false
-            else -> null
+        }
+    }
+
+    private fun parseApiKeyValidity(body: String): Boolean? {
+        return try {
+            JSONObject(JSONTokener(body)).getBoolean("valid")
+        } catch (jse: JSONException) {
+            LOGGER.error("Unexpected format of API key validity check response", jse)
+            null
         }
     }
 
