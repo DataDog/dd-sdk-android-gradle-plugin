@@ -8,7 +8,6 @@ package com.datadog.gradle.plugin
 
 import com.datadog.gradle.plugin.internal.MissingSdkException
 import com.datadog.gradle.plugin.utils.forge.Configurator
-import com.datadog.gradle.plugin.utils.setStaticValue
 import fr.xgouchet.elmyr.Forge
 import fr.xgouchet.elmyr.ForgeryException
 import fr.xgouchet.elmyr.annotation.StringForgery
@@ -22,8 +21,8 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.ResolvedDependency
+import org.gradle.api.logging.Logger
 import org.gradle.testfixtures.ProjectBuilder
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -41,7 +40,6 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
-import org.slf4j.Logger
 import java.io.EOFException
 import java.io.File
 import java.io.FileNotFoundException
@@ -75,8 +73,6 @@ internal class CheckSdkDepsTaskTest {
     @Mock
     lateinit var mockLogger: Logger
 
-    lateinit var originalLogger: Logger
-
     @Mock
     lateinit var mockResolvedConfiguration: ResolvedConfiguration
 
@@ -87,9 +83,6 @@ internal class CheckSdkDepsTaskTest {
 
     @BeforeEach
     fun `set up`(forge: Forge) {
-        originalLogger = CheckSdkDepsTask.LOGGER
-        CheckSdkDepsTask::class.java.setStaticValue("LOGGER", mockLogger)
-
         whenever(mockConfiguration.name).thenReturn(fakeConfigurationName)
         whenever(mockConfiguration.resolvedConfiguration).thenReturn(mockResolvedConfiguration)
         whenever(mockResolvedConfiguration.firstLevelModuleDependencies).thenReturn(emptySet())
@@ -112,14 +105,10 @@ internal class CheckSdkDepsTaskTest {
         // need to mock project, because otherwise we cannot mock configurations
         val mockProject = mock<Project>()
         whenever(testedTask.project) doReturn mockProject
+        whenever(testedTask.logger) doReturn mockLogger
         val fakeConfigurations = mutableListOf(mockConfiguration)
         whenever(mockConfigurationContainer.iterator()) doReturn fakeConfigurations.iterator()
         whenever(mockProject.configurations) doReturn mockConfigurationContainer
-    }
-
-    @AfterEach
-    fun `tear down`() {
-        CheckSdkDepsTask::class.java.setStaticValue("LOGGER", originalLogger)
     }
 
     // region taskAction

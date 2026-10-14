@@ -37,7 +37,7 @@ tasks.named<Detekt>("detekt") {
 
 kotlin {
     // Must be kept in sync with JDK_VERSION in com.datadog.gradle.config.KotlinConfig.
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
 
 ktlint {

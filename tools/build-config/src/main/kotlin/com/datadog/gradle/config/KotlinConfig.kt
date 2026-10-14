@@ -18,12 +18,12 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinJvmExtension
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 // Must be kept in sync with the JDK installed in ci/Dockerfile.gitlab,
-// with gradle/gradle-daemon-jvm.properties, with tools/build-config/build.gradle.kts,
-// with samples/variants/build.gradle and with .github/workflows/codeql-analysis.yml.
-internal const val JDK_VERSION = 17
+// with gradle/gradle-daemon-jvm.properties, with tools/build-config/build.gradle.kts
+// and with .github/workflows/codeql-analysis.yml.
+private const val JDK_VERSION = 21
 
 // Bytecode version of the published artifacts, independent of the JDK used to build them.
-internal const val JAVA_RELEASE = 17
+private const val JAVA_RELEASE = 17
 
 internal fun Project.kotlinConfig(
     languageVersion: KotlinVersion,
