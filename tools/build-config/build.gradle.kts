@@ -35,6 +35,11 @@ tasks.named<Detekt>("detekt") {
     dependsOn(tasks.named { it in setOf("detektMain", "detektTest") })
 }
 
+kotlin {
+    // Must be kept in sync with JDK_VERSION in com.datadog.gradle.config.KotlinConfig.
+    jvmToolchain(21)
+}
+
 ktlint {
     version = provider { libs.versions.ktlint.get() }
     filter {

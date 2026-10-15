@@ -45,10 +45,6 @@ dependencies {
     testImplementation(libs.kotlinReflect24)
 }
 
-java {
-    targetCompatibility = JavaVersion.VERSION_17
-}
-
 datadogBuildConfig {
     // Use 2.3, because KGP plugin is 2.3; 2.4 language/api version is marked as experimental there.
     // Needs to be updated when KGP version moves forward.

@@ -9,7 +9,7 @@ RUN ln -sf /usr/share/zoneinfo/Etc/UTC /etc/localtime
 
 RUN set -x \
  && apt-get update \
- && apt-get install -y openjdk-17-jdk \
+ && apt-get install -y openjdk-17-jdk openjdk-21-jdk \
  && apt-get install -y --no-install-recommends \
     curl \
     git \
@@ -23,7 +23,7 @@ ENV ANDROID_COMPILE_SDK=36 \
     ANDROID_SDK_TOOLS=13114758 \
     CMAKE_VERSION=3.22.1 \
     NDK_VERSION=28.2.13676358
-ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-${TARGETARCH}
+ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk-${TARGETARCH}
 
 RUN python3 --version \
  && python3 -m pip install --no-cache-dir awscli \

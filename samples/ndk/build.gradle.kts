@@ -7,7 +7,6 @@
 @file:Suppress("StringLiteralDuplication")
 
 import com.datadog.gradle.config.AndroidConfig
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.application")
@@ -69,13 +68,8 @@ android {
 }
 
 datadogBuildConfig {
+    applyKotlinConfig()
     applyDetektConfig()
-}
-
-kotlin {
-    compilerOptions {
-        jvmTarget = JvmTarget.JVM_17
-    }
 }
 
 dependencies {

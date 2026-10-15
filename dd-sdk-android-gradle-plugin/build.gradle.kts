@@ -84,10 +84,15 @@ gradlePlugin {
     }
 }
 
-java {
-    targetCompatibility = JavaVersion.VERSION_17
-}
-
 tasks.withType<Test> {
     dependsOn("pluginUnderTestMetadata")
+    // Some Gradle versions used in functional tests (e.g. 8.0) cannot run on the toolchain JDK
+    @Suppress("MagicNumber")
+    val jdk17Launcher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(17) }
+    jvmArgumentProviders.add(
+        CommandLineArgumentProvider {
+            val jdk17Home = jdk17Launcher.get().metadata.installationPath.asFile.invariantSeparatorsPath
+            listOf("-Ddd.jdk17.home=$jdk17Home")
+        }
+    )
 }

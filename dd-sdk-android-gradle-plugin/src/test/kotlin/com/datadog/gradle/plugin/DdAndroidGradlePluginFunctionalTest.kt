@@ -1702,6 +1702,9 @@ internal class DdAndroidGradlePluginFunctionalTest {
                 buildVersionConfig.jvmTarget
             )
         )
+        buildVersionConfig.javaHome?.let {
+            gradlePropertiesFile.appendText("\norg.gradle.java.home=$it\n")
+        }
     }
 
     private fun gradleRunner(
@@ -1763,7 +1766,9 @@ internal class DdAndroidGradlePluginFunctionalTest {
             val buildToolsVersion: String,
             val targetSdkVersion: String,
             val kotlinVersion: String,
-            val jvmTarget: String
+            val jvmTarget: String,
+            // JDK used to run the Gradle build, null means the default JDK running the tests
+            val javaHome: String? = null
         )
 
         private const val NDK_SYMBOL_FILE_UPLOAD_LOG_PREFIX = "Uploading ndk_symbol_file file: "
@@ -1914,7 +1919,9 @@ internal class DdAndroidGradlePluginFunctionalTest {
                 buildToolsVersion = "31.0.0",
                 targetSdkVersion = "31",
                 kotlinVersion = "1.7.20",
-                jvmTarget = JavaVersion.VERSION_17.toString()
+                jvmTarget = JavaVersion.VERSION_17.toString(),
+                // Gradle 8.0 cannot run on JDK 21+
+                javaHome = System.getProperty("dd.jdk17.home")
             ),
             LATEST_VERSIONS_TEST_CONFIGURATION
         )

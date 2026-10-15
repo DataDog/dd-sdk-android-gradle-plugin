@@ -20,9 +20,10 @@ abstract class BuildConfigExtension @Inject constructor(
 ) {
 
     fun applyKotlinConfig(
-        languageVersion: KotlinVersion,
-        apiVersion: KotlinVersion,
-        coreLibrariesVersion: String
+        languageVersion: KotlinVersion = KotlinVersion.KOTLIN_2_3,
+        apiVersion: KotlinVersion = KotlinVersion.KOTLIN_2_3,
+        // will follow default set by plugin
+        coreLibrariesVersion: String? = null
     ) {
         project.kotlinConfig(languageVersion, apiVersion, coreLibrariesVersion)
     }

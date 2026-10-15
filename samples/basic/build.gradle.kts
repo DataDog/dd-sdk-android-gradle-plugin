@@ -5,7 +5,6 @@
  */
 
 import com.datadog.gradle.config.AndroidConfig
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.application")
@@ -13,11 +12,10 @@ plugins {
     // when it is applied after the Kotlin plugin.
     id("ktlint")
     kotlin("android")
-    // you don't need this in your project, it is just to be able to reference AndroidConfig class
-    id("noopBuildConfigClasspath") apply false
 
     // Analysis tools
     alias(libs.plugins.detektGradlePlugin)
+
     id("datadogBuildConfig")
 
     // id("com.datadoghq.dd-sdk-android-gradle-plugin")
@@ -54,13 +52,8 @@ android {
 }
 
 datadogBuildConfig {
+    applyKotlinConfig()
     applyDetektConfig()
-}
-
-kotlin {
-    compilerOptions {
-        jvmTarget = JvmTarget.JVM_17
-    }
 }
 
 dependencies {

@@ -5,7 +5,6 @@
  */
 
 import com.datadog.gradle.config.AndroidConfig
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -64,12 +63,12 @@ android {
 }
 
 datadogBuildConfig {
+    applyKotlinConfig()
     applyDetektConfig()
 }
 
 tasks.withType<KotlinCompile>().configureEach {
     compilerOptions {
-        jvmTarget = JvmTarget.JVM_17
         freeCompilerArgs.addAll(
             listOf(
                 "-P",
