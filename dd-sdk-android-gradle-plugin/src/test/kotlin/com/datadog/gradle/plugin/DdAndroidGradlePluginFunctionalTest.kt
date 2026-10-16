@@ -627,7 +627,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         // since there is no explicit dependency between assemble and upload tasks, Gradle may
         // optimize the execution and run them in parallel, ignoring the order in the command
         // line, so we do the explicit split
-        gradleRunner { withArguments("--info", ":samples:app:assembleRelease") }
+        gradleRunner { withArguments("--info", resolveAssembleTask(variant)) }
             .build()
 
         val result = gradleRunner {
@@ -688,7 +688,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         // since there is no explicit dependency between assemble and upload tasks, Gradle may
         // optimize the execution and run them in parallel, ignoring the order in the command
         // line, so we do the explicit split
-        gradleRunner { withArguments("--info", ":samples:app:assembleRelease") }
+        gradleRunner { withArguments("--info", resolveAssembleTask(variant)) }
             .build()
 
         val result = gradleRunner {
@@ -752,7 +752,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         // since there is no explicit dependency between assemble and upload tasks, Gradle may
         // optimize the execution and run them in parallel, ignoring the order in the command
         // line, so we do the explicit split
-        gradleRunner { withArguments("--info", ":samples:app:assembleRelease") }
+        gradleRunner { withArguments("--info", resolveAssembleTask(variant)) }
             .build()
 
         val result = gradleRunner {
@@ -788,7 +788,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         // since there is no explicit dependency between assemble and upload tasks, Gradle may
         // optimize the execution and run them in parallel, ignoring the order in the command
         // line, so we do the explicit split
-        gradleRunner { withArguments("--info", ":samples:app:assembleRelease") }
+        gradleRunner { withArguments("--info", resolveAssembleTask(variant)) }
             .build()
 
         val result = gradleRunner {
@@ -833,7 +833,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         // since there is no explicit dependency between assemble and upload tasks, Gradle may
         // optimize the execution and run them in parallel, ignoring the order in the command
         // line, so we do the explicit split
-        gradleRunner { withArguments("--info", ":samples:app:assembleRelease") }
+        gradleRunner { withArguments("--info", resolveAssembleTask(variant)) }
             .build()
 
         val result = gradleRunner { withArguments(taskName, "--info", "-Pdd-emulate-upload-call") }
@@ -884,7 +884,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         val taskName = resolveMappingUploadTask(variant)
 
         // When
-        gradleRunner { withArguments("--info", ":samples:app:assembleRelease") }
+        gradleRunner { withArguments("--info", resolveAssembleTask(variant)) }
             .build()
 
         val result = gradleRunner {
@@ -940,7 +940,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         val taskName = resolveMappingUploadTask(variant)
 
         // When
-        gradleRunner { withArguments("--info", ":samples:app:assembleRelease") }
+        gradleRunner { withArguments("--info", resolveAssembleTask(variant)) }
             .build()
 
         val result = gradleRunner {
@@ -1005,7 +1005,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         val taskName = resolveMappingUploadTask(variant)
 
         // When
-        gradleRunner { withArguments("--info", ":samples:app:assembleRelease") }
+        gradleRunner { withArguments("--info", resolveAssembleTask(variant)) }
             .build()
 
         val result = gradleRunner {
@@ -1247,7 +1247,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         // since there is no explicit dependency between assemble and upload tasks, Gradle may
         // optimize the execution and run them in parallel, ignoring the order in the command
         // line, so we do the explicit split
-        gradleRunner { withArguments("--info", ":samples:app:assembleRelease") }
+        gradleRunner { withArguments("--info", resolveAssembleTask(variant)) }
             .build()
 
         val result = gradleRunner {
@@ -1305,7 +1305,14 @@ internal class DdAndroidGradlePluginFunctionalTest {
         )
 
         stubNativeFiles()
-        gradleRunner { withArguments("--info", ":samples:app:assembleRelease") }
+
+        val color = forge.anElementFrom(colors)
+        val version = forge.anElementFrom(versions)
+        val variant = "${version.lowercase()}$color"
+        val variantVersionName = version.lowercase()
+        val taskName = resolveNdkSymbolUploadTask(variant)
+
+        gradleRunner { withArguments("--info", resolveAssembleTask(variant)) }
             .build()
 
         val arch = forge.anElementFrom(NdkSymbolFileUploadTask.SUPPORTED_ARCHS).arch
@@ -1313,12 +1320,6 @@ internal class DdAndroidGradlePluginFunctionalTest {
         val customSoFile = File(customNdkDir, "libexpected.so")
         // Stubbing custom .so file that not present inside default build directories
         stubFile(customSoFile, "some_content")
-
-        val color = forge.anElementFrom(colors)
-        val version = forge.anElementFrom(versions)
-        val variant = "${version.lowercase()}$color"
-        val variantVersionName = version.lowercase()
-        val taskName = resolveNdkSymbolUploadTask(variant)
 
         val result = gradleRunner {
             withArguments(
@@ -1367,7 +1368,14 @@ internal class DdAndroidGradlePluginFunctionalTest {
         )
 
         stubNativeFiles()
-        gradleRunner { withArguments("--info", ":samples:app:assembleRelease") }
+
+        val color = forge.anElementFrom(colors)
+        val version = forge.anElementFrom(versions)
+        val variant = "${version.lowercase()}$color"
+        val variantVersionName = version.lowercase()
+        val taskName = resolveNdkSymbolUploadTask(variant)
+
+        gradleRunner { withArguments("--info", resolveAssembleTask(variant)) }
             .build()
 
         val arch = forge.anElementFrom(NdkSymbolFileUploadTask.SUPPORTED_ARCHS).arch
@@ -1375,12 +1383,6 @@ internal class DdAndroidGradlePluginFunctionalTest {
         val customSoFile = File(customNdkDir, "libexpected.so")
         // Stubbing custom .so file that not present inside default build directories
         stubFile(customSoFile, "some_content")
-
-        val color = forge.anElementFrom(colors)
-        val version = forge.anElementFrom(versions)
-        val variant = "${version.lowercase()}$color"
-        val variantVersionName = version.lowercase()
-        val taskName = resolveNdkSymbolUploadTask(variant)
 
         val result = gradleRunner {
             withArguments(
@@ -1423,7 +1425,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         val variant = "${version.lowercase()}$color"
         val taskName = resolveNdkSymbolUploadTask(variant)
 
-        gradleRunner { withArguments("--info", ":samples:app:assembleRelease") }
+        gradleRunner { withArguments("--info", resolveAssembleTask(variant)) }
             .build()
 
         val result = gradleRunner {
@@ -1517,7 +1519,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         val variant = "${version.lowercase()}$color"
         val taskName = resolveNdkSymbolUploadTask(variant)
 
-        gradleRunner { withArguments("--info", ":samples:app:assembleRelease") }
+        gradleRunner { withArguments("--info", resolveAssembleTask(variant)) }
             .build()
 
         val result = gradleRunner {
@@ -1571,7 +1573,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
         val mappingUploadTaskName = resolveMappingUploadTask(variant)
 
         // When
-        gradleRunner { withArguments("--info", ":samples:app:assembleRelease") }
+        gradleRunner { withArguments("--info", resolveAssembleTask(variant)) }
             .build()
 
         val nativeResult = gradleRunner {
@@ -1631,6 +1633,10 @@ internal class DdAndroidGradlePluginFunctionalTest {
     }
 
     // region Internal
+
+    private fun resolveAssembleTask(
+        variantName: String
+    ) = ":samples:app:assemble${variantName.replaceFirstChar { capitalizeChar(it) }}Release"
 
     private fun resolveMappingUploadTask(
         variantName: String
