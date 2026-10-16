@@ -11,6 +11,7 @@ import com.datadog.gradle.plugin.internal.ApiKeySource
 import com.datadog.gradle.plugin.internal.DdAppIdentifier
 import com.datadog.gradle.plugin.internal.Uploader
 import com.datadog.gradle.plugin.internal.variant.AppVariant
+import com.datadog.gradle.plugin.utils.ElfFileBuilder
 import com.datadog.gradle.plugin.utils.forge.Configurator
 import fr.xgouchet.elmyr.Forge
 import fr.xgouchet.elmyr.annotation.Forgery
@@ -36,6 +37,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
+import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
 import java.io.File
@@ -442,6 +444,63 @@ internal class NdkSymbolFileUploadTaskTest {
     }
 
     @Test
+    fun `M upload only libraries with symbols W applyTask() { some libraries are stripped }`() {
+        // Given
+        whenever(mockRepositoryDetector.detectRepositories(any(), eq("")))
+            .doReturn(emptyList())
+        val unstrippedSoFile = writeFakeSoFile(
+            "arm64-v8a",
+            ElfFileBuilder.build(ElfFileBuilder.UNSTRIPPED_SECTIONS),
+            "libunstripped.so"
+        )
+        writeFakeSoFile("arm64-v8a", ElfFileBuilder.build(ElfFileBuilder.STRIPPED_SECTIONS), "libstripped.so")
+
+        // When
+        testedTask.applyTask()
+
+        // Then
+        verify(mockUploader).upload(
+            fakeSite,
+            Uploader.UploadFileInfo(
+                fileKey = NdkSymbolFileUploadTask.KEY_NDK_SYMBOL_FILE,
+                file = unstrippedSoFile,
+                encoding = NdkSymbolFileUploadTask.ENCODING,
+                fileType = NdkSymbolFileUploadTask.TYPE_NDK_SYMBOL_FILE,
+                fileName = "libunstripped.so",
+                extraAttributes = mapOf(
+                    "arch" to "arm64"
+                )
+            ),
+            null,
+            fakeApiKey.value,
+            DdAppIdentifier(
+                serviceName = fakeService,
+                version = fakeVersion,
+                versionCode = fakeVersionCode,
+                variant = fakeVariantName,
+                buildId = fakeBuildId
+            ),
+            null,
+            useGzip = true,
+            emulateNetworkCall = false
+        )
+        verifyNoMoreInteractions(mockUploader)
+    }
+
+    @Test
+    fun `M do nothing W applyTask() { all libraries are stripped }`() {
+        // Given
+        writeFakeSoFile("arm64-v8a", ElfFileBuilder.build(ElfFileBuilder.STRIPPED_SECTIONS))
+        writeFakeSoFile("x86", ElfFileBuilder.build(ElfFileBuilder.STRIPPED_SECTIONS))
+
+        // When
+        testedTask.applyTask()
+
+        // Then
+        verifyNoInteractions(mockUploader)
+    }
+
+    @Test
     fun `M do nothing W applyTask() {no mapping file}`() {
         // Given
 
@@ -452,12 +511,16 @@ internal class NdkSymbolFileUploadTaskTest {
         verifyNoInteractions(mockUploader)
     }
 
-    private fun writeFakeSoFile(arch: String): File {
+    private fun writeFakeSoFile(
+        arch: String,
+        content: ByteArray = "fake".toByteArray(),
+        fileName: String = "libfake.so"
+    ): File {
         val soTempDir = File(tempDir, "fakeSos/$arch")
-        val fakeSoFile = File(soTempDir, "libfake.so")
+        val fakeSoFile = File(soTempDir, fileName)
 
         fakeSoFile.parentFile.mkdirs()
-        fakeSoFile.writeText("fake")
+        fakeSoFile.writeBytes(content)
 
         return fakeSoFile
     }

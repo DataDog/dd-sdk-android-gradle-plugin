@@ -6,7 +6,9 @@
 
 package com.datadog.gradle.plugin
 
+import com.datadog.gradle.plugin.internal.ElfSymbolsDetector
 import com.datadog.gradle.plugin.internal.utils.capitalizeChar
+import com.datadog.gradle.plugin.utils.ElfFileBuilder
 import com.datadog.gradle.plugin.utils.assertj.BuildResultAssert.Companion.assertThat
 import com.datadog.gradle.plugin.utils.forge.Configurator
 import com.datadog.gradle.plugin.utils.headHash
@@ -1496,13 +1498,70 @@ internal class DdAndroidGradlePluginFunctionalTest {
         val uploadedFilesPerTask = uploadedNdkSymbolFilesPerTask(result.output)
         assertThat(uploadedFilesPerTask.keys).containsExactlyInAnyOrderElementsOf(uploadTaskNames)
         uploadedFilesPerTask.forEach { (taskName, uploadedFiles) ->
+            val variantName = taskName.removePrefix("uploadNdkSymbolFiles").replaceFirstChar { it.lowercase() }
             assertThat(uploadedFiles)
                 .describedAs("files uploaded by $taskName")
                 .hasSize(SUPPORTED_ABIS.size)
-                .allMatch { it.contains("/RelWithDebInfo/") && it.endsWith("/libplaceholder.so") }
+                .allMatch { it.contains("/merged_native_libs/$variantName/") && it.endsWith("/libplaceholder.so") }
         }
     }
 
+    @Test
+    fun `M upload all the packaged native libraries with symbols W upload symbol file`(forge: Forge) {
+        // Given
+        // new Variant API is only used starting from AGP 8.4
+        buildVersionConfig = LATEST_VERSIONS_TEST_CONFIGURATION
+        stubGradlePropertiesFile(buildVersionConfig)
+        stubGradleBuildFromResourceFile(
+            "lib_module_build.gradle",
+            libModuleBuildGradleFile,
+            overwrite = true
+        )
+        stubGradleBuildFromResourceFile(
+            "native_gradle_files/build_with_native_and_prebuilt_libs.gradle",
+            appBuildGradleFile
+        )
+        stubNativeFiles()
+        val prebuiltLibsDir = File(appMainSrcDir, "jniLibs/arm64-v8a").apply { mkdirs() }
+        File(prebuiltLibsDir, "libprebuilt.so").writeBytes(ElfFileBuilder.build(ElfFileBuilder.UNSTRIPPED_SECTIONS))
+        File(prebuiltLibsDir, "libstripped.so").writeBytes(ElfFileBuilder.build(ElfFileBuilder.STRIPPED_SECTIONS))
+        File(prebuiltLibsDir, "libexcluded.so").writeBytes(ElfFileBuilder.build(ElfFileBuilder.UNSTRIPPED_SECTIONS))
+
+        val variant = "${forge.anElementFrom(versions).lowercase()}${forge.anElementFrom(colors)}"
+        val taskName = resolveNdkSymbolUploadTask(variant)
+
+        gradleRunner { withArguments(":samples:app:assembleRelease") }
+            .build()
+
+        // When
+        val result = gradleRunner {
+            withArguments(
+                taskName,
+                "--info",
+                "-PDD_API_KEY=fakekey",
+                "-Pdd-emulate-upload-call"
+            )
+        }
+            .build()
+
+        // Then
+        val uploadedFiles = uploadedNdkSymbolFilesPerTask(result.output).getValue(taskName)
+        assertThat(uploadedFiles.map { File(it).name })
+            .containsExactlyInAnyOrderElementsOf(List(SUPPORTED_ABIS.size) { "libplaceholder.so" } + "libprebuilt.so")
+        assertThat(result).containsInOutput("libstripped.so has no symbols, ignoring it.")
+
+        // the libraries built by the app are detected with symbols before AGP strips them, and without after
+        val intermediatesDir = File(appRootDir, "build/intermediates")
+        val builtLibs = intermediatesDir.walkTopDown().filter { it.name == "libplaceholder.so" }.toList()
+        assertThat(builtLibs.filter { it.path.contains("/merged_native_libs/") })
+            .isNotEmpty
+            .allMatch { ElfSymbolsDetector.detect(it) == ElfSymbolsDetector.Result.HAS_SYMBOLS }
+        assertThat(builtLibs.filter { it.path.contains("/stripped_native_libs/") })
+            .isNotEmpty
+            .allMatch { ElfSymbolsDetector.detect(it) == ElfSymbolsDetector.Result.STRIPPED }
+    }
+
+    @Test
     fun `M try to upload the symbol file W upload { using a fake API_KEY, gzip disabled }`(forge: Forge) {
         // Given
         stubGradleBuildFromResourceFile(
@@ -1526,6 +1585,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
                 "--info",
                 "--stacktrace",
                 "-PDD_API_KEY=fakekey",
+                "-Pdd-disable-gzip",
                 "-Pdd-emulate-upload-call"
             )
         }
