@@ -7,6 +7,7 @@
 package com.datadog.gradle.plugin
 
 import com.datadog.gradle.plugin.internal.ApiKey
+import com.datadog.gradle.plugin.internal.ElfSymbolsDetector
 import com.datadog.gradle.plugin.internal.Uploader
 import com.datadog.gradle.plugin.internal.utils.capitalizeChar
 import com.datadog.gradle.plugin.internal.variant.AppVariant
@@ -40,6 +41,7 @@ internal abstract class NdkSymbolFileUploadTask @Inject constructor(
 
     override fun getFilesList(): List<Uploader.UploadFileInfo> {
         val files = mutableListOf<Uploader.UploadFileInfo>()
+        val strippedFiles = mutableListOf<File>()
 
         searchDirectories
             .flatMap(this::findSoFiles)
@@ -57,6 +59,12 @@ internal abstract class NdkSymbolFileUploadTask @Inject constructor(
                     return@forEach
                 }
                 archToFiles.value.forEach {
+                    if (ElfSymbolsDetector.detect(it) == ElfSymbolsDetector.Result.STRIPPED) {
+                        // prebuilt and dependency libraries are often packaged already stripped
+                        logger.info("Native library ${it.absolutePath} has no symbols, ignoring it.")
+                        strippedFiles.add(it)
+                        return@forEach
+                    }
                     files.add(
                         Uploader.UploadFileInfo(
                             KEY_NDK_SYMBOL_FILE,
@@ -71,6 +79,13 @@ internal abstract class NdkSymbolFileUploadTask @Inject constructor(
                     )
                 }
             }
+
+        if (files.isEmpty() && strippedFiles.isNotEmpty()) {
+            logger.warn(
+                "All the native libraries found have no symbols (they are stripped), nothing to upload: " +
+                    strippedFiles.joinToString(", ") { it.absolutePath }
+            )
+        }
 
         return files
     }
