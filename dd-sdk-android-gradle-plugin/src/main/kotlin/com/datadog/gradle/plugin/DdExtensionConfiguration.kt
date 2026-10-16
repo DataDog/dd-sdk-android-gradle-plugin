@@ -53,7 +53,6 @@ open class DdExtensionConfiguration(
      */
     var mappingFilePath: String? = null
 
-    // TODO RUMM-0000 Deprecate and then remove this API once all DCs support large file upload
     /**
      * Short aliases to use for package prefixes. Allows to replace, for example,
      * androidx.appcompat with something shorter, reducing the size of the mapping file. Key is
@@ -73,14 +72,21 @@ open class DdExtensionConfiguration(
      *
      * Warning: DO NOT SET THIS UNLESS YOU ARE OVER THE LIMIT OF THE MAPPING FILE SIZE.
      */
+    @Deprecated(
+        message = "Datadog intake supports large mapping files, so there is no need to reduce" +
+            " the mapping file size anymore. This property will be removed in the future."
+    )
     var mappingFilePackageAliases: Map<String, String> = emptyMap()
 
-    // TODO RUMM-0000 Deprecate and then remove this API once all DCs support large file upload
     /**
      * This property removes indents from each line of the mapping file, reducing its size.
      *
      * Warning: DO NOT SET THIS UNLESS YOU ARE OVER THE LIMIT OF THE MAPPING FILE SIZE.
      */
+    @Deprecated(
+        message = "Datadog intake supports large mapping files, so there is no need to reduce" +
+            " the mapping file size anymore. This property will be removed in the future."
+    )
     var mappingFileTrimIndents: Boolean = false
 
     /**
@@ -126,7 +132,9 @@ open class DdExtensionConfiguration(
         config.checkProjectDependencies?.let { checkProjectDependencies = it }
         config.mappingFilePath?.let { mappingFilePath = it }
         config.additionalSymbolFilesLocations?.let { additionalSymbolFilesLocations = it }
+        @Suppress("DEPRECATION")
         mappingFilePackageAliases = config.mappingFilePackageAliases
+        @Suppress("DEPRECATION")
         mappingFileTrimIndents = config.mappingFileTrimIndents
         ignoreDatadogCiFileConfig = config.ignoreDatadogCiFileConfig
         nonDefaultObfuscation = config.nonDefaultObfuscation

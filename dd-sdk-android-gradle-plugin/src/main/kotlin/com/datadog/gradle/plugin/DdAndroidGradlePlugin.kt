@@ -330,7 +330,9 @@ class DdAndroidGradlePlugin @Inject constructor(
 
                 uploadTask.buildIdFile.set(GenerateBuildIdTask.buildIdFile(target, variant.name))
                 uploadTask.mustRunAfter(buildIdGenerationTask)
+                @Suppress("DEPRECATION")
                 uploadTask.mappingFilePackagesAliases = extensionConfiguration.mappingFilePackageAliases
+                @Suppress("DEPRECATION")
                 uploadTask.mappingFileTrimIndents = extensionConfiguration.mappingFileTrimIndents
 
                 uploadTask.repositoryFile.set(TaskUtils.resolveDatadogRepositoryFile(target))
