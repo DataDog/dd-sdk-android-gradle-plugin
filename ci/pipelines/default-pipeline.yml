@@ -28,7 +28,20 @@ stages:
     - set +e
     - exit_code=0
     - $ANDROID_HOME/emulator/emulator -avd "$EMULATOR_NAME" -grpc-use-jwt -no-snapstorage -no-audio -no-window -no-boot-anim -verbose -qemu -machine virt &
-    - GRADLE_OPTS="-Xmx3072m" ./gradlew :instrumented:connectedDebugAndroidTest --stacktrace --no-daemon || exit_code=$?
+    # Build APKs while the emulator boots, then wait for boot to complete before installing them
+    - GRADLE_OPTS="-Xmx3072m" ./gradlew :instrumented:assembleDebug :instrumented:assembleDebugAndroidTest --stacktrace --no-daemon || exit_code=$?
+    - |
+      boot_wait=0
+      while [ "$exit_code" -eq 0 ] && [ "$($ANDROID_HOME/platform-tools/adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" != "1" ]; do
+        if [ "$boot_wait" -ge 300 ]; then
+          echo "Emulator did not finish booting in ${boot_wait}s"
+          exit_code=1
+        else
+          sleep 5
+          boot_wait=$((boot_wait + 5))
+        fi
+      done
+    - if [ "$exit_code" -eq 0 ]; then GRADLE_OPTS="-Xmx3072m" ./gradlew :instrumented:connectedDebugAndroidTest --stacktrace --no-daemon || exit_code=$?; fi
     - $ANDROID_HOME/platform-tools/adb emu kill
     - pkill -f emulator || true
     - pkill -f qemu || true
