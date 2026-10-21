@@ -104,7 +104,7 @@ internal class OkHttpUploader : Uploader {
 
         // close the body (not the response itself: it throws when there is no body) on every path
         response?.body.use {
-            handleResponse(response, site, apiKey, identifier)
+            handleResponse(response, fileInfo, site, apiKey, identifier)
         }
     }
 
@@ -190,6 +190,7 @@ internal class OkHttpUploader : Uploader {
     @Suppress("ThrowingInternalException", "TooGenericExceptionThrown", "ThrowsCount")
     private fun handleResponse(
         response: Response?,
+        fileInfo: Uploader.UploadFileInfo,
         site: DatadogSite,
         apiKey: String,
         identifier: DdAppIdentifier
@@ -197,10 +198,10 @@ internal class OkHttpUploader : Uploader {
         val statusCode = response?.code
         when {
             statusCode == null -> throw RuntimeException(
-                "Unable to upload mapping file with tags $identifier; check your network connection"
+                "Unable to upload mapping file ${fileInfo.file} with tags $identifier; check your network connection"
             )
             statusCode in successfulCodes -> LOGGER.quiet(
-                "Mapping file upload successful with tags $identifier. \n" +
+                "Mapping file ${fileInfo.file} upload successful with tags $identifier. \n" +
                     "Make sure the SDK is initialized with the same values to ensure " +
                     "proper deobfuscation. Mapping files will be processed and ready within " +
                     "the next five minutes."
@@ -210,7 +211,7 @@ internal class OkHttpUploader : Uploader {
                 site
             )
             statusCode == HttpURLConnection.HTTP_CLIENT_TIMEOUT -> throw RuntimeException(
-                "Unable to upload mapping file with tags $identifier because of a request timeout; " +
+                "Unable to upload mapping file ${fileInfo.file} with tags $identifier because of a request timeout; " +
                     "check your network connection"
             )
             statusCode == HttpURLConnection.HTTP_ENTITY_TOO_LARGE ->
@@ -226,7 +227,7 @@ internal class OkHttpUploader : Uploader {
                     throw InvalidApiKeyException(identifier, site)
                 }
                 error(
-                    "Unable to upload mapping file with tags $identifier ($statusCode);\n" +
+                    "Unable to upload mapping file ${fileInfo.file} with tags $identifier ($statusCode);\n" +
                         "$errorBody"
                 )
             }

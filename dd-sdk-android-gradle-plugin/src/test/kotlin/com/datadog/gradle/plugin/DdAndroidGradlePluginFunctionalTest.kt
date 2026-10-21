@@ -671,6 +671,9 @@ internal class DdAndroidGradlePluginFunctionalTest {
                 }
             """.trimIndent()
         )
+        // Gradle resolves the project dir canonically (e.g. /var -> /private/var on macOS)
+        val mappingFile = File(appRootDir, "build/outputs/mapping/${variant}Release/mapping.txt").canonicalFile
+        assertThat(result).containsInOutput("Mapping file $mappingFile upload successful with tags")
     }
 
     @Test
