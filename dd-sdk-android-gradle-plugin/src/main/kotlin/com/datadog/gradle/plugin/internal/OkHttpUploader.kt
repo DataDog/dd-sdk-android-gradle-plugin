@@ -104,7 +104,7 @@ internal class OkHttpUploader : Uploader {
 
         // close the body (not the response itself: it throws when there is no body) on every path
         response?.body.use {
-            handleResponse(response, site, apiKey, identifier)
+            handleResponse(response, fileInfo, site, apiKey, identifier)
         }
     }
 
@@ -190,6 +190,7 @@ internal class OkHttpUploader : Uploader {
     @Suppress("ThrowingInternalException", "TooGenericExceptionThrown", "ThrowsCount")
     private fun handleResponse(
         response: Response?,
+        fileInfo: Uploader.UploadFileInfo,
         site: DatadogSite,
         apiKey: String,
         identifier: DdAppIdentifier
@@ -197,25 +198,26 @@ internal class OkHttpUploader : Uploader {
         val statusCode = response?.code
         when {
             statusCode == null -> throw RuntimeException(
-                "Unable to upload mapping file with tags $identifier; check your network connection"
+                "Unable to upload mapping file ${fileInfo.file} with tags $identifier; check your network connection"
             )
             statusCode in successfulCodes -> LOGGER.quiet(
-                "Mapping file upload successful with tags $identifier. \n" +
+                "Mapping file ${fileInfo.file} upload successful with tags $identifier. \n" +
                     "Make sure the SDK is initialized with the same values to ensure " +
                     "proper deobfuscation. Mapping files will be processed and ready within " +
                     "the next five minutes."
             )
             statusCode == HttpURLConnection.HTTP_FORBIDDEN -> throw InvalidApiKeyException(
+                fileInfo.file,
                 identifier,
                 site
             )
             statusCode == HttpURLConnection.HTTP_CLIENT_TIMEOUT -> throw RuntimeException(
-                "Unable to upload mapping file with tags $identifier because of a request timeout; " +
+                "Unable to upload mapping file ${fileInfo.file} with tags $identifier because of a request timeout; " +
                     "check your network connection"
             )
             statusCode == HttpURLConnection.HTTP_ENTITY_TOO_LARGE ->
                 throw MaxSizeExceededException(
-                    MAX_MAP_SIZE_EXCEEDED_ERROR.format(Locale.US, identifier)
+                    MAX_MAP_SIZE_EXCEEDED_ERROR.format(Locale.US, fileInfo.file, identifier)
                 )
             statusCode >= HttpURLConnection.HTTP_BAD_REQUEST -> {
                 // read (and so release) the body before the API key check makes another call
@@ -223,10 +225,10 @@ internal class OkHttpUploader : Uploader {
                 if (statusCode == HttpURLConnection.HTTP_BAD_REQUEST &&
                     validateApiKey(site, apiKey) == false
                 ) {
-                    throw InvalidApiKeyException(identifier, site)
+                    throw InvalidApiKeyException(fileInfo.file, identifier, site)
                 }
                 error(
-                    "Unable to upload mapping file with tags $identifier ($statusCode);\n" +
+                    "Unable to upload mapping file ${fileInfo.file} with tags $identifier ($statusCode);\n" +
                         "$errorBody"
                 )
             }
@@ -276,10 +278,11 @@ internal class OkHttpUploader : Uploader {
     }
 
     internal inner class InvalidApiKeyException(
+        file: File,
         uploadIdentifier: DdAppIdentifier,
         site: DatadogSite
     ) : RuntimeException(
-        "Unable to upload mapping file for $uploadIdentifier (site=${site.domain}); " +
+        "Unable to upload mapping file $file with tags $uploadIdentifier (site=${site.domain}); " +
             "verify that you're using a valid API Key"
     )
 
@@ -362,7 +365,7 @@ internal class OkHttpUploader : Uploader {
         internal val MEDIA_TYPE_JSON = "application/json".toMediaTypeOrNull()
 
         internal const val MAX_MAP_SIZE_EXCEEDED_ERROR =
-            "Unable to upload mapping file for %s because mapping file is too" +
+            "Unable to upload mapping file %s with tags %s because mapping file is too" +
                 " large; please refer to documentation regarding the limits"
 
         internal val successfulCodes = intArrayOf(
