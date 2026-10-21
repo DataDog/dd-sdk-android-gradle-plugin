@@ -207,6 +207,7 @@ internal class OkHttpUploader : Uploader {
                     "the next five minutes."
             )
             statusCode == HttpURLConnection.HTTP_FORBIDDEN -> throw InvalidApiKeyException(
+                fileInfo.file,
                 identifier,
                 site
             )
@@ -216,7 +217,7 @@ internal class OkHttpUploader : Uploader {
             )
             statusCode == HttpURLConnection.HTTP_ENTITY_TOO_LARGE ->
                 throw MaxSizeExceededException(
-                    MAX_MAP_SIZE_EXCEEDED_ERROR.format(Locale.US, identifier)
+                    MAX_MAP_SIZE_EXCEEDED_ERROR.format(Locale.US, fileInfo.file, identifier)
                 )
             statusCode >= HttpURLConnection.HTTP_BAD_REQUEST -> {
                 // read (and so release) the body before the API key check makes another call
@@ -224,7 +225,7 @@ internal class OkHttpUploader : Uploader {
                 if (statusCode == HttpURLConnection.HTTP_BAD_REQUEST &&
                     validateApiKey(site, apiKey) == false
                 ) {
-                    throw InvalidApiKeyException(identifier, site)
+                    throw InvalidApiKeyException(fileInfo.file, identifier, site)
                 }
                 error(
                     "Unable to upload mapping file ${fileInfo.file} with tags $identifier ($statusCode);\n" +
@@ -277,10 +278,11 @@ internal class OkHttpUploader : Uploader {
     }
 
     internal inner class InvalidApiKeyException(
+        file: File,
         uploadIdentifier: DdAppIdentifier,
         site: DatadogSite
     ) : RuntimeException(
-        "Unable to upload mapping file for $uploadIdentifier (site=${site.domain}); " +
+        "Unable to upload mapping file $file with tags $uploadIdentifier (site=${site.domain}); " +
             "verify that you're using a valid API Key"
     )
 
@@ -363,7 +365,7 @@ internal class OkHttpUploader : Uploader {
         internal val MEDIA_TYPE_JSON = "application/json".toMediaTypeOrNull()
 
         internal const val MAX_MAP_SIZE_EXCEEDED_ERROR =
-            "Unable to upload mapping file for %s because mapping file is too" +
+            "Unable to upload mapping file %s with tags %s because mapping file is too" +
                 " large; please refer to documentation regarding the limits"
 
         internal val successfulCodes = intArrayOf(

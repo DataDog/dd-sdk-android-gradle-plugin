@@ -766,7 +766,7 @@ internal class OkHttpUploaderTest {
             )
         }
         assertThat(exception.message).isEqualTo(
-            OkHttpUploader.MAX_MAP_SIZE_EXCEEDED_ERROR.format(Locale.US, fakeIdentifier)
+            OkHttpUploader.MAX_MAP_SIZE_EXCEEDED_ERROR.format(Locale.US, fakeMappingFile, fakeIdentifier)
         )
     }
 
