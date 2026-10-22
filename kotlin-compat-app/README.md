@@ -11,3 +11,10 @@ cd kotlin-compat-app
 
 This project is intentionally isolated from the plugin build: own wrapper, catalog and properties,
 and no file here may reference a path outside of this folder.
+
+## Scheduling
+
+The check runs from a GitLab pipeline schedule (CI/CD → Schedules) on `develop`, daily, with the
+variable `CI_PIPELINE_KEY=kotlin-compat` (see `ci/pipelines/kotlin-compat-pipeline.yml`). Results
+are posted to `#dd-sdk-android-ops` (`$SLACK_OPS_CHANNEL`) by the slack-notifier bot. On a KCP
+failure, the message proposes asking Bits Dev to fix it using `.claude/skills/kotlin-compat`.
