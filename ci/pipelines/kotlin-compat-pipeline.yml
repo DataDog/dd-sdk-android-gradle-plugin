@@ -1,0 +1,51 @@
+include:
+  - 'https://gitlab-templates.ddbuild.io/slack-notifier/v3-sdm/template.yml'
+
+# Scheduled pipeline (CI_PIPELINE_KEY=kotlin-compat) checking that the latest stable Kotlin
+# release is compatible with the Datadog Compose compiler plugin. See kotlin-compat-app/README.md.
+
+stages:
+  - check
+  - notify
+
+kotlin-compat:check:
+  tags: [ "arch:amd64" ]
+  image: $CI_IMAGE_DOCKER
+  stage: check
+  timeout: 1h
+  variables:
+    KUBERNETES_MEMORY_LIMIT: "20Gi"
+  script:
+    - python3 -m unittest ci/scripts/test_kotlin_compat.py
+    - python3 ci/scripts/kotlin_compat.py --out-dir kotlin-compat
+  artifacts:
+    when: always
+    expire_in: 1 week
+    paths:
+      - kotlin-compat/
+
+# Posts the message (if any), then publishes the state read back by the next run.
+# The state is only published when posting succeeded, so a lost message is retried.
+kotlin-compat:notify:
+  extends: .slack-notifier-base
+  stage: notify
+  needs: [ "kotlin-compat:check" ]
+  when: on_success
+  script:
+    - |
+      if [ -f kotlin-compat/message.txt ]; then
+        postmessage "$SLACK_OPS_CHANNEL" "$(cat kotlin-compat/message.txt)"
+      fi
+  artifacts:
+    expire_in: 1 year
+    paths:
+      - kotlin-compat/state.json
+
+notify:report-failure-to-slack:
+  extends: .slack-notifier-base
+  stage: notify
+  when: on_failure
+  script:
+    - BUILD_URL="$CI_PROJECT_URL/pipelines/$CI_PIPELINE_ID"
+    - 'MESSAGE_TEXT=":status_alert: Kotlin compatibility check pipeline failed (infra?). $BUILD_URL"'
+    - postmessage "$SLACK_OPS_CHANNEL" "$MESSAGE_TEXT"
