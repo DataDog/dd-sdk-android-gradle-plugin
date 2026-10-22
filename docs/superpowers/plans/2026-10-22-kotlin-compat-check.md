@@ -4,7 +4,7 @@
 
 **Goal:** A daily GitLab pipeline that detects a new stable Kotlin release, builds a minimal Compose app against it with the Datadog Gradle plugin from source, and posts the result to `#dd-sdk-android-ops` — with a Bits Dev prompt on KCP failures.
 
-**Architecture:** A standalone Gradle build (`samples/kotlin-compat/`) takes the Kotlin version as a property and verifies the KCP actually instrumented the bytecode. A stdlib-only Python script (`ci/scripts/kotlin_compat.py`) does detection, runs the builds, classifies the outcome, and writes the Slack message plus the next state file. A new GitLab pipeline (selected by `CI_PIPELINE_KEY == "kotlin-compat"`) runs the script, then a slack-notifier job posts the message and republishes the state as its artifact (state is read back from the latest successful notify job's artifacts via `CI_JOB_TOKEN`).
+**Architecture:** A fully self-contained Gradle project (`kotlin-compat-app/`, own wrapper, catalog and properties, consuming the plugin only from mavenLocal) takes the Kotlin version as a property and verifies the KCP actually instrumented the bytecode. A stdlib-only Python script (`ci/scripts/kotlin_compat.py`) does detection, runs the builds, classifies the outcome, and writes the Slack message plus the next state file. A new GitLab pipeline (selected by `CI_PIPELINE_KEY == "kotlin-compat"`) runs the script, then a slack-notifier job posts the message and republishes the state as its artifact (state is read back from the latest successful notify job's artifacts via `CI_JOB_TOKEN`).
 
 **Tech Stack:** Gradle Kotlin DSL, AGP (`androidToolsPlugin` from the repo catalog), Jetpack Compose, Python 3 stdlib (`unittest`, `urllib`, `xml.etree`), GitLab CI, `slack-notifier/v3-sdm` template.
 
@@ -17,8 +17,8 @@
 - Only **stable** Kotlin versions are checked (reject any version containing `-`, e.g. `-Beta1`, `-RC2`, `-dev-123`).
 - At most one Slack message per (Kotlin version, outcome). Outcomes: `pass`, `pass-new-line`, `kcp-fail`, `toolchain-fail`.
 - Infra failures (plugin publish fails, dependency resolution / network errors) record nothing and exit non-zero, so the next scheduled run retries.
-- The sample's AGP is the repo's `androidToolsPlugin`; no Kotlin version is pinned anywhere in the sample except via `-PkotlinVersion`.
-- `samples/kotlin-compat` must NOT be added to the root `settings.gradle.kts`.
+- `kotlin-compat-app/` is fully self-contained: own `settings.gradle.kts`, wrapper, `gradle/libs.versions.toml`, `gradle.properties`. No file in it may contain `../`. Never add it to the root `settings.gradle.kts`; always run it as `cd kotlin-compat-app && ./gradlew ...`.
+- No Kotlin version is pinned anywhere in the test app except via `-PkotlinVersion`. AGP, Compose BOM, navigation, and Datadog SDK versions are pinned in the test app's own catalog (initial values = the root catalog's current `androidToolsPlugin`, `composeBom`, `androidXComposeNavigation`, `activityCompose`, `datadogSdk`).
 - Python: stdlib only (no `requests`), so it runs in the CI image without pip installs.
 - License header on every new source file, copied from existing files (`ci/scripts/dogfood.py` for Python, any `.kt`/`.kts` for Kotlin).
 - Branch naming for any human/Bits Dev fix: `<name>/<description>`.
@@ -33,19 +33,21 @@
 
 ---
 
-### Task 1: Minimal compat sample build
+### Task 1: Self-contained compat test app
 
 **Files:**
-- Create: `samples/kotlin-compat/settings.gradle.kts`
-- Create: `samples/kotlin-compat/build.gradle.kts`
-- Create: `samples/kotlin-compat/gradle.properties`
-- Create: `samples/kotlin-compat/src/main/AndroidManifest.xml`
-- Create: `samples/kotlin-compat/src/main/kotlin/com/datadog/kotlincompat/MainActivity.kt`
-- Create: `samples/kotlin-compat/README.md`
+- Create: `kotlin-compat-app/settings.gradle.kts`
+- Create: `kotlin-compat-app/build.gradle.kts`
+- Create: `kotlin-compat-app/gradle.properties`
+- Create: `kotlin-compat-app/gradle/libs.versions.toml`
+- Create: `kotlin-compat-app/gradlew`, `kotlin-compat-app/gradlew.bat`, `kotlin-compat-app/gradle/wrapper/gradle-wrapper.{jar,properties}` (copy the root wrapper files; same Gradle distribution URL)
+- Create: `kotlin-compat-app/src/main/AndroidManifest.xml`
+- Create: `kotlin-compat-app/src/main/kotlin/com/datadog/kotlincompat/MainActivity.kt`
+- Create: `kotlin-compat-app/README.md`
 
 **Interfaces:**
-- Produces: invoked from the repo root as
-  `./gradlew -p samples/kotlin-compat assembleDebug verifyKotlinCompat -PkotlinVersion=<v> -PddPluginVersion=<p> [-PdisableDatadog=true] --no-daemon --stacktrace`
+- Produces: invoked as
+  `cd kotlin-compat-app && ./gradlew assembleDebug verifyKotlinCompat -PkotlinVersion=<v> -PddPluginVersion=<p> [-PdisableDatadog=true] --no-daemon --stacktrace`
   - `kotlinVersion` (required): used for both `org.jetbrains.kotlin.android` and `org.jetbrains.kotlin.plugin.compose`.
   - `ddPluginVersion` (required): version of `com.datadoghq.dd-sdk-android-gradle-plugin`, resolved from `mavenLocal()`.
   - `disableDatadog` (optional, default `false`): when `true`, the Datadog plugin is not applied.
@@ -56,32 +58,39 @@
 `settings.gradle.kts`:
 - `pluginManagement.repositories`: the same proxy block as the root `settings.gradle.kts` (`gradlePluginProxy`, `mavenRepositoryProxy`), then `mavenLocal()`, `google()`, `gradlePluginPortal()`, `mavenCentral()`.
 - `pluginManagement.plugins`: `org.jetbrains.kotlin.android` and `org.jetbrains.kotlin.plugin.compose` at `kotlinVersion`, `com.datadoghq.dd-sdk-android-gradle-plugin` at `ddPluginVersion`. Read both with `providers.gradleProperty(...).orNull ?: error("Pass -P<name>=...")`.
-- `dependencyResolutionManagement`: same proxy repos, `mavenLocal()`, `google()`, `mavenCentral()`; `versionCatalogs { create("libs") { from(files("../../gradle/libs.versions.toml")) } }`.
-- `rootProject.name = "kotlin-compat"`; single project, no subprojects.
+- `dependencyResolutionManagement`: same proxy repos, `mavenLocal()`, `google()`, `mavenCentral()`. The default `gradle/libs.versions.toml` in the folder is picked up automatically as `libs` — do not configure any other catalog.
+- `rootProject.name = "kotlin-compat-app"`; single project, no subprojects.
 
-- [ ] **Step 2: Write the build file, properties, manifest, and app code**
+- [ ] **Step 2: Write the catalog, build file, properties, manifest, and app code**
 
-`gradle.properties`: copy `android.useAndroidX=true`, `android.builtInKotlin=false`, `android.newDsl=false` and the `org.gradle.jvmargs` line from the root `gradle.properties`.
+`gradle/libs.versions.toml` (own copy, no Kotlin entries): versions `agp`, `composeBom`, `activityCompose`, `navigationCompose`, `datadogSdk` with the initial values from Global Constraints; libraries `androidx-compose-bom`, `androidx-ui`, `androidx-material3`, `androidx-activity-compose`, `androidx-navigation-compose`, `datadog-rum`, `datadog-compose`; plugin `android-application`.
+
+`gradle.properties`: `android.useAndroidX=true`, `android.builtInKotlin=false`, `android.newDsl=false`, `org.gradle.jvmargs=-Xmx4g`.
 
 `build.gradle.kts`:
-- `plugins`: `alias(libs.plugins.androidApplicationPlugin)`, `id("org.jetbrains.kotlin.android")`, `id("org.jetbrains.kotlin.plugin.compose")`, `id("com.datadoghq.dd-sdk-android-gradle-plugin") apply false`.
+- `plugins`: `alias(libs.plugins.android.application)`, `id("org.jetbrains.kotlin.android")`, `id("org.jetbrains.kotlin.plugin.compose")`, `id("com.datadoghq.dd-sdk-android-gradle-plugin") apply false`.
 - If `disableDatadog` is not `"true"`: `apply(plugin = "com.datadoghq.dd-sdk-android-gradle-plugin")` and configure `DdExtension` with `composeInstrumentation = InstrumentationMode.AUTO`.
 - `android`: namespace/applicationId `com.datadog.kotlincompat`, compileSdk/minSdk/targetSdk `36`, Java 17, `buildFeatures.compose = true`.
-- Dependencies from the catalog: `platform(libs.androidx.compose.bom)`, `libs.androidx.ui`, `libs.androidx.material3`, `libs.androidx.activity.compose`, `libs.androidx.compose.navigation`, `libs.datadogSdkRum`, `libs.datadogSdkCompose`.
+- Dependencies from the catalog: `platform(libs.androidx.compose.bom)`, `libs.androidx.ui`, `libs.androidx.material3`, `libs.androidx.activity.compose`, `libs.androidx.navigation.compose`, `libs.datadog.rum`, `libs.datadog.compose`.
 - Register `verifyKotlinCompat` as specified in Interfaces.
 
 `MainActivity.kt`: a `ComponentActivity` whose content has a composable taking a `Modifier` (e.g. `Text("hello", modifier = Modifier.padding(8.dp))`) and a `NavHost` built from `rememberNavController()` with two `composable(...)` destinations. Nothing else — no Datadog SDK initialization needed for compilation.
 
-`README.md`: 10 lines max — what the sample is for, the command from Interfaces, and that it is intentionally outside the root build.
+`README.md`: 10 lines max — what the app is for, the command from Interfaces, and that it is intentionally isolated from the plugin build (no shared config, never reference `../`).
 
 - [ ] **Step 3: Publish the plugin and run the happy path**
 
 Run:
 ```bash
 ./gradlew publishToMavenLocal -Pdd-skip-signing --no-daemon
-./gradlew -p samples/kotlin-compat assembleDebug verifyKotlinCompat -PkotlinVersion=2.4.20 -PddPluginVersion=1.32.0-SNAPSHOT --no-daemon
+cd kotlin-compat-app && ./gradlew assembleDebug verifyKotlinCompat -PkotlinVersion=2.4.20 -PddPluginVersion=1.32.0-SNAPSHOT --no-daemon
 ```
 Expected: `BUILD SUCCESSFUL`.
+
+- [ ] **Step 3b: Prove isolation**
+
+Run: `grep -rn '\.\./' kotlin-compat-app --exclude-dir=build --exclude-dir=.gradle`
+Expected: no output.
 
 - [ ] **Step 4: Prove the version check bites**
 
@@ -90,19 +99,19 @@ Expected: `verifyKotlinCompat` FAILS with a message naming both versions. Revert
 
 - [ ] **Step 5: Prove the instrumentation check bites**
 
-Temporarily set `composeInstrumentation = InstrumentationMode.DISABLE` and rerun Step 3's sample command.
+Temporarily set `composeInstrumentation = InstrumentationMode.DISABLE` and rerun Step 3's test app command.
 Expected: `verifyKotlinCompat` FAILS naming the missing symbol(s). Revert.
 
 - [ ] **Step 6: Control build passes**
 
-Run Step 3's sample command with `-PdisableDatadog=true`.
+Run Step 3's test app command with `-PdisableDatadog=true`.
 Expected: `BUILD SUCCESSFUL` (instrumentation check skipped, version check still runs).
 
 - [ ] **Step 7: Commit**
 
 ```bash
-git add samples/kotlin-compat
-git commit -m "Add minimal Kotlin compatibility sample for the Compose KCP"
+git add kotlin-compat-app
+git commit -m "Add self-contained Kotlin compatibility test app for the Compose KCP"
 ```
 
 ---
@@ -126,6 +135,7 @@ git commit -m "Add minimal Kotlin compatibility sample for the Compose KCP"
   - `extract_errors(log: str, max_lines: int = 20) -> str` — Kotlin compiler error lines (start with `e: `); if none, the lines after `* What went wrong:` up to the next `* ` header; if neither, the last `max_lines` lines. Always truncated to `max_lines`.
   - `parse_plugin_version(maven_config_kt: str) -> str` — from `Version(1, 32, 0, Version.Type.Snapshot)` → `"1.32.0-SNAPSHOT"`; `Version.Type.Release` → `"1.32.0"`.
   - `should_notify(state: dict[str, str], version: str, outcome: str) -> bool` — `state.get(version) != outcome`.
+  - `find_outside_references(root: Path) -> list[str]` — `"relative/path:line"` for every line containing `../` in text files under `root`, skipping `build/`, `.gradle/` and `.kotlin/` dirs and files that aren't valid UTF-8 (e.g. `gradle-wrapper.jar`).
   - `build_message(version: str, outcome: str, supported: Supported, task: str | None, errors: str, job_url: str) -> str`
 
 - [ ] **Step 1: Write the failing tests**
@@ -172,6 +182,11 @@ def test_parse_plugin_version(self):
     parse_plugin_version("val VERSION = Version(1, 32, 0, Version.Type.Snapshot)") == "1.32.0-SNAPSHOT"
     parse_plugin_version("val VERSION = Version(1, 32, 0, Version.Type.Release)") == "1.32.0"
 
+def test_find_outside_references(self):
+    # in a TemporaryDirectory: "settings.gradle.kts" containing 'from(files("../../gradle/libs.versions.toml"))' on line 2,
+    # "build/tmp/x.txt" containing "../", "gradle/wrapper/gradle-wrapper.jar" with bytes b"\xff\xfe../"
+    self.assertEqual(find_outside_references(tmp), ["settings.gradle.kts:2"])
+
 def test_should_notify(self):
     should_notify({}, "2.5.0", "kcp-fail") is True
     should_notify({"2.5.0": "kcp-fail"}, "2.5.0", "kcp-fail") is False
@@ -188,7 +203,7 @@ def test_message_kcp_fail(self):
     self.assertNotIn("<!", msg)  # no Slack mentions
 
 def test_message_kcp_fail_patch_type(self):  # 2.4.21 → contains "Type: patch on 2.4 line"
-def test_message_toolchain_fail(self):       # contains "fails to build the sample even without the Datadog plugin", "KCP status unknown", NOT "@Bits Dev"
+def test_message_toolchain_fail(self):       # contains "fails to build the test app even without the Datadog plugin", "KCP status unknown", NOT "@Bits Dev"
 def test_message_pass(self):                 # == ":white_check_mark: Kotlin 2.4.21 is compatible with the Datadog Compose compiler plugin (https://gitlab/job/1)"
 def test_message_pass_new_line(self):        # pass text for 2.5.0 + "routed to `kcp-kotlin24`; a dedicated module may be needed — please review."
 ```
@@ -214,7 +229,7 @@ To fix, reply in thread:
 @Bits Dev fix Kotlin {v} compatibility in DataDog/dd-sdk-android-gradle-plugin. Errors and job link are above. Follow .claude/skills/kotlin-compat/SKILL.md.
 
 toolchain-fail:
-:warning: Kotlin {v} fails to build the sample even without the Datadog plugin (toolchain incompatibility, likely AGP/Compose); KCP status unknown.
+:warning: Kotlin {v} fails to build the test app even without the Datadog plugin (toolchain incompatibility, likely AGP/Compose); KCP status unknown.
 Failed task / errors block / Job lines as above, no Bits Dev lines.
 
 pass:          :white_check_mark: Kotlin {v} is compatible with the Datadog Compose compiler plugin ({job_url})
@@ -244,7 +259,7 @@ git commit -m "Add Kotlin compatibility detection and message logic"
 - Test: `ci/scripts/test_kotlin_compat.py`
 
 **Interfaces:**
-- Consumes: everything from Task 2; the sample command from Task 1.
+- Consumes: everything from Task 2; the test app command from Task 1.
 - Produces: `python3 ci/scripts/kotlin_compat.py --out-dir kotlin-compat` run from the repo root. Writes into `--out-dir`:
   - `state.json` — always written on exit code 0: previous state, updated with `{version: outcome}` when a build ran.
   - `message.txt` — written only when `should_notify(...)` is true; absent otherwise.
@@ -253,7 +268,7 @@ git commit -m "Add Kotlin compatibility detection and message logic"
 - New functions:
   - `load_state(fetch: Callable[[], bytes]) -> dict[str, str]` — `fetch` raises `urllib.error.HTTPError`; a 404 → `{}`. Other errors propagate.
   - `fetch_previous_state() -> bytes` — GET `$CI_API_V4_URL/projects/$CI_PROJECT_ID/jobs/artifacts/$CI_DEFAULT_BRANCH/raw/kotlin-compat/state.json?job=kotlin-compat:notify` with header `JOB-TOKEN: $CI_JOB_TOKEN`. If any of those env vars is unset or empty (local run), raise an `HTTPError` with code 404 so `load_state` returns `{}`.
-  - `run_gradle(args: list[str], log_path: Path) -> bool` — runs `./gradlew` with `args`, tees combined output to `log_path` and stdout, returns success.
+  - `run_gradle(args: list[str], log_path: Path, cwd: Path) -> bool` — runs `./gradlew` inside `cwd` (repo root for publishing, `kotlin-compat-app/` for the test app) with `args`, tees combined output to `log_path` and stdout, returns success.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -277,11 +292,12 @@ Expected: the three new tests ERROR with `NameError`/`ImportError` for `load_sta
 - [ ] **Step 3: Implement `load_state`, `fetch_previous_state`, `run_gradle`, and `main`**
 
 `main` flow:
+0. `find_outside_references(Path("kotlin-compat-app"))` non-empty → print the offending lines, exit 1 (isolation broken; nothing recorded).
 1. Load state; fetch Maven Central metadata (`https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-gradle-plugin/maven-metadata.xml`); `version = latest_stable(...)`; `supported = highest_supported(gradle/libs.versions.toml)`; `kind = classify(...)`.
 2. `kind == "known"` → write `state.json` unchanged, print "nothing new", exit 0.
-3. `run_gradle(["publishToMavenLocal", "-Pdd-skip-signing", "--no-daemon"], out/"publish.log")`; failure → exit 1.
+3. `run_gradle(["publishToMavenLocal", "-Pdd-skip-signing", "--no-daemon"], out/"publish.log", cwd=repo_root)`; failure → exit 1.
 4. Plugin version from `parse_plugin_version(tools/build-config/.../MavenConfig.kt)`.
-5. Datadog build (Task 1 command); on failure, `is_infra_failure(log)` → exit 1; else control build with `-PdisableDatadog=true`; control failure that `is_infra_failure` → exit 1.
+5. Datadog build (Task 1 command, `cwd=kotlin-compat-app`); on failure, `is_infra_failure(log)` → exit 1; else control build with `-PdisableDatadog=true`; control failure that `is_infra_failure` → exit 1.
 6. `outcome = decide_outcome(...)`; if `should_notify` write `message.txt` with `build_message(..., job_url=$CI_JOB_URL)` using the failing log (Datadog log for `kcp-fail`, control log for `toolchain-fail`).
 7. `state[version] = outcome`; write `state.json`; exit 0.
 
@@ -347,7 +363,7 @@ git commit -m "Add scheduled Kotlin compatibility pipeline"
 
 **Files:**
 - Create: `.claude/skills/kotlin-compat/SKILL.md` (add only this file; `.claude/` has untracked local files)
-- Modify: `samples/kotlin-compat/README.md` (rollout section)
+- Modify: `kotlin-compat-app/README.md` (rollout section)
 
 - [ ] **Step 1: Write the skill**
 
@@ -355,23 +371,23 @@ Frontmatter: `name: kotlin-compat`, `description: Use when a new Kotlin release 
 
 Body (content from the spec §5):
 - Module map: `kcp-kotlin20` (1.9.23+–2.0), `kcp-kotlin21` (2.1), `kcp-kotlin22` (2.2–2.3), `kcp-kotlin24` (2.4+); routing in `dd-sdk-android-gradle-plugin/src/main/kotlin/com/datadog/gradle/plugin/kcp/KotlinVersion.kt` and `DatadogKotlinCompilerPluginSupport.kt`.
-- Reproduce: the publish + sample commands from Task 1.
+- Reproduce: the publish + test app commands from Task 1.
 - Patch-fix shape: reference `c39c456`, `b3683a9`; bump the matching `kotlinXX` in `gradle/libs.versions.toml` when the module's compiler dependency needs it; add/adjust linkage tests like `CommandLineProcessorLinkage24Test`.
 - New-minor-line shape: follow `8b04302` → `66b3904` → `26deff2` (module setup → implementation → routing → tests).
 - Rules: never lower Kotlin versions, delete or skip tests to get green; run `./gradlew detekt ktlintCheck` and the module tests; branch `<name>/<description>`; PR against `develop`.
 
-- [ ] **Step 2: Add rollout notes to the sample README**
+- [ ] **Step 2: Add rollout notes to the test app README**
 
 Section "Scheduling": create a GitLab pipeline schedule on `develop`, daily, variable `CI_PIPELINE_KEY=kotlin-compat`; note the slack-notifier bot already posts to `#dd-sdk-android-ops`.
 
 - [ ] **Step 3: Verify the skill loads**
 
 Run: `claude -p "/kotlin-compat 2.4.21 — only describe the steps you would take, do not edit files"` from the repo root.
-Expected: the answer references the module map and the sample command.
+Expected: the answer references the module map and the test app command.
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add .claude/skills/kotlin-compat/SKILL.md samples/kotlin-compat/README.md
+git add .claude/skills/kotlin-compat/SKILL.md kotlin-compat-app/README.md
 git commit -m "Add kotlin-compat skill and scheduling notes"
 ```

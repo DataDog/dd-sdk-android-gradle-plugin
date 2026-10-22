@@ -66,10 +66,25 @@ message and asks Bits Dev to fix it.
 
 ### 1. Compat sample project (new)
 
-A new, purpose-built, minimal Gradle build checked into this repo (suggested:
-`samples/kotlin-compat/`, **not** included in the root `settings.gradle.kts`). It replaces
-HelloworldApplication entirely (user decision: drop the local app, nothing is ported from it).
-Keep it as small as possible; it exists only to answer "does the KCP compile with Kotlin X":
+A new, purpose-built, minimal **fully self-contained** Gradle project at the top level of this
+repo: `kotlin-compat-app/`. It replaces HelloworldApplication entirely (user decision: drop the
+local app, nothing is ported from it). Keep it as small as possible; it exists only to answer
+"does the KCP compile with Kotlin X".
+
+Isolation (user decision: the test app must not share build config with the plugin modules, so
+no Kotlin version can leak in):
+- Its own `settings.gradle.kts`, Gradle wrapper (`gradlew`, `gradle/wrapper/`), its own
+  `gradle/libs.versions.toml`, and its own `gradle.properties`.
+- It references nothing outside its folder: no `../` paths, no reading the root catalog, no
+  `includeBuild`, not listed in the root `settings.gradle.kts`, run as
+  `cd kotlin-compat-app && ./gradlew ...` (never through the root wrapper or `-p`).
+- It consumes the Datadog plugin only as a published artifact from `mavenLocal()`, exactly like
+  a customer app.
+- A guard in the check script fails if any file in `kotlin-compat-app/` contains `../`.
+- Its AGP, Compose BOM, navigation, and Datadog SDK versions are pinned in its own catalog and
+  bumped only on purpose.
+
+App content:
 
 - Android application, Compose enabled, Kotlin Compose compiler plugin, Datadog Gradle plugin
   with `composeInstrumentation = InstrumentationMode.AUTO`.
@@ -80,9 +95,7 @@ Keep it as small as possible; it exists only to answer "does the KCP compile wit
   pins anywhere in the sample.
 - Plugin consumed as `<current version>-SNAPSHOT` from `mavenLocal()` after
   `./gradlew publishToMavenLocal` on the root build — mirrors the proven manual flow and
-  guarantees the KCP artifacts resolve the same way they do for customers. *(Builder's call: if
-  `includeBuild` with dependency substitution works reliably for the plugin + KCP artifacts,
-  that's acceptable instead.)*
+  guarantees the KCP artifacts resolve the same way they do for customers.
 - The build must fail loudly if instrumentation didn't run (e.g. assert the plugin logged/applied
   the expected `kcp-kotlinXX` artifact, or inspect compiled bytecode for the injected call).
   How exactly is the builder's call; the requirement is that a "skip" can't look like a pass.
@@ -125,9 +138,9 @@ wrong cause:
     without the Datadog plugin (toolchain incompatibility, likely AGP/Compose); KCP status
     unknown." No Bits Dev prompt. This is recorded as an outcome; a later pass or KCP failure
     for the same version can still post.
-- The sample's AGP version is pinned to the repo's `androidToolsPlugin` from
-  `gradle/libs.versions.toml`. It does not track the newest AGP, so we're testing the setup we
-  support.
+- The test app's AGP version is pinned in its own catalog, initially to the same value as the
+  repo's `androidToolsPlugin`. It does not track the newest AGP, so we're testing a known,
+  supported setup.
 
 Outcome states tracked per version: `pass`, `pass-new-line`, `kcp-fail`, `toolchain-fail`.
 
@@ -189,11 +202,13 @@ No user or group mentions.
   details and proposes calling Bits Dev.
 - No IH identification or mention in the message.
 - Drop HelloworldApplication; build a simple, dedicated test app for this check.
+- The test app is a fully self-contained project (`kotlin-compat-app/`, own wrapper, catalog and
+  properties, consumes the plugin from mavenLocal only) so the plugin build's config can't leak
+  in. Chosen over a separate GitHub repo to keep one checkout and same-PR fixes.
 
 ## Builder's calls (marked as such above)
 
-- Sample location/name, exact Compose content, and how "instrumentation ran" is asserted.
-- mavenLocal vs `includeBuild` for consuming the plugin.
+- Exact Compose content, and how "instrumentation ran" is asserted.
 - Storage for "already reported" state.
 - Stable-only detection (RC excluded).
 - Whether KCP unit tests also run against the new version.
@@ -201,7 +216,7 @@ No user or group mentions.
 - New-minor-line detection based on `kotlinXX` entries in `libs.versions.toml`; a passing new
   line posts ✅ with a caveat.
 - A control build without the Datadog plugin to separate KCP failures from toolchain failures;
-  infra failures retry silently; AGP pinned to `androidToolsPlugin`.
+  infra failures retry silently; AGP pinned in the test app's own catalog.
 
 ## Slack channel
 
