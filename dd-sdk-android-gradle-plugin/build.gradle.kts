@@ -34,7 +34,7 @@ plugins {
 }
 
 buildConfig {
-    packageName("com.datadog.gradle.plugin.kcp")
+    packageName("com.datadog.gradle.plugin")
     buildConfigField("DD_PLUGIN_VERSION", MavenConfig.VERSION.name)
 }
 

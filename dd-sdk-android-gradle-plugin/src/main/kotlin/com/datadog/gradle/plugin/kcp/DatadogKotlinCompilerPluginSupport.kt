@@ -6,6 +6,7 @@
 
 package com.datadog.gradle.plugin.kcp
 
+import com.datadog.gradle.plugin.BuildConfig
 import com.datadog.gradle.plugin.DdExtension
 import com.datadog.gradle.plugin.InstrumentationMode
 import org.gradle.api.logging.Logging
