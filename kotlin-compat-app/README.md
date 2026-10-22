@@ -18,3 +18,7 @@ The check runs from a GitLab pipeline schedule (CI/CD → Schedules) on `develop
 variable `CI_PIPELINE_KEY=kotlin-compat` (see `ci/pipelines/kotlin-compat-pipeline.yml`). Results
 are posted to `#dd-sdk-android-ops` (`$SLACK_OPS_CHANNEL`) by the slack-notifier bot. On a KCP
 failure, the message proposes asking Bits Dev to fix it using `.claude/skills/kotlin-compat`.
+
+Already reported results are kept in the project's package registry (generic package
+`kotlin-compat-state`), so each Kotlin version is posted once per outcome. Delete that package to
+reset it.

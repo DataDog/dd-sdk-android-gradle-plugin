@@ -28,6 +28,7 @@ from kotlin_compat import (  # noqa: E402
     load_state,
     parse_plugin_version,
     should_notify,
+    state_url,
 )
 
 SUPPORTED = Supported("kotlin24", "2.4.20")
@@ -99,6 +100,11 @@ class OutcomeTest(unittest.TestCase):
         self.assertTrue(is_infra_failure("> Could not resolve com.datadoghq:dd-sdk-android-rum:3.14.0."))
         self.assertFalse(is_infra_failure("e: file.kt:3:5 Unresolved reference 'IrFoo'."))
 
+    def test_is_infra_failure_before_gradle_starts(self):
+        self.assertTrue(is_infra_failure('Exception in thread "main" java.net.UnknownHostException: services.gradle.org'))
+        self.assertTrue(is_infra_failure("java.net.ConnectException: Connection refused"))
+        self.assertTrue(is_infra_failure("Server returned HTTP response code: 503 for URL: https://services.gradle.org"))
+
     def test_should_notify(self):
         self.assertTrue(should_notify({}, "2.5.0", "kcp-fail"))
         self.assertFalse(should_notify({"2.5.0": "kcp-fail"}, "2.5.0", "kcp-fail"))
@@ -164,6 +170,16 @@ class MessageTest(unittest.TestCase):
 
 
 class StateTest(unittest.TestCase):
+
+    def test_state_url_uses_project_package_registry(self):
+        env = {"CI_API_V4_URL": "https://gitlab/api/v4", "CI_PROJECT_ID": "42", "CI_JOB_TOKEN": "t"}
+        self.assertEqual(
+            state_url(env),
+            "https://gitlab/api/v4/projects/42/packages/generic/kotlin-compat-state/1.0.0/state.json"
+        )
+
+    def test_state_url_outside_ci_is_none(self):
+        self.assertIsNone(state_url({"CI_API_V4_URL": "", "CI_PROJECT_ID": "42", "CI_JOB_TOKEN": "t"}))
 
     def test_load_state_missing_is_empty(self):
         def fetch():

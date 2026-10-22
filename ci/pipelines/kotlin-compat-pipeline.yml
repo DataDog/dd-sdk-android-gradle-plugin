@@ -7,6 +7,8 @@ include:
 stages:
   - check
   - notify
+  - save-state
+  - report
 
 kotlin-compat:check:
   tags: [ "arch:amd64" ]
@@ -24,26 +26,35 @@ kotlin-compat:check:
     paths:
       - kotlin-compat/
 
-# Posts the message (if any), then publishes the state read back by the next run.
-# The state is only published when posting succeeded, so a lost message is retried.
+# Posts the message (if any). Fails if the check artifacts didn't arrive, rather than silently
+# posting nothing.
 kotlin-compat:notify:
   extends: .slack-notifier-base
   stage: notify
   needs: [ "kotlin-compat:check" ]
   when: on_success
   script:
+    - test -f kotlin-compat/state.json || { echo "Missing kotlin-compat/state.json from the check job"; exit 1; }
     - |
       if [ -f kotlin-compat/message.txt ]; then
         postmessage "$SLACK_OPS_CHANNEL" "$(cat kotlin-compat/message.txt)"
       fi
-  artifacts:
-    expire_in: 1 year
-    paths:
-      - kotlin-compat/state.json
 
+# Saves the state read by the next run, only once the message was posted, so a lost message is
+# retried instead of being marked as reported.
+kotlin-compat:save-state:
+  tags: [ "arch:amd64" ]
+  image: $CI_IMAGE_DOCKER
+  stage: save-state
+  needs: [ "kotlin-compat:check", "kotlin-compat:notify" ]
+  when: on_success
+  script:
+    - python3 ci/scripts/kotlin_compat.py --save-state kotlin-compat/state.json
+
+# In its own last stage, so it also reports failures of the notify and save-state jobs.
 notify:report-failure-to-slack:
   extends: .slack-notifier-base
-  stage: notify
+  stage: report
   when: on_failure
   script:
     - BUILD_URL="$CI_PROJECT_URL/pipelines/$CI_PIPELINE_ID"

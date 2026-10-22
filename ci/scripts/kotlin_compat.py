@@ -35,6 +35,10 @@ INFRA_FAILURE_MARKERS = [
     "Read timed out",
     "Received status code 429",
     "Received status code 5",
+    # Network errors before Gradle starts, e.g. while the wrapper downloads the distribution
+    "UnknownHostException",
+    "Connection refused",
+    "Server returned HTTP response code: 5",
 ]
 
 IGNORED_DIRS = {"build", ".gradle", ".kotlin"}
@@ -50,7 +54,9 @@ MAVEN_CONFIG_KT = REPO_ROOT / "tools/build-config/src/main/kotlin/com/datadog/gr
 
 STATE_FILE = "state.json"
 MESSAGE_FILE = "message.txt"
-NOTIFY_JOB = "kotlin-compat:notify"
+# State is kept in this project's generic package registry, written only by this pipeline
+# (CI_JOB_TOKEN can read and write it); a GET returns the most recently uploaded file.
+STATE_PACKAGE_PATH = "packages/generic/kotlin-compat-state/1.0.0/state.json"
 
 MAX_ERROR_LINES = 20
 
@@ -201,19 +207,30 @@ def load_state(fetch: Callable[[], bytes]) -> Dict[str, str]:
         raise
 
 
+def state_url(env: Dict[str, str]) -> Optional[str]:
+    if not all(env.get(name) for name in ("CI_API_V4_URL", "CI_PROJECT_ID", "CI_JOB_TOKEN")):
+        return None
+    return f"{env['CI_API_V4_URL']}/projects/{env['CI_PROJECT_ID']}/{STATE_PACKAGE_PATH}"
+
+
 def fetch_previous_state() -> bytes:
-    """Reads the state published by the latest successful notify job on the default branch."""
-    env = {name: os.environ.get(name, "") for name in
-           ("CI_API_V4_URL", "CI_PROJECT_ID", "CI_DEFAULT_BRANCH", "CI_JOB_TOKEN")}
-    url = (
-        f"{env['CI_API_V4_URL']}/projects/{env['CI_PROJECT_ID']}/jobs/artifacts/"
-        f"{env['CI_DEFAULT_BRANCH']}/raw/kotlin-compat/{STATE_FILE}?job={NOTIFY_JOB}"
-    )
-    if not all(env.values()):
-        raise urllib.error.HTTPError(url, 404, "Not running in GitLab CI, no previous state", {}, None)
-    request = urllib.request.Request(url, headers={"JOB-TOKEN": env["CI_JOB_TOKEN"]})
+    url = state_url(dict(os.environ))
+    if url is None:
+        raise urllib.error.HTTPError("", 404, "Not running in GitLab CI, no previous state", {}, None)
+    request = urllib.request.Request(url, headers={"JOB-TOKEN": os.environ["CI_JOB_TOKEN"]})
     with urllib.request.urlopen(request, timeout=30) as response:
         return response.read()
+
+
+def save_state(state_file: Path) -> None:
+    url = state_url(dict(os.environ))
+    if url is None:
+        raise RuntimeError("Saving the state requires CI_API_V4_URL, CI_PROJECT_ID and CI_JOB_TOKEN")
+    request = urllib.request.Request(
+        url, data=state_file.read_bytes(), method="PUT", headers={"JOB-TOKEN": os.environ["CI_JOB_TOKEN"]}
+    )
+    with urllib.request.urlopen(request, timeout=30):
+        print(f"Saved {state_file} to the package registry")
 
 
 def run_gradle(args: List[str], log_path: Path, cwd: Path) -> bool:
@@ -230,8 +247,14 @@ def run_gradle(args: List[str], log_path: Path, cwd: Path) -> bool:
 
 def main() -> int:
     parser = ArgumentParser(description=__doc__)
-    parser.add_argument("--out-dir", type=Path, required=True)
-    out_dir = parser.parse_args().out_dir.resolve()
+    mode = parser.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--out-dir", type=Path, help="run the check, writing state, message and logs here")
+    mode.add_argument("--save-state", type=Path, help="upload this state file, after the message was posted")
+    args = parser.parse_args()
+    if args.save_state:
+        save_state(args.save_state)
+        return 0
+    out_dir = args.out_dir.resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
 
     outside_references = find_outside_references(TEST_APP_DIR)
