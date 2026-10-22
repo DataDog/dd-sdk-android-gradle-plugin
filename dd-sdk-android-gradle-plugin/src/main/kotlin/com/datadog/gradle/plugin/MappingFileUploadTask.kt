@@ -63,7 +63,7 @@ abstract class MappingFileUploadTask
             val value = compressMappingFileOption.orNull ?: return false
             if (value.isBlank()) return true
             return value.toBooleanStrictOrNull() ?: run {
-                LOGGER.warn(INVALID_COMPRESS_MAPPING_FILE_VALUE_WARNING.format(Locale.US, value))
+                logger.warn(INVALID_COMPRESS_MAPPING_FILE_VALUE_WARNING.format(Locale.US, value))
                 false
             }
         }
@@ -99,7 +99,7 @@ abstract class MappingFileUploadTask
     @Suppress("CheckInternal")
     private fun validateMappingFile(mappingFile: File): Boolean {
         if (!mappingFile.exists()) {
-            println("There's no mapping file ${mappingFile.absolutePath}, nothing to upload")
+            logger.info("There's no mapping file ${mappingFile.absolutePath}, nothing to upload")
             return false
         }
 
@@ -115,7 +115,7 @@ abstract class MappingFileUploadTask
     ): File {
         if (!mappingFileTrimIndents && mappingFilePackagesAliases.isEmpty()) return mappingFile
 
-        LOGGER.info(
+        logger.info(
             "Size of ${mappingFile.path} before optimization" +
                 " is ${mappingFile.length()} bytes"
         )
@@ -131,7 +131,7 @@ abstract class MappingFileUploadTask
                 // anything inside of it (sub-packages, classes).
                 val appId = applicationId.get()
                 if (appId.startsWith(it.key) || it.key.startsWith("$appId.")) {
-                    DdAndroidGradlePlugin.LOGGER.warn(
+                    logger.warn(
                         "Renaming of package prefix=${it.key} will be skipped, because" +
                             " it overlaps with the application package."
                     )
@@ -172,7 +172,7 @@ abstract class MappingFileUploadTask
                 }
             }
 
-        LOGGER.info("Size of optimized file is ${shrinkedFile.length()} bytes")
+        logger.info("Size of optimized file is ${shrinkedFile.length()} bytes")
 
         return shrinkedFile
     }
@@ -187,7 +187,7 @@ abstract class MappingFileUploadTask
         return if (isLineWithRename) {
             val parts = line.split(MAPPING_FILE_CHANGE_DELIMITER)
             if (parts.size != 2) {
-                LOGGER.info(
+                logger.info(
                     "Unexpected number of '$MAPPING_FILE_CHANGE_DELIMITER'" +
                         " (${parts.size - 1}) in the obfuscation line."
                 )

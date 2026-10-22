@@ -14,7 +14,6 @@ import com.datadog.gradle.plugin.internal.Uploader
 import com.datadog.gradle.plugin.internal.variant.AppVariant
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.logging.Logging
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
@@ -149,7 +148,7 @@ abstract class FileUploadTask @Inject constructor(
 
         val mappingFiles = getFilesList()
         if (mappingFiles.isEmpty()) {
-            LOGGER.warn("No mapping files to upload.")
+            logger.warn("No mapping files to upload.")
             return
         }
 
@@ -171,7 +170,7 @@ abstract class FileUploadTask @Inject constructor(
         val caughtErrors = mutableListOf<Exception>()
 
         for (mappingFile in mappingFiles) {
-            LOGGER.info("Uploading ${mappingFile.fileType} file: ${mappingFile.file.absolutePath}")
+            logger.info("Uploading ${mappingFile.fileType} file: ${mappingFile.file.absolutePath}")
             try {
                 uploader.upload(
                     site,
@@ -259,7 +258,7 @@ abstract class FileUploadTask @Inject constructor(
         val data = JSONArray()
         repositories.forEach {
             data.put(it.toJson())
-            DdAndroidGradlePlugin.LOGGER.info(
+            logger.info(
                 "Detected repository:\n${it.toJson().toString(
                     INDENT
                 )}"
@@ -281,8 +280,6 @@ abstract class FileUploadTask @Inject constructor(
     internal companion object {
         private const val REPOSITORY_FILE_VERSION = 1
         private const val INDENT = 4
-
-        internal val LOGGER = Logging.getLogger("DdFileUploadTask")
 
         const val DISABLE_GZIP_GRADLE_PROPERTY = "dd-disable-gzip"
         const val EMULATE_UPLOAD_NETWORK_CALL = "dd-emulate-upload-call"
