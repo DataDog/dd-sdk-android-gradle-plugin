@@ -1,0 +1,20 @@
+# Versions are pinned on purpose and independent from the plugin build.
+# Kotlin is NOT listed here: it is passed with -PkotlinVersion.
+[versions]
+agp = "9.3.1"
+composeBom = "2024.04.01"
+activityCompose = "1.9.3"
+navigationCompose = "2.8.8"
+datadogSdk = "3.14.0"
+
+[libraries]
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+androidx-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+datadog-rum = { group = "com.datadoghq", name = "dd-sdk-android-rum", version.ref = "datadogSdk" }
+datadog-compose = { group = "com.datadoghq", name = "dd-sdk-android-compose", version.ref = "datadogSdk" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
