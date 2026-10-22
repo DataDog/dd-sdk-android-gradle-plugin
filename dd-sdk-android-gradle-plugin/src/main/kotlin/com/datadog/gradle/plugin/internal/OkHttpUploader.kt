@@ -6,6 +6,7 @@
 
 package com.datadog.gradle.plugin.internal
 
+import com.datadog.gradle.plugin.BuildConfig
 import com.datadog.gradle.plugin.DatadogSite
 import com.datadog.gradle.plugin.DdAndroidGradlePlugin.Companion.LOGGER
 import com.datadog.gradle.plugin.RepositoryInfo
@@ -70,7 +71,7 @@ internal class OkHttpUploader : Uploader {
         val requestBuilder = Request.Builder()
             .url(site.uploadEndpoint())
             .header(HEADER_EVP_ORIGIN, "dd-sdk-android-gradle-plugin")
-            .header(HEADER_EVP_ORIGIN_VERSION, VERSION)
+            .header(HEADER_EVP_ORIGIN_VERSION, BuildConfig.DD_PLUGIN_VERSION)
             .header(HEADER_API_KEY, apiKey)
         val request = if (useGzip) {
             LOGGER.info("Creating request with GZIP encoding.")
@@ -342,9 +343,6 @@ internal class OkHttpUploader : Uploader {
     }
 
     companion object {
-
-        // TODO add a plugin to automatically sync this with the `MavenConfig` value
-        internal const val VERSION = "1.13.0"
 
         internal const val HEADER_API_KEY = "DD-API-KEY"
         internal const val HEADER_EVP_ORIGIN = "DD-EVP-ORIGIN"
