@@ -8,6 +8,7 @@
 import os
 import sys
 import unittest
+import urllib.error
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -24,6 +25,7 @@ from kotlin_compat import (  # noqa: E402
     highest_supported,
     is_infra_failure,
     latest_stable,
+    load_state,
     parse_plugin_version,
     should_notify,
 )
@@ -159,6 +161,23 @@ class MessageTest(unittest.TestCase):
         msg = build_message("2.5.0", "pass-new-line", SUPPORTED, None, "", JOB_URL)
         self.assertIn(":white_check_mark: Kotlin 2.5.0 is compatible with the Datadog Compose compiler plugin", msg)
         self.assertIn("routed to `kcp-kotlin24`; a dedicated module may be needed — please review.", msg)
+
+
+class StateTest(unittest.TestCase):
+
+    def test_load_state_missing_is_empty(self):
+        def fetch():
+            raise urllib.error.HTTPError("u", 404, "Not Found", {}, None)
+        self.assertEqual(load_state(fetch), {})
+
+    def test_load_state_parses_json(self):
+        self.assertEqual(load_state(lambda: b'{"2.5.0": "kcp-fail"}'), {"2.5.0": "kcp-fail"})
+
+    def test_load_state_other_http_errors_propagate(self):
+        def fetch():
+            raise urllib.error.HTTPError("u", 500, "Server Error", {}, None)
+        with self.assertRaises(urllib.error.HTTPError):
+            load_state(fetch)
 
 
 if __name__ == "__main__":

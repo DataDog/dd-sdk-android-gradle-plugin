@@ -13,11 +13,18 @@ post (if any) and the updated state, which are consumed by the kotlin-compat Git
 
 from __future__ import annotations
 
+import json
+import os
 import re
+import subprocess
+import sys
+import urllib.error
+import urllib.request
 import xml.etree.ElementTree as ElementTree
+from argparse import ArgumentParser
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 
 INFRA_FAILURE_MARKERS = [
     "Could not resolve",
@@ -31,6 +38,19 @@ INFRA_FAILURE_MARKERS = [
 ]
 
 IGNORED_DIRS = {"build", ".gradle", ".kotlin"}
+
+KOTLIN_METADATA_URL = (
+    "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-gradle-plugin/maven-metadata.xml"
+)
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+TEST_APP_DIR = REPO_ROOT / "kotlin-compat-app"
+VERSIONS_TOML = REPO_ROOT / "gradle" / "libs.versions.toml"
+MAVEN_CONFIG_KT = REPO_ROOT / "tools/build-config/src/main/kotlin/com/datadog/gradle/config/MavenConfig.kt"
+
+STATE_FILE = "state.json"
+MESSAGE_FILE = "message.txt"
+NOTIFY_JOB = "kotlin-compat:notify"
 
 MAX_ERROR_LINES = 20
 
@@ -170,3 +190,105 @@ def build_message(
         f"@Bits Dev fix Kotlin {version} compatibility in DataDog/dd-sdk-android-gradle-plugin. "
         "Errors and job link are above. Follow .claude/skills/kotlin-compat/SKILL.md."
     )
+
+
+def load_state(fetch: Callable[[], bytes]) -> Dict[str, str]:
+    try:
+        return json.loads(fetch())
+    except urllib.error.HTTPError as error:
+        if error.code == 404:
+            return {}
+        raise
+
+
+def fetch_previous_state() -> bytes:
+    """Reads the state published by the latest successful notify job on the default branch."""
+    env = {name: os.environ.get(name, "") for name in
+           ("CI_API_V4_URL", "CI_PROJECT_ID", "CI_DEFAULT_BRANCH", "CI_JOB_TOKEN")}
+    url = (
+        f"{env['CI_API_V4_URL']}/projects/{env['CI_PROJECT_ID']}/jobs/artifacts/"
+        f"{env['CI_DEFAULT_BRANCH']}/raw/kotlin-compat/{STATE_FILE}?job={NOTIFY_JOB}"
+    )
+    if not all(env.values()):
+        raise urllib.error.HTTPError(url, 404, "Not running in GitLab CI, no previous state", {}, None)
+    request = urllib.request.Request(url, headers={"JOB-TOKEN": env["CI_JOB_TOKEN"]})
+    with urllib.request.urlopen(request, timeout=30) as response:
+        return response.read()
+
+
+def run_gradle(args: List[str], log_path: Path, cwd: Path) -> bool:
+    print(f"$ ./gradlew {' '.join(args)}  (in {cwd})", flush=True)
+    with open(log_path, "w") as log:
+        process = subprocess.Popen(
+            ["./gradlew"] + args, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True
+        )
+        for line in process.stdout:
+            sys.stdout.write(line)
+            log.write(line)
+        return process.wait() == 0
+
+
+def main() -> int:
+    parser = ArgumentParser(description=__doc__)
+    parser.add_argument("--out-dir", type=Path, required=True)
+    out_dir = parser.parse_args().out_dir.resolve()
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    outside_references = find_outside_references(TEST_APP_DIR)
+    if outside_references:
+        print("kotlin-compat-app must not reference files outside of its folder:")
+        print("\n".join(outside_references))
+        return 1
+
+    state = load_state(fetch_previous_state)
+    with urllib.request.urlopen(KOTLIN_METADATA_URL, timeout=30) as response:
+        version = latest_stable(response.read().decode("utf-8"))
+    supported = highest_supported(VERSIONS_TOML.read_text())
+    kind = classify(version, supported)
+    print(f"Latest stable Kotlin: {version}, newest supported: {supported.version} ({supported.key}) -> {kind}")
+
+    if kind != "known":
+        if not run_gradle(["publishToMavenLocal", "-Pdd-skip-signing", "--no-daemon"],
+                          out_dir / "publish.log", REPO_ROOT):
+            print("Publishing the plugin to mavenLocal failed")
+            return 1
+
+        build_args = [
+            "assembleDebug", "verifyKotlinCompat",
+            f"-PkotlinVersion={version}",
+            f"-PddPluginVersion={parse_plugin_version(MAVEN_CONFIG_KT.read_text())}",
+            "--no-daemon", "--stacktrace",
+        ]
+        datadog_log = out_dir / "build-datadog.log"
+        control_log = out_dir / "build-control.log"
+        datadog_ok = run_gradle(build_args, datadog_log, TEST_APP_DIR)
+        control_ok = None
+        if not datadog_ok:
+            if is_infra_failure(datadog_log.read_text()):
+                print("Infra failure while building with the Datadog plugin, will retry next run")
+                return 1
+            control_ok = run_gradle(build_args + ["-PdisableDatadog=true"], control_log, TEST_APP_DIR)
+            if not control_ok and is_infra_failure(control_log.read_text()):
+                print("Infra failure while building without the Datadog plugin, will retry next run")
+                return 1
+
+        outcome = decide_outcome(datadog_ok, control_ok, kind)
+        print(f"Outcome for Kotlin {version}: {outcome}")
+        if should_notify(state, version, outcome):
+            failing_log = {"kcp-fail": datadog_log, "toolchain-fail": control_log}.get(outcome)
+            log = failing_log.read_text() if failing_log else ""
+            message = build_message(
+                version, outcome, supported, failed_task(log), extract_errors(log) if log else "",
+                os.environ.get("CI_JOB_URL", "(local run)")
+            )
+            (out_dir / MESSAGE_FILE).write_text(message)
+        state[version] = outcome
+    else:
+        print("Nothing new to check")
+
+    (out_dir / STATE_FILE).write_text(json.dumps(state, indent=2, sort_keys=True))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
