@@ -45,8 +45,11 @@ abstract class FileUploadTask @Inject constructor(
 
     /**
      * The API key to use for uploading.
+     *
+     * It is intentionally not declared as an input: input values are persisted
+     * by Gradle in the task execution history. We don't want it to be stored.
      */
-    @get:Input
+    @get:Internal
     abstract val apiKey: Property<String>
 
     /**

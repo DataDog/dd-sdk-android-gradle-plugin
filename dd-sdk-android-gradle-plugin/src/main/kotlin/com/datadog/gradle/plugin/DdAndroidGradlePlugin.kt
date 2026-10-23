@@ -14,6 +14,8 @@ import com.datadog.gradle.plugin.internal.ApiKeySource
 import com.datadog.gradle.plugin.internal.ApiKeySource.ENVIRONMENT
 import com.datadog.gradle.plugin.internal.ApiKeySource.GRADLE_PROPERTY
 import com.datadog.gradle.plugin.internal.CurrentAgpVersion
+import com.datadog.gradle.plugin.internal.DatadogCiApiKeyValueSource
+import com.datadog.gradle.plugin.internal.DatadogCiConfig
 import com.datadog.gradle.plugin.internal.GitRepositoryDetector
 import com.datadog.gradle.plugin.internal.VariantIterator
 import com.datadog.gradle.plugin.internal.utils.capitalizeChar
@@ -30,10 +32,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.process.ExecOperations
-import org.json.JSONException
-import org.json.JSONObject
 import java.io.File
-import java.io.IOException
 import java.util.Locale
 import javax.inject.Inject
 
@@ -196,17 +195,13 @@ class DdAndroidGradlePlugin @Inject constructor(
             provider(key).map { it.ifBlank { null } }.map { ApiKey(it, source) }
 
         val providers = target.providers
-        val datadogCiFileProvider = providers.provider {
-            TaskUtils.findDatadogCiFile(target.projectDir)
-        }.map {
-            val apiKey = it.parseAsDatadogCiConfig()?.apiKey
-            if (!apiKey.isNullOrEmpty()) {
+        val datadogCiFileProvider = providers
+            .of(DatadogCiApiKeyValueSource::class.java) {
+                it.parameters.projectDirectory.set(target.layout.projectDirectory)
+            }.map {
                 LOGGER.info("API key found in Datadog CI config file, using it.")
-                ApiKey(apiKey, ApiKeySource.DATADOG_CI_CONFIG_FILE)
-            } else {
-                null
+                ApiKey(it, ApiKeySource.DATADOG_CI_CONFIG_FILE)
             }
-        }
 
         return resolve(key = DD_API_KEY, provider = providers::gradleProperty, source = GRADLE_PROPERTY)
             .orElse(resolve(key = DATADOG_API_KEY, provider = providers::gradleProperty, source = GRADLE_PROPERTY))
@@ -253,7 +248,7 @@ class DdAndroidGradlePlugin @Inject constructor(
         return target.providers.provider {
             TaskUtils.findDatadogCiFile(target.projectDir)
         }.map {
-            val siteAsDomain = it.parseAsDatadogCiConfig()?.site
+            val siteAsDomain = DatadogCiConfig.parse(it)?.site
             if (!siteAsDomain.isNullOrEmpty()) {
                 val site = DatadogSite.fromDomain(siteAsDomain)
                 if (site == null) {
@@ -532,30 +527,10 @@ class DdAndroidGradlePlugin @Inject constructor(
     private val Project.androidApplicationComponentExtension: ApplicationAndroidComponentsExtension?
         get() = extensions.findByType(ApplicationAndroidComponentsExtension::class.java)
 
-    private fun File.parseAsDatadogCiConfig(): DatadogCiConfig? {
-        return try {
-            val config = JSONObject(readText())
-            DatadogCiConfig(
-                site = config.optString(DATADOG_CI_SITE_PROPERTY, null),
-                apiKey = config.optString(DATADOG_CI_API_KEY_PROPERTY, null)
-            )
-        } catch (jsonException: JSONException) {
-            LOGGER.warn("Failed to parse datadog-ci.json", jsonException)
-            null
-        } catch (ioException: IOException) {
-            LOGGER.warn("Failed to read datadog-ci.json file", ioException)
-            null
-        }
-    }
-
-    private data class DatadogCiConfig(val site: String?, val apiKey: String?)
-
     // endregion
 
     internal companion object {
 
-        internal const val DATADOG_CI_API_KEY_PROPERTY = "apiKey"
-        internal const val DATADOG_CI_SITE_PROPERTY = "datadogSite"
         internal const val DATADOG_SITE = "DATADOG_SITE"
 
         private const val DD_FORCE_LEGACY_VARIANT_API = "dd-force-legacy-variant-api"
