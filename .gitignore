@@ -27,3 +27,6 @@ repo/
 
 # Kotlin
 .kotlin/
+
+# Claude
+.claude/worktrees/
