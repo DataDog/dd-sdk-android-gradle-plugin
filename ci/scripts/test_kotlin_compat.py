@@ -24,9 +24,12 @@ from kotlin_compat import (  # noqa: E402
     find_outside_references,
     highest_supported,
     is_infra_failure,
+    latest_prerelease,
     latest_stable,
     load_state,
     parse_plugin_version,
+    version_key,
+    message_file_name,
     should_notify,
     state_url,
 )
@@ -48,6 +51,29 @@ class DetectionTest(unittest.TestCase):
 
     def test_latest_stable_orders_numerically(self):
         self.assertEqual(latest_stable(metadata("2.10.0", "2.9.0")), "2.10.0")
+
+    def test_version_key_orders_prereleases_before_stable(self):
+        versions = ["2.5.0", "2.5.0-RC", "2.5.0-Beta2", "2.4.21", "2.5.0-RC2", "2.5.0-Beta1"]
+        self.assertEqual(
+            sorted(versions, key=version_key),
+            ["2.4.21", "2.5.0-Beta1", "2.5.0-Beta2", "2.5.0-RC", "2.5.0-RC2", "2.5.0"]
+        )
+
+    def test_latest_prerelease_newer_than_stable(self):
+        xml = metadata("2.4.21-RC", "2.4.21", "2.5.0-Beta1", "2.5.0-Beta2", "2.5.0-dev-123")
+        self.assertEqual(latest_prerelease(xml, "2.4.21"), "2.5.0-Beta2")
+
+    def test_latest_prerelease_older_than_stable_is_none(self):
+        xml = metadata("2.4.21-RC", "2.4.21", "2.5.0-dev-123")
+        self.assertIsNone(latest_prerelease(xml, "2.4.21"))
+
+    def test_classify_prerelease(self):
+        self.assertEqual(classify("2.5.0-Beta2", SUPPORTED), "new-line")
+        self.assertEqual(classify("2.4.22-RC", SUPPORTED), "patch")
+        self.assertEqual(classify("2.4.20-RC", SUPPORTED), "known")
+
+    def test_message_file_name(self):
+        self.assertEqual(message_file_name("2.5.0-Beta2"), "message-2.5.0-Beta2.txt")
 
     def test_highest_supported_ignores_other_kotlin_keys(self):
         toml = 'kotlin20 = "2.0.21"\nkotlin24 = "2.4.20"\nkotlinComposePlugin = "2.1.21"\nkotlin23 = "2.3.20"\n'
@@ -135,7 +161,7 @@ class MessageTest(unittest.TestCase):
     def test_message_kcp_fail(self):
         msg = build_message("2.5.0", "kcp-fail", SUPPORTED, ":compileDebugKotlin", "e: boom", JOB_URL)
         for expected in [
-            ":warning: Kotlin 2.5.0 breaks the Datadog Compose compiler plugin",
+            ":x: Kotlin 2.5.0 breaks the Datadog Compose compiler plugin",
             "new minor line (needs new kcp-kotlinXX module)",
             ":compileDebugKotlin",
             "```\ne: boom\n```",
@@ -145,6 +171,20 @@ class MessageTest(unittest.TestCase):
         ]:
             self.assertIn(expected, msg)
         self.assertNotIn("<!", msg)
+
+    def test_message_prerelease_kcp_fail_is_a_warning(self):
+        msg = build_message("2.5.0-Beta2", "kcp-fail", SUPPORTED, ":compileDebugKotlin", "e: boom", JOB_URL)
+        self.assertTrue(msg.startswith(
+            ":warning: Kotlin 2.5.0-Beta2 (pre-release) breaks the Datadog Compose compiler plugin"
+        ))
+        self.assertIn("new minor line (needs new kcp-kotlinXX module)", msg)
+        self.assertIn("@Bits Dev fix Kotlin 2.5.0-Beta2 compatibility", msg)
+
+    def test_message_prerelease_pass(self):
+        msg = build_message("2.5.0-Beta2", "pass-new-line", SUPPORTED, None, "", JOB_URL)
+        self.assertTrue(msg.startswith(
+            ":white_check_mark: Kotlin 2.5.0-Beta2 (pre-release) is compatible with the Datadog Compose compiler plugin"
+        ))
 
     def test_message_kcp_fail_patch_type(self):
         msg = build_message("2.4.21", "kcp-fail", SUPPORTED, ":compileDebugKotlin", "e: boom", JOB_URL)

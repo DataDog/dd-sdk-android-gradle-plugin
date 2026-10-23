@@ -53,7 +53,8 @@ VERSIONS_TOML = REPO_ROOT / "gradle" / "libs.versions.toml"
 MAVEN_CONFIG_KT = REPO_ROOT / "tools/build-config/src/main/kotlin/com/datadog/gradle/config/MavenConfig.kt"
 
 STATE_FILE = "state.json"
-MESSAGE_FILE = "message.txt"
+PRERELEASE_STAGES = {"Beta": 1, "RC": 2}
+STABLE_STAGE = 3
 # State is kept in this project's generic package registry, written only by this pipeline
 # (CI_JOB_TOKEN can read and write it); a GET returns the most recently uploaded file.
 # TEMP(e2e): separate test state; revert before merging
@@ -70,8 +71,24 @@ class Supported:
 
 
 def parse_version(version: str) -> Tuple[int, int, int]:
-    major, minor, patch = version.split(".")[:3]
+    """Numeric part of a version, ignoring any pre-release suffix: `2.5.0-Beta2` -> (2, 5, 0)."""
+    major, minor, patch = version.split("-")[0].split(".")[:3]
     return int(major), int(minor), int(patch)
+
+
+def is_prerelease(version: str) -> bool:
+    return "-" in version
+
+
+def version_key(version: str) -> Tuple[int, int, int, int, int]:
+    """Sort key ordering `2.5.0-Beta1 < 2.5.0-Beta2 < 2.5.0-RC < 2.5.0-RC2 < 2.5.0`."""
+    match = re.fullmatch(r"(\d+\.\d+\.\d+)(?:-(Beta|RC)(\d*))?", version)
+    if match is None:
+        raise ValueError(f"Unsupported Kotlin version format: {version}")
+    numbers, stage, stage_number = match.groups()
+    if stage is None:
+        return parse_version(numbers) + (STABLE_STAGE, 0)
+    return parse_version(numbers) + (PRERELEASE_STAGES[stage], int(stage_number or 1))
 
 
 def latest_stable(metadata_xml: str) -> str:
@@ -83,6 +100,17 @@ def latest_stable(metadata_xml: str) -> str:
     return max(versions, key=parse_version)
 
 
+def latest_prerelease(metadata_xml: str, stable: str) -> Optional[str]:
+    """Latest Beta or RC newer than the latest stable version, if any. Dev builds are ignored."""
+    prereleases = [
+        node.text.strip()
+        for node in ElementTree.fromstring(metadata_xml).iter("version")
+        if node.text and re.fullmatch(r"\d+\.\d+\.\d+-(Beta|RC)\d*", node.text.strip())
+    ]
+    newer = [version for version in prereleases if version_key(version) > version_key(stable)]
+    return max(newer, key=version_key) if newer else None
+
+
 def highest_supported(toml_text: str) -> Supported:
     entries = [
         Supported(f"kotlin{match.group(1)}", match.group(2))
@@ -92,11 +120,9 @@ def highest_supported(toml_text: str) -> Supported:
 
 
 def classify(version: str, supported: Supported) -> str:
-    checked = parse_version(version)
-    known = parse_version(supported.version)
-    if checked <= known:
+    if version_key(version) <= version_key(supported.version):
         return "known"
-    if checked[:2] > known[:2]:
+    if parse_version(version)[:2] > parse_version(supported.version)[:2]:
         return "new-line"
     return "patch"
 
@@ -161,6 +187,10 @@ def find_outside_references(root: Path) -> List[str]:
     return references
 
 
+def message_file_name(version: str) -> str:
+    return f"message-{version}.txt"
+
+
 def build_message(
     version: str,
     outcome: str,
@@ -169,8 +199,9 @@ def build_message(
     errors: str,
     job_url: str
 ) -> str:
+    label = f"Kotlin {version}" + (" (pre-release)" if is_prerelease(version) else "")
     if outcome in ("pass", "pass-new-line"):
-        message = f":white_check_mark: Kotlin {version} is compatible with the Datadog Compose compiler plugin ({job_url})"
+        message = f":white_check_mark: {label} is compatible with the Datadog Compose compiler plugin ({job_url})"
         if outcome == "pass-new-line":
             message += (
                 f"\nCaveat: routed to `kcp-{supported.key}`; a dedicated module may be needed — please review."
@@ -180,7 +211,7 @@ def build_message(
     details = f"Failed task: {task or 'unknown'}\n```\n{errors}\n```\nJob: {job_url}"
     if outcome == "toolchain-fail":
         return (
-            f":warning: Kotlin {version} fails to build the test app even without the Datadog plugin "
+            f":warning: {label} fails to build the test app even without the Datadog plugin "
             f"(toolchain incompatibility, likely AGP/Compose); KCP status unknown.\n{details}"
         )
 
@@ -189,8 +220,10 @@ def build_message(
         kind = "new minor line (needs new kcp-kotlinXX module)"
     else:
         kind = f"patch on {major}.{minor} line"
+    # A broken stable release is an error; a broken pre-release is only a heads-up.
+    emoji = ":warning:" if is_prerelease(version) else ":x:"
     return (
-        f":warning: Kotlin {version} breaks the Datadog Compose compiler plugin\n"
+        f"{emoji} {label} breaks the Datadog Compose compiler plugin\n"
         f"Type: {kind}\n"
         f"{details}\n\n"
         "To fix, reply in thread:\n"
@@ -246,6 +279,33 @@ def run_gradle(args: List[str], log_path: Path, cwd: Path) -> bool:
         return process.wait() == 0
 
 
+def check_version(
+    version: str,
+    kind: str,
+    plugin_version: str,
+    out_dir: Path
+) -> Optional[Tuple[str, str]]:
+    """Builds the test app with this Kotlin version. Returns (outcome, failing log), None on infra failure."""
+    build_args = [
+        "assembleDebug", "verifyKotlinCompat",
+        f"-PkotlinVersion={version}", f"-PddPluginVersion={plugin_version}",
+        "--no-daemon", "--stacktrace",
+    ]
+    datadog_log = out_dir / f"build-datadog-{version}.log"
+    control_log = out_dir / f"build-control-{version}.log"
+    if run_gradle(build_args, datadog_log, TEST_APP_DIR):
+        return decide_outcome(True, None, kind), ""
+    if is_infra_failure(datadog_log.read_text()):
+        print(f"Infra failure while building Kotlin {version} with the Datadog plugin, will retry next run")
+        return None
+    control_ok = run_gradle(build_args + ["-PdisableDatadog=true"], control_log, TEST_APP_DIR)
+    if not control_ok and is_infra_failure(control_log.read_text()):
+        print(f"Infra failure while building Kotlin {version} without the Datadog plugin, will retry next run")
+        return None
+    outcome = decide_outcome(False, control_ok, kind)
+    return outcome, (datadog_log if outcome == "kcp-fail" else control_log).read_text()
+
+
 def main() -> int:
     parser = ArgumentParser(description=__doc__)
     mode = parser.add_mutually_exclusive_group(required=True)
@@ -266,49 +326,36 @@ def main() -> int:
 
     state = load_state(fetch_previous_state)
     with urllib.request.urlopen(KOTLIN_METADATA_URL, timeout=30) as response:
-        version = latest_stable(response.read().decode("utf-8"))
+        metadata_xml = response.read().decode("utf-8")
+    stable = latest_stable(metadata_xml)
+    prerelease = latest_prerelease(metadata_xml, stable)
     supported = highest_supported(VERSIONS_TOML.read_text())
-    kind = classify(version, supported)
-    print(f"Latest stable Kotlin: {version}, newest supported: {supported.version} ({supported.key}) -> {kind}")
+    print(f"Latest stable Kotlin: {stable}, latest pre-release: {prerelease or 'none newer'}, "
+          f"newest supported: {supported.version} ({supported.key})")
 
-    if kind != "known":
-        if not run_gradle(["publishToMavenLocal", "-Pdd-skip-signing", "--no-daemon"],
-                          out_dir / "publish.log", REPO_ROOT):
-            print("Publishing the plugin to mavenLocal failed")
+    versions = [version for version in (stable, prerelease)
+                if version and classify(version, supported) != "known"]
+    if not versions:
+        print("Nothing new to check")
+    elif not run_gradle(["publishToMavenLocal", "-Pdd-skip-signing", "--no-daemon"],
+                        out_dir / "publish.log", REPO_ROOT):
+        print("Publishing the plugin to mavenLocal failed")
+        return 1
+
+    plugin_version = parse_plugin_version(MAVEN_CONFIG_KT.read_text())
+    for version in versions:
+        result = check_version(version, classify(version, supported), plugin_version, out_dir)
+        if result is None:
             return 1
-
-        build_args = [
-            "assembleDebug", "verifyKotlinCompat",
-            f"-PkotlinVersion={version}",
-            f"-PddPluginVersion={parse_plugin_version(MAVEN_CONFIG_KT.read_text())}",
-            "--no-daemon", "--stacktrace",
-        ]
-        datadog_log = out_dir / "build-datadog.log"
-        control_log = out_dir / "build-control.log"
-        datadog_ok = run_gradle(build_args, datadog_log, TEST_APP_DIR)
-        control_ok = None
-        if not datadog_ok:
-            if is_infra_failure(datadog_log.read_text()):
-                print("Infra failure while building with the Datadog plugin, will retry next run")
-                return 1
-            control_ok = run_gradle(build_args + ["-PdisableDatadog=true"], control_log, TEST_APP_DIR)
-            if not control_ok and is_infra_failure(control_log.read_text()):
-                print("Infra failure while building without the Datadog plugin, will retry next run")
-                return 1
-
-        outcome = decide_outcome(datadog_ok, control_ok, kind)
+        outcome, log = result
         print(f"Outcome for Kotlin {version}: {outcome}")
         if should_notify(state, version, outcome):
-            failing_log = {"kcp-fail": datadog_log, "toolchain-fail": control_log}.get(outcome)
-            log = failing_log.read_text() if failing_log else ""
             message = build_message(
                 version, outcome, supported, failed_task(log), extract_errors(log) if log else "",
                 os.environ.get("CI_JOB_URL", "(local run)")
             )
-            (out_dir / MESSAGE_FILE).write_text(message)
+            (out_dir / message_file_name(version)).write_text(message)
         state[version] = outcome
-    else:
-        print("Nothing new to check")
 
     (out_dir / STATE_FILE).write_text(json.dumps(state, indent=2, sort_keys=True))
     return 0

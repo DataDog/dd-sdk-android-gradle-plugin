@@ -32,7 +32,7 @@ message and asks Bits Dev to fix it.
   responsibility to see it.
 - No changes to the existing Datadog workflow Slack heads-up. Whether to keep or retire it is
   decided later.
-- Not checking Beta / RC / dev Kotlin builds (builder's call, see below).
+- Not checking dev Kotlin builds. (Beta / RC are checked, see Version detection.)
 
 ## Anti-goals (would make this a failure even if it "works")
 
@@ -107,7 +107,11 @@ is nice-to-have, not required.)*
 ### 2. Version detection
 
 - Read `https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-gradle-plugin/maven-metadata.xml`,
-  take the highest **stable** version (no `-Beta`, `-RC`, `-dev`, etc.).
+  take the highest **stable** version, plus the highest **pre-release** (`-Beta<n>`, `-RC<n>`) if it
+  is newer than that stable version (user decision). Dev builds are ignored. Each checked version
+  gets its own Slack message.
+- Severity (user decision): a stable version breaking the KCP is an error (`:x:`); a pre-release
+  breaking it is only a warning (`:warning:`). Pre-release messages are labelled "(pre-release)".
 - If that version was already reported (pass or fail), exit quietly.
 - State for "already reported" is the builder's call (GitLab CI cache, a project-level CI
   variable, or a marker file in a dedicated branch). Requirement: at most one Slack message per
@@ -164,7 +168,7 @@ manually in the GitLab UI; document the steps in the PR.
 On failure:
 
 ```
-:warning: Kotlin <version> breaks the Datadog Compose compiler plugin
+:x: Kotlin <version> breaks the Datadog Compose compiler plugin   (:warning: and "(pre-release)" for Beta/RC)
 Type: patch on 2.4 line | new minor line (needs new kcp-kotlinXX module)
 Failed task: <task>
 <first ~20 lines of compiler errors, in a code block>
@@ -210,7 +214,6 @@ No user or group mentions.
 
 - Exact Compose content, and how "instrumentation ran" is asserted.
 - Storage for "already reported" state.
-- Stable-only detection (RC excluded).
 - Whether KCP unit tests also run against the new version.
 - Exact Slack wording.
 - New-minor-line detection based on `kotlinXX` entries in `libs.versions.toml`; a passing new
