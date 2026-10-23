@@ -37,7 +37,8 @@ kotlin-compat:notify:
     - test -f kotlin-compat/state.json || { echo "Missing kotlin-compat/state.json from the check job"; exit 1; }
     - |
       if [ -f kotlin-compat/message.txt ]; then
-        postmessage "$SLACK_OPS_CHANNEL" "$(cat kotlin-compat/message.txt)"
+        # TEMP(e2e): [Test] prefix; revert before merging
+        postmessage "$SLACK_OPS_CHANNEL" "[Test] $(cat kotlin-compat/message.txt)"
       fi
 
 # Saves the state read by the next run, only once the message was posted, so a lost message is
@@ -58,5 +59,6 @@ notify:report-failure-to-slack:
   when: on_failure
   script:
     - BUILD_URL="$CI_PROJECT_URL/pipelines/$CI_PIPELINE_ID"
-    - 'MESSAGE_TEXT=":status_alert: Kotlin compatibility check pipeline failed (infra?). $BUILD_URL"'
+    # TEMP(e2e): [Test] prefix; revert before merging
+    - 'MESSAGE_TEXT="[Test] :status_alert: Kotlin compatibility check pipeline failed (infra?). $BUILD_URL"'
     - postmessage "$SLACK_OPS_CHANNEL" "$MESSAGE_TEXT"

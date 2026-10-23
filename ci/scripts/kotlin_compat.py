@@ -56,7 +56,8 @@ STATE_FILE = "state.json"
 MESSAGE_FILE = "message.txt"
 # State is kept in this project's generic package registry, written only by this pipeline
 # (CI_JOB_TOKEN can read and write it); a GET returns the most recently uploaded file.
-STATE_PACKAGE_PATH = "packages/generic/kotlin-compat-state/1.0.0/state.json"
+# TEMP(e2e): separate test state; revert before merging
+STATE_PACKAGE_PATH = "packages/generic/kotlin-compat-state-test/1.0.0/state.json"
 
 MAX_ERROR_LINES = 20
 

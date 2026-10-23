@@ -175,7 +175,7 @@ class StateTest(unittest.TestCase):
         env = {"CI_API_V4_URL": "https://gitlab/api/v4", "CI_PROJECT_ID": "42", "CI_JOB_TOKEN": "t"}
         self.assertEqual(
             state_url(env),
-            "https://gitlab/api/v4/projects/42/packages/generic/kotlin-compat-state/1.0.0/state.json"
+            "https://gitlab/api/v4/projects/42/packages/generic/kotlin-compat-state-test/1.0.0/state.json"
         )
 
     def test_state_url_outside_ci_is_none(self):

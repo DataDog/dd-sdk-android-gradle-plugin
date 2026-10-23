@@ -41,4 +41,5 @@ include:
       - if: '$CI_PIPELINE_KEY == "check-release"'
   - local: 'ci/pipelines/kotlin-compat-pipeline.yml'
     rules:
-      - if: '$CI_PIPELINE_KEY == "kotlin-compat"'
+      # TEMP(e2e): only on the test branch; revert before merging
+      - if: '$CI_PIPELINE_KEY == "kotlin-compat" && $CI_COMMIT_BRANCH == "yl/kotlin-compat-check"'
