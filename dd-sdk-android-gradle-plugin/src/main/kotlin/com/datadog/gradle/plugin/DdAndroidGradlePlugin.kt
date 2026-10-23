@@ -65,12 +65,14 @@ class DdAndroidGradlePlugin @Inject constructor(
                 androidComponentsExtension.onVariants { variant ->
                     val appVariant = AppVariant.create(variant, target)
                     knownVariants.add(appVariant)
-                    configureTasksForVariant(
-                        target,
-                        extension,
-                        appVariant,
-                        apiKeyProvider
-                    )
+                    if (extension.enabled) {
+                        configureTasksForVariant(
+                            target,
+                            extension,
+                            appVariant,
+                            apiKeyProvider
+                        )
+                    }
                 }
             } else {
                 val androidExtension = target.legacyAndroidApplicationExtension ?: return@withPlugin

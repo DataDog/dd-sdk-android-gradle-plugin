@@ -253,6 +253,48 @@ internal class DdAndroidGradlePluginFunctionalTest {
     }
 
     @Test
+    fun `M not register Datadog tasks W assembleRelease { plugin disabled }`() {
+        // Given
+        // new Variant API is used starting from AGP 8.4
+        buildVersionConfig = LATEST_VERSIONS_TEST_CONFIGURATION
+        stubGradleBuildFromResourceFile(
+            "lib_module_build.gradle",
+            libModuleBuildGradleFile,
+            overwrite = true
+        )
+        stubGradlePropertiesFile(LATEST_VERSIONS_TEST_CONFIGURATION)
+        stubGradleBuildFromResourceFile(
+            "build_with_plugin_disabled.gradle",
+            appBuildGradleFile
+        )
+
+        // When
+        val result = gradleRunner {
+            withArguments(
+                "--stacktrace",
+                ":samples:app:assembleRelease",
+                ":samples:app:tasks",
+                "--all"
+            )
+        }.build()
+
+        // Then
+        assertThat(result).hasSuccessfulTaskOutcome(":samples:app:assembleRelease")
+        assertThat(result).hasNoUploadTasks()
+        assertThat(result).doesNotContainInOutput(DdAndroidGradlePlugin.UPLOAD_TASK_NAME)
+        assertThat(result).doesNotContainInOutput(NdkSymbolFileUploadTask.TASK_NAME)
+        assertThat(result).doesNotContainInOutput("generateBuildId")
+        assertThat(result).doesNotContainInOutput("injectBuildIdToAssets")
+
+        val apks = testProjectDir.walk()
+            .filter { it.isFile && it.extension == "apk" }
+            .map { ZipFile(it) }
+            .toList()
+        assertThat(apks).isNotEmpty
+        assertThat(apks).allMatch { it.getEntry(BUILD_ID_FILE_PATH_APK) == null }
+    }
+
+    @Test
     fun `M success W assembleDebug { build cache }`() {
         // Given
         stubGradleBuildFromResourceFile(
