@@ -73,6 +73,9 @@ internal class NdkSymbolFileUploadTaskTest {
     @StringForgery
     lateinit var fakeVersion: String
 
+    @StringForgery
+    lateinit var fakeVariantVersion: String
+
     @IntForgery(min = 0)
     var fakeVersionCode: Int = 0
 
@@ -96,7 +99,8 @@ internal class NdkSymbolFileUploadTaskTest {
             .withProjectDir(tempDir)
             .build()
         whenever(mockVariant.flavorName).thenReturn(fakeVariantName)
-        whenever(mockVariant.versionName).thenReturn(fakeProject.provider { fakeVersion })
+        // differs from the extension version name, which is expected to take precedence
+        whenever(mockVariant.versionName).thenReturn(fakeProject.provider { fakeVariantVersion })
         whenever(mockVariant.versionCode).thenReturn(fakeProject.provider { fakeVersionCode })
 
         testedTask = fakeProject.tasks.register(
@@ -158,6 +162,56 @@ internal class NdkSymbolFileUploadTaskTest {
             DdAppIdentifier(
                 serviceName = fakeService,
                 version = fakeVersion,
+                versionCode = fakeVersionCode,
+                variant = fakeVariantName,
+                buildId = fakeBuildId
+            ),
+            fakeRepoInfo,
+            useGzip = true,
+            emulateNetworkCall = false
+        )
+    }
+
+    @Test
+    fun `M upload file with variant version name W applyTask() { no version name in extension }`() {
+        // Given
+        val fakeConfiguration = with(DdExtensionConfiguration()) {
+            serviceName = fakeService
+            site = fakeSite.toString()
+            this
+        }
+        testedTask.configureWith(
+            testedTask.project.providers.provider { fakeApiKey },
+            fakeConfiguration,
+            mockVariant
+        )
+        val fakeRepositoryFile = File(tempDir, fakeRepositoryFileName)
+        testedTask.repositoryFile.set(fakeRepositoryFile)
+        whenever(mockRepositoryDetector.detectRepositories(any(), eq("")))
+            .doReturn(listOf(fakeRepoInfo))
+        val fakeSoFile = writeFakeSoFile("arm64-v8a")
+
+        // When
+        testedTask.applyTask()
+
+        // Then
+        verify(mockUploader).upload(
+            fakeSite,
+            Uploader.UploadFileInfo(
+                fileKey = NdkSymbolFileUploadTask.KEY_NDK_SYMBOL_FILE,
+                file = fakeSoFile,
+                encoding = NdkSymbolFileUploadTask.ENCODING,
+                fileType = NdkSymbolFileUploadTask.TYPE_NDK_SYMBOL_FILE,
+                fileName = "libfake.so",
+                extraAttributes = mapOf(
+                    "arch" to "arm64"
+                )
+            ),
+            fakeRepositoryFile,
+            fakeApiKey.value,
+            DdAppIdentifier(
+                serviceName = fakeService,
+                version = fakeVariantVersion,
                 versionCode = fakeVersionCode,
                 variant = fakeVariantName,
                 buildId = fakeBuildId
