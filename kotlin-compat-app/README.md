@@ -9,6 +9,10 @@ cd kotlin-compat-app
 ./gradlew assembleDebug verifyKotlinCompat -PkotlinVersion=<kotlin> -PddPluginVersion=<plugin>-SNAPSHOT
 ```
 
+Locally, `-PkotlinVersion` and `-PddPluginVersion` are optional: defaults live in
+`gradle.properties`, so the project can also be opened directly in Android Studio (after
+publishing the plugin to mavenLocal). Keep `ddPluginVersion` in sync with the plugin version.
+
 This project is intentionally isolated from the plugin build: own wrapper, catalog and properties,
 and no file here may reference a path outside of this folder.
 
