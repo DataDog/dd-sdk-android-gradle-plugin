@@ -219,7 +219,11 @@ abstract class FileUploadTask @Inject constructor(
         apiKey.set(apiKeyProvider.map { it.value })
         apiKeySource.set(apiKeyProvider.map { it.source })
 
-        versionName.set(variant.versionName)
+        if (extensionConfiguration.versionName != null) {
+            versionName.set(extensionConfiguration.versionName)
+        } else {
+            versionName.set(variant.versionName)
+        }
         versionCode.set(variant.versionCode)
 
         if (extensionConfiguration.serviceName != null) {
