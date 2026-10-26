@@ -210,7 +210,13 @@ class MessageTest(unittest.TestCase):
         msg = build_message("2.5.0", "toolchain-fail", SUPPORTED, ":compileDebugKotlin", "e: boom", JOB_URL)
         self.assertIn("fails to build the test app even without the Datadog plugin", msg)
         self.assertIn("KCP status unknown", msg)
-        self.assertNotIn("@Bits Dev", msg)
+        self.assertIn(
+            "@Bits Dev update the toolchain of kotlin-compat-app in DataDog/dd-sdk-android-gradle-plugin "
+            "so it builds with Kotlin 2.5.0.",
+            msg
+        )
+        self.assertIn("Follow the \"Toolchain updates\" part of the \"Kotlin compatibility fixes\" section of AGENTS.md.", msg)
+        self.assertNotIn("@Bits Dev fix Kotlin", msg)
 
     def test_message_pass(self):
         msg = build_message("2.4.21", "pass", SUPPORTED, None, "", JOB_URL)

@@ -215,7 +215,11 @@ def build_message(
     if outcome == "toolchain-fail":
         return (
             f":warning: {label} fails to build the test app even without the Datadog plugin "
-            f"(toolchain incompatibility, likely AGP/Compose); KCP status unknown.\n{details}"
+            f"(toolchain incompatibility, likely AGP/Compose); KCP status unknown.\n{details}\n\n"
+            "To update the test app, reply in thread:\n"
+            f"@Bits Dev update the toolchain of kotlin-compat-app in DataDog/dd-sdk-android-gradle-plugin "
+            f"so it builds with Kotlin {version}. Errors and job link are above. "
+            'Follow the "Toolchain updates" part of the "Kotlin compatibility fixes" section of AGENTS.md.'
         )
 
     major, minor, _ = parse_version(version)

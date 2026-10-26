@@ -29,6 +29,8 @@ Datadog Gradle Plugin for Android (Kotlin, Gradle Kotlin DSL).
 
 - Branch names must be `<name>/<description>`; PRs target `develop`.
 - Every source file starts with the Apache 2.0 license header used across the repo.
+- When bumping AGP or Gradle in the plugin build, bump them in `kotlin-compat-app` too, so the
+  Kotlin compatibility check keeps testing a supported toolchain.
 
 ## Kotlin compatibility fixes
 
@@ -72,6 +74,22 @@ cd kotlin-compat-app
   Decide with the team whether a new module is needed or the newest one can be extended.
 - **Pre-release** (Beta/RC): same shapes, but the break may still change before the stable
   release; prefer a minimal fix and mention the pre-release in the PR.
+
+### Toolchain updates
+
+A `toolchain-fail` alert means the test app fails to build with the new Kotlin version even
+without the Datadog plugin: its pinned toolchain is too old, the KCP is not at fault (yet).
+
+1. Check what the new Kotlin version requires: the Kotlin Gradle plugin compatibility table
+   (minimum Gradle and AGP versions) and the error in the alert.
+2. Bump the smallest set of versions that fixes the build:
+   - AGP and Compose in `kotlin-compat-app/gradle/libs.versions.toml`;
+   - Gradle with `cd kotlin-compat-app && ./gradlew wrapper --gradle-version <version>` (updates
+     the wrapper properties and scripts).
+3. Prefer versions the plugin build already uses (root `gradle/libs.versions.toml` and wrapper),
+   and don't go beyond what customers can use.
+4. Re-run the reproduce commands with the new Kotlin version. If the build now fails only with
+   the Datadog plugin, continue with the fix shapes above in the same PR or a follow-up.
 
 ### Rules
 
