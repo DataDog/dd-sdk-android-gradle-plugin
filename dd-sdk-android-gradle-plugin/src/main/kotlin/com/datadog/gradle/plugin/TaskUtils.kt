@@ -17,10 +17,11 @@ internal object TaskUtils {
 
     private const val MAX_DATADOG_CI_FILE_LOOKUP_LEVELS = 4
 
+    // each task needs its own file: tasks sharing an output file can't be executed in parallel
     @Suppress("StringLiteralDuplication")
-    fun resolveDatadogRepositoryFile(target: Project): Provider<RegularFile> {
+    fun resolveDatadogRepositoryFile(target: Project, taskName: String): Provider<RegularFile> {
         return target.layout.buildDirectory.dir(
-            Path("outputs", "reports", "datadog").toString()
+            Path("outputs", "reports", "datadog", taskName).toString()
         ).map { it.file("repository.json") }
     }
 

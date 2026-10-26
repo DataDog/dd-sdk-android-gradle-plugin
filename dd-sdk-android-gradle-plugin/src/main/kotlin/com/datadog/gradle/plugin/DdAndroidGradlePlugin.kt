@@ -332,7 +332,7 @@ class DdAndroidGradlePlugin @Inject constructor(
                 @Suppress("DEPRECATION")
                 uploadTask.mappingFileTrimIndents = extensionConfiguration.mappingFileTrimIndents
 
-                uploadTask.repositoryFile.set(TaskUtils.resolveDatadogRepositoryFile(target))
+                uploadTask.repositoryFile.set(TaskUtils.resolveDatadogRepositoryFile(target, uploadTask.name))
             }
         }
 
