@@ -33,6 +33,7 @@ from kotlin_compat import (  # noqa: E402
     message_file_name,
     should_notify,
     state_url,
+    versions_to_check,
 )
 
 SUPPORTED = Supported("kotlin24", "2.4.20")
@@ -124,8 +125,23 @@ class OutcomeTest(unittest.TestCase):
         self.assertEqual(decide_outcome(False, False, "new-line"), "toolchain-fail")
 
     def test_is_infra_failure(self):
-        self.assertTrue(is_infra_failure("> Could not resolve com.datadoghq:dd-sdk-android-rum:3.14.0."))
+        self.assertTrue(is_infra_failure(
+            "> Could not resolve com.datadoghq:dd-sdk-android-rum:3.14.0.\n"
+            "   > Could not GET 'https://repo.maven.apache.org/maven2/com/datadoghq/dd-sdk-android-rum/3.14.0/"
+            "dd-sdk-android-rum-3.14.0.pom'. Received status code 503 from server: Service Unavailable"
+        ))
         self.assertFalse(is_infra_failure("e: file.kt:3:5 Unresolved reference 'IrFoo'."))
+
+    def test_dependency_conflicts_are_not_infra_failure(self):
+        self.assertFalse(is_infra_failure(
+            "> Could not resolve all files for configuration ':debugRuntimeClasspath'.\n"
+            "   > Could not resolve org.jetbrains.kotlin:kotlin-stdlib:2.6.0.\n"
+            "     > No matching variant of org.jetbrains.kotlin:kotlin-stdlib:2.6.0 was found."
+        ))
+        self.assertFalse(is_infra_failure(
+            "> Could not resolve all files for configuration ':kotlinCompilerPluginClasspathDebug'.\n"
+            "   > Could not find com.datadoghq:dd-sdk-android-gradle-plugin-kcp-kotlin26:1.33.0-SNAPSHOT."
+        ))
 
     def test_is_infra_failure_before_gradle_starts(self):
         self.assertTrue(is_infra_failure('Exception in thread "main" java.net.UnknownHostException: services.gradle.org'))
@@ -146,6 +162,20 @@ class OutcomeTest(unittest.TestCase):
             check_versions(["2.4.30", "2.5.0-RC"], results.get),
             {"2.4.30": ("kcp-fail", "e: boom")}
         )
+
+    def test_versions_to_check_skips_known_versions(self):
+        self.assertEqual(versions_to_check("2.4.20", None, SUPPORTED, {}), [])
+        self.assertEqual(versions_to_check("2.4.20", None, SUPPORTED, {"2.4.20": "pass"}), [])
+
+    def test_versions_to_check_keeps_new_versions(self):
+        self.assertEqual(versions_to_check("2.4.21", "2.5.0-Beta2", SUPPORTED, {}), ["2.4.21", "2.5.0-Beta2"])
+
+    def test_versions_to_check_rechecks_known_versions_that_failed(self):
+        # A fix bumped kotlin24 to the failing version: it must be rebuilt to confirm the recovery.
+        state = {"2.4.20": "kcp-fail"}
+        self.assertEqual(versions_to_check("2.4.20", None, SUPPORTED, state), ["2.4.20"])
+        state = {"2.4.20": "toolchain-fail"}
+        self.assertEqual(versions_to_check("2.4.20", None, SUPPORTED, state), ["2.4.20"])
 
     def test_should_notify(self):
         self.assertTrue(should_notify({}, "2.5.0", "kcp-fail"))

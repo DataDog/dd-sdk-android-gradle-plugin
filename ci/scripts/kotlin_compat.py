@@ -26,8 +26,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Tuple
 
+# Only concrete network errors: a bare "Could not resolve" is also what Gradle reports for genuine
+# dependency conflicts (no matching variant, missing artifact), which must reach the control build.
 INFRA_FAILURE_MARKERS = [
-    "Could not resolve",
     "Could not GET",
     "Could not HEAD",
     "Connection reset",
@@ -124,6 +125,23 @@ def classify(version: str, supported: Supported) -> str:
     if parse_version(version)[:2] > parse_version(supported.version)[:2]:
         return "new-line"
     return "patch"
+
+
+def versions_to_check(
+    stable: str,
+    prerelease: Optional[str],
+    supported: Supported,
+    state: Dict[str, str]
+) -> List[str]:
+    """New versions, plus known ones whose last outcome was a failure: a fix may have bumped the
+    supported Kotlin version to it, and the rebuild confirms (and reports) the recovery."""
+    return [
+        version for version in (stable, prerelease)
+        if version and (
+            classify(version, supported) != "known"
+            or state.get(version) in ("kcp-fail", "toolchain-fail")
+        )
+    ]
 
 
 def decide_outcome(datadog_ok: bool, control_ok: Optional[bool], kind: str) -> str:
@@ -356,8 +374,7 @@ def main() -> int:
     print(f"Latest stable Kotlin: {stable}, latest pre-release: {prerelease or 'none newer'}, "
           f"newest supported: {supported.version} ({supported.key})")
 
-    versions = [version for version in (stable, prerelease)
-                if version and classify(version, supported) != "known"]
+    versions = versions_to_check(stable, prerelease, supported, state)
     if not versions:
         print("Nothing new to check")
     elif not run_gradle(["publishToMavenLocal", "-Pdd-skip-signing", "--no-daemon"],
