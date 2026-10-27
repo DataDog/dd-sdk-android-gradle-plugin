@@ -103,15 +103,19 @@ datadog {
 
 ### Gradle configuration cache support
 
-This plugin supports [Gradle configuration cache](https://docs.gradle.org/7.1/userguide/configuration_cache.html) starting from the version `1.1.0`, but to have this support you need to disable SDK dependency check by setting `checkProjectDependencies` to `none`:
+This plugin supports [Gradle configuration cache](https://docs.gradle.org/current/userguide/configuration_cache.html),
+including SDK dependency checks. Dependency checking is disabled by default. Set
+`checkProjectDependencies` to `warn` to log a warning when the SDK is missing, or
+`fail` to fail the build:
 
-```
+```groovy
 datadog {
-    ...
-    checkProjectDependencies = "none"
-    ...
+    checkProjectDependencies = "fail"
 }
 ```
+
+The check includes transitive dependencies and works when the configuration cache
+is reused. Set `checkProjectDependencies` to `none` to disable it.
 
 For more information, see [Android Crash Reporting and Error Tracking](https://docs.datadoghq.com/real_user_monitoring/error_tracking/android/).
 
