@@ -76,6 +76,7 @@ internal class DdAndroidGradlePluginConfigureVariantForUploadTest : DdAndroidGra
         assertThat(task.mappingFilePackagesAliases)
             .isEqualTo(fakeExtension.mappingFilePackageAliases)
         assertThat(task.buildIdFile.get().asFile).isEqualTo(expectedBuildIdFile(variantName))
+        assertThat(task.repositoryFile.get().asFile).isEqualTo(expectedRepositoryFile(task.name))
     }
 
     @Test
@@ -366,10 +367,15 @@ internal class DdAndroidGradlePluginConfigureVariantForUploadTest : DdAndroidGra
         )
 
         // Then
+        val ndkTaskName = "uploadNdkSymbolFiles${variantName.replaceFirstChar { capitalizeChar(it) }}"
         val allTasks = fakeProject.tasks.map { it.name }
-        assertThat(allTasks)
-            .contains("uploadNdkSymbolFiles${variantName.replaceFirstChar { capitalizeChar(it) }}")
+        assertThat(allTasks).contains(ndkTaskName)
         verify(mockVariant).bindWith(any<NdkSymbolFileUploadTask>())
+        // tasks sharing an output file can't be executed in parallel
+        val ndkTask = fakeProject.tasks.getByName(ndkTaskName) as NdkSymbolFileUploadTask
+        val mappingTask = fakeProject.tasks.withType(MappingFileUploadTask::class.java).single()
+        assertThat(ndkTask.repositoryFile.get().asFile).isEqualTo(expectedRepositoryFile(ndkTask.name))
+        assertThat(mappingTask.repositoryFile.get().asFile).isEqualTo(expectedRepositoryFile(mappingTask.name))
     }
 
     @Test
@@ -495,5 +501,9 @@ internal class DdAndroidGradlePluginConfigureVariantForUploadTest : DdAndroidGra
             fakeProject.buildDir,
             "generated/datadog/buildId/$variantName/${GenerateBuildIdTask.BUILD_ID_FILE_NAME}"
         )
+    }
+
+    private fun expectedRepositoryFile(taskName: String): File {
+        return File(fakeProject.buildDir, "outputs/reports/datadog/$taskName/repository.json")
     }
 }
