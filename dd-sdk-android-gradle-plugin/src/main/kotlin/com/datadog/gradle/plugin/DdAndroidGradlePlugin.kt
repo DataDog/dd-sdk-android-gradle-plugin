@@ -17,6 +17,7 @@ import com.datadog.gradle.plugin.internal.CurrentAgpVersion
 import com.datadog.gradle.plugin.internal.DatadogCiApiKeyValueSource
 import com.datadog.gradle.plugin.internal.DatadogCiConfig
 import com.datadog.gradle.plugin.internal.GitRepositoryDetector
+import com.datadog.gradle.plugin.internal.SdkDependencySearch
 import com.datadog.gradle.plugin.internal.VariantIterator
 import com.datadog.gradle.plugin.internal.utils.capitalizeChar
 import com.datadog.gradle.plugin.internal.variant.AppVariant
@@ -177,8 +178,8 @@ class DdAndroidGradlePlugin @Inject constructor(
      * Resolves the Datadog API key from multiple sources using lazy evaluation.
      *
      * The API key is resolved in the following priority order (first match wins):
-     * 1. DD_API_KEY gradle property (e.g., -PDD_API_KEY=xxx or gradle.properties)
-     * 2. DATADOG_API_KEY gradle property (e.g., -PDATADOG_API_KEY=xxx or gradle.properties)
+     * 1. DD_API_KEY Gradle property (e.g., -PDD_API_KEY=xxx or gradle.properties)
+     * 2. DATADOG_API_KEY Gradle property (e.g., -PDATADOG_API_KEY=xxx or gradle.properties)
      * 3. DD_API_KEY environment variable
      * 4. DATADOG_API_KEY environment variable
      * 5. apiKey field in datadog-ci.json file (searched in project directory and parent directories)
@@ -364,20 +365,19 @@ class DdAndroidGradlePlugin @Inject constructor(
                 extension,
                 variant
             )
-            if (extensionConfiguration.checkProjectDependencies == SdkCheckLevel.NONE ||
-                extensionConfiguration.checkProjectDependencies == null
-            ) {
+            val checkLevel = extensionConfiguration.checkProjectDependencies
+            if (checkLevel == null || checkLevel == SdkCheckLevel.NONE) {
                 return null
             }
             val checkDepsTaskName = "checkSdkDeps${variant.name.replaceFirstChar { capitalizeChar(it) }}"
-            val resolvedCheckDependencyFlag =
-                extensionConfiguration.checkProjectDependencies ?: SdkCheckLevel.FAIL
             val checkDepsTaskProvider = target.tasks.register(
                 checkDepsTaskName,
                 CheckSdkDepsTask::class.java
             ) {
                 it.configurationName.set(variant.compileConfiguration.name)
-                it.sdkCheckLevel.set(resolvedCheckDependencyFlag)
+                val rootComponent = variant.compileConfiguration.incoming.resolutionResult.rootComponent
+                it.sdkSearchResult.set(target.providers.provider { SdkDependencySearch.search(rootComponent) })
+                it.sdkCheckLevel.set(checkLevel)
                 it.variantName.set(variant.name)
             }
             compileTask.finalizedBy(checkDepsTaskProvider)
