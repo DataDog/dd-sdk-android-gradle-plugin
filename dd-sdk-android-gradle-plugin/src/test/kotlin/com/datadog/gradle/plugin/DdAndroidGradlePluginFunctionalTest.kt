@@ -2009,15 +2009,15 @@ internal class DdAndroidGradlePluginFunctionalTest {
             }
         """.trimIndent()
 
-        private const val LATEST_GRADLE_VERSION = "9.6.1"
-        private const val LATEST_AGP_VERSION = "9.3.1"
+        private const val LATEST_GRADLE_VERSION = "9.8.2"
+        private const val LATEST_AGP_VERSION = "9.4.1"
 
         val LATEST_VERSIONS_TEST_CONFIGURATION = BuildVersionConfig(
             agpVersion = LATEST_AGP_VERSION,
             gradleVersion = LATEST_GRADLE_VERSION,
-            buildToolsVersion = "36.1.0",
-            targetSdkVersion = "36",
-            kotlinVersion = "2.3.10",
+            buildToolsVersion = "37.0.0",
+            targetSdkVersion = "37",
+            kotlinVersion = "2.4.21",
             jvmTarget = JavaVersion.VERSION_17.toString()
         )
 
