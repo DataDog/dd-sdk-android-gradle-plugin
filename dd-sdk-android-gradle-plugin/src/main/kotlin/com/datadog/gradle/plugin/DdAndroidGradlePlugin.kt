@@ -17,6 +17,7 @@ import com.datadog.gradle.plugin.internal.CurrentAgpVersion
 import com.datadog.gradle.plugin.internal.DatadogCiApiKeyValueSource
 import com.datadog.gradle.plugin.internal.DatadogCiConfig
 import com.datadog.gradle.plugin.internal.GitRepositoryDetector
+import com.datadog.gradle.plugin.internal.SdkDependencyGraph
 import com.datadog.gradle.plugin.internal.VariantIterator
 import com.datadog.gradle.plugin.internal.utils.capitalizeChar
 import com.datadog.gradle.plugin.internal.variant.AppVariant
@@ -377,6 +378,8 @@ class DdAndroidGradlePlugin @Inject constructor(
                 CheckSdkDepsTask::class.java
             ) {
                 it.configurationName.set(variant.compileConfiguration.name)
+                val rootComponent = variant.compileConfiguration.incoming.resolutionResult.rootComponent
+                it.dependencyGraph.set(target.providers.provider { SdkDependencyGraph.resolve(rootComponent) })
                 it.sdkCheckLevel.set(resolvedCheckDependencyFlag)
                 it.variantName.set(variant.name)
             }

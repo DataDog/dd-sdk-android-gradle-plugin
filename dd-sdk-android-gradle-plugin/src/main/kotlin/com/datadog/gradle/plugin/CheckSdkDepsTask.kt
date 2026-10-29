@@ -7,16 +7,16 @@
 package com.datadog.gradle.plugin
 
 import com.datadog.gradle.plugin.internal.MissingSdkException
+import com.datadog.gradle.plugin.internal.SdkDependencyGraph
 import org.gradle.api.DefaultTask
-import org.gradle.api.artifacts.ResolveException
-import org.gradle.api.artifacts.ResolvedDependency
+import org.gradle.api.artifacts.result.ResolvedComponentResult
+import org.gradle.api.artifacts.result.ResolvedDependencyResult
+import org.gradle.api.artifacts.result.UnresolvedDependencyResult
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
-import java.util.LinkedList
 import java.util.Locale
-import java.util.Queue
 
 /**
  * A Gradle task to check the Datadog SDK throughout the variant dependencies.
@@ -42,12 +42,12 @@ abstract class CheckSdkDepsTask : DefaultTask() {
     abstract val variantName: Property<String>
 
     @get:Internal
-    internal var isLastRunSuccessful: Boolean = true
+    internal val dependencyGraph: Property<SdkDependencyGraph> =
+        project.objects.property(SdkDependencyGraph::class.java)
 
     init {
         group = DdAndroidGradlePlugin.DATADOG_TASK_GROUP
         description = "Checks for the Datadog SDK into your variant dependencies."
-        outputs.upToDateWhen { it is CheckSdkDepsTask && it.isLastRunSuccessful }
     }
 
     /**
@@ -56,39 +56,25 @@ abstract class CheckSdkDepsTask : DefaultTask() {
     @Suppress("ThrowsCount")
     @TaskAction
     fun applyTask() {
-        val configuration =
-            project.configurations.firstOrNull { it.name == configurationName.get() }
-
-        if (configuration == null) {
-            logger.info(
-                CANNOT_FIND_CONFIGURATION_MESSAGE.format(
-                    Locale.US,
-                    configurationName.get(),
-                    variantName.get()
-                )
-            )
-            return
-        }
-
-        val resolvedConfiguration = configuration.resolvedConfiguration
-
-        if (resolvedConfiguration.hasError()) {
-            val failure = try {
-                resolvedConfiguration.rethrowFailure()
-                error(
-                    "Expected to throw" +
-                        " ${ResolveException::class.qualifiedName}, but this didn't happen"
-                )
-            } catch (re: ResolveException) {
-                re
+        val dependencies = when (val graph = dependencyGraph.orNull) {
+            is SdkDependencyGraph.Resolved -> resolveDependencies(graph.root)
+            is SdkDependencyGraph.Failed -> {
+                logger.warn("Couldn't resolve configuration ${configurationName.get()}", graph.failure)
+                null
             }
-            logger.warn("Couldn't resolve configuration ${configurationName.get()}", failure)
-            return
-        }
+            null -> {
+                logger.info(
+                    CANNOT_FIND_CONFIGURATION_MESSAGE.format(
+                        Locale.US,
+                        configurationName.get(),
+                        variantName.get()
+                    )
+                )
+                null
+            }
+        } ?: return
 
-        val topDependencies = resolvedConfiguration.firstLevelModuleDependencies
-        if (!isDatadogDependencyPresent(topDependencies)) {
-            isLastRunSuccessful = false
+        if (!isDatadogDependencyPresent(dependencies)) {
             when (sdkCheckLevel.get()) {
                 SdkCheckLevel.FAIL -> {
                     throw MissingSdkException(
@@ -110,24 +96,36 @@ abstract class CheckSdkDepsTask : DefaultTask() {
                     )
                 }
             }
-        } else {
-            isLastRunSuccessful = true
         }
     }
 
-    internal fun isDatadogDependencyPresent(dependencies: Set<ResolvedDependency>): Boolean {
-        val queue: Queue<ResolvedDependency> = LinkedList(dependencies)
+    private fun resolveDependencies(root: ResolvedComponentResult): Set<ResolvedComponentResult>? {
+        val queue = ArrayDeque(root.dependencies)
+        val visited = mutableSetOf(root.id)
+        val components = mutableSetOf<ResolvedComponentResult>()
         while (queue.isNotEmpty()) {
-            val dep = queue.remove()
-            if (dep.moduleGroup == DD_SDK_GROUP &&
-                (dep.moduleName == DD_SDK_V1_NAME || dep.moduleName == DD_SDK_V2_CORE_NAME)
-            ) {
-                return true
+            when (val dependency = queue.removeFirst()) {
+                is UnresolvedDependencyResult -> {
+                    logger.warn("Couldn't resolve configuration ${configurationName.get()}", dependency.failure)
+                    return null
+                }
+                is ResolvedDependencyResult -> {
+                    if (visited.add(dependency.selected.id)) {
+                        components.add(dependency.selected)
+                        queue.addAll(dependency.selected.dependencies)
+                    }
+                }
             }
-            queue.addAll(dep.children)
         }
-        return false
+        return components
     }
+
+    private fun isDatadogDependencyPresent(dependencies: Set<ResolvedComponentResult>): Boolean =
+        dependencies.any { dependency ->
+            val module = dependency.moduleVersion
+            module?.group == DD_SDK_GROUP &&
+                (module.name == DD_SDK_V1_NAME || module.name == DD_SDK_V2_CORE_NAME)
+        }
 
     internal companion object {
         internal const val MISSING_DD_SDK_MESSAGE = "Following application variant doesn't" +

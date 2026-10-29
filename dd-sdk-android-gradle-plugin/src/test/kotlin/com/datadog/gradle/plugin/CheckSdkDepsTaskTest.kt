@@ -7,44 +7,41 @@
 package com.datadog.gradle.plugin
 
 import com.datadog.gradle.plugin.internal.MissingSdkException
+import com.datadog.gradle.plugin.internal.SdkDependencyGraph
 import com.datadog.gradle.plugin.utils.forge.Configurator
 import fr.xgouchet.elmyr.Forge
-import fr.xgouchet.elmyr.ForgeryException
 import fr.xgouchet.elmyr.annotation.StringForgery
 import fr.xgouchet.elmyr.junit5.ForgeConfiguration
 import fr.xgouchet.elmyr.junit5.ForgeExtension
-import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolveException
-import org.gradle.api.artifacts.ResolvedConfiguration
-import org.gradle.api.artifacts.ResolvedDependency
+import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.artifacts.result.ResolvedComponentResult
+import org.gradle.api.artifacts.result.ResolvedDependencyResult
+import org.gradle.api.artifacts.result.UnresolvedDependencyResult
 import org.gradle.api.logging.Logger
 import org.gradle.testfixtures.ProjectBuilder
+import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.extension.Extensions
 import org.junit.jupiter.api.io.TempDir
-import org.mockito.ArgumentMatchers.anyString
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.junit.jupiter.MockitoSettings
 import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.spy
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
-import java.io.EOFException
 import java.io.File
-import java.io.FileNotFoundException
-import java.io.IOException
-import java.io.UncheckedIOException
 import java.util.Locale
 
 @Extensions(
@@ -56,10 +53,8 @@ import java.util.Locale
 internal class CheckSdkDepsTaskTest {
     lateinit var testedTask: CheckSdkDepsTask
 
-    lateinit var fakeSdkCheckLevel: SdkCheckLevel
-
     @Mock
-    lateinit var mockConfiguration: Configuration
+    lateinit var mockLogger: Logger
 
     @StringForgery
     lateinit var fakeConfigurationName: String
@@ -70,58 +65,34 @@ internal class CheckSdkDepsTaskTest {
     @TempDir
     lateinit var tempDir: File
 
-    @Mock
-    lateinit var mockLogger: Logger
-
-    @Mock
-    lateinit var mockResolvedConfiguration: ResolvedConfiguration
-
-    @Mock
-    lateinit var mockConfigurationContainer: ConfigurationContainer
-
     private lateinit var fakeProject: Project
+    private lateinit var stubRootComponent: ResolvedComponentResult
 
     @BeforeEach
     fun `set up`(forge: Forge) {
-        whenever(mockConfiguration.name).thenReturn(fakeConfigurationName)
-        whenever(mockConfiguration.resolvedConfiguration).thenReturn(mockResolvedConfiguration)
-        whenever(mockResolvedConfiguration.firstLevelModuleDependencies).thenReturn(emptySet())
-        fakeSdkCheckLevel = forge.aValueFrom(SdkCheckLevel::class.java)
-        fakeProject = ProjectBuilder.builder()
-            .withProjectDir(tempDir)
-            .build()
-
+        fakeProject = ProjectBuilder.builder().withProjectDir(tempDir).build()
+        stubRootComponent = stubComponent(forge)
+        val stubRootProvider = fakeProject.provider { stubRootComponent }
         testedTask = spy(
-            fakeProject.tasks.register(
-                "CheckDepsTask",
-                CheckSdkDepsTask::class.java
-            ) {
+            fakeProject.tasks.register("checkDepsTask", CheckSdkDepsTask::class.java) {
                 it.configurationName.set(fakeConfigurationName)
-                it.sdkCheckLevel.set(fakeSdkCheckLevel)
+                it.sdkCheckLevel.set(forge.anElementFrom(SdkCheckLevel.WARN, SdkCheckLevel.FAIL))
                 it.variantName.set(fakeVariantName)
+                it.dependencyGraph.set(fakeProject.provider { SdkDependencyGraph.resolve(stubRootProvider) })
             }.get()
         )
-
-        // need to mock project, because otherwise we cannot mock configurations
-        val mockProject = mock<Project>()
-        whenever(testedTask.project) doReturn mockProject
         whenever(testedTask.logger) doReturn mockLogger
-        val fakeConfigurations = mutableListOf(mockConfiguration)
-        whenever(mockConfigurationContainer.iterator()) doReturn fakeConfigurations.iterator()
-        whenever(mockProject.configurations) doReturn mockConfigurationContainer
     }
 
-    // region taskAction
-
     @Test
-    fun `M log info + exception W configuration cannot be found`() {
-        // GIVEN
-        whenever(mockConfigurationContainer.iterator()) doReturn mutableListOf<Configuration>().iterator()
+    fun `M log configuration name W applyTask() { dependency graph absent }`() {
+        // Given
+        testedTask.dependencyGraph.unset()
 
-        // WHEN
+        // When
         testedTask.applyTask()
 
-        // THEN
+        // Then
         verify(mockLogger).info(
             CheckSdkDepsTask.CANNOT_FIND_CONFIGURATION_MESSAGE
                 .format(Locale.US, fakeConfigurationName, fakeVariantName)
@@ -129,246 +100,103 @@ internal class CheckSdkDepsTaskTest {
     }
 
     @Test
-    fun `M log info + exception W configuration cannot be resolved`() {
-        // GIVEN
-        whenever(mockResolvedConfiguration.hasError()).thenReturn(true)
-        val resolveException = mock<ResolveException>()
-        whenever(mockResolvedConfiguration.rethrowFailure()).thenThrow(resolveException)
-
-        // WHEN
-        testedTask.applyTask()
-
-        // THEN
-        verify(mockLogger).warn(anyString(), eq(resolveException))
-    }
-
-    @Test
-    fun `M throw exception W resolved configuration throws non-ResolveException`(
-        forge: Forge
-    ) {
-        // GIVEN
-        whenever(mockResolvedConfiguration.hasError()).thenReturn(true)
-        val exception = forge.anException()
-        whenever(mockResolvedConfiguration.rethrowFailure()).thenThrow(exception)
-
-        // WHEN + THEN
-        assertThatThrownBy { testedTask.applyTask() }
-            .isEqualTo(exception)
-    }
-
-    @Test
-    fun `M throw exception W rethrowFailure doesn't throw`() {
-        // GIVEN
-        whenever(mockResolvedConfiguration.hasError()).thenReturn(true)
-
-        // WHEN + THEN
-        assertThatThrownBy { testedTask.applyTask() }
-            .isInstanceOf(IllegalStateException::class.java)
-    }
-
-    @Test
-    fun `M throw exception W sdk dependency could not be found { sdkCheckLevel = FAIL }`(
-        forge: Forge
-    ) {
-        // GIVEN
-        val dependencies = forge.aList {
-            val dependency = mock<ResolvedDependency>()
-            whenever(dependency.moduleName) doReturn forge.anAsciiString()
-            whenever(dependency.moduleGroup) doReturn forge.anAsciiString()
-            dependency
+    fun `M log resolution failure W applyTask() { unresolved transitive dependency }`(forge: Forge) {
+        // Given
+        val stubSdk = stubComponent(forge, "com.datadoghq", "dd-sdk-android-core")
+        val fakeException = object : ResolveException(fakeConfigurationName, emptyList<Throwable>()) {}
+        val stubUnresolvedDependency = mock<UnresolvedDependencyResult> {
+            on { failure } doReturn fakeException
         }
-        whenever(mockResolvedConfiguration.firstLevelModuleDependencies).thenReturn(
-            dependencies.toSet()
-        )
+        stubDependencies(stubRootComponent, stubSdk)
+        whenever(stubSdk.dependencies) doReturn setOf(stubUnresolvedDependency)
         testedTask.sdkCheckLevel.set(SdkCheckLevel.FAIL)
 
-        // WHEN + THEN
-        assertThatThrownBy { testedTask.applyTask() }.isInstanceOf(MissingSdkException::class.java)
-        assertThat(testedTask.isLastRunSuccessful).isFalse()
+        // When
+        testedTask.applyTask()
+
+        // Then
+        verify(mockLogger).warn("Couldn't resolve configuration $fakeConfigurationName", fakeException)
     }
 
     @Test
-    fun `M log a warning W sdk dependency could not be found { sdkCheckLevel = WARN }`(
-        forge: Forge
-    ) {
-        // GIVEN
-        val dependencies = forge.aList {
-            val dependency = mock<ResolvedDependency>()
-            whenever(dependency.moduleName) doReturn forge.anAsciiString()
-            whenever(dependency.moduleGroup) doReturn forge.anAsciiString()
-            dependency
-        }
-        whenever(mockResolvedConfiguration.firstLevelModuleDependencies).thenReturn(
-            dependencies.toSet()
-        )
+    fun `M fail W applyTask() { SDK absent and level FAIL }`(forge: Forge) {
+        // Given
+        stubDependencies(stubRootComponent, stubComponent(forge))
+        testedTask.sdkCheckLevel.set(SdkCheckLevel.FAIL)
+
+        // When / Then
+        assertThatThrownBy { testedTask.applyTask() }
+            .isInstanceOf(MissingSdkException::class.java)
+            .hasMessage(CheckSdkDepsTask.MISSING_DD_SDK_MESSAGE.format(Locale.US, fakeVariantName))
+    }
+
+    @Test
+    fun `M warn W applyTask() { SDK absent and level WARN }`(forge: Forge) {
+        // Given
+        stubDependencies(stubRootComponent, stubComponent(forge))
         testedTask.sdkCheckLevel.set(SdkCheckLevel.WARN)
 
-        // WHEN
+        // When
         testedTask.applyTask()
 
-        // THEN
+        // Then
         verify(mockLogger).warn(CheckSdkDepsTask.MISSING_DD_SDK_MESSAGE.format(Locale.US, fakeVariantName))
-        assertThat(testedTask.isLastRunSuccessful).isFalse()
+    }
+
+    @ParameterizedTest
+    @CsvSource("dd-sdk-android,false", "dd-sdk-android,true", "dd-sdk-android-core,false", "dd-sdk-android-core,true")
+    fun `M succeed W applyTask() { SDK present }`(sdkModuleName: String, transitive: Boolean, forge: Forge) {
+        // Given
+        val stubSdk = stubComponent(forge, "com.datadoghq", sdkModuleName)
+        val stubParent = if (transitive) stubComponent(forge) else stubRootComponent
+        stubDependencies(stubRootComponent, stubParent)
+        stubDependencies(stubParent, stubSdk)
+
+        // When
+        assertDoesNotThrow { testedTask.applyTask() }
+
+        // Then
+        verifyNoInteractions(mockLogger)
     }
 
     @Test
-    fun `M do nothing W sdk dependency was found { v1 }`(forge: Forge) {
-        // GIVEN
-        val dependencies = forge.aList {
-            val dependency = mock<ResolvedDependency>()
-            whenever(dependency.moduleName) doReturn "dd-sdk-android"
-            whenever(dependency.moduleGroup) doReturn "com.datadoghq"
-            dependency
-        }
-        whenever(mockResolvedConfiguration.firstLevelModuleDependencies).thenReturn(
-            dependencies.toSet()
-        )
-        testedTask.sdkCheckLevel.set(
-            forge.aValueFrom(
-                SdkCheckLevel::class.java,
-                exclude = listOf(SdkCheckLevel.NONE)
-            )
-        )
+    fun `M finish traversal W applyTask() { cyclic dependencies without SDK }`(forge: Forge) {
+        // Given
+        val stubChild = stubComponent(forge)
+        stubDependencies(stubRootComponent, stubChild)
+        stubDependencies(stubChild, stubRootComponent)
+        testedTask.sdkCheckLevel.set(SdkCheckLevel.WARN)
 
-        // WHEN
+        // When
         testedTask.applyTask()
 
-        // THEN
-        verifyNoInteractions(mockLogger)
-        assertThat(testedTask.isLastRunSuccessful).isTrue()
+        // Then
+        verify(mockLogger).warn(CheckSdkDepsTask.MISSING_DD_SDK_MESSAGE.format(Locale.US, fakeVariantName))
     }
 
-    @Test
-    fun `M do nothing W sdk dependency was found { v2 }`(forge: Forge) {
-        // GIVEN
-        val dependencies = forge.aList {
-            val dependency = mock<ResolvedDependency>()
-            whenever(dependency.moduleName) doReturn "dd-sdk-android-core"
-            whenever(dependency.moduleGroup) doReturn "com.datadoghq"
-            dependency
+    private fun stubComponent(
+        forge: Forge,
+        group: String = forge.anAlphabeticalString(),
+        name: String = forge.anAlphabeticalString()
+    ): ResolvedComponentResult {
+        val stubModule = mock<ModuleVersionIdentifier> {
+            on { this.group } doReturn group
+            on { this.name } doReturn name
         }
-        whenever(mockResolvedConfiguration.firstLevelModuleDependencies).thenReturn(
-            dependencies.toSet()
-        )
-        testedTask.sdkCheckLevel.set(
-            forge.aValueFrom(
-                SdkCheckLevel::class.java,
-                exclude = listOf(SdkCheckLevel.NONE)
-            )
-        )
-
-        // WHEN
-        testedTask.applyTask()
-
-        // THEN
-        verifyNoInteractions(mockLogger)
-        assertThat(testedTask.isLastRunSuccessful).isTrue()
-    }
-
-    // endregion
-
-    // region isDatadogDependencyPresent
-
-    @Test
-    fun `M return true W isDatadogDependencyPresent() { sdk is at the top level }`(
-        forge: Forge
-    ) {
-        // GIVEN
-        val sdkDependency = mock<ResolvedDependency>()
-        whenever(sdkDependency.moduleName) doReturn forge.anElementFrom(
-            "dd-sdk-android",
-            "dd-sdk-android-core"
-        )
-        whenever(sdkDependency.moduleGroup) doReturn "com.datadoghq"
-
-        val otherDependencies = forge.aList {
-            val dependency = mock<ResolvedDependency>()
-            whenever(dependency.moduleName) doReturn forge.anAsciiString()
-            whenever(dependency.moduleGroup) doReturn forge.anAsciiString()
-            dependency
+        val stubId = mock<ComponentIdentifier>()
+        return mock {
+            on { id } doReturn stubId
+            on { moduleVersion } doReturn stubModule
+            on { dependencies } doReturn emptySet()
         }
-
-        val allDependencies = (otherDependencies + sdkDependency).shuffled().toSet()
-
-        // WHEN + THEN
-        assertThat(
-            testedTask.isDatadogDependencyPresent(allDependencies)
-        ).isTrue()
     }
 
-    @Test
-    fun `M return true W isDatadogDependencyPresent() { sdk is at the child level }`(
-        forge: Forge
-    ) {
-        // GIVEN
-        val sdkDependency = mock<ResolvedDependency>()
-        whenever(sdkDependency.moduleName) doReturn forge.anElementFrom(
-            "dd-sdk-android",
-            "dd-sdk-android-core"
-        )
-        whenever(sdkDependency.moduleGroup) doReturn "com.datadoghq"
-
-        val fakeDependencyGenerator: Forge.() -> ResolvedDependency = {
-            val dependency = mock<ResolvedDependency>()
-            whenever(dependency.moduleName) doReturn forge.anAsciiString()
-            whenever(dependency.moduleGroup) doReturn forge.anAsciiString()
-            dependency
-        }
-
-        val childDependencies = forge.aList(forging = fakeDependencyGenerator)
-        val topDependencies = forge.aList(forging = fakeDependencyGenerator)
-        whenever(topDependencies.random().children) doReturn (childDependencies + sdkDependency)
-            .shuffled().toSet()
-
-        // WHEN + THEN
-        assertThat(
-            testedTask.isDatadogDependencyPresent(topDependencies.toSet())
-        ).isTrue()
+    private fun stubDependencies(component: ResolvedComponentResult, vararg dependencies: ResolvedComponentResult) {
+        val results = dependencies.map { stubDependency(it) }.toSet()
+        whenever(component.dependencies) doReturn results
     }
 
-    @Test
-    fun `M return false W isDatadogDependencyPresent() { sdk is not there }`(
-        forge: Forge
-    ) {
-        // GIVEN
-        val fakeDependencyGenerator: Forge.() -> ResolvedDependency = {
-            val dependency = mock<ResolvedDependency>()
-            whenever(dependency.moduleName) doReturn forge.anAsciiString()
-            whenever(dependency.moduleGroup) doReturn forge.anAsciiString()
-            dependency
-        }
-
-        val childDependencies = forge.aList(forging = fakeDependencyGenerator)
-        val topDependencies = forge.aList(forging = fakeDependencyGenerator)
-
-        whenever(topDependencies.random().children) doReturn childDependencies.toSet()
-
-        // WHEN + THEN
-        assertThat(
-            testedTask.isDatadogDependencyPresent(topDependencies.toSet())
-        ).isFalse()
+    private fun stubDependency(component: ResolvedComponentResult): ResolvedDependencyResult = mock {
+        on { selected } doReturn component
     }
-
-    // endregion
-
-    // region private
-
-    private fun Forge.anException(): Exception {
-        val errorMessage = anAlphabeticalString()
-        return anElementFrom(
-            IndexOutOfBoundsException(errorMessage),
-            ArithmeticException(errorMessage),
-            IllegalStateException(errorMessage),
-            ArrayIndexOutOfBoundsException(errorMessage),
-            NullPointerException(errorMessage),
-            ForgeryException(errorMessage),
-            UnsupportedOperationException(errorMessage),
-            SecurityException(errorMessage),
-            UncheckedIOException(IOException(errorMessage)),
-            UncheckedIOException(FileNotFoundException(errorMessage)),
-            UncheckedIOException(EOFException(errorMessage))
-        )
-    }
-
-    // endregion
 }
