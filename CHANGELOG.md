@@ -1,3 +1,31 @@
+# 1.32.0 / 2026-10-29
+
+* [BUGFIX] Prevent mapping package aliases from renaming application code. See [#656](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/656)
+* [BUGFIX] Close upload response bodies on all paths. See [#654](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/654)
+* [BUGFIX] Align `DD-EVP-ORIGIN-VERSION` value reported with actual plugin version. See [#664](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/664)
+* [BUGFIX] Respect the `enabled` flag with the new Variant API. See [#665](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/665)
+* [BUGFIX] Use the extension `versionName` for NDK symbol file uploads. See [#668](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/668)
+* [BUGFIX] Upload only the variant native libraries with new Variant API. See [#655](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/655)
+* [IMPROVEMENT] Upload all packaged native libraries, skip stripped ones. See [#657](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/657)
+* [IMPROVEMENT] Include the uploaded file path in upload result messages. See [#663](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/663)
+* [IMPROVEMENT] Use task-specific loggers in tasks. See [#666](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/666)
+* [IMPROVEMENT] Make the API key internal to the upload tasks. See [#669](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/669)
+* [IMPROVEMENT] Use a separate repository file for each upload task. See [#674](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/674)
+* [MAINTENANCE] Update Datadog SDK to version 3.14.0. See [#628](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/628)
+* [MAINTENANCE] Update Datadog SDK to version 3.14.1. See [#631](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/631)
+* [MAINTENANCE] Update Datadog SDK to version 3.15.0. See [#642](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/642)
+* [MAINTENANCE] Remove unused `com.github.ben-manes.versions` plugin. See [#646](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/646)
+* [MAINTENANCE] Migrate to `com.datadoghq.dependency-license` plugin. See [#647](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/647)
+* [MAINTENANCE] Set strict Kotlin version per module. See [#648](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/648)
+* [MAINTENANCE] Update `detekt` to `2.0.0-alpha.3`. See [#649](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/649)
+* [MAINTENANCE] Use Java toolchain and Gradle daemon toolchain. See [#651](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/651)
+* [MAINTENANCE] Gradle build improvements: enable parallel execution, create umbrella `ktlint` tasks. See [#652](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/652)
+* [MAINTENANCE] Enable Gradle build and configuration caches. See [#653](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/653)
+* [MAINTENANCE] Assemble only the tested variant in upload functional tests. See [#658](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/658)
+* [MAINTENANCE] Wait for emulator boot before running instrumented tests. See [#662](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/662)
+* [MAINTENANCE] Bump OkHttp to 4.12.1. See [#670](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/670)
+* [MAINTENANCE] Update latest versions test configuration. See [#677](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/677)
+
 # 1.31.0 / 2026-09-09
 
 * [FEATURE] Support Kotlin 2.4.20 in the Compose instrumentation compiler plugin. See [#622](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/622)
