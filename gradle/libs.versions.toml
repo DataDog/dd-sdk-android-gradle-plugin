@@ -47,7 +47,7 @@ dependencyLicense="0.7.0"
 # Datadog
 datadogSdk = "3.16.0"
 datadogSdkSnapshot = "3.16.0-SNAPSHOT"
-datadogPluginGradle = "1.31.0"
+datadogPluginGradle = "1.32.0"
 
 # Kotlin Compiler Plugin
 kotlinCompilerTesting20 = "0.7.0"
