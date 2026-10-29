@@ -1,0 +1,64 @@
+include:
+  - 'https://gitlab-templates.ddbuild.io/slack-notifier/v3-sdm/template.yml'
+
+# Scheduled pipeline (CI_PIPELINE_KEY=kotlin-compat) checking that the latest stable Kotlin
+# release is compatible with the Datadog Compose compiler plugin. See kotlin-compat-app/README.md.
+
+stages:
+  - check
+  - notify
+  - save-state
+  - report
+
+kotlin-compat:check:
+  tags: [ "arch:amd64" ]
+  image: $CI_IMAGE_DOCKER
+  stage: check
+  timeout: 1h
+  variables:
+    KUBERNETES_MEMORY_LIMIT: "20Gi"
+  script:
+    - python3 -m unittest ci/scripts/test_kotlin_compat.py
+    - python3 ci/scripts/kotlin_compat.py --out-dir kotlin-compat
+  artifacts:
+    when: always
+    expire_in: 1 week
+    paths:
+      - kotlin-compat/
+
+# Posts the messages (if any). Fails if the check artifacts didn't arrive, rather than silently
+# posting nothing.
+kotlin-compat:notify:
+  extends: .slack-notifier-base
+  stage: notify
+  needs: [ "kotlin-compat:check" ]
+  when: on_success
+  script:
+    - test -f kotlin-compat/state.json || { echo "Missing kotlin-compat/state.json from the check job"; exit 1; }
+    # One message per checked Kotlin version (latest stable, and latest pre-release if newer).
+    - |
+      for message in kotlin-compat/message-*.txt; do
+        [ -f "$message" ] || continue
+        postmessage "$SLACK_OPS_CHANNEL" "$(cat "$message")"
+      done
+
+# Saves the state read by the next run, only once the message was posted, so a lost message is
+# retried instead of being marked as reported.
+kotlin-compat:save-state:
+  tags: [ "arch:amd64" ]
+  image: $CI_IMAGE_DOCKER
+  stage: save-state
+  needs: [ "kotlin-compat:check", "kotlin-compat:notify" ]
+  when: on_success
+  script:
+    - python3 ci/scripts/kotlin_compat.py --save-state kotlin-compat/state.json
+
+# In its own last stage, so it also reports failures of the notify and save-state jobs.
+notify:report-failure-to-slack:
+  extends: .slack-notifier-base
+  stage: report
+  when: on_failure
+  script:
+    - BUILD_URL="$CI_PROJECT_URL/pipelines/$CI_PIPELINE_ID"
+    - 'MESSAGE_TEXT=":status_alert: Kotlin compatibility check pipeline failed (infra?). $BUILD_URL"'
+    - postmessage "$SLACK_OPS_CHANNEL" "$MESSAGE_TEXT"
