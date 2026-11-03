@@ -8,11 +8,13 @@
 
 package androidx.navigation.compose
 
+import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 
 /**
  * This is a fake function of Android [NavHost] for compilation testing purpose.
  */
+@Composable
 fun NavHost(
     navHostController: NavHostController,
     destination: String,

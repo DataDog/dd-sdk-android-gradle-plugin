@@ -80,7 +80,7 @@ dependencies {
     compileOnly(libs.mavenPublishPlugin)
 
     // Tests
-    testImplementation(libs.bundles.jUnit5)
+    testImplementation(libs.bundles.jUnit)
     testImplementation(libs.bundles.testTools)
 }
 
