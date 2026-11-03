@@ -7,7 +7,6 @@
 package com.datadog.gradle.plugin.kcp
 
 import com.datadog.gradle.plugin.InstrumentationMode
-import com.google.auto.service.AutoService
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
@@ -28,7 +27,6 @@ import org.jetbrains.kotlin.config.MessageCollectorAccess
  * configuration keys are read from [DatadogCompilerConfigurationKeys] instead.
  */
 @OptIn(ExperimentalCompilerApi::class, MessageCollectorAccess::class)
-@AutoService(CompilerPluginRegistrar::class)
 class DatadogPluginRegistrarImpl(
     private val overrideInstrumentationMode: InstrumentationMode? = null
 ) : CompilerPluginRegistrar() {

@@ -54,7 +54,6 @@ kotlinCompilerTesting20 = "0.7.0"
 kotlinCompilerTesting21 = "0.7.0"
 kotlinCompilerTesting22 = "0.8.0"
 kotlinCompilerTesting24 = "0.12.1"
-autoService = "1.0.1"
 junitVersion = "1.2.1"
 espressoCoreVersion = "3.7.0"
 lifecycleRuntimeKtx = "2.8.7"
@@ -129,9 +128,6 @@ kotlinReflect20 = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref 
 kotlinReflect21 = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin21" }
 kotlinReflect22 = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin22" }
 kotlinReflect24 = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin24" }
-
-autoService = { module = "com.google.auto.service:auto-service", version.ref = "autoService" }
-autoServiceAnnotation = { module = "com.google.auto.service:auto-service-annotations", version.ref = "autoService" }
 
 # Compose
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }

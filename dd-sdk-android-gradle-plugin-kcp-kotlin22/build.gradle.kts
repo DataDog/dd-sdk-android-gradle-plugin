@@ -9,7 +9,6 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 plugins {
     id("java-library")
     kotlin("jvm")
-    kotlin("kapt")
 
     // Publish
     `maven-publish`
@@ -35,9 +34,7 @@ dependencies {
     compileOnly(kotlin("stdlib"))
     compileOnly(libs.kotlinCompilerEmbeddable22)
     compileOnly(libs.kotlinGradlePlugin22)
-    compileOnly(libs.autoServiceAnnotation)
     compileOnly(libs.kotlinReflect22)
-    kapt(libs.autoService)
 
     testImplementation(testFixtures(project(":dd-sdk-android-gradle-plugin-kcp-common")))
     testImplementation(libs.kotlinCompilerEmbeddable22)
