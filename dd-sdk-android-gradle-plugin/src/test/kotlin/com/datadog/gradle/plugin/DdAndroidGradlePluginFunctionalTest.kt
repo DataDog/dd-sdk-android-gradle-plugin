@@ -1975,8 +1975,12 @@ internal class DdAndroidGradlePluginFunctionalTest {
             include(":samples:app")
             include(":samples:lib-module")
         """
+
+        // The TestKit daemon is reused across tests and merges the dex files of all the variants in
+        // parallel. With a smaller heap R8 can run out of memory growing its dex output buffers, which
+        // fails the build with "DexArchiveMergerException: Error while merging dex archives".
         val GRADLE_PROPERTIES_FILE_CONTENT = """
-           org.gradle.jvmargs=-Xmx1280m
+           org.gradle.jvmargs=-Xmx2048m
            org.gradle.daemon.idletimeout=10000
            android.useAndroidX=true
            agpVersion=%s
