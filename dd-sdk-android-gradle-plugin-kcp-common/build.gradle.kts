@@ -9,7 +9,6 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 plugins {
     id("java-library")
     kotlin("jvm")
-    kotlin("kapt")
     `java-test-fixtures`
 
     // Publish
@@ -35,8 +34,6 @@ dependencies {
     compileOnly(kotlin("stdlib"))
     compileOnly(libs.kotlinCompilerEmbeddable20)
     compileOnly(libs.kotlinGradlePlugin20)
-    compileOnly(libs.autoServiceAnnotation)
-    kapt(libs.autoService)
 
     testImplementation(libs.bundles.jUnit5)
     testImplementation(libs.bundles.testTools)

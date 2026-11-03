@@ -1,6 +1,5 @@
 Dependencies List
 
-com.google.auto.service:auto-service-annotations:1.0.1 (compileOnly)            :    0 b 
 org.jetbrains.kotlin:fus-statistics-gradle-plugin:2.1.21 (compileOnly)          :    0 b 
 org.jetbrains.kotlin:kotlin-build-tools-api:2.1.21 (compileOnly)                :    0 b 
 org.jetbrains.kotlin:kotlin-compiler-embeddable:2.1.21 (compileOnly)            :    0 b 
