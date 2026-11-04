@@ -6,7 +6,7 @@
 
 package com.datadog.gradle.plugin
 
-import com.android.builder.model.Version
+import com.android.Version
 import org.gradle.api.Project
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Provider
@@ -41,11 +41,6 @@ internal object TaskUtils {
 
     fun isAgpEqualOrAbove(major: Int, minor: Int, patch: Int): Boolean {
         return isVersionEqualOrAbove(Version.ANDROID_GRADLE_PLUGIN_VERSION, major, minor, patch)
-    }
-
-    // Gradle version may not have patch version
-    fun isGradleEqualOrAbove(project: Project, major: Int, minor: Int, patch: Int = 0): Boolean {
-        return isVersionEqualOrAbove(project.gradle.gradleVersion, major, minor, patch)
     }
 
     @Suppress("MagicNumber")

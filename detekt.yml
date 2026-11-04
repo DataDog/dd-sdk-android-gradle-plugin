@@ -443,8 +443,7 @@ potential-bugs:
   CastToNullableType:
     active: true
   Deprecation:
-    # TODO RUM-18963 Re-enable once deprecated API usages are addressed
-    active: false
+    active: true
   DontDowncastCollectionTypes:
     active: true
   DoubleMutabilityForCollection:

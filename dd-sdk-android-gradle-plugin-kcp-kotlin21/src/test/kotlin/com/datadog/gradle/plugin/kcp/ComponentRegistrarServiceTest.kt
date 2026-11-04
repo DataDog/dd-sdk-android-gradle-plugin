@@ -7,18 +7,18 @@
 package com.datadog.gradle.plugin.kcp
 
 import org.assertj.core.api.Assertions.assertThat
-import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.junit.jupiter.api.Test
 import java.util.ServiceLoader
 
-@Suppress("DEPRECATION")
 @OptIn(ExperimentalCompilerApi::class)
 internal class ComponentRegistrarServiceTest {
 
     @Test
     fun `M discover DatadogPluginRegistrarImpl W ServiceLoader loads`() {
-        val providers = ServiceLoader.load(ComponentRegistrar::class.java)
+        // Verify the actual service used to run before Compose on Kotlin versions below 2.4.
+        @Suppress("DEPRECATION")
+        val providers = ServiceLoader.load(org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar::class.java)
             .filter { it.javaClass.name.startsWith("com.datadog.") }
 
         assertThat(providers)

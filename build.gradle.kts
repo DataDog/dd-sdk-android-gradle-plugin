@@ -4,7 +4,6 @@
  * Copyright 2020-Present Datadog, Inc.
  */
 
-import com.datadog.gradle.plugin.licenses.tasks.CheckDependencyLicensesTask
 import dev.detekt.gradle.Detekt
 
 buildscript {
@@ -48,11 +47,6 @@ allprojects {
         mavenCentral()
         maven("https://jitpack.io")
         maven("https://central.sonatype.com/repository/maven-snapshots/")
-    }
-
-    // TODO RUM-17809: configuration cache not supported by gradle-dependency-license-plugin; re-enable once fixed
-    tasks.withType<CheckDependencyLicensesTask>().configureEach {
-        notCompatibleWithConfigurationCache("Accesses Task.project at execution time")
     }
 }
 

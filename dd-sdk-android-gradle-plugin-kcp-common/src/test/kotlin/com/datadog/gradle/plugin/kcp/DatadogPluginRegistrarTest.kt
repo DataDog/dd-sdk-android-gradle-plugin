@@ -11,13 +11,13 @@ import fr.xgouchet.elmyr.junit5.ForgeExtension
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
-import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.com.intellij.mock.MockProject
 import org.jetbrains.kotlin.com.intellij.openapi.extensions.ExtensionPoint
 import org.jetbrains.kotlin.com.intellij.openapi.extensions.ExtensionPointName
 import org.jetbrains.kotlin.com.intellij.openapi.extensions.LoadingOrder
 import org.jetbrains.kotlin.com.intellij.openapi.extensions.impl.ExtensionsAreaImpl
+import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.junit.jupiter.api.BeforeEach
@@ -60,7 +60,7 @@ internal class DatadogPluginRegistrarTest {
     @BeforeEach
     fun `set up`() {
         compilerConfiguration = CompilerConfiguration()
-        compilerConfiguration.put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, mockMessageCollector)
+        compilerConfiguration.put(CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY, mockMessageCollector)
         whenever(mockProject.extensionArea).thenReturn(mockExtensionArea)
         whenever(
             mockExtensionArea

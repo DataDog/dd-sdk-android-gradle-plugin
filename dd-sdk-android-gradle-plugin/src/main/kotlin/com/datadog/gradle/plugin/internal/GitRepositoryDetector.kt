@@ -12,7 +12,6 @@ import com.datadog.gradle.plugin.RepositoryInfo
 import com.datadog.gradle.plugin.internal.sanitizer.GitRemoteUrlSanitizer
 import com.datadog.gradle.plugin.internal.sanitizer.UrlSanitizer
 import org.gradle.process.ExecOperations
-import org.gradle.process.internal.ExecException
 import java.io.File
 
 // TODO RUMM-1095 handle git submodules
@@ -30,7 +29,7 @@ internal class GitRepositoryDetector(
     ): List<RepositoryInfo> {
         try {
             execOperations.execShell("git", "rev-parse", "--is-inside-work-tree")
-        } catch (@Suppress("DEPRECATION") e: ExecException) {
+        } catch (@Suppress("DEPRECATION") e: org.gradle.process.internal.ExecException) {
             // Suppress deprecation above because replacement class is only available starting from Gradle 9.0
             LOGGER.error("Project is not a git repository", e)
             return emptyList()
@@ -56,9 +55,7 @@ internal class GitRepositoryDetector(
     }
 
     private fun resolveRemoteUrl(extensionProvidedRemoteUrl: String) =
-        if (extensionProvidedRemoteUrl.isNotEmpty()) {
-            extensionProvidedRemoteUrl
-        } else {
+        extensionProvidedRemoteUrl.ifEmpty {
             execOperations.execShell("git", "remote", "get-url", "origin").trim()
         }
 

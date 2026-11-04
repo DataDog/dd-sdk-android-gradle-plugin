@@ -211,7 +211,8 @@ internal class DdAndroidGradlePluginConfigureVariantForUploadTest : DdAndroidGra
         @Suppress("DEPRECATION")
         fakeExtension.mappingFileTrimIndents = false
         val variantName = "$flavorName${buildTypeName.replaceFirstChar { capitalizeChar(it) }}"
-        val fakeMappingFilePath = "${fakeProject.buildDir}/outputs/mapping/$variantName/mapping.txt"
+        val fakeMappingFilePath = fakeProject.layout.buildDirectory
+            .file("outputs/mapping/$variantName/mapping.txt").get().asFile.path
         whenever(mockVariant.name) doReturn variantName
         whenever(mockVariant.flavorName) doReturn flavorName
         whenever(mockVariant.versionCode) doReturn versionCode.asProvider()
@@ -269,7 +270,8 @@ internal class DdAndroidGradlePluginConfigureVariantForUploadTest : DdAndroidGra
         fakeExtension.mappingFileTrimIndents = false
         fakeExtension.ignoreDatadogCiFileConfig = true
         val variantName = "$flavorName${buildTypeName.replaceFirstChar { capitalizeChar(it) }}"
-        val fakeMappingFilePath = "${fakeProject.buildDir}/outputs/mapping/$variantName/mapping.txt"
+        val fakeMappingFilePath = fakeProject.layout.buildDirectory
+            .file("outputs/mapping/$variantName/mapping.txt").get().asFile.path
         whenever(mockVariant.name) doReturn variantName
         whenever(mockVariant.flavorName) doReturn flavorName
         whenever(mockVariant.versionCode) doReturn versionCode.asProvider()
@@ -498,12 +500,12 @@ internal class DdAndroidGradlePluginConfigureVariantForUploadTest : DdAndroidGra
 
     private fun expectedBuildIdFile(variantName: String): File {
         return File(
-            fakeProject.buildDir,
+            fakeProject.layout.buildDirectory.get().asFile,
             "generated/datadog/buildId/$variantName/${GenerateBuildIdTask.BUILD_ID_FILE_NAME}"
         )
     }
 
     private fun expectedRepositoryFile(taskName: String): File {
-        return File(fakeProject.buildDir, "outputs/reports/datadog/$taskName/repository.json")
+        return fakeProject.layout.buildDirectory.file("outputs/reports/datadog/$taskName/repository.json").get().asFile
     }
 }

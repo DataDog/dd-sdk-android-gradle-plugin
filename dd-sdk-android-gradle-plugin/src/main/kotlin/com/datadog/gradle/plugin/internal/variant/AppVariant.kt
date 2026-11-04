@@ -6,7 +6,6 @@
 
 package com.datadog.gradle.plugin.internal.variant
 
-import com.android.build.gradle.AppExtension
 import com.datadog.gradle.plugin.GenerateBuildIdTask
 import com.datadog.gradle.plugin.MappingFileUploadTask
 import com.datadog.gradle.plugin.NdkSymbolFileUploadTask
@@ -18,7 +17,6 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskProvider
 import java.io.File
 import com.android.build.api.variant.ApplicationVariant as NewApplicationVariant
-import com.android.build.gradle.api.ApplicationVariant as LegacyApplicationVariant
 
 internal interface AppVariant {
 
@@ -59,9 +57,11 @@ internal interface AppVariant {
             target: Project
         ): AppVariant = NewApiAppVariant(variant, target)
 
+        // AGP 8.0–8.3 and the forced legacy variant API require these types.
+        @Suppress("DEPRECATION")
         fun create(
-            variant: LegacyApplicationVariant,
-            appExtension: AppExtension,
+            variant: com.android.build.gradle.api.ApplicationVariant,
+            appExtension: com.android.build.gradle.AppExtension,
             target: Project
         ): AppVariant = LegacyApiAppVariant(variant, appExtension, target)
     }

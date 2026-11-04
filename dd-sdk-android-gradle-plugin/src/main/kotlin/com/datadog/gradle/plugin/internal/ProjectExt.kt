@@ -8,7 +8,6 @@ package com.datadog.gradle.plugin.internal
 
 import com.datadog.gradle.plugin.DdAndroidGradlePlugin.Companion.LOGGER
 import org.gradle.process.ExecOperations
-import org.gradle.process.internal.ExecException
 import java.io.ByteArrayOutputStream
 
 internal fun ExecOperations.execShell(vararg command: String): String {
@@ -21,7 +20,7 @@ internal fun ExecOperations.execShell(vararg command: String): String {
             it.standardOutput = outputStream
             it.errorOutput = errorStream
         }
-    } catch (@Suppress("DEPRECATION") e: ExecException) {
+    } catch (@Suppress("DEPRECATION") e: org.gradle.process.internal.ExecException) {
         // Suppress deprecation above because replacement class is only available starting from Gradle 9.0
         LOGGER.error(errorStream.toString("UTF-8"))
         throw e
