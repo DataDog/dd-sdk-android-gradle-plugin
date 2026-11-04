@@ -21,9 +21,8 @@ androidx-core = "1.3.2"
 androidx-appcompat = "1.2.0"
 androidx-constraintlayout = "2.0.4"
 
-# JUnit 5
+# JUnit
 jUnit-jupiter = "6.1.2"
-jUnit-platform = "6.1.2"
 jUnit-mockitoExt = "5.23.0"
 
 # Tests Tools
@@ -32,12 +31,11 @@ elmyr = "1.3.1"
 mockitoKotlin = "6.3.0"
 
 # Tools
-detekt = "2.0.0-alpha.3"
+detekt = "2.0.0-alpha.6"
 dokka = "2.2.0"
-ktlint = "1.5.0"
+ktlint = "1.8.0"
 ktlintGradlePlugin = "14.2.0"
 kover = "0.9.8"
-unmock = "0.7.5"
 
 gradlePluginPublishPlugin = "2.1.1"
 mavenPublishPlugin = "0.37.0"
@@ -72,7 +70,6 @@ kotlinGradlePlugin24 = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", v
 dokkaGradlePlugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
 detektGradlePlugin = { module = "dev.detekt:detekt-gradle-plugin", version.ref = "detekt" }
 ktlintGradlePlugin = { module = "org.jlleitschuh.gradle.ktlint:org.jlleitschuh.gradle.ktlint.gradle.plugin", version.ref = "ktlintGradlePlugin" }
-unmockGradlePlugin = { module = "de.mobilej.unmock:UnMockPlugin", version.ref = "unmock" }
 
 mavenPublishPlugin = { module = "com.vanniktech.maven.publish:com.vanniktech.maven.publish.gradle.plugin", version.ref = "mavenPublishPlugin" }
 
@@ -89,11 +86,11 @@ androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayo
 
 assertJ = { module = "org.assertj:assertj-core", version.ref = "assertJ" }
 
-# JUnit 5
-jUnit-platform = { module = "org.junit.platform:junit-platform-launcher", version.ref = "jUnit-platform" }
+# JUnit: the versioned API dependency supplies the BOM for the remaining artifacts.
+jUnit-platform = { module = "org.junit.platform:junit-platform-launcher" }
 jUnit-jupiterApi = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "jUnit-jupiter" }
-jUnit-parameters = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "jUnit-jupiter" }
-jUnit-jupiterEngine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "jUnit-jupiter" }
+jUnit-parameters = { module = "org.junit.jupiter:junit-jupiter-params" }
+jUnit-jupiterEngine = { module = "org.junit.jupiter:junit-jupiter-engine" }
 jUnit-mockitoExt = { module = "org.mockito:mockito-junit-jupiter", version.ref = "jUnit-mockitoExt" }
 
 # Test tools
@@ -147,7 +144,7 @@ androidx-compose-navigation = { module = "androidx.navigation:navigation-compose
 
 [bundles]
 
-jUnit5 = [
+jUnit = [
     "jUnit-platform",
     "jUnit-jupiterApi",
     "jUnit-jupiterEngine",

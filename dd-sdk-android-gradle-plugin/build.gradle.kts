@@ -48,7 +48,7 @@ dependencies {
     compileOnly(libs.kotlinGradlePluginApi21)
 
     // Test dependencies
-    testImplementation(libs.bundles.jUnit5)
+    testImplementation(libs.bundles.jUnit)
     testImplementation(libs.bundles.testTools)
     testImplementation(libs.okHttpMock)
     testImplementation(libs.androidToolsGradlePlugin)

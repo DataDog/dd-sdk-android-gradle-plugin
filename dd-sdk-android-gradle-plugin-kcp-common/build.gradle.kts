@@ -35,7 +35,7 @@ dependencies {
     compileOnly(libs.kotlinCompilerEmbeddable20)
     compileOnly(libs.kotlinGradlePlugin20)
 
-    testImplementation(libs.bundles.jUnit5)
+    testImplementation(libs.bundles.jUnit)
     testImplementation(libs.bundles.testTools)
     testImplementation(libs.kotlinCompilerEmbeddable20)
     testImplementation(libs.kotlinGradlePlugin20)
@@ -44,7 +44,7 @@ dependencies {
     testFixturesCompileOnly(libs.kotlinCompilerTesting20)
     testFixturesCompileOnly(libs.kotlinGradlePlugin20)
     testFixturesCompileOnly(libs.kotlinReflect20)
-    testFixturesApi(libs.bundles.jUnit5)
+    testFixturesApi(libs.bundles.jUnit)
     testFixturesApi(libs.bundles.testTools)
     testFixturesApi(platform(libs.androidx.compose.bom))
     testFixturesApi(libs.androidx.ui)

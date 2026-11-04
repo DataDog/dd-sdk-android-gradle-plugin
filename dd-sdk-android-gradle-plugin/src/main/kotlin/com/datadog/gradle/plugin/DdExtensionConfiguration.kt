@@ -49,7 +49,7 @@ open class DdExtensionConfiguration(
 
     /**
      * The absolute path to the mapping file to be used for deobfuscation. If not provided the
-     * default one will be used: [buildDir]/output/mapping/[variant]/mapping.txt
+     * default one will be used: `[buildDir]/output/mapping/[variant]/mapping.txt`
      */
     var mappingFilePath: String? = null
 

@@ -10,12 +10,12 @@ import java.util.Locale
 
 /**
  * It will strip out the user information from the provided URL by applying the following rules:
- * 1. In case the URL is a valid schema URL : ((ssh|http[s]?):\\) it will strip out the user
+ * 1. In case the URL is a valid schema URL : `((ssh|http[s]?):\\)` it will strip out the user
  * information if any from it
  * 2. In case the URL is a valid schema URL but by mistake the user forgot to add the schema:
- * [username]:[password]@github.com/(.+).git it will strip out the user information if any and will
+ * `[username]:[password]@github.com/(.+).git` it will strip out the user information if any and will
  * return the new url
- * 3. In case the URL is of a GIT SSH short format: [user@]github.com:(.+).git it will do
+ * 3. In case the URL is of a GIT SSH short format: `[user@]github.com:(.+).git` it will do
  * nothing assuming that there is no password normally provided in a GIT SSH short format URL.
  */
 internal class GitRemoteUrlSanitizer(

@@ -128,7 +128,6 @@ same feature from a Java source code.
 Our coding style is ensured by [KtLint](https://ktlint.github.io/), with the
 default settings. A KtLint check is ran on every PR to ensure that all new code
 follow this rule.
-Current KtLint version: 1.5.0
 
 Classes should group their methods in folding regions named after the declaring
 class. Private methods should be grouped in an `Internal` named folding region. 
@@ -177,7 +176,7 @@ take a look at the `test` folder to get some ideas on how we write them at Datad
 
 We use a variety of tools to help us write tests easy to read and maintain:
 
- - [JUnit5 Jupiter](https://junit.org/junit5/): the test runner, quite similar to
+ - [JUnit Jupiter](https://junit.org/): the test runner, quite similar to
      JUnit4;
  - [Mockito](https://site.mockito.org/): a mocking framework to decouple concerns
      in the Unit Tests;
@@ -203,7 +202,7 @@ Fields should appear in the following order, and be named as explained by these 
 - Mocked objects must be named from their class (with an optional qualifier), and prefixed by `mock`. E.g.: `mockListener: Listener`, `mockService: ExecutorService`).
 - Fake data must be named from their class (with an optional qualifier), and prefixed by `fake`. E.g.: `fakeContext: Context`, `fakeApplicationId: UUID`, `fakeRequest: NetworkRequest`.
 - Other fields can be named on case by case basis, but a few rules can still apply:
-    - If the field is annotated by a JUnit 5 extension (e.g.: `@TempDir`), then it should be named after the extension (e.g.: `tempOutputDir`).
+    - If the field is annotated by a JUnit Jupiter extension (e.g.: `@TempDir`), then it should be named after the extension (e.g.: `tempOutputDir`).
     
 ### Test Methods
 

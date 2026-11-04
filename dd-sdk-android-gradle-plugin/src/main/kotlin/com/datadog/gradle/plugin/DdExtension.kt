@@ -13,8 +13,8 @@ import javax.inject.Inject
 /**
  * Extension used to configure the `dd-android-gradle-plugin`.
  */
-open class DdExtension(
-    @Inject private val objectFactory: ObjectFactory
+open class DdExtension @Inject constructor(
+    objectFactory: ObjectFactory
 ) : DdExtensionConfiguration() {
 
     /**
