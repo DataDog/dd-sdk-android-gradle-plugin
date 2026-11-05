@@ -64,7 +64,7 @@ internal fun Project.publishingConfig(projectDescription: String) {
 
     afterEvaluate {
         if (hasGradlePluginPublishPlugin) {
-            tasks.named<Jar>("javadocJar").configure {
+            tasks.named<Jar>("javadocJar") {
                 group = "publishing"
                 dependsOn("dokkaGenerate")
                 archiveClassifier.convention("javadoc")

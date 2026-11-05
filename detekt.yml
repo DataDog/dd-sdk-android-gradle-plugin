@@ -757,6 +757,13 @@ style:
     active: false
   UnnecessaryFilter:
     active: true
+  UnnecessaryFullyQualifiedName:
+    active: true
+    ignoredFullyQualifiedNames:
+      - 'com.android.build.gradle.AppExtension'
+      - 'com.android.build.gradle.api.ApplicationVariant'
+      - 'org.gradle.process.internal.ExecException'
+      - 'org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar'
   UnnecessaryInheritance:
     active: true
   UnnecessaryInnerClass:

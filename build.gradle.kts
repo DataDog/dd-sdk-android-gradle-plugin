@@ -57,8 +57,7 @@ val detektScripts = tasks.register<Detekt>("detektScripts") {
     config.setFrom(file("detekt.yml"))
     setSource(files(rootDir))
     include("**/*.kts")
-    // precompiled script plugins are part of the build-config sources
-    exclude("**/build/**", "**/.gradle/**", "tools/build-config/src/**", "**/.gradle-user-home/**")
+    exclude("**/build/**", "**/.gradle/**", "**/.gradle-user-home/**")
     reports {
         sarif.required = false
         html.required = false
@@ -67,17 +66,18 @@ val detektScripts = tasks.register<Detekt>("detektScripts") {
     }
 }
 
-// The root project doesn't have sources, so the plain task is just an umbrella
+// The root project doesn't have sources, so use its task to aggregate all Detekt checks.
 tasks.named<Detekt>("detekt") {
     enabled = false
     dependsOn(detektScripts)
+    dependsOn(subprojects.map { project -> project.tasks.named { it == "detekt" } })
+    dependsOn(gradle.includedBuild("build-config").task(":detekt"))
 }
 
 tasks.register("detektAll") {
     group = "datadog"
     description = "Runs the Detekt checks on all modules and Gradle scripts."
-    dependsOn(allprojects.map { project -> project.tasks.named { it == "detekt" } })
-    dependsOn(gradle.includedBuild("build-config").task(":detekt"))
+    dependsOn(tasks.named("detekt"))
 }
 
 tasks.register<Delete>("clean") {
@@ -97,13 +97,13 @@ tasks.register("checkGeneratedFiles") {
 tasks.register("ktlintCheckAll") {
     group = "datadog"
     description = "Runs code format check with ktlint for both main and included (`:build-config`) builds."
-    dependsOn(allprojects.mapNotNull { it.tasks.named { it == "ktlintCheck" } })
+    dependsOn(allprojects.mapNotNull { project -> project.tasks.named { it == "ktlintCheck" } })
     dependsOn(gradle.includedBuild("build-config").task(":ktlintCheck"))
 }
 
 tasks.register("ktlintFormatAll") {
     group = "datadog"
     description = "Runs code formatting with ktlint for both main and included (`:build-config`) builds."
-    dependsOn(allprojects.mapNotNull { it.tasks.named { it == "ktlintFormat" } })
+    dependsOn(allprojects.mapNotNull { project -> project.tasks.named { it == "ktlintFormat" } })
     dependsOn(gradle.includedBuild("build-config").task(":ktlintFormat"))
 }
