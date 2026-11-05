@@ -589,7 +589,9 @@ internal class OkHttpUploaderTest {
             MockResponse()
                 .setResponseCode(forge.anInt(min = 400, max = 403)),
             MockResponse()
-                .setResponseCode(forge.anInt(min = 404, max = 600))
+                .setResponseCode(forge.anInt(min = 404, max = 408)),
+            MockResponse()
+                .setResponseCode(forge.anInt(min = 409, max = 600))
         )
 
         // When
