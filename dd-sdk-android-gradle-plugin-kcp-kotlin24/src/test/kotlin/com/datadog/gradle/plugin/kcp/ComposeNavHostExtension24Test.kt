@@ -26,6 +26,8 @@ internal class ComposeNavHostExtension24Test : ComposeNavHostExtensionTest() {
 
     @BeforeEach
     fun setUpNavHostSymbols() {
+        // Stub the API used by DefaultPluginContextUtils, which also runs on Kotlin 1.9.
+        @Suppress("DEPRECATION")
         whenever(mockPluginContext.referenceConstructors(any<ClassId>())) doReturn listOf(mockIrConstructorSymbol)
     }
 

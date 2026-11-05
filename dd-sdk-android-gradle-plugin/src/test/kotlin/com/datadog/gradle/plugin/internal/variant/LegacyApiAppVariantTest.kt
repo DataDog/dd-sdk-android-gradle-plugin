@@ -6,8 +6,6 @@
 
 package com.datadog.gradle.plugin.internal.variant
 
-import com.android.build.gradle.AppExtension
-import com.android.build.gradle.api.ApplicationVariant
 import com.android.build.gradle.tasks.ExternalNativeBuildTask
 import com.android.builder.model.BuildType
 import com.android.builder.model.ProductFlavor
@@ -50,11 +48,14 @@ internal class LegacyApiAppVariantTest {
 
     private val fakeProject = ProjectBuilder.builder().build()
 
+    // These mocks deliberately exercise the supported legacy AGP adapter.
+    @Suppress("DEPRECATION")
     @Mock
-    lateinit var mockAppExtension: AppExtension
+    lateinit var mockAppExtension: com.android.build.gradle.AppExtension
 
+    @Suppress("DEPRECATION")
     @Mock
-    lateinit var mockAndroidVariant: ApplicationVariant
+    lateinit var mockAndroidVariant: com.android.build.gradle.api.ApplicationVariant
 
     @BeforeEach
     fun `set up`() {

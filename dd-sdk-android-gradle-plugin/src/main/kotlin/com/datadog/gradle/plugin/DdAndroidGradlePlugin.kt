@@ -8,7 +8,6 @@ package com.datadog.gradle.plugin
 
 import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
-import com.android.build.gradle.AppExtension
 import com.datadog.gradle.plugin.internal.ApiKey
 import com.datadog.gradle.plugin.internal.ApiKeySource
 import com.datadog.gradle.plugin.internal.ApiKeySource.ENVIRONMENT
@@ -177,8 +176,8 @@ class DdAndroidGradlePlugin @Inject constructor(
      * Resolves the Datadog API key from multiple sources using lazy evaluation.
      *
      * The API key is resolved in the following priority order (first match wins):
-     * 1. DD_API_KEY gradle property (e.g., -PDD_API_KEY=xxx or gradle.properties)
-     * 2. DATADOG_API_KEY gradle property (e.g., -PDATADOG_API_KEY=xxx or gradle.properties)
+     * 1. DD_API_KEY Gradle property (e.g., -PDD_API_KEY=xxx or gradle.properties)
+     * 2. DATADOG_API_KEY Gradle property (e.g., -PDATADOG_API_KEY=xxx or gradle.properties)
      * 3. DD_API_KEY environment variable
      * 4. DATADOG_API_KEY environment variable
      * 5. apiKey field in datadog-ci.json file (searched in project directory and parent directories)
@@ -515,14 +514,18 @@ class DdAndroidGradlePlugin @Inject constructor(
         return isDefaultObfuscationEnabled || isNonDefaultObfuscationEnabled
     }
 
+    // AGP 8.0–8.3 and the forced legacy variant API still use AppExtension.
+    @Suppress("DEPRECATION")
     private val Project.isAndroidAppPluginApplied: Boolean
         get() = extensions.findByName("android")?.let {
             // legacy vs new API
-            it is AppExtension || it is ApplicationExtension
+            it is com.android.build.gradle.AppExtension || it is ApplicationExtension
         } ?: false
 
-    private val Project.legacyAndroidApplicationExtension: AppExtension?
-        get() = extensions.findByType(AppExtension::class.java)
+    // The legacy variant API requires this extension on supported older AGP versions.
+    @Suppress("DEPRECATION")
+    private val Project.legacyAndroidApplicationExtension: com.android.build.gradle.AppExtension?
+        get() = extensions.findByType(com.android.build.gradle.AppExtension::class.java)
 
     private val Project.androidApplicationComponentExtension: ApplicationAndroidComponentsExtension?
         get() = extensions.findByType(ApplicationAndroidComponentsExtension::class.java)

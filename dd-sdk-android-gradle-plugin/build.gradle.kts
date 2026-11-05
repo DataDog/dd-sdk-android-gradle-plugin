@@ -45,6 +45,7 @@ dependencies {
     implementation(libs.json)
     // Compile-only dependencies
     compileOnly(libs.androidToolsGradlePlugin) // for auto-wiring into Android projects
+    compileOnly(libs.androidToolsCommon) { isTransitive = false }
     compileOnly(libs.kotlinGradlePluginApi21)
 
     // Test dependencies

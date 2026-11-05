@@ -6,8 +6,6 @@
 
 package com.datadog.gradle.plugin.internal.variant
 
-import com.android.build.gradle.AppExtension
-import com.android.build.gradle.api.ApplicationVariant
 import com.datadog.gradle.plugin.DdAndroidGradlePlugin
 import com.datadog.gradle.plugin.GenerateBuildIdTask
 import com.datadog.gradle.plugin.MappingFileUploadTask
@@ -25,8 +23,11 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 internal class LegacyApiAppVariant(
-    private val variant: ApplicationVariant,
-    private val appExtension: AppExtension,
+    // AGP 8.0–8.3 and the forced legacy variant API require these types.
+    @Suppress("DEPRECATION")
+    private val variant: com.android.build.gradle.api.ApplicationVariant,
+    @Suppress("DEPRECATION")
+    private val appExtension: com.android.build.gradle.AppExtension,
     private val target: Project
 ) : AppVariant {
 

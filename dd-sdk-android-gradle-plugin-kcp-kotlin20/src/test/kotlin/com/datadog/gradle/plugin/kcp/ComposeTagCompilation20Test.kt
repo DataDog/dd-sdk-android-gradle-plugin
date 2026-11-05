@@ -16,6 +16,8 @@ class ComposeTagCompilation20Test : ComposeTagCompilationTest() {
         compilation: KotlinCompilation,
         instrumentationMode: InstrumentationMode
     ) {
+        // ComponentRegistrar preserves the ordering before Compose required by DatadogPluginRegistrar.
+        @Suppress("DEPRECATION")
         compilation.componentRegistrars = listOf(DatadogPluginRegistrarImpl(instrumentationMode))
     }
 }

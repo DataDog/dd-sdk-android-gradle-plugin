@@ -16,6 +16,8 @@ class ComposeNavHostCompilation22Test : ComposeNavHostCompilationTest() {
         compilation: KotlinCompilation,
         instrumentationMode: InstrumentationMode
     ) {
+        // ComponentRegistrar preserves the ordering before Compose required by DatadogPluginRegistrar.
+        @Suppress("DEPRECATION")
         compilation.componentRegistrars = listOf(DatadogPluginRegistrarImpl(instrumentationMode))
     }
 }

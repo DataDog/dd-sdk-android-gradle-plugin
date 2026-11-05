@@ -20,6 +20,7 @@ import,androidx.constraintlayout,Apache-2.0,Copyright 2018 The Android Open Sour
 import,androidx.core,Apache-2.0,Copyright 2018 The Android Open Source Project
 import,androidx.lifecycle,Apache-2.0,Copyright 2018 The Android Open Source Project
 import,androidx.navigation,Apache-2.0,Copyright 2018 The Android Open Source Project
+import,com.android.tools,Apache-2.0,"Copyright (c) 2005-2013, The Android Open Source Project"
 import,com.datadoghq,Apache-2.0,"Copyright 2017 Datadog, Inc"
 import,com.google.auto.service,Apache-2.0,Copyright 2013 Google LLC
 import,com.squareup.okhttp3,Apache-2.0,"Copyright 2019 Square, Inc"
