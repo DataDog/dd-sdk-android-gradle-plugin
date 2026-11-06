@@ -175,7 +175,7 @@ test:plugin:
     - dd-sts exchange --policy dd-sdk-android-gradle-plugin -- datadog-ci coverage upload --flags plugin "**/build/reports/kover/report.xml" || true
   artifacts:
     reports:
-      junit: dd-sdk-android-gradle-plugin/build/test-results/test/TEST-*.xml
+      junit: dd-sdk-android-gradle-plugin/build/test-results/*/TEST-*.xml
 
 test:common:
   extends: .gradle-cache-job

@@ -27,6 +27,9 @@ The whole project is covered by a set of static analysis tools, linters and test
 # launches the unit tests
 ./gradlew :dd-sdk-android-gradle-plugin:test
 
+# launches the Compose integration test
+./gradlew :dd-sdk-android-gradle-plugin:composeIntegrationTest
+
 # launches the ktlint check for all Kotlin files
 ./gradlew ktlintCheckAll
 
