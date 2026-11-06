@@ -311,61 +311,86 @@ internal class DdAndroidGradlePluginFunctionalTest {
     }
 
     @Test
-    fun `M success W assembleRelease { configuration cache, checkProjectDependencies enabled }`() {
+    fun `M reuse configuration cache W checkSdkDeps { transitive SDK present }`(forge: Forge) {
         // Given
-        // depends on https://github.com/gradle/gradle/issues/12871, which was released only with Gradle 7.5
-        buildVersionConfig = LATEST_VERSIONS_TEST_CONFIGURATION
-        stubGradleBuildFromResourceFile(
-            "lib_module_build.gradle",
-            libModuleBuildGradleFile,
-            overwrite = true
-        )
-        stubGradlePropertiesFile(LATEST_VERSIONS_TEST_CONFIGURATION)
-        stubGradleBuildFromResourceFile(
-            "build_with_datadog_dep.gradle",
-            appBuildGradleFile
-        )
+        stubSdkDependencyCheck(forge.anElementFrom(SdkCheckLevel.WARN, SdkCheckLevel.FAIL))
+        appBuildGradleFile.appendText("\ndependencies { implementation project(':samples:lib-module') }\n")
+        libModuleBuildGradleFile.appendText("\ndependencies { api(rootProject.ext.datadogSdkDependency) }\n")
+        val taskPath = ":samples:app:checkSdkDepsDemoBlueDebug"
+        val runner = gradleRunner {
+            withArguments(
+                taskPath,
+                "--configuration-cache",
+                "--configuration-cache-problems=fail",
+                "--info",
+                "--stacktrace"
+            )
+        }
 
         // When
-        val result = gradleRunner(gradleVersion = LATEST_VERSIONS_TEST_CONFIGURATION.gradleVersion) {
-            withArguments(
-                "--configuration-cache",
-                "--stacktrace",
-                ":samples:app:assembleRelease"
-            )
-        }.build()
+        val firstResult = runner.build()
+        val secondResult = runner.build()
 
         // Then
-        assertThat(result).hasSuccessfulTaskOutcome(":samples:app:assembleRelease")
+        listOf(firstResult, secondResult).forEach { result ->
+            assertThat(result).hasSuccessfulTaskOutcome(taskPath)
+            assertThat(result.output).doesNotContain(
+                "doesn't have Datadog SDK included",
+                "Couldn't resolve configuration"
+            )
+        }
+        assertThat(firstResult.output).contains("Configuration cache entry stored")
+        assertThat(secondResult.output).contains("Reusing configuration cache")
     }
 
-    @Disabled(
-        "This test is ignored for now as we are using the Configuration object at the " +
-            "task action level in our DdCheckSdkDepsTask and this is breaking " +
-            "the --configuration-cache. There is no workaround this yet and this is " +
-            "also present in some internal build.gradle tasks (see the test comment above)"
-    )
     @Test
-    fun `M success W assembleDebug { configuration cache, checkProjectDependencies enabled }`() {
-        // TODO: https://datadoghq.atlassian.net/browse/RUMM-1893
-
+    fun `M warn or fail W checkSdkDeps { SDK missing, configuration cache reused }`(forge: Forge) {
         // Given
-        stubGradleBuildFromResourceFile(
-            "build_with_datadog_dep.gradle",
-            appBuildGradleFile
-        )
+        val fakeSdkCheckLevel = forge.anElementFrom(SdkCheckLevel.WARN, SdkCheckLevel.FAIL)
+        stubSdkDependencyCheck(fakeSdkCheckLevel)
+        val taskPath = ":samples:app:checkSdkDepsDemoBlueDebug"
+        val runner = gradleRunner {
+            withArguments(taskPath, "--configuration-cache", "--configuration-cache-problems=fail", "--stacktrace")
+        }
 
         // When
-        val result = gradleRunner {
-            withArguments(
-                "--configuration-cache",
-                "--stacktrace",
-                ":samples:app:assembleDebug"
-            )
-        }.build()
+        val firstResult = if (fakeSdkCheckLevel == SdkCheckLevel.FAIL) runner.buildAndFail() else runner.build()
+        val secondResult = if (fakeSdkCheckLevel == SdkCheckLevel.FAIL) runner.buildAndFail() else runner.build()
 
         // Then
-        assertThat(result).hasSuccessfulTaskOutcome(":samples:app:assembleDebug")
+        val expectedOutcome = if (fakeSdkCheckLevel == SdkCheckLevel.FAIL) TaskOutcome.FAILED else TaskOutcome.SUCCESS
+        listOf(firstResult, secondResult).forEach { result ->
+            assertThat(checkNotNull(result.task(taskPath)).outcome).isEqualTo(expectedOutcome)
+            assertThat(result.output)
+                .contains("Following application variant doesn't have Datadog SDK included: demoBlueDebug")
+        }
+        assertThat(firstResult.output).contains("Configuration cache entry stored")
+        assertThat(secondResult.output).contains("Reusing configuration cache")
+    }
+
+    @Test
+    fun `M warn about resolution failures W checkSdkDeps { configuration cache reused }`(forge: Forge) {
+        // Given
+        stubSdkDependencyCheck(forge.anElementFrom(SdkCheckLevel.WARN, SdkCheckLevel.FAIL))
+        stubConflictingDependencies(forge)
+        val taskPath = ":samples:app:checkSdkDepsDemoBlueDebug"
+        val runner = gradleRunner {
+            withArguments(taskPath, "--configuration-cache", "--configuration-cache-problems=fail", "--stacktrace")
+        }
+
+        // When
+        val firstResult = runner.build()
+        val secondResult = runner.build()
+
+        // Then
+        listOf(firstResult, secondResult).forEach { result ->
+            assertThat(result).hasSuccessfulTaskOutcome(taskPath)
+            assertThat(result.output).contains("Couldn't resolve configuration demoBlueDebugCompileClasspath")
+            assertThat(result.output.lowercase(Locale.US)).contains("conflict")
+            assertThat(result.output).doesNotContain("doesn't have Datadog SDK included")
+        }
+        assertThat(firstResult.output).contains("Configuration cache entry stored")
+        assertThat(secondResult.output).contains("Reusing configuration cache")
     }
 
     @Test
@@ -441,7 +466,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
     }
 
     @Test
-    fun `M success W assembleDebug { Datadog SDK not in deps, checkDependencies to warn }`() {
+    fun `M success W assembleDebug { Datadog SDK not in deps, checkDependencies to warn, configuration cache }`() {
         // Given
         stubGradleBuildFromResourceFile(
             "build_with_check_deps_set_to_warn.gradle",
@@ -449,7 +474,9 @@ internal class DdAndroidGradlePluginFunctionalTest {
         )
 
         // When
-        val result = gradleRunner { withArguments("--info", ":samples:app:assembleDebug") }.build()
+        val result = gradleRunner {
+            withArguments("--info", "--configuration-cache", ":samples:app:assembleDebug")
+        }.build()
 
         // Then
         assertThat(result).hasSuccessfulTaskOutcome(":samples:app:assembleDebug")
@@ -1790,6 +1817,51 @@ internal class DdAndroidGradlePluginFunctionalTest {
         }
     }
 
+    private fun stubSdkDependencyCheck(fakeSdkCheckLevel: SdkCheckLevel) {
+        stubGradleBuildFromResourceFile("build_without_datadog_dep.gradle", appBuildGradleFile)
+        appBuildGradleFile.appendText(
+            "\ndatadog { checkProjectDependencies = '${fakeSdkCheckLevel.name.lowercase(Locale.US)}' }\n"
+        )
+    }
+
+    private fun stubConflictingDependencies(forge: Forge) {
+        val fakeGroup = forge.anAlphabeticalString().lowercase(Locale.US)
+        val fakeModule = forge.anAlphabeticalString().lowercase(Locale.US)
+        listOf("1.0", "2.0").forEach { version ->
+            val moduleDirectory = File(testProjectDir, "repository/$fakeGroup/$fakeModule/$version")
+            moduleDirectory.mkdirs()
+            File(moduleDirectory, "$fakeModule-$version.pom").writeText(
+                """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>$fakeGroup</groupId>
+                    <artifactId>$fakeModule</artifactId>
+                    <version>$version</version>
+                    <packaging>pom</packaging>
+                </project>
+                """.trimIndent()
+            )
+        }
+        appBuildGradleFile.appendText(
+            """
+
+            repositories {
+                exclusiveContent {
+                    forRepository { maven { url = rootProject.file('repository') } }
+                    filter { includeGroup('$fakeGroup') }
+                }
+            }
+            configurations.matching { it.name == 'demoBlueDebugCompileClasspath' }.configureEach {
+                resolutionStrategy.failOnVersionConflict()
+            }
+            dependencies {
+                implementation '$fakeGroup:$fakeModule:1.0'
+                implementation '$fakeGroup:$fakeModule:2.0'
+            }
+            """.trimIndent()
+        )
+    }
+
     private fun stubNativeFiles() {
         appMainCppSourcesDir = File(appMainSrcDir, "cpp").apply { mkdirs() }
         cmakeFile = File(appMainCppSourcesDir, "CMakeLists.txt")
@@ -1993,7 +2065,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
            android.enableR8.fullMode=false
         """.trimIndent()
 
-        val CMAKE_FILE_CONTENT = """
+        const val CMAKE_FILE_CONTENT = """
             cmake_minimum_required(VERSION 3.4.1)
             project("placeholder")
             add_library( ${"\${CMAKE_PROJECT_NAME}"} SHARED

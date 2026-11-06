@@ -7,16 +7,13 @@
 package com.datadog.gradle.plugin
 
 import com.datadog.gradle.plugin.internal.MissingSdkException
+import com.datadog.gradle.plugin.internal.SdkSearchResult
 import org.gradle.api.DefaultTask
-import org.gradle.api.artifacts.ResolveException
-import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
-import java.util.LinkedList
 import java.util.Locale
-import java.util.Queue
 
 /**
  * A Gradle task to check the Datadog SDK throughout the variant dependencies.
@@ -42,12 +39,11 @@ abstract class CheckSdkDepsTask : DefaultTask() {
     abstract val variantName: Property<String>
 
     @get:Internal
-    internal var isLastRunSuccessful: Boolean = true
+    internal abstract val sdkSearchResult: Property<SdkSearchResult>
 
     init {
         group = DdAndroidGradlePlugin.DATADOG_TASK_GROUP
         description = "Checks for the Datadog SDK into your variant dependencies."
-        outputs.upToDateWhen { it is CheckSdkDepsTask && it.isLastRunSuccessful }
     }
 
     /**
@@ -56,88 +52,41 @@ abstract class CheckSdkDepsTask : DefaultTask() {
     @Suppress("ThrowsCount")
     @TaskAction
     fun applyTask() {
-        val configuration =
-            project.configurations.firstOrNull { it.name == configurationName.get() }
-
-        if (configuration == null) {
-            logger.info(
-                CANNOT_FIND_CONFIGURATION_MESSAGE.format(
-                    Locale.US,
-                    configurationName.get(),
-                    variantName.get()
-                )
+        when (val result = sdkSearchResult.get()) {
+            is SdkSearchResult.Present -> Unit
+            is SdkSearchResult.Unresolved -> logger.warn(
+                CANNOT_RESOLVE_CONFIGURATION_MESSAGE.format(Locale.US, configurationName.get(), result.message)
             )
-            return
-        }
-
-        val resolvedConfiguration = configuration.resolvedConfiguration
-
-        if (resolvedConfiguration.hasError()) {
-            val failure = try {
-                resolvedConfiguration.rethrowFailure()
-                error(
-                    "Expected to throw" +
-                        " ${ResolveException::class.qualifiedName}, but this didn't happen"
-                )
-            } catch (re: ResolveException) {
-                re
-            }
-            logger.warn("Couldn't resolve configuration ${configurationName.get()}", failure)
-            return
-        }
-
-        val topDependencies = resolvedConfiguration.firstLevelModuleDependencies
-        if (!isDatadogDependencyPresent(topDependencies)) {
-            isLastRunSuccessful = false
-            when (sdkCheckLevel.get()) {
-                SdkCheckLevel.FAIL -> {
-                    throw MissingSdkException(
-                        MISSING_DD_SDK_MESSAGE.format(Locale.US, variantName.get())
-                    )
-                }
-                SdkCheckLevel.WARN -> {
-                    logger.warn(
-                        MISSING_DD_SDK_MESSAGE.format(
-                            Locale.US,
-                            variantName.get()
+            is SdkSearchResult.Absent -> {
+                val checkLevel = sdkCheckLevel.get()
+                when (checkLevel) {
+                    SdkCheckLevel.FAIL -> {
+                        throw MissingSdkException(
+                            MISSING_DD_SDK_MESSAGE.format(Locale.US, variantName.get())
                         )
-                    )
-                }
-                else -> {
-                    throw IllegalArgumentException(
-                        "This should never happen," +
-                            " value=$sdkCheckLevel is not handled"
-                    )
+                    }
+                    SdkCheckLevel.WARN -> {
+                        logger.warn(
+                            MISSING_DD_SDK_MESSAGE.format(
+                                Locale.US,
+                                variantName.get()
+                            )
+                        )
+                    }
+                    else -> {
+                        throw IllegalArgumentException(
+                            "This should never happen," +
+                                " value=$checkLevel is not handled"
+                        )
+                    }
                 }
             }
-        } else {
-            isLastRunSuccessful = true
         }
-    }
-
-    internal fun isDatadogDependencyPresent(dependencies: Set<ResolvedDependency>): Boolean {
-        val queue: Queue<ResolvedDependency> = LinkedList(dependencies)
-        while (queue.isNotEmpty()) {
-            val dep = queue.remove()
-            if (dep.moduleGroup == DD_SDK_GROUP &&
-                (dep.moduleName == DD_SDK_V1_NAME || dep.moduleName == DD_SDK_V2_CORE_NAME)
-            ) {
-                return true
-            }
-            queue.addAll(dep.children)
-        }
-        return false
     }
 
     internal companion object {
         internal const val MISSING_DD_SDK_MESSAGE = "Following application variant doesn't" +
             " have Datadog SDK included: %s"
-        internal const val CANNOT_FIND_CONFIGURATION_MESSAGE = "Cannot find configuration %s for" +
-            " the variant %s in the configurations list, please" +
-            " report the issue at" +
-            " https://github.com/DataDog/dd-sdk-android-gradle-plugin/issues"
-        internal const val DD_SDK_V1_NAME = "dd-sdk-android"
-        internal const val DD_SDK_V2_CORE_NAME = "dd-sdk-android-core"
-        internal const val DD_SDK_GROUP = "com.datadoghq"
+        internal const val CANNOT_RESOLVE_CONFIGURATION_MESSAGE = "Couldn't resolve configuration %s:\n%s"
     }
 }
