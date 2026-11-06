@@ -16,8 +16,6 @@ plugins {
     alias(libs.plugins.detektGradlePlugin)
 
     id("datadogBuildConfig")
-
-//    id("com.datadoghq.dd-sdk-android-gradle-plugin")
 }
 
 android {
@@ -81,7 +79,7 @@ android {
 
 datadogBuildConfig {
     applyKotlinConfig()
-    // Colours don't have dedicated sources, analyzing one variant per version flavor is enough
+    // Colors don't have dedicated sources, analyzing one variant per version flavor is enough
     // (Detekt matches the combined flavor name of each variant)
     applyDetektConfig(
         ignoredFlavors = listOf("demoGreen", "demoBlue", "fullGreen", "fullBlue", "proGreen", "proBlue")
@@ -96,24 +94,3 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.constraintlayout)
 }
-
-/*
-datadog {
-    site = "US"
-    checkProjectDependencies = com.datadog.gradle.plugin.SdkCheckLevel.FAIL
-    mappingFilePath = "path/to/mapping.txt"
-
-    variants {
-        register("demo") {
-            site = "US3"
-            versionName = "demo"
-        }
-        register("full") {
-            versionName = "full"
-        }
-        register("pro") {
-            versionName = "pro"
-        }
-    }
-}
-*/

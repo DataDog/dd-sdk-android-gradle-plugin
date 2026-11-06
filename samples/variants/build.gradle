@@ -16,8 +16,6 @@ plugins {
     id('dev.detekt')
 
     id 'datadogBuildConfig'
-
-    // id 'com.datadoghq.dd-sdk-android-gradle-plugin'
 }
 
 android {
@@ -92,24 +90,4 @@ dependencies {
     implementation(libs.androidx.core)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.constraintlayout)
-
-    // implementation(libs.datadogSdkRum)
 }
-
-//datadog {
-//    site = "US"
-//    checkProjectDependencies = "fail"
-//    mappingFilePath = "path/to/mapping.txt"
-//    variants {
-//        demo {
-//            versionName = "demo"
-//        }
-//        full {
-//            versionName = "full"
-//        }
-//        pro {
-//            site = "GOV"
-//            versionName = "pro"
-//        }
-//    }
-//}
