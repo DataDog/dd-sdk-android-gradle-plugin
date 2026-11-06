@@ -9,10 +9,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     alias(libs.plugins.androidApplicationPlugin)
-    // Applied before Kotlin on purpose: ktlint-gradle registers Android source-set tasks twice
-    // when it is applied after the Kotlin plugin.
     id("ktlint")
-    kotlin("android")
     alias(libs.plugins.kotlinComposePlugin)
 
     // Analysis tools
