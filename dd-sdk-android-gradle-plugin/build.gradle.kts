@@ -5,6 +5,8 @@
  */
 
 import com.datadog.gradle.config.MavenConfig
+import org.gradle.api.artifacts.result.ResolvedDependencyResult
+import org.gradle.api.artifacts.result.UnresolvedDependencyResult
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 plugins {
@@ -38,6 +40,17 @@ buildConfig {
     buildConfigField("DD_PLUGIN_VERSION", MavenConfig.VERSION.name)
 }
 
+// Check for SDK releases before deciding whether functional test results can be reused.
+val functionalTestSdk = configurations.create("functionalTestSdk") {
+    isCanBeConsumed = false
+    isCanBeResolved = true
+    isTransitive = false
+    // CI checks every run; local builds keep Gradle's default 24-hour cache.
+    if (providers.environmentVariable("CI").orNull == "true") {
+        resolutionStrategy.cacheDynamicVersionsFor(0, "seconds")
+    }
+}
+
 dependencies {
     // Main implementation dependencies
     implementation(kotlin("stdlib"))
@@ -54,6 +67,7 @@ dependencies {
     testImplementation(libs.okHttpMock)
     testImplementation(libs.androidToolsGradlePlugin)
     testImplementation(libs.kotlinGradlePlugin21)
+    add(functionalTestSdk.name, "com.datadoghq:dd-sdk-android-rum:latest.release")
 }
 
 datadogBuildConfig {
@@ -87,13 +101,20 @@ gradlePlugin {
 
 tasks.withType<Test> {
     dependsOn("pluginUnderTestMetadata")
+    val sdkVersion = functionalTestSdk.incoming.resolutionResult.rootComponent.map { root ->
+        val dependency = root.dependencies.single()
+        if (dependency is UnresolvedDependencyResult) throw dependency.failure
+        requireNotNull((dependency as ResolvedDependencyResult).selected.moduleVersion).version
+    }
+    inputs.property("datadogSdkVersion", sdkVersion)
+
     // Some Gradle versions used in functional tests (e.g. 8.0) cannot run on the toolchain JDK
     @Suppress("MagicNumber")
     val jdk17Launcher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(17) }
     jvmArgumentProviders.add(
         CommandLineArgumentProvider {
             val jdk17Home = jdk17Launcher.get().metadata.installationPath.asFile.invariantSeparatorsPath
-            listOf("-Ddd.jdk17.home=$jdk17Home")
+            listOf("-Ddd.jdk17.home=$jdk17Home", "-Ddd.sdk.version=${sdkVersion.get()}")
         }
     )
 }
