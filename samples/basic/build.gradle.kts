@@ -14,6 +14,8 @@ plugins {
     alias(libs.plugins.detektGradlePlugin)
 
     id("datadogBuildConfig")
+
+    // id("com.datadoghq.dd-sdk-android-gradle-plugin")
 }
 
 android {
@@ -58,4 +60,11 @@ dependencies {
     implementation(libs.androidx.core)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.constraintlayout)
+
+    // implementation(libs.datadogSdkRum)
 }
+
+// datadog {
+//    site = "US"
+//    versionName = "prod"
+// }
