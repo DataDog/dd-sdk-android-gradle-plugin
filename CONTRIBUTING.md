@@ -87,7 +87,7 @@ the bug are best.
 ## Have a patch?
 
 We welcome code contributions to the library, which you can 
-[submit as a pull request](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/new/master).
+[submit as a pull request](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/new/develop).
 Before you submit a PR, make sure that you first create an Issue to explain the
 bug or the feature your patch covers, and make sure another Issue or PR doesn't
 already exist.
