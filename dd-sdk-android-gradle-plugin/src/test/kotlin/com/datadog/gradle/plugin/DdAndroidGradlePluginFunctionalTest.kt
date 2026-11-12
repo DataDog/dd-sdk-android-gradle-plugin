@@ -311,47 +311,10 @@ internal class DdAndroidGradlePluginFunctionalTest {
     }
 
     @Test
-    fun `M success W assembleRelease { configuration cache, checkProjectDependencies enabled }`() {
-        // Given
-        // depends on https://github.com/gradle/gradle/issues/12871, which was released only with Gradle 7.5
-        buildVersionConfig = LATEST_VERSIONS_TEST_CONFIGURATION
-        stubGradleBuildFromResourceFile(
-            "lib_module_build.gradle",
-            libModuleBuildGradleFile,
-            overwrite = true
-        )
-        stubGradlePropertiesFile(LATEST_VERSIONS_TEST_CONFIGURATION)
-        stubGradleBuildFromResourceFile(
-            "build_with_datadog_dep.gradle",
-            appBuildGradleFile
-        )
-
-        // When
-        val result = gradleRunner(gradleVersion = LATEST_VERSIONS_TEST_CONFIGURATION.gradleVersion) {
-            withArguments(
-                "--configuration-cache",
-                "--stacktrace",
-                ":samples:app:assembleRelease"
-            )
-        }.build()
-
-        // Then
-        assertThat(result).hasSuccessfulTaskOutcome(":samples:app:assembleRelease")
-    }
-
-    @Disabled(
-        "This test is ignored for now as we are using the Configuration object at the " +
-            "task action level in our DdCheckSdkDepsTask and this is breaking " +
-            "the --configuration-cache. There is no workaround this yet and this is " +
-            "also present in some internal build.gradle tasks (see the test comment above)"
-    )
-    @Test
     fun `M success W assembleDebug { configuration cache, checkProjectDependencies enabled }`() {
-        // TODO: https://datadoghq.atlassian.net/browse/RUMM-1893
-
         // Given
         stubGradleBuildFromResourceFile(
-            "build_with_datadog_dep.gradle",
+            "build_with_check_deps_set_to_warn.gradle",
             appBuildGradleFile
         )
 
@@ -366,6 +329,9 @@ internal class DdAndroidGradlePluginFunctionalTest {
 
         // Then
         assertThat(result).hasSuccessfulTaskOutcome(":samples:app:assembleDebug")
+        assertThat(result.output).containsOnlyOnce(DdAndroidGradlePlugin.SDK_CHECK_DEPRECATION_MESSAGE)
+        assertThat(result).containsInOutput("Following application variant doesn't have Datadog SDK included")
+        assertThat(result).containsInOutput("Configuration cache entry discarded")
     }
 
     @Test
@@ -387,6 +353,7 @@ internal class DdAndroidGradlePluginFunctionalTest {
 
         // Then
         assertThat(result).hasSuccessfulTaskOutcome(":samples:app:assembleDebug")
+        assertThat(result).doesNotContainInOutput(DdAndroidGradlePlugin.SDK_CHECK_DEPRECATION_MESSAGE)
     }
 
     @Test

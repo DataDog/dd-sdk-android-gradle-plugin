@@ -33,6 +33,7 @@ internal class DdAndroidGradlePluginConfigureVariantForSdkCheckTest : DdAndroidG
         @StringForgery configurationName: String
     ) {
         // Given
+        @Suppress("DEPRECATION")
         fakeExtension.checkProjectDependencies = null
         val variantName = "$flavorName${buildTypeName.replaceFirstChar { capitalizeChar(it) }}"
         whenever(mockVariant.name) doReturn variantName
@@ -70,6 +71,7 @@ internal class DdAndroidGradlePluginConfigureVariantForSdkCheckTest : DdAndroidG
         @StringForgery packageName: String
     ) {
         // Given
+        @Suppress("DEPRECATION")
         fakeExtension.checkProjectDependencies = SdkCheckLevel.NONE
         val variantName = "$flavorName${buildTypeName.replaceFirstChar { capitalizeChar(it) }}"
         whenever(mockVariant.name) doReturn variantName

@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.whenever
 
+@Suppress("DEPRECATION")
 internal class DdAndroidGradlePluginResolveExtensionConfigurationTest : DdAndroidGradlePluginTestBase() {
 
     @Test

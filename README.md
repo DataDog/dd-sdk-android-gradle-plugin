@@ -63,7 +63,6 @@ datadog {
     versionName = "1.3.0" // Optional, by default it is read from your Android plugin configuration's version name
     serviceName = "my-service" // Optional, by default it is read from your Android plugin configuration's package name
     site = "US1" // Optional, can be "US1", "EU1" or "US1_FED", etc. (check `DatadogSite` documentation for the full list). Default is "US1"
-    checkProjectDependencies = "warn" // Optional, can be "warn", "fail" or "none". Default is "fail". Will check if Datadog SDK is in the project dependencies.
     mappingFilePath = "path/to/mapping.txt" // Optional, provides a custom mapping file path. Default is "build/outputs/mapping/{variant}/mapping.txt".
     nonDefaultObfuscation = false // Optional, to be used if a 3rd-party obfuscation tool is used. Default is false.
     ignoreDatadogCiFileConfig = false // Optional, ignore configuration provided in `datadog-ci.json` file if found. Default is false.
@@ -103,15 +102,11 @@ datadog {
 
 ### Gradle configuration cache support
 
-This plugin supports [Gradle configuration cache](https://docs.gradle.org/7.1/userguide/configuration_cache.html) starting from the version `1.1.0`, but to have this support you need to disable SDK dependency check by setting `checkProjectDependencies` to `none`:
+This plugin supports [Gradle configuration cache](https://docs.gradle.org/current/userguide/configuration_cache.html).
 
-```
-datadog {
-    ...
-    checkProjectDependencies = "none"
-    ...
-}
-```
+The SDK dependency check (`checkProjectDependencies`) is deprecated and will be removed in the next major
+version. It is disabled by default and isn't compatible with the configuration cache: if you enable it,
+builds that run the check still work, but Gradle doesn't store a configuration cache entry for them.
 
 For more information, see [Android Crash Reporting and Error Tracking](https://docs.datadoghq.com/real_user_monitoring/error_tracking/android/).
 
