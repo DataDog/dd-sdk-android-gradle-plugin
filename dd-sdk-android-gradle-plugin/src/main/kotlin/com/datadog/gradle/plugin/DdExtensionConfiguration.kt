@@ -44,7 +44,11 @@ open class DdExtensionConfiguration(
      * and if it is not: "none" - ignore (default), "warn" - log a warning, "fail" - fail the build
      * with an error.
      */
-    // TODO RUMM-2344
+    @Deprecated(
+        message = "The SDK dependency check is not compatible with the Gradle configuration cache" +
+            " and can report the SDK as missing when another module declares it. This property" +
+            " will be removed in the next major version."
+    )
     var checkProjectDependencies: SdkCheckLevel? = null
 
     /**
@@ -129,6 +133,7 @@ open class DdExtensionConfiguration(
         config.serviceName?.let { serviceName = it }
         config.site?.let { site = it }
         config.remoteRepositoryUrl?.let { remoteRepositoryUrl = it }
+        @Suppress("DEPRECATION")
         config.checkProjectDependencies?.let { checkProjectDependencies = it }
         config.mappingFilePath?.let { mappingFilePath = it }
         config.additionalSymbolFilesLocations?.let { additionalSymbolFilesLocations = it }
