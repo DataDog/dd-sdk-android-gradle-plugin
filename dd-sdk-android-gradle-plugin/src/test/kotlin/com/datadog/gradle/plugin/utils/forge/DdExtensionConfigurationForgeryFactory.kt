@@ -21,6 +21,7 @@ internal class DdExtensionConfigurationForgeryFactory : ForgeryFactory<DdExtensi
             remoteRepositoryUrl = forge.aStringMatching(
                 "https://[a-z]{4,10}\\.[com|org]/[a-z]{4,10}/[a-z]{4,10}\\.git"
             )
+            @Suppress("DEPRECATION")
             checkProjectDependencies = forge.aValueFrom(SdkCheckLevel::class.java)
             mappingFilePath = forge.aStringMatching(
                 "([a-z]+)/([a-z]+)/([a-z]+)/mapping.txt"

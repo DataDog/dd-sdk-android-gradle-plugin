@@ -10,10 +10,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 plugins {
     id 'com.android.application'
-    // Applied before Kotlin on purpose: ktlint-gradle registers Android source-set tasks twice
-    // when it is applied after the Kotlin plugin.
     id 'ktlint'
-    id 'kotlin-android'
 
     // Analysis tools
     id('dev.detekt')
@@ -45,10 +42,6 @@ android {
     }
 
     namespace = "com.datadog.example.variants"
-
-    sourceSets.named("main") {
-        java.srcDir("src/main/kotlin")
-    }
 
     flavorDimensions("version", "colour")
     productFlavors {

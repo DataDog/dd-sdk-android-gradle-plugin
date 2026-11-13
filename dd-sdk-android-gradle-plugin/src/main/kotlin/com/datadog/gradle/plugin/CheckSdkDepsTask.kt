@@ -48,6 +48,7 @@ abstract class CheckSdkDepsTask : DefaultTask() {
         group = DdAndroidGradlePlugin.DATADOG_TASK_GROUP
         description = "Checks for the Datadog SDK into your variant dependencies."
         outputs.upToDateWhen { it is CheckSdkDepsTask && it.isLastRunSuccessful }
+        notCompatibleWithConfigurationCache("Resolves the variant dependencies at execution time.")
     }
 
     /**

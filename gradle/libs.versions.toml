@@ -45,8 +45,7 @@ buildConfig = "6.0.10"
 dependencyLicense="0.8.1"
 
 # Datadog
-datadogSdk = "3.16.0"
-datadogSdkSnapshot = "3.16.0-SNAPSHOT"
+datadogSdk = "latest.integration"
 datadogPluginGradle = "1.32.0"
 
 # Kotlin Compiler Plugin
@@ -110,10 +109,6 @@ okHttpMock = { module = "com.squareup.okhttp3:mockwebserver", version.ref = "okH
 datadogSdkRum = { module = "com.datadoghq:dd-sdk-android-rum", version.ref = "datadogSdk" }
 datadogSdkCompose = { module = "com.datadoghq:dd-sdk-android-compose", version.ref = "datadogSdk" }
 datadogPluginGradle = { module = "com.datadoghq:dd-sdk-android-gradle-plugin", version.ref = "datadogPluginGradle" }
-
-# Datadog Snapshot
-datadogSdkRumSnapshot = { module = "com.datadoghq:dd-sdk-android-rum", version.ref = "datadogSdkSnapshot" }
-datadogSdkComposeSnapshot = { module = "com.datadoghq:dd-sdk-android-compose", version.ref = "datadogSdkSnapshot" }
 
 # Kotlin Compiler Plugin
 kotlinCompilerEmbeddable20 = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlin20" }

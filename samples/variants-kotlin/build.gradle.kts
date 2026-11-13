@@ -10,10 +10,7 @@ import com.datadog.gradle.config.AndroidConfig
 
 plugins {
     id("com.android.application")
-    // Applied before Kotlin on purpose: ktlint-gradle registers Android source-set tasks twice
-    // when it is applied after the Kotlin plugin.
     id("ktlint")
-    kotlin("android")
 
     // Analysis tools
     alias(libs.plugins.detektGradlePlugin)
@@ -44,10 +41,6 @@ android {
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
-    }
-
-    sourceSets.named("main") {
-        java.srcDir("src/main/kotlin")
     }
 
     flavorDimensions.add("version")

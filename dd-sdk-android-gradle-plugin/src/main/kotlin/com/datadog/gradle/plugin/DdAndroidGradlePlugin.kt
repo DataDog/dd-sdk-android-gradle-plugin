@@ -43,6 +43,8 @@ class DdAndroidGradlePlugin @Inject constructor(
     private val execOps: ExecOperations
 ) : Plugin<Project> {
 
+    private var isSdkCheckDeprecationLogged = false
+
     // region Plugin
 
     /** @inheritdoc */
@@ -363,20 +365,23 @@ class DdAndroidGradlePlugin @Inject constructor(
                 extension,
                 variant
             )
-            if (extensionConfiguration.checkProjectDependencies == SdkCheckLevel.NONE ||
-                extensionConfiguration.checkProjectDependencies == null
-            ) {
+
+            @Suppress("DEPRECATION")
+            val checkLevel = extensionConfiguration.checkProjectDependencies
+            if (checkLevel == null || checkLevel == SdkCheckLevel.NONE) {
                 return null
             }
+            if (!isSdkCheckDeprecationLogged) {
+                LOGGER.warn(SDK_CHECK_DEPRECATION_MESSAGE)
+                isSdkCheckDeprecationLogged = true
+            }
             val checkDepsTaskName = "checkSdkDeps${variant.name.replaceFirstChar { capitalizeChar(it) }}"
-            val resolvedCheckDependencyFlag =
-                extensionConfiguration.checkProjectDependencies ?: SdkCheckLevel.FAIL
             val checkDepsTaskProvider = target.tasks.register(
                 checkDepsTaskName,
                 CheckSdkDepsTask::class.java
             ) {
                 it.configurationName.set(variant.compileConfiguration.name)
-                it.sdkCheckLevel.set(resolvedCheckDependencyFlag)
+                it.sdkCheckLevel.set(checkLevel)
                 it.variantName.set(variant.name)
             }
             compileTask.finalizedBy(checkDepsTaskProvider)
@@ -552,6 +557,10 @@ class DdAndroidGradlePlugin @Inject constructor(
 
         private const val ERROR_NOT_ANDROID = "The dd-android-gradle-plugin has been applied on " +
             "a non-Android application project"
+
+        internal const val SDK_CHECK_DEPRECATION_MESSAGE = "The `checkProjectDependencies` setting is" +
+            " deprecated and will be removed in the next major version of the Datadog Gradle Plugin." +
+            " Set it to \"none\" or remove it to silence this warning."
 
         private const val MSG_PLUGIN_DISABLED =
             "Datadog extension disabled, no upload task created, no Compose instrumentation applied"
