@@ -12,7 +12,6 @@ import fr.xgouchet.elmyr.junit5.ForgeExtension
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
-import org.gradle.testkit.runner.internal.PluginUnderTestMetadataReading
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.io.TempDir
@@ -73,7 +72,9 @@ internal class ComposeInstrumentationFunctionalTest {
     private fun prepareProject(kotlinVersion: String, datadogFirst: Boolean, builtInKotlin: Boolean) {
         File(projectDir, "settings.gradle.kts").writeText("include(\":app\", \":library\")\n")
         File(projectDir, "local.properties").writeText("sdk.dir=${System.getenv("ANDROID_HOME")}\n")
-        val pluginClasspath = PluginUnderTestMetadataReading.readImplementationClasspath()
+        // Use a separate runner only to read TestKit metadata through its public API.
+        // The runner executing the fixture must not inject this classpath (Gradle #22466).
+        val pluginClasspath = GradleRunner.create().withPluginClasspath().pluginClasspath
             .joinToString(",") { it.absolutePath }
         File(projectDir, "gradle.properties").writeText(
             """

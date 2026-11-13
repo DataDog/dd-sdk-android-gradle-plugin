@@ -14,6 +14,9 @@ buildscript {
         gradlePluginPortal()
     }
     dependencies {
+        // Keep Datadog, AGP and Kotlin in the same buildscript classloader.
+        // TestKit's withPluginClasspath() isolates Datadog from the other plugins:
+        // https://github.com/gradle/gradle/issues/22466
         classpath(files(pluginClasspath.split(",")))
         classpath("com.android.tools.build:gradle:9.3.1")
         classpath("org.jetbrains.kotlin:compose-compiler-gradle-plugin:$kotlinVersion")
