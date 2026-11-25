@@ -40,6 +40,17 @@ buildConfig {
     buildConfigField("DD_PLUGIN_VERSION", MavenConfig.VERSION.name)
 }
 
+// Resolve the locally built compiler plugins as test inputs, without adding them to the test JVM's classpath.
+val compilerPluginTestArtifacts = configurations.create("compilerPluginTestArtifacts") {
+    isCanBeConsumed = false
+    isTransitive = false
+    attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
+    }
+}
+
 // Check for SDK releases before deciding whether functional test results can be reused.
 val functionalTestSdk = configurations.create("functionalTestSdk") {
     isCanBeConsumed = false
@@ -68,6 +79,10 @@ dependencies {
     testImplementation(libs.androidToolsGradlePlugin)
     testImplementation(libs.kotlinGradlePlugin21)
     add(functionalTestSdk.name, "com.datadoghq:dd-sdk-android-rum:latest.release")
+
+    compilerPluginTestArtifacts(project(":dd-sdk-android-gradle-plugin-kcp-common"))
+    compilerPluginTestArtifacts(project(":dd-sdk-android-gradle-plugin-kcp-kotlin22"))
+    compilerPluginTestArtifacts(project(":dd-sdk-android-gradle-plugin-kcp-kotlin24"))
 }
 
 datadogBuildConfig {
@@ -117,4 +132,35 @@ tasks.withType<Test> {
             listOf("-Ddd.jdk17.home=$jdk17Home", "-Ddd.sdk.version=${sdkVersion.get()}")
         }
     )
+}
+
+tasks.test {
+    filter {
+        excludeTestsMatching("com.datadog.gradle.plugin.ComposeInstrumentationFunctionalTest")
+    }
+}
+
+val composeIntegrationTest = tasks.register<Test>("composeIntegrationTest") {
+    group = "verification"
+    description = "Verifies Compose instrumentation through the Datadog Gradle plugin."
+    testClassesDirs = sourceSets.test.get().output.classesDirs
+    classpath = sourceSets.test.get().runtimeClasspath
+    filter {
+        includeTestsMatching("com.datadog.gradle.plugin.ComposeInstrumentationFunctionalTest")
+    }
+    shouldRunAfter(tasks.test)
+
+    val compilerArtifacts = files(compilerPluginTestArtifacts)
+    inputs.files(compilerArtifacts)
+        .withPropertyName("compilerPluginTestArtifacts")
+        .withPathSensitivity(PathSensitivity.NONE)
+    jvmArgumentProviders.add(
+        CommandLineArgumentProvider {
+            listOf("-Ddd.kcp.artifacts=${compilerArtifacts.asPath}")
+        }
+    )
+}
+
+tasks.check {
+    dependsOn(composeIntegrationTest)
 }
